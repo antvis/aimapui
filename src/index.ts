@@ -1,0 +1,159 @@
+/**
+ * @antv/aimapkit
+ * Schema/DSL 驱动的 React 地图可视化组件库
+ */
+
+// 样式
+import './styles/tailwind.css';
+
+// 主入口组件
+export { Aimap } from './components/Aimap';
+export type { AimapProps } from './components/Aimap/types';
+
+// Schema 类型
+export type {
+  AimapSchema,
+  MapSchema,
+  BasemapType,
+  MapStylePreset,
+  GestureConfig,
+  LayerSchema,
+  LayerType,
+  SourceType,
+  SourceConfig,
+  AnimateConfig,
+  ActiveConfig,
+  SelectConfig,
+  ControlSchema,
+  ControlType,
+  ControlPosition,
+  InteractionSchema,
+  MarkerSchema,
+  PopupSchema,
+  TooltipSchema,
+  LegendSchema,
+  LegendCategoriesSchema,
+  LegendRampSchema,
+  LegendProportionSchema,
+  LegendIconSchema,
+  LegendIconItem,
+  ResponsiveSchema,
+  MobileConfig,
+  MobileControlConfig,
+  MobileLayerOverrides,
+  MobileLegendConfig,
+  MobileToolbarConfig,
+  EventSchema,
+  LayerEventSchema,
+  LayerEventPayload,
+  MapEventPayload,
+} from './schema/types';
+
+// Schema 工具
+export { applySchemaDefaults, applyMapDefaults, applyLayerDefaults, applyControlDefaults } from './schema/defaults';
+export { parseSchema, validateSchema } from './core/parser';
+export { diffSchema } from './core/diff';
+export type { SchemaDiffResult } from './core/diff';
+export { validateAimapSchema } from './schema/validator';
+export type { ValidationError } from './schema/validator';
+export { AimapJSONSchema } from './schema/json-schema';
+
+// 事件总线
+export { EventBus, createEventBus } from './core/event-bus';
+
+// Context
+export { SceneProvider, useScene } from './context/SceneContext';
+export { SchemaProvider, useSchema } from './context/SchemaContext';
+export { ResponsiveProvider, useResponsive } from './context/ResponsiveContext';
+export { EventBusProvider, useEventBus } from './context/EventBusContext';
+
+// Hooks
+export { useMapPosition } from './hooks/useMapPosition';
+export type { ScreenPosition } from './hooks/useMapPosition';
+export { useMapControl } from './hooks/useMapControl';
+export type { ControlPosition as L7ControlPosition, ControlProps } from './hooks/useMapControl';
+
+// 底图工厂
+export { createBasemap } from './components/MapScene/basemap-factory';
+
+// 组件
+export { MapSceneRenderer } from './components/MapScene/MapSceneRenderer';
+export { LayerRenderer } from './components/Layer/LayerRenderer';
+export type { LayerEventHandlers } from './components/Layer/SchemaLayer';
+export { ControlRenderer } from './components/Control/ControlRenderer';
+export { ControlContainer } from './components/Control/ControlContainer';
+export { InteractionRenderer } from './components/Interaction/InteractionRenderer';
+export { LegendRenderer } from './components/Legend/LegendRenderer';
+
+// 图层组件（组件化 API）
+export { PointLayer } from './components/Layer/PointLayer';
+export type { PointLayerProps } from './components/Layer/PointLayer';
+export { LineLayer } from './components/Layer/LineLayer';
+export type { LineLayerProps } from './components/Layer/LineLayer';
+export { PolygonLayer } from './components/Layer/PolygonLayer';
+export type { PolygonLayerProps } from './components/Layer/PolygonLayer';
+export { HeatmapLayer } from './components/Layer/HeatmapLayer';
+export type { HeatmapLayerProps } from './components/Layer/HeatmapLayer';
+export { HeatmapHexagonLayer } from './components/CompositeLayer/HeatmapHexagonLayer';
+export type { HeatmapHexagonLayerProps } from './components/CompositeLayer/HeatmapHexagonLayer';
+export { RasterLayer } from './components/Layer/RasterLayer';
+export type { RasterLayerProps } from './components/Layer/RasterLayer';
+export { ImageLayer } from './components/Layer/ImageLayer';
+export type { ImageLayerProps } from './components/Layer/ImageLayer';
+export { BubbleLayer } from './components/CompositeLayer/BubbleLayer';
+export type { BubbleLayerProps } from './components/CompositeLayer/BubbleLayer';
+export { MarkerClusterLayer } from './components/CompositeLayer/MarkerClusterLayer';
+export type { MarkerClusterLayerProps } from './components/CompositeLayer/MarkerClusterLayer';
+export { FillLayer } from './components/CompositeLayer/FillLayer';
+export type { FillLayerProps } from './components/CompositeLayer/FillLayer';
+export { IconFontLayer } from './components/CompositeLayer/IconFontLayer';
+export type { IconFontLayerProps } from './components/CompositeLayer/IconFontLayer';
+export { IconImageLayer } from './components/CompositeLayer/IconImageLayer';
+export type { IconImageLayerProps } from './components/CompositeLayer/IconImageLayer';
+
+// Control 组件
+export { ZoomControl } from './components/Control/ZoomControl';
+export type { ZoomControlProps } from './components/Control/ZoomControl';
+export { ScaleControl } from './components/Control/ScaleControl';
+export type { ScaleControlProps } from './components/Control/ScaleControl';
+export { FullscreenControl } from './components/Control/FullscreenControl';
+export type { FullscreenControlProps } from './components/Control/FullscreenControl';
+export { GeoLocateControl } from './components/Control/GeoLocateControl';
+export type { GeoLocateControlProps } from './components/Control/GeoLocateControl';
+export { MapThemeControl, GAODE_THEME_PRESETS, OPENFREEMAP_THEME_PRESETS, INDEPENDENT_MAP_THEME_PRESETS } from './components/Control/MapThemeControl';
+export type { MapThemeControlProps, ThemeOption } from './components/Control/MapThemeControl';
+export { MouseLocationControl } from './components/Control/MouseLocationControl';
+export type { MouseLocationControlProps } from './components/Control/MouseLocationControl';
+export { ExportImageControl } from './components/Control/ExportImageControl';
+export type { ExportImageControlProps } from './components/Control/ExportImageControl';
+export { LayerSwitchControl } from './components/Control/LayerSwitchControl';
+export type { LayerSwitchControlProps, LayerItem } from './components/Control/LayerSwitchControl';
+
+// Interaction 组件
+export { Marker } from './components/Interaction/Marker';
+export type { MarkerProps } from './components/Interaction/Marker';
+export { Popup } from './components/Interaction/Popup';
+export type { PopupProps, PopupSize } from './components/Interaction/Popup';
+export { Tooltip } from './components/Interaction/Tooltip';
+
+// Legend 组件
+export { LegendCategories } from './components/Legend/LegendCategories';
+export { LegendRamp } from './components/Legend/LegendRamp';
+export { LegendProportion } from './components/Legend/LegendProportion';
+export { LegendIcon } from './components/Legend/LegendIcon';
+
+// Mobile 组件
+export { MobileToolbar } from './components/Mobile/MobileToolbar';
+export { MobileSheetLegend } from './components/Mobile/MobileSheetLegend';
+
+// 图层适配器
+export { adaptPointLayer } from './components/Layer/adapters/point';
+export { adaptLineLayer } from './components/Layer/adapters/line';
+export { adaptPolygonLayer } from './components/Layer/adapters/polygon';
+export { adaptHeatmapLayer } from './components/Layer/adapters/heatmap';
+export { adaptRasterLayer } from './components/Layer/adapters/raster';
+export { adaptImageLayer } from './components/Layer/adapters/image';
+
+// 工具函数
+export { deepMerge, applyResponsiveOverrides } from './utils/deep-merge';
+export { cx, hexToRgba } from './utils/style';

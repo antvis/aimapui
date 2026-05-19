@@ -1,0 +1,1 @@
+export { useSchema } from '../context/SchemaContext';

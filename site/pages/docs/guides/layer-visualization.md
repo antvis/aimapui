@@ -1,0 +1,224 @@
+# 图层可视化
+
+图层是地图可视化的核心,aimapkit 支持多种图层类型,满足不同的可视化需求。
+
+## 支持的图层类型
+
+| 类型 | 说明 | 适用场景 |
+|------|------|---------|
+| `point` | 点图层 | 标记位置、散点图 |
+| `line` | 线图层 | 路径、流向线 |
+| `polygon` | 面图层 | 区域、热力区域 |
+| `heatmap` | 热力图 | 密度分布 |
+| `raster` | 栅格图层 | 影像、栅格数据 |
+| `image` | 图片图层 | 图片叠加 |
+
+## 点图层
+
+点图层用于展示离散的点数据:
+
+```tsx
+const schema = {
+  layers: [{
+    type: 'point',
+    source: [
+      { lng: 116.397, lat: 39.909, value: 100 },
+      { lng: 116.398, lat: 39.910, value: 200 }
+    ],
+    sourceType: 'json',
+    color: '#1890ff',      // 统一颜色
+    size: 10               // 统一大小
+  }]
+}
+```
+
+### 数据驱动映射
+
+根据数据字段动态设置颜色和大小:
+
+```tsx
+const schema = {
+  layers: [{
+    type: 'point',
+    source: [
+      { lng: 116.397, lat: 39.909, category: 'A', value: 100 },
+      { lng: 116.398, lat: 39.910, category: 'B', value: 200 }
+    ],
+    sourceType: 'json',
+    colorField: 'category',         // 根据类别字段映射颜色
+    colorValues: ['#1890ff', '#722ed1'], // 颜色映射表
+    sizeField: 'value',              // 根据值字段映射大小
+    sizeValues: [10, 20]             // 大小映射表
+  }]
+}
+```
+
+## 线图层
+
+线图层用于展示路径、流向等:
+
+```tsx
+const schema = {
+  layers: [{
+    type: 'line',
+    source: [
+      { 
+        coordinates: [[116.397, 39.909], [116.398, 39.910], [116.399, 39.911]],
+        value: 100
+      }
+    ],
+    sourceType: 'json',
+    color: '#1890ff',
+    size: 2
+  }]
+}
+```
+
+### 流向线动画
+
+```tsx
+const schema = {
+  layers: [{
+    type: 'line',
+    source: [...],
+    sourceType: 'json',
+    color: '#1890ff',
+    size: 2,
+    animate: {
+      enable: true,
+      duration: 4,
+      trailLength: 2
+    }
+  }]
+}
+```
+
+## 面图层
+
+面图层用于展示区域数据:
+
+```tsx
+const schema = {
+  layers: [{
+    type: 'polygon',
+    source: {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [[[116.397, 39.909], [116.398, 39.910], ...]]
+          },
+          properties: { value: 100 }
+        }
+      ]
+    },
+    sourceType: 'geojson',
+    color: '#1890ff',
+    style: {
+      opacity: 0.6
+    }
+  }]
+}
+```
+
+## 热力图
+
+热力图用于展示密度分布:
+
+```tsx
+const schema = {
+  layers: [{
+    type: 'heatmap',
+    source: [
+      { lng: 116.397, lat: 39.909, value: 100 },
+      { lng: 116.398, lat: 39.910, value: 200 }
+    ],
+    sourceType: 'json',
+    size: 20,
+    style: {
+      intensity: 1,
+      radius: 20,
+      opacity: 0.8
+    }
+  }]
+}
+```
+
+## 图层配置项
+
+```tsx
+interface LayerSchema {
+  type: LayerType           // 图层类型
+  source: unknown           // 数据源
+  sourceType?: SourceType   // 数据源类型
+  
+  // 视觉映射
+  color?: string            // 颜色
+  colorField?: string       // 颜色字段
+  colorValues?: string[]    // 颜色映射值
+  
+  size?: number             // 大小
+  sizeField?: string        // 大小字段
+  sizeValues?: number[]     // 大小映射值
+  
+  shape?: string            // 形状
+  shapeField?: string       // 形状字段
+  shapeValues?: string[]    // 形状映射值
+  
+  style?: Record<string, unknown> // 样式配置
+  
+  // 过滤
+  filterField?: string      // 过滤字段
+  filterValues?: unknown[]  // 过滤值
+  
+  // 动画
+  animate?: AnimateConfig   // 动画配置
+  
+  // 交互
+  active?: ActiveConfig     // 激活样式
+  select?: SelectConfig     // 选中样式
+  
+  // 信息窗体
+  enablePopup?: boolean     // 启用 Popup
+  popupFields?: string[]    // 显示字段
+}
+```
+
+## 多图层叠加
+
+可以同时配置多个图层:
+
+```tsx
+const schema = {
+  layers: [
+    {
+      type: 'polygon',
+      source: regionData,
+      sourceType: 'geojson',
+      color: '#1890ff',
+      style: { opacity: 0.3 }
+    },
+    {
+      type: 'point',
+      source: pointData,
+      sourceType: 'json',
+      color: '#ff4d4f',
+      size: 8
+    },
+    {
+      type: 'line',
+      source: lineData,
+      sourceType: 'json',
+      color: '#52c41a',
+      size: 2
+    }
+  ]
+}
+```
+
+## 下一步
+
+- [交互功能](/docs/guides/interaction) - 添加点击、悬停等交互
+- [图例配置](/docs/guides/legend) - 添加图例说明

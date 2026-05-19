@@ -1,0 +1,4 @@
+{
+  "name": "使用指南",
+  "pages": ["schema-basics", "map-config", "layer-visualization", "bubble-map", "choropleth-map", "interaction", "controls", "legend"]
+}

@@ -1,0 +1,138 @@
+# 控件配置
+
+控件用于增强地图的交互体验,aimapkit 内置多种常用控件。
+
+## 支持的控件类型
+
+| 类型 | 说明 | 常用位置 |
+|------|------|---------|
+| `zoom` | 缩放控件 | topright |
+| `scale` | 比例尺 | bottomleft |
+| `fullscreen` | 全屏控件 | topright |
+| `geoLocate` | 定位控件 | topright |
+| `mapTheme` | 主题切换 | topright |
+| `mouseLocation` | 鼠标位置 | bottomright |
+| `exportImage` | 图片导出 | topright |
+| `layerSwitch` | 图层切换 | topright |
+
+## 基础配置
+
+```tsx
+const schema = {
+  controls: [
+    { type: 'zoom', position: 'topright' },
+    { type: 'scale', position: 'bottomleft' },
+    { type: 'fullscreen', position: 'topright' }
+  ]
+}
+```
+
+## 控件位置
+
+支持的位置选项:
+
+- `topleft` - 左上角
+- `topright` - 右上角
+- `bottomleft` - 左下角
+- `bottomright` - 右下角
+- `topcenter` - 顶部居中
+- `bottomcenter` - 底部居中
+
+## 缩放控件
+
+```tsx
+{
+  type: 'zoom',
+  position: 'topright',
+  options: {
+    showZoomLevel: true // 显示当前缩放级别
+  }
+}
+```
+
+## 比例尺控件
+
+```tsx
+{
+  type: 'scale',
+  position: 'bottomleft',
+  options: {
+    maxWidth: 100 // 最大宽度
+  }
+}
+```
+
+## 定位控件
+
+```tsx
+{
+  type: 'geoLocate',
+  position: 'topright',
+  options: {
+    showMarker: true,  // 显示定位标记
+    showPopup: true    // 显示定位信息
+  }
+}
+```
+
+## 主题切换控件
+
+```tsx
+{
+  type: 'mapTheme',
+  position: 'topright',
+  options: {
+    themes: ['light', 'dark', 'normal'] // 支持的主题
+  }
+}
+```
+
+## 图层切换控件
+
+```tsx
+{
+  type: 'layerSwitch',
+  position: 'topright',
+  options: {
+    layers: ['图层1', '图层2', '图层3'] // 可切换的图层
+  }
+}
+```
+
+## 图片导出控件
+
+```tsx
+{
+  type: 'exportImage',
+  position: 'topright',
+  options: {
+    format: 'png',    // 导出格式
+    quality: 0.9      // 图片质量
+  }
+}
+```
+
+## 完整示例
+
+```tsx
+const schema = {
+  map: {
+    basemap: 'gaode',
+    center: [116.397, 39.909],
+    zoom: 10
+  },
+  layers: [...],
+  controls: [
+    { type: 'zoom', position: 'topright' },
+    { type: 'scale', position: 'bottomleft' },
+    { type: 'fullscreen', position: 'topright' },
+    { type: 'geoLocate', position: 'topright' },
+    { type: 'mapTheme', position: 'topright' }
+  ]
+}
+```
+
+## 下一步
+
+- [图例配置](/docs/guides/legend) - 添加图例说明
+- [移动端适配](/docs/guides/mobile-support) - 配置移动端控件

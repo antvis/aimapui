@@ -1,0 +1,1205 @@
+@import "tailwindcss";
+
+/* Material Design 3 设计令牌 - GeoLink Pro Cartographic Precision System */
+@theme {
+  /* Colors - Material Design 3 */
+  --color-surface: #f8f9ff;
+  --color-surface-bright: #f8f9ff;
+  --color-surface-dim: #d0dbed;
+  --color-surface-container: #e6eeff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container-high: #dee9fc;
+  --color-surface-container-highest: #d9e3f6;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-variant: #d9e3f6;
+  --color-surface-tint: #0053db;
+  
+  --color-primary: #004ac6;
+  --color-primary-container: #2563eb;
+  --color-on-primary: #ffffff;
+  --color-on-primary-container: #eeefff;
+  --color-primary-fixed: #dbe1ff;
+  --color-primary-fixed-dim: #b4c5ff;
+  --color-on-primary-fixed: #00174b;
+  --color-on-primary-fixed-variant: #003ea8;
+  --color-inverse-primary: #b4c5ff;
+  
+  --color-secondary: #4648d4;
+  --color-secondary-container: #6063ee;
+  --color-on-secondary: #ffffff;
+  --color-on-secondary-container: #fffbff;
+  --color-secondary-fixed: #e1e0ff;
+  --color-secondary-fixed-dim: #c0c1ff;
+  --color-on-secondary-fixed: #07006c;
+  --color-on-secondary-fixed-variant: #2f2ebe;
+  
+  --color-tertiary: #943700;
+  --color-tertiary-container: #bc4800;
+  --color-on-tertiary: #ffffff;
+  --color-on-tertiary-container: #ffede6;
+  --color-tertiary-fixed: #ffdbcd;
+  --color-tertiary-fixed-dim: #ffb596;
+  --color-on-tertiary-fixed: #360f00;
+  --color-on-tertiary-fixed-variant: #7d2d00;
+  
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+  --color-on-error: #ffffff;
+  --color-on-error-container: #93000a;
+  
+  --color-background: #f8f9ff;
+  --color-on-background: #121c2a;
+  --color-on-surface: #121c2a;
+  --color-on-surface-variant: #434655;
+  
+  --color-outline: #737686;
+  --color-outline-variant: #c3c6d7;
+  
+  --color-inverse-surface: #27313f;
+  --color-inverse-on-surface: #eaf1ff;
+  
+  /* Typography - 使用标准 Tailwind 命名 */
+  --font-family-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  /* Spacing */
+  --spacing-control-gap: 8px;
+  --spacing-margin-desktop: 24px;
+  --spacing-gutter-desktop: 16px;
+}
+
+/* 自定义工具类 */
+@layer utilities {
+  .font-mono-data {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+  
+  .text-mono-data {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 450;
+  }
+  
+  .text-label-caps {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  
+  .text-body-md {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+  
+  .font-label-caps {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+}
+
+/* Material Symbols Outlined 全局基础样式 */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  line-height: 1;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  user-select: none;
+}
+
+/* Glass Panel Effect */
+.glass-panel {
+  background: rgba(248, 249, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(195, 198, 215, 0.3);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c3c6d7;
+  border-radius: 10px;
+}
+
+/* Map Background */
+.map-bg {
+  background-color: #e6eeff;
+  background-image: radial-gradient(#d9e3f6 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* AimapKit 现代化样式 */
+.aimapkit-container {
+  @apply relative w-full h-full overflow-hidden;
+}
+
+/* L7 独立 Map 引擎修复 — 确保 canvas 容器和控件容器样式正确 */
+.l7-canvas-container {
+  width: 100%;
+  height: 100%;
+}
+
+.l7-control-container {
+  pointer-events: none;
+}
+
+.l7-control-container > * {
+  pointer-events: none;
+}
+
+.l7-control-container .l7-ctrl,
+.l7-control-container .l7-control {
+  pointer-events: auto;
+}
+
+/* React 控件锚点定位层 — 绝对定位 + pointer-events 穿透 */
+.l7-control-anchor {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.l7-control-anchor > * {
+  pointer-events: auto;
+}
+
+.l7-control-anchor.l7-top { top: 10px; }
+.l7-control-anchor.l7-bottom { bottom: 10px; }
+.l7-control-anchor.l7-left { left: 10px; }
+.l7-control-anchor.l7-right { right: 10px; }
+
+/* 确保 L7 marker 容器正确覆盖地图区域
+   参考 L7: l7-marker-container { position: absolute; width: 100%; height: 100%; overflow: hidden; }
+   当 L7 自身 CSS 未加载时提供 fallback */
+.l7-marker-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.l7-marker-container > * {
+  pointer-events: auto;
+}
+
+/* Marker 样式
+   定位通过 inline style 控制(left/top/transform)，不在 CSS 中设置 transform 避免优先级冲突 */
+/* ============================================================
+   Marker 样式规范 - Cartographic Precision System v1.2.0
+   参考: docs/marker-design-spec.md
+   ============================================================ */
+
+.aimapkit-marker {
+  position: absolute;
+  cursor: pointer;
+  transform-origin: bottom center;
+  /* 注意：不能使用 transition: all，否则 transform 定位更新会被动画化，导致地图联动延迟
+     只对非定位属性（视觉状态变化）添加过渡 */
+  transition: filter 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
+  white-space: nowrap;
+}
+
+/* 水滴型 Marker (Pin Marker) - 默认业务点
+   尺寸: 32x40px, bg-primary, 1.5px 白色描边, shadow-md
+   使用 SVG 路径绘制，避免 CSS transform 导致的变形 */
+.aimapkit-marker-pin {
+  width: 32px;
+  height: 40px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.aimapkit-marker-pin svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.aimapkit-marker-pin__inner {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  top: 8px;
+  z-index: 1;
+}
+
+/* 圆型 Marker (Circle Marker) - 移动/轻量点
+   尺寸: 24x24px, 半透明背景 + 实心内圆 */
+.aimapkit-marker-circle {
+  width: 24px;
+  height: 24px;
+  background: rgba(0, 74, 198, 0.2);
+  border: 1.5px solid white;
+  border-radius: 50%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aimapkit-marker-circle__inner {
+  width: 6px;
+  height: 6px;
+  background: var(--color-primary, #004ac6);
+  border-radius: 50%;
+}
+
+/* Marker 交互状态 */
+
+/* Marker 子元素 hover 过渡 — 只对视觉属性添加 transition，不包含定位 transform */
+.aimapkit-marker-pin,
+.aimapkit-marker-circle {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 悬停状态 (Hover): 尺寸放大 110%, 位移 -2px, 阴影加深 */
+.aimapkit-marker:hover .aimapkit-marker-pin,
+.aimapkit-marker:hover .aimapkit-marker-circle {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* 选中状态 (Selected): 呼吸脉冲动画 */
+.aimapkit-marker--selected .aimapkit-marker-pin::after,
+.aimapkit-marker--selected .aimapkit-marker-circle::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: rgba(0, 74, 198, 0.2);
+  animation: aimapkit-marker-pulse 1.6s ease-out infinite;
+  z-index: -1;
+}
+
+@keyframes aimapkit-marker-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* 禁用/离线状态 (Inactive): 灰度, 透明度 50% */
+.aimapkit-marker--inactive .aimapkit-marker-pin::before,
+.aimapkit-marker--inactive .aimapkit-marker-circle {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+/* 语义颜色变体 */
+.aimapkit-marker--success .aimapkit-marker-pin::before {
+  background: #22c55e;
+}
+
+.aimapkit-marker--warning .aimapkit-marker-pin::before {
+  background: #f59e0b;
+}
+
+.aimapkit-marker--error .aimapkit-marker-pin::before {
+  background: #ba1a1a;
+}
+
+/* 图标型 Marker */
+.aimapkit-marker-icon {
+  width: 32px;
+  height: 40px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aimapkit-marker-icon::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: var(--color-primary, #004ac6);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 1.5px solid white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.aimapkit-marker-icon .material-symbols-outlined {
+  position: relative;
+  z-index: 1;
+  font-size: 16px;
+  color: white;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* 低缩放级简化点 (Zoom < 10) */
+.aimapkit-marker-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary, #004ac6);
+  border-radius: 50%;
+  border: 1.5px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Marker 文本标注 */
+.aimapkit-marker-label {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 450;
+  color: var(--color-on-surface, #121c2a);
+  text-shadow: 0 0 2px white, 0 0 2px white;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@layer components {
+  /* ============================================================
+     Popup 样式规范 - Material Design 3 玻璃拟态设计
+     参考: docs/popup-design-spec.md
+     ============================================================ */
+
+  /* Popup 容器 - 定位通过 inline style 控制 */
+  .aimapkit-popup {
+    position: absolute;
+    z-index: 10;
+    white-space: nowrap;
+    pointer-events: auto;
+  }
+
+  /* Popup 内容容器 - MD3 玻璃拟态 */
+  .aimapkit-popup-content {
+    background: rgba(248, 249, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: popupEnter 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+  }
+
+  /* Popup 指向箭头 - 等腰三角形 */
+  .aimapkit-popup-tip {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -10px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid rgba(248, 249, 255, 0.95);
+  }
+
+  /* Popup 关闭按钮 - icon-button 样式 */
+  .aimapkit-popup-content .popup-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-on-surface-variant, #434655);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    z-index: 10;
+  }
+
+  .aimapkit-popup-content .popup-close-btn:hover {
+    color: var(--color-on-surface, #121c2a);
+    background: var(--color-surface-container-high, #dee9fc);
+  }
+
+  .aimapkit-popup-content .popup-close-btn .material-symbols-outlined {
+    font-size: 20px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
+
+/* Popup 入场动画 - scale-95 -> scale-100 + opacity
+   注意：动画只改变 opacity 和 scale，不改变 transform
+   因为 Popup 的定位通过父元素的 transform: translate(-50%, -100%) 控制 */
+@keyframes popupEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Tooltip 样式 - 深色半透明设计 */
+.aimapkit-tooltip {
+  @apply absolute pointer-events-none z-50;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================
+   L7 Control 规范样式
+   参考: @antv/l7/packages/component/src/css/index.css
+   ============================================================ */
+
+/* 控件容器 - 覆盖在地图上的绝对定位容器 */
+.l7-control-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  font: 12px/1.5 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  z-index: 999;
+}
+
+/* 控件定位锚点 — 每个控件外层 wrapper，绝对定位在某角 */
+.l7-control-anchor {
+  position: absolute;
+  display: flex;
+  z-index: 999;
+  pointer-events: none;
+}
+.l7-control-anchor.l7-top {
+  top: 0;
+}
+.l7-control-anchor.l7-bottom {
+  bottom: 0;
+}
+.l7-control-anchor.l7-left {
+  left: 0;
+}
+.l7-control-anchor.l7-right {
+  right: 0;
+}
+.l7-control-anchor.l7-row {
+  flex-direction: row;
+}
+.l7-control-anchor.l7-column {
+  flex-direction: column;
+}
+.l7-control-anchor.l7-row.l7-top {
+  align-items: flex-start;
+}
+.l7-control-anchor.l7-row.l7-bottom {
+  align-items: flex-end;
+}
+.l7-control-anchor.l7-column.l7-left {
+  align-items: flex-start;
+}
+.l7-control-anchor.l7-column.l7-right {
+  align-items: flex-end;
+}
+
+/* 控件基类 */
+.l7-control {
+  position: relative;
+  z-index: 999;
+  float: left;
+  clear: both;
+  color: #595959;
+  font-size: 12px;
+  pointer-events: auto;
+  margin: 8px;
+}
+
+.l7-control.l7-control--hide {
+  display: none;
+}
+
+/* 对齐 L7 ControlService 创建的容器中的控件样式 */
+.l7-control-container .l7-control {
+  position: relative;
+  z-index: 999;
+  float: left;
+  clear: both;
+  color: #595959;
+  font-size: 12px;
+  pointer-events: auto;
+}
+
+.l7-control-container .l7-top {
+  top: 0;
+  display: flex;
+  position: absolute;
+  z-index: 999;
+  pointer-events: none;
+}
+.l7-control-container .l7-top .l7-control:not(.l7-control--hide) {
+  margin-top: 8px;
+}
+
+.l7-control-container .l7-right {
+  right: 0;
+  display: flex;
+  position: absolute;
+  z-index: 999;
+  pointer-events: none;
+}
+.l7-control-container .l7-right .l7-control:not(.l7-control--hide) {
+  margin-right: 8px;
+}
+
+.l7-control-container .l7-bottom {
+  bottom: 0;
+  display: flex;
+  position: absolute;
+  z-index: 999;
+  pointer-events: none;
+}
+.l7-control-container .l7-bottom .l7-control:not(.l7-control--hide) {
+  margin-bottom: 8px;
+}
+
+.l7-control-container .l7-left {
+  left: 0;
+  display: flex;
+  position: absolute;
+  z-index: 999;
+  pointer-events: none;
+}
+.l7-control-container .l7-left .l7-control:not(.l7-control--hide) {
+  margin-left: 8px;
+}
+
+.l7-control-container .l7-row {
+  flex-direction: row;
+}
+.l7-control-container .l7-row.l7-top {
+  align-items: flex-start;
+}
+.l7-control-container .l7-row.l7-bottom {
+  align-items: flex-end;
+}
+.l7-control-container .l7-column {
+  flex-direction: column;
+}
+.l7-control-container .l7-column.l7-left {
+  align-items: flex-start;
+}
+.l7-control-container .l7-column.l7-right {
+  align-items: flex-end;
+}
+
+/* ============================================================
+   Material Design 3 玻璃态控件样式
+   Zoom / GeoLocate 等浮动控件使用设计系统配色
+   ============================================================ */
+
+/* 玻璃态控件容器 — 用于 .l7-control--glass */
+.l7-control.l7-control--glass {
+  background: rgba(248, 249, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  /* overflow: hidden 会裁剪 popper 下拉菜单，改为仅 Zoom 分组使用 */
+}
+
+/* 按钮控件基类 */
+.l7-button-control {
+  min-width: 28px;
+  height: 28px;
+  background-color: #fff;
+  border-width: 0;
+  border-radius: 2px;
+  outline: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 6px;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.15);
+  line-height: 16px;
+}
+
+/* Material Symbols Outlined 图标在控件中的尺寸 */
+.l7-button-control .material-symbols-outlined {
+  font-size: 20px;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  line-height: 1;
+  user-select: none;
+}
+
+.l7-button-control svg {
+  fill: #595959;
+  color: #595959;
+  width: 16px;
+  height: 16px;
+}
+
+.l7-button-control.l7-button-control--row {
+  padding: 0 16px 0 13px;
+}
+.l7-button-control.l7-button-control--row * + .l7-button-control__text {
+  margin-left: 8px;
+}
+.l7-button-control.l7-button-control--column {
+  height: 44px;
+  flex-direction: column;
+}
+.l7-button-control.l7-button-control--column svg {
+  margin-top: 3px;
+}
+.l7-button-control.l7-button-control--column .l7-button-control__text {
+  margin-top: 3px;
+  font-size: 10px;
+  transform: scale(0.83333);
+}
+
+.l7-button-control:not(:disabled):hover {
+  background-color: #f3f3f3;
+}
+.l7-button-control:not(:disabled):active {
+  background-color: #f3f3f3;
+}
+.l7-button-control:disabled {
+  background-color: #fafafa;
+  color: #bdbdbd;
+  cursor: not-allowed;
+}
+.l7-button-control:disabled svg {
+  fill: #bdbdbd;
+  color: #bdbdbd;
+}
+.l7-button-control:disabled .material-symbols-outlined {
+  color: #bdbdbd;
+}
+.l7-button-control:disabled:hover {
+  background-color: #fafafa;
+}
+.l7-button-control:disabled:active {
+  background-color: #fafafa;
+}
+
+/* ---- 玻璃态内按钮样式 ---- */
+
+/* 玻璃态容器内的按钮继承透明背景 + primary 图标色 */
+.l7-control--glass .l7-button-control {
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--color-primary, #004ac6);
+}
+.l7-control--glass .l7-button-control svg {
+  fill: var(--color-primary, #004ac6);
+  color: var(--color-primary, #004ac6);
+}
+.l7-control--glass .l7-button-control .material-symbols-outlined {
+  color: var(--color-primary, #004ac6);
+}
+.l7-control--glass .l7-button-control:not(:disabled):hover {
+  background-color: var(--color-surface-container-high, #dee9fc);
+}
+.l7-control--glass .l7-button-control:not(:disabled):active {
+  background-color: var(--color-surface-container-high, #dee9fc);
+}
+.l7-control--glass .l7-button-control:disabled {
+  color: var(--color-outline, #737686);
+  opacity: 0.4;
+}
+.l7-control--glass .l7-button-control:disabled .material-symbols-outlined {
+  color: var(--color-outline, #737686);
+}
+.l7-control--glass .l7-button-control:disabled svg {
+  fill: var(--color-outline, #737686);
+}
+.l7-control--glass .l7-button-control:disabled:hover {
+  background-color: transparent;
+}
+
+/* Zoom 控件 — 玻璃态分组 */
+.l7-control.l7-control-zoom {
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.15);
+}
+/* Zoom 玻璃态也需要 overflow: hidden 以裁剪按钮圆角 */
+.l7-control--glass.l7-control-zoom {
+  overflow: hidden;
+}
+.l7-control-zoom .l7-button-control {
+  font-size: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  border-radius: 0;
+  box-shadow: 0 0 0;
+}
+.l7-control-zoom .l7-button-control svg {
+  width: 14px;
+  height: 14px;
+}
+.l7-control-zoom .l7-button-control:last-child {
+  border-bottom: 0;
+}
+.l7-control-zoom .l7-control-zoom__number {
+  color: #595959;
+  padding: 0;
+}
+.l7-control-zoom .l7-control-zoom__number:hover {
+  background-color: #fff;
+}
+
+/* Zoom 玻璃态：内部按钮分割线用 outline-variant */
+.l7-control--glass.l7-control-zoom .l7-button-control {
+  border-bottom: 1px solid var(--color-outline-variant, rgba(195, 198, 215, 0.1));
+}
+.l7-control--glass.l7-control-zoom .l7-button-control:last-child {
+  border-bottom: 0;
+}
+.l7-control--glass.l7-control-zoom .l7-control-zoom__number:hover {
+  background-color: transparent;
+}
+
+/* Scale 控件 */
+.l7-control-scale {
+  display: flex;
+  flex-direction: column;
+}
+.l7-control-scale .l7-control-scale-line {
+  box-sizing: border-box;
+  padding: 2px 5px 1px;
+  overflow: hidden;
+  color: #595959;
+  font-size: 10px;
+  line-height: 1.1;
+  white-space: nowrap;
+  background: #fff;
+  border: 2px solid #000;
+  border-top: 0;
+  transition: width 0.1s;
+}
+.l7-control-scale .l7-control-scale-line + .l7-control-scale .l7-control-scale-line {
+  margin-top: -2px;
+  border-top: 2px solid #777;
+  border-bottom: none;
+}
+.l7-right .l7-control-scale {
+  display: flex;
+  align-items: flex-end;
+}
+.l7-right .l7-control-scale .l7-control-scale-line {
+  text-align: right;
+}
+/* Scale 玻璃态 */
+.l7-control--glass.l7-control-scale .l7-control-scale-line {
+  background: transparent;
+  border-color: var(--color-on-surface-variant, #434655);
+  color: var(--color-on-surface-variant, #434655);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+}
+
+/* MouseLocation 控件 — 玻璃态深色版本 */
+.l7-control-mouse-location {
+  background-color: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.15);
+  padding: 2px 4px;
+  min-width: 130px;
+}
+/* 玻璃态深色风格 */
+.l7-control--glass.l7-control-mouse-location {
+  background: var(--color-inverse-surface, #27313f);
+  color: var(--color-inverse-on-surface, #eaf1ff);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 450;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+}
+.l7-control--glass.l7-control-mouse-location .material-symbols-outlined {
+  font-size: 16px;
+  opacity: 0.7;
+}
+
+/* Popper / Select 控件 */
+.l7-popper {
+  position: absolute;
+  z-index: 1000;
+  color: #595959;
+  /* 默认定位：按钮下方左对齐 */
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+}
+.l7-popper.l7-popper-hide {
+  display: none;
+}
+.l7-popper .l7-popper-content {
+  min-height: 28px;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.15);
+}
+/* 玻璃态 Popper */
+.l7-control--glass .l7-popper .l7-popper-content {
+  background: rgba(248, 249, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+.l7-popper .l7-popper-arrow {
+  width: 0;
+  height: 0;
+  border-width: 4px;
+  border-style: solid;
+  border-color: transparent;
+  box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.15);
+}
+/* Popper 方向定位 — 覆盖默认 bottom 位置 */
+.l7-popper.l7-popper-left {
+  /* 弹窗在按钮左侧 → 不常用，仍用 bottom 定位但右对齐 */
+  left: auto;
+  right: 0;
+}
+.l7-popper.l7-popper-right {
+  /* 弹窗在按钮右侧 */
+  left: 100%;
+  right: auto;
+  margin-top: 0;
+  margin-left: 4px;
+}
+.l7-popper.l7-popper-top {
+  /* 弹窗在按钮上方 */
+  top: auto;
+  bottom: 100%;
+  left: 0;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+.l7-popper.l7-popper-bottom {
+  /* 弹窗在按钮下方（默认） */
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+}
+.l7-popper.l7-popper-start {
+  /* 箭头对齐: 起始对齐 */
+}
+.l7-popper.l7-popper-end {
+  /* 箭头对齐: 末尾对齐 */
+  left: auto;
+  right: 0;
+}
+/* left + end 组合 → 右对齐 */
+.l7-popper.l7-popper-left.l7-popper-end {
+  left: auto;
+  right: 0;
+}
+
+/* Select（下拉选择）控件样式 */
+.l7-select-control--normal {
+  padding: 4px 0;
+}
+.l7-select-control--normal .l7-select-control-item {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 16px;
+  font-size: 12px;
+  line-height: 24px;
+  cursor: pointer;
+}
+.l7-select-control--normal .l7-select-control-item > * + * {
+  margin-left: 6px;
+}
+.l7-select-control--normal .l7-select-control-item input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+}
+.l7-select-control--normal .l7-select-control-item:hover {
+  background-color: #f3f3f3;
+}
+.l7-select-control--normal .l7-select-control-item.l7-select-control-item-active {
+  color: #0370fe;
+}
+/* 玻璃态 Select */
+.l7-control--glass .l7-select-control--normal .l7-select-control-item:hover {
+  background-color: var(--color-surface-container-high, #dee9fc);
+}
+.l7-control--glass .l7-select-control--normal .l7-select-control-item.l7-select-control-item-active {
+  color: var(--color-primary, #004ac6);
+}
+.l7-select-control-item input[type='checkbox'] {
+  margin: 0;
+  cursor: pointer;
+}
+
+/* ============================================================
+   Theme Card Panel — 地图主题卡片选择器
+   参考 GeoLink Pro "Map Theme Selection" 设计
+   ============================================================ */
+
+.l7-theme-panel {
+  padding: 12px;
+  min-width: 240px;
+  max-width: 320px;
+}
+.l7-theme-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant, #434655);
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+.l7-theme-panel__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* 主题卡片 */
+.l7-theme-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+  border: 2px solid var(--color-outline-variant, rgba(195, 198, 215, 0.3));
+  background: var(--color-surface-container-lowest, #fff);
+  padding: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  overflow: hidden;
+}
+.l7-theme-card:hover {
+  background: var(--color-surface-container, #e6eeff);
+  border-color: var(--color-outline, #737686);
+}
+.l7-theme-card--active {
+  border-color: var(--color-primary, #004ac6);
+  border-width: 2px;
+}
+.l7-theme-card--active:hover {
+  border-color: var(--color-primary, #004ac6);
+}
+.l7-theme-card__preview {
+  width: 100%;
+  height: 48px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%);
+}
+.l7-theme-card__check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 16px;
+  color: var(--color-primary, #004ac6);
+  line-height: 1;
+}
+.l7-theme-card__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant, #434655);
+  padding: 0 2px;
+}
+.l7-theme-card--active .l7-theme-card__label {
+  color: var(--color-primary, #004ac6);
+}
+
+/* 全宽卡片（卫星图等） */
+.l7-theme-card--full {
+  grid-column: 1 / -1;
+}
+
+/* ============================================================
+   Layer Panel — 图层开关 + 透明度滑块
+   参考 GeoLink Pro "Layer & Visibility Controls" 设计
+   ============================================================ */
+
+.l7-layer-panel {
+  padding: 12px;
+  min-width: 260px;
+  max-width: 320px;
+}
+.l7-layer-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant, #434655);
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+.l7-layer-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 图层项 */
+.l7-layer-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--color-surface-container-low, rgba(239, 244, 255, 0.5));
+  border-radius: 8px;
+  border: 1px solid var(--color-outline-variant, rgba(195, 198, 215, 0.2));
+  transition: opacity 0.15s ease;
+}
+.l7-layer-item--disabled {
+  opacity: 0.5;
+}
+.l7-layer-item__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.l7-layer-item__icon {
+  font-size: 18px;
+  color: var(--color-on-surface-variant, #434655);
+  cursor: grab;
+  user-select: none;
+}
+.l7-layer-item__name {
+  flex: 1;
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 400;
+  color: var(--color-on-surface, #121c2a);
+}
+
+/* Toggle Switch — MD3 风格 */
+.l7-layer-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.l7-layer-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.l7-layer-toggle__track {
+  width: 36px;
+  height: 20px;
+  background: var(--color-surface-variant, #d9e3f6);
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.2s ease;
+}
+.l7-layer-toggle__track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.l7-layer-toggle input:checked + .l7-layer-toggle__track {
+  background: var(--color-primary, #004ac6);
+}
+.l7-layer-toggle input:checked + .l7-layer-toggle__track::after {
+  transform: translateX(16px);
+}
+
+/* 透明度滑块 */
+.l7-layer-item__slider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 26px;
+}
+.l7-layer-item__slider .material-symbols-outlined {
+  color: var(--color-on-surface-variant, #434655);
+  flex-shrink: 0;
+}
+.l7-layer-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--color-surface-variant, #d9e3f6);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.l7-layer-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  background: var(--color-primary, #004ac6);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+.l7-layer-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  background: var(--color-primary, #004ac6);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}

@@ -1,0 +1,179 @@
+# 地图配置
+
+地图配置 (`MapSchema`) 定义了地图的基础属性,包括底图、中心点、缩放级别等。
+
+## 基础配置
+
+```tsx
+const schema = {
+  map: {
+    basemap: 'gaode',      // 底图类型
+    token: 'YOUR_KEY',     // 地图服务 Key
+    center: [116.397, 39.909], // 中心点 [经度, 纬度]
+    zoom: 10               // 缩放级别
+  }
+}
+```
+
+## 支持的底图
+
+aimapkit 支持多种底图服务:
+
+### 高德地图
+
+```tsx
+{
+  basemap: 'gaode',
+  token: 'YOUR_AMAP_KEY',
+  style: 'normal' // 'light' | 'dark' | 'normal' | 'darkblue' | 'satellite'
+}
+```
+
+### Mapbox
+
+```tsx
+{
+  basemap: 'mapbox',
+  token: 'YOUR_MAPBOX_TOKEN',
+  style: 'mapbox://styles/mapbox/light-v10'
+}
+```
+
+### 天地图
+
+```tsx
+{
+  basemap: 'tianditu',
+  token: 'YOUR_TIANDITU_TOKEN',
+  style: 'normal'
+}
+```
+
+### 腾讯地图
+
+```tsx
+{
+  basemap: 'tencent',
+  token: 'YOUR_TENCENT_KEY'
+}
+```
+
+### 百度地图
+
+```tsx
+{
+  basemap: 'baidu',
+  token: 'YOUR_BAIDU_KEY'
+}
+```
+
+## 完整配置项
+
+```tsx
+interface MapSchema {
+  // 必填项
+  basemap: BasemapType
+  
+  // 底图服务 Key
+  token?: string
+  
+  // 地图样式
+  style?: MapStylePreset | string
+  
+  // 视角参数
+  center?: [number, number]  // 中心点 [经度, 纬度]
+  zoom?: number              // 缩放级别 (通常 3-18)
+  pitch?: number             // 俯仰角 (0-60度)
+  rotation?: number          // 旋转角 (0-360度)
+  
+  // 缩放范围
+  minZoom?: number           // 最小缩放
+  maxZoom?: number           // 最大缩放
+  
+  // 边界范围
+  bounds?: [[number, number], [number, number]] // [[西经, 南纬], [东经, 北纬]]
+  
+  // 手势配置
+  gestureConfig?: {
+    dragPan?: boolean        // 是否允许拖拽
+    pinchZoom?: boolean      // 是否允许双指缩放
+    dragRotate?: boolean     // 是否允许拖拽旋转
+  }
+}
+```
+
+## 常用示例
+
+### 3D 地图
+
+```tsx
+const schema = {
+  map: {
+    basemap: 'gaode',
+    token: 'YOUR_KEY',
+    center: [116.397, 39.909],
+    zoom: 14,
+    pitch: 45,    // 俯仰角 45 度
+    rotation: 30  // 旋转 30 度
+  }
+}
+```
+
+### 限制地图范围
+
+```tsx
+const schema = {
+  map: {
+    basemap: 'gaode',
+    token: 'YOUR_KEY',
+    center: [116.397, 39.909],
+    zoom: 10,
+    minZoom: 8,   // 最小缩放到 8 级
+    maxZoom: 15,  // 最大缩放到 15 级
+    bounds: [
+      [116.2, 39.8],  // 西南角
+      [116.6, 40.0]   // 东北角
+    ]
+  }
+}
+```
+
+### 禁用交互
+
+```tsx
+const schema = {
+  map: {
+    basemap: 'gaode',
+    token: 'YOUR_KEY',
+    center: [116.397, 39.909],
+    zoom: 10,
+    gestureConfig: {
+      dragPan: false,     // 禁用拖拽
+      pinchZoom: false,   // 禁用缩放
+      dragRotate: false   // 禁用旋转
+    }
+  }
+}
+```
+
+## 动态更新
+
+Schema 支持动态更新,会自动触发地图重绘:
+
+```tsx
+const [schema, setSchema] = useState(initialSchema)
+
+// 更新中心点
+setSchema(prev => ({
+  ...prev,
+  map: {
+    ...prev.map,
+    center: [121.473, 31.230] // 移动到上海
+  }
+}))
+```
+
+## 下一步
+
+- [图层可视化](/docs/guides/layer-visualization) - 添加数据图层
+- [控件配置](/docs/guides/controls) - 添加地图控件
