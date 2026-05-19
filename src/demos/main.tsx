@@ -61,7 +61,7 @@ const demos = [
   { name: 'Maplibre 地图', icon: '🌐', component: MaplibreMap, group: 'Map 地图', file: 'map/MaplibreMap' },
   { name: 'Mapbox 地图', icon: '🗾', component: MapboxMap, group: 'Map 地图', file: 'map/MapboxMap' },
   { name: '天地图', icon: '🏔', component: TiandituMap, group: 'Map 地图', file: 'map/TiandituMap' },
-  { name: '独立 Map', icon: '📦', component: IndependentMap, group: 'Map 地图', file: 'map/IndependentMap' },
+  { name: '天地图影像', icon: '🛰', component: IndependentMap, group: 'Map 地图', file: 'map/IndependentMap' },
 
   // ── Control 控件 ──────────────────────────
   { name: '缩放控件', icon: '⊕', component: ZoomControl, group: 'Control 控件', file: 'control/ZoomControl' },
