@@ -490,14 +490,20 @@ export function Marker({
       }
 
       if (elementRef.current) {
-        if (rootRef.current) {
-          rootRef.current.unmount();
-          rootRef.current = null;
-        }
-        if (elementRef.current.parentNode) {
-          elementRef.current.parentNode.removeChild(elementRef.current);
-        }
+        const rootToUnmount = rootRef.current;
+        const elementToRemove = elementRef.current;
+        rootRef.current = null;
         elementRef.current = null;
+
+        // 延迟到下一个微任务，避免在 React 渲染期间同步 unmount 导致竞态
+        queueMicrotask(() => {
+          if (rootToUnmount) {
+            rootToUnmount.unmount();
+          }
+          if (elementToRemove.parentNode) {
+            elementToRemove.parentNode.removeChild(elementToRemove);
+          }
+        });
       }
 
       handlersRef.current = null;
