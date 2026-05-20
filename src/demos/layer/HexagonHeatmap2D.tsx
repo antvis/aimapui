@@ -4,14 +4,14 @@ import { Aimap, HeatmapLayer, ZoomControl } from '../../index';
 /**
  * 蜂窝热力图 2D — HeatmapLayer hexagon
  *
- * 参照 L7 示例：heatmap/hexagon/hexagon
- * 数据：深圳 POI 热力数据，使用蜂窝聚合展示 2D 平面热力
+ * 参照 L7 示例：heatmap/hexagon
+ * 数据：全国发电站容量数据，使用蜂窝聚合展示 2D 平面热力
  */
 export default function HexagonHeatmap2D() {
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
+  const [data, setData] = useState<Record<string, unknown>[] | null>(null);
 
   useEffect(() => {
-    fetch('https://gw.alipayobjects.com/os/basement_prod/513add53-dcb2-4295-8860-9e7aa5236699.json')
+    fetch('https://gw.alipayobjects.com/os/basement_prod/337ddbb7-aa3f-4679-ab60-d64359241955.json')
       .then((res) => res.json())
       .then((json) => setData(json))
       .catch(() => setData(null));
@@ -22,8 +22,8 @@ export default function HexagonHeatmap2D() {
       <Aimap
         map={{
           basemap: 'gaode',
-          center: [114.077, 22.543],
-          zoom: 12.48,
+          center: [104.995, 31.451],
+          zoom: 3.79,
           style: 'light',
         }}
       >
@@ -32,18 +32,17 @@ export default function HexagonHeatmap2D() {
             source={data}
             sourceConfig={{
               transforms: [
-                { type: 'hexagon', size: 100, field: 'h12', method: 'sum' },
+                { type: 'hexagon', size: 90000, field: 'capacity', method: 'sum' },
               ],
             }}
             shape="hexagon"
-            sizeField="sum"
-            sizeValues={[0, 600]}
             colorField="sum"
             colorValues={[
-              '#CEF8D6', '#A1EDB8', '#7BE39E', '#5FD3A6', '#4AC5AF',
-              '#34B6B7', '#289899', '#1D7F7E', '#146968', '#094D4A',
+              '#40C4CE', '#30B2E9', '#30B2E9', '#0F62FF', '#0F62FF',
+              '#3C73DA', '#3C73DA', '#3C73DA', '#3F4BBA', '#3F4BBA',
+              '#3F4BBA', '#3F4BBA',
             ]}
-            style={{ coverage: 0.8, angle: 0 }}
+            style={{ coverage: 0.9, angle: 0 }}
           />
         )}
         <ZoomControl position="bottomright" />
