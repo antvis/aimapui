@@ -1,10 +1,161 @@
 import React, { useEffect, useRef } from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
+import { createRoot, type Root } from 'react-dom/client';
 import { useScene } from '../../context/SceneContext';
 import type { MarkerSchema } from '../../schema/types';
 
+// ============================================================
+// Marker 类型定义 — Cartographic Precision System v1.2.0
+// ============================================================
+
+/**
+ * Marker 基础形态
+ * - pin:   水滴型 (32x40px)，默认业务点，用于 POI、站点、静态设施
+ * - circle: 圆型 (24x24px)，移动/轻量点，用于实时车辆、传感器
+ * - icon:  图标型，在 Pin 内嵌入 Material Symbols 图标
+ * - dot:   简化点 (8px)，低缩放级降级形态
+ */
+export type MarkerVariant = 'pin' | 'circle' | 'icon' | 'dot';
+
+/**
+ * Marker 语义颜色
+ * - primary:  信息/默认 (#2563EB)
+ * - success:  完成/安全 (#00854D)
+ * - warning:  预警/高负载 (#943700)
+ * - error:    故障/危险 (#BA1A1A)
+ */
+export type MarkerColor = 'primary' | 'success' | 'warning' | 'error';
+
+/**
+ * Marker 语义颜色值映射
+ */
+const MARKER_COLOR_MAP: Record<MarkerColor, { fill: string; bg: string; ring: string }> = {
+  primary: { fill: '#2563eb', bg: 'rgba(37, 99, 235, 0.2)', ring: 'rgba(37, 99, 235, 0.2)' },
+  success: { fill: '#00854d', bg: 'rgba(0, 133, 77, 0.2)', ring: 'rgba(0, 133, 77, 0.2)' },
+  warning: { fill: '#943700', bg: 'rgba(148, 55, 0, 0.2)', ring: 'rgba(148, 55, 0, 0.2)' },
+  error:   { fill: '#ba1a1a', bg: 'rgba(186, 26, 26, 0.2)', ring: 'rgba(186, 26, 26, 0.2)' },
+};
+
+/**
+ * 检测内容是否为 HTML 字符串
+ */
+function isHtmlString(content: unknown): content is string {
+  return typeof content === 'string' && /<[a-zA-Z][^>]*>/.test(content);
+}
+
+// ============================================================
+// 内置 Marker 内容组件
+// ============================================================
+
+/**
+ * 水滴型 Pin SVG — 32x40px，使用 CSS 变量 --marker-color 控制颜色
+ */
+function PinSvg({ color = 'primary' }: { color?: MarkerColor }) {
+  const { fill } = MARKER_COLOR_MAP[color];
+  return (
+    <svg
+      viewBox="0 0 32 40"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ width: 32, height: 40, display: 'block' }}
+      className="aimapkit-marker-pin"
+    >
+      <path
+        d="M16 0C7.16344 0 0 7.16344 0 16C0 24.8366 16 40 16 40C16 40 32 24.8366 32 16C32 7.16344 24.8366 0 16 0Z"
+        fill={fill}
+        stroke="white"
+        strokeWidth={1.5}
+      />
+      <circle cx="16" cy="16" r="4" fill="white" />
+    </svg>
+  );
+}
+
+/**
+ * 带 Material Symbols 图标的 Pin — 32x40px
+ */
+function IconPin({ icon, color = 'primary' }: { icon: string; color?: MarkerColor }) {
+  const { fill } = MARKER_COLOR_MAP[color];
+  return (
+    <div className="aimapkit-marker-pin aimapkit-marker-pin--icon" style={{ position: 'relative', width: 32, height: 40 }}>
+      <svg
+        viewBox="0 0 32 40"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+      >
+        <path
+          d="M16 0C7.16344 0 0 7.16344 0 16C0 24.8366 16 40 16 40C16 40 32 24.8366 32 16C32 7.16344 24.8366 0 16 0Z"
+          fill={fill}
+          stroke="white"
+          strokeWidth={1.5}
+        />
+      </svg>
+      <span
+        className="material-symbols-outlined"
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          fontSize: 14,
+          color: 'white',
+          fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
+          lineHeight: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 32,
+          height: 28,
+        }}
+      >
+        {icon}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * 圆型 Marker — 24x24px
+ */
+function CircleMarker({ color = 'primary' }: { color?: MarkerColor }) {
+  const { fill, bg } = MARKER_COLOR_MAP[color];
+  return (
+    <div className="aimapkit-marker-circle" style={{ background: bg, borderColor: fill }}>
+      <div className="aimapkit-marker-circle__inner" style={{ background: fill }} />
+    </div>
+  );
+}
+
+/**
+ * 简化圆点 — 8x8px，低缩放级降级形态
+ */
+function DotMarker({ color = 'primary' }: { color?: MarkerColor }) {
+  const { fill } = MARKER_COLOR_MAP[color];
+  return (
+    <div className="aimapkit-marker-dot" style={{ background: fill }} />
+  );
+}
+
+/**
+ * Marker 文本标注 — 置于 Marker 下方 4px，带白色光晕
+ */
+function MarkerLabel({ text }: { text: string }) {
+  return <div className="aimapkit-marker-label">{text}</div>;
+}
+
+// ============================================================
+// MarkerProps
+// ============================================================
+
 export interface MarkerProps extends Omit<MarkerSchema, 'type' | 'content'> {
-  content?: React.ReactNode;
+  /** Marker 形态，默认 pin */
+  variant?: MarkerVariant;
+  /** 语义颜色，默认 primary */
+  color?: MarkerColor;
+  /** Material Symbols 图标名 (仅 variant='icon' 时生效) */
+  icon?: string;
+  /** 文本标注，显示在 Marker 下方 4px */
+  label?: string;
+  /** 自定义内容，优先级高于 variant/color/icon/label */
+  content?: React.ReactNode | string;
   className?: string;
   overlayContainer?: HTMLElement | null;
   onClick?: (e: React.MouseEvent) => void;
@@ -14,6 +165,10 @@ export interface MarkerProps extends Omit<MarkerSchema, 'type' | 'content'> {
   onDragEnd?: (lng: number, lat: number) => void;
   onDragging?: (lng: number, lat: number) => void;
   onDragStart?: (lng: number, lat: number) => void;
+  /** 选中状态 */
+  selected?: boolean;
+  /** 禁用/离线状态 */
+  inactive?: boolean;
   anchor?: 'center' | 'top' | 'bottom' | 'left' | 'right' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   offsets?: [number, number];
   overflowHide?: boolean;
@@ -34,9 +189,53 @@ const anchorTranslate: Record<string, string> = {
 
 const DEFAULT_OFFSETS: [number, number] = [0, 0];
 
+/**
+ * 根据 variant/colors/icon/label 自动生成 Marker 内容
+ */
+function renderMarkerContent(
+  variant: MarkerVariant,
+  color: MarkerColor,
+  icon: string | undefined,
+  label: string | undefined,
+): React.ReactNode {
+  let markerElement: React.ReactNode;
+
+  switch (variant) {
+    case 'pin':
+      markerElement = <PinSvg color={color} />;
+      break;
+    case 'circle':
+      markerElement = <CircleMarker color={color} />;
+      break;
+    case 'icon':
+      markerElement = <IconPin icon={icon || 'location_on'} color={color} />;
+      break;
+    case 'dot':
+      markerElement = <DotMarker color={color} />;
+      break;
+    default:
+      markerElement = <PinSvg color={color} />;
+  }
+
+  if (label) {
+    return (
+      <div style={{ position: 'relative', display: 'inline-flex', flexDirection: 'column', alignItems: 'center' }}>
+        {markerElement}
+        <MarkerLabel text={label} />
+      </div>
+    );
+  }
+
+  return markerElement;
+}
+
 export function Marker({
   longitude,
   latitude,
+  variant = 'pin',
+  color = 'primary',
+  icon,
+  label,
   content,
   draggable = false,
   className,
@@ -48,12 +247,15 @@ export function Marker({
   onDragEnd,
   onDragging,
   onDragStart,
+  selected = false,
+  inactive = false,
   anchor = 'bottom',
   offsets = DEFAULT_OFFSETS,
   overflowHide = true,
 }: MarkerProps) {
   const scene = useScene();
   const elementRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<Root | null>(null);
   const lngLatRef = useRef({ lng: longitude, lat: latitude });
   const mapSizeRef = useRef<{ width: number; height: number }>({ width: 0, height: 0 });
   const offsetX = offsets[0] ?? 0;
@@ -64,6 +266,22 @@ export function Marker({
     handleDragMove: (e: any) => void;
     handleDragEnd: () => void;
   } | null>(null);
+
+  // 计算 className：合并 variant、color、state 类名
+  const computedClassName = React.useMemo(() => {
+    const parts: string[] = ['aimapkit-marker'];
+    if (selected) parts.push('aimapkit-marker--selected');
+    if (inactive) parts.push('aimapkit-marker--inactive');
+    parts.push(`aimapkit-marker--${color}`);
+    if (className) parts.push(className);
+    return parts.join(' ');
+  }, [selected, inactive, color, className]);
+
+  // 决定渲染内容：content 优先，否则根据 variant 渲染
+  const markerContent = React.useMemo(() => {
+    if (content) return content;
+    return renderMarkerContent(variant, color, icon, label);
+  }, [content, variant, color, icon, label]);
 
   // 更新 Marker 位置（同步，使用 transform 替代 left/top 避免重排）
   const updatePositionSync = (mapsService: any) => {
@@ -77,14 +295,12 @@ export function Marker({
     const x = pos.x + offsetX;
     const y = pos.y - offsetY;
 
-    // 使用 transform 定位：translate3d(x, y, 0) 负责位置，anchor 偏移合并为第二个 translate
-    // 相比 left/top，transform 只触发 Composite 合成层，不触发 Layout 重排，
-    // translate3d 强制 GPU 合成层，与地图 WebGL 渲染同帧完成，消除视觉延迟
     const anchorValue = anchorTranslate[anchor] || anchorTranslate.bottom;
+    const rx = Math.round(x);
+    const ry = Math.round(y);
     element.style.left = '0';
     element.style.top = '0';
-    element.style.transform = `translate3d(${x}px, ${y}px, 0) ${anchorValue}`;
-    element.style.willChange = 'transform';
+    element.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${anchorValue}`;
 
     // 边界检查（用 visibility 代替 display:none，避免回流）
     if (overflowHide) {
@@ -114,7 +330,6 @@ export function Marker({
       };
     };
 
-    // 立即注册地图事件监听器（在 Marker 创建之前就注册）
     const handleUpdate = () => {
       if (elementRef.current) {
         updatePositionSync(mapsService);
@@ -139,17 +354,11 @@ export function Marker({
 
     refreshMapSize();
 
-    // 参考 L7 MarkerService 的事件注册策略：
-    // - camerachange: 主事件，AMap 1.x 原生事件 / AMap 2.x 通过 AMapEventMapV2 映射为 viewchange
-    // - viewchange: AMap 2.x 原生事件，某些地图类型下与 camerachange 不同
-    //   注意：在 AMap 2.x 中，camerachange 和 viewchange 都映射到原生 viewchange，
-    //   会导致 handleUpdate 被调用两次，但这是 L7 自身的做法，保持兼容
     registerEvent(mapsService, 'camerachange', handleUpdate);
     registerEvent(mapsService, 'viewchange', handleUpdate);
     registerEvent(scene, 'resize', refreshMapSize);
 
     const initMarker = async () => {
-      // 等待 Scene 加载完成
       if (!(scene as any).loaded) {
         await new Promise<void>((resolve) => {
           scene.once('loaded', () => resolve());
@@ -159,15 +368,12 @@ export function Marker({
 
       // 创建 DOM 元素
       const element = document.createElement('div');
-      element.className = className || 'aimapkit-marker';
+      element.className = computedClassName;
       element.style.position = 'absolute';
       element.style.left = '0';
       element.style.top = '0';
       element.style.whiteSpace = 'nowrap';
       element.style.pointerEvents = 'auto';
-      element.style.willChange = 'transform';
-      // 使用 translate3d 强制提升为 GPU 合成层，与地图 WebGL 同帧渲染
-      element.style.transform = 'translate3d(0, 0, 0)';
       elementRef.current = element;
 
       // 添加到 Marker 容器
@@ -189,11 +395,8 @@ export function Marker({
       const handleDragStart = (e: any) => {
         if (!draggable) return;
         isDragging = true;
-        
-        // 禁用地图拖拽
         mapsService.setMapStatus({ dragEnable: false, zoomEnable: false });
-        
-        // 记录初始位置
+
         const container = mapsService.getContainer();
         const rect = container?.getClientRects()?.[0];
         if (rect) {
@@ -206,7 +409,7 @@ export function Marker({
 
         mapsService.on('mousemove', handleDragMove);
         document.addEventListener('mouseup', handleDragEnd);
-        
+
         if (onDragStart) {
           onDragStart(lngLatRef.current.lng, lngLatRef.current.lat);
         }
@@ -214,21 +417,21 @@ export function Marker({
 
       const handleDragMove = (e: any) => {
         if (!isDragging) return;
-        
+
         const lngLat = e.lngLat || e.lnglat;
         const { lng: preLng, lat: preLat } = preLngLat;
         const { lng: curLng, lat: curLat } = lngLat;
-        
+
         const newLngLat = {
           lng: lngLatRef.current.lng + curLng - preLng,
           lat: lngLatRef.current.lat + curLat - preLat,
         };
-        
+
         lngLatRef.current = newLngLat;
         preLngLat = lngLat;
-        
+
         updatePositionSync(mapsService);
-        
+
         if (onDragging) {
           onDragging(newLngLat.lng, newLngLat.lat);
         }
@@ -237,12 +440,10 @@ export function Marker({
       const handleDragEnd = () => {
         if (!isDragging) return;
         isDragging = false;
-        
-        // 恢复地图拖拽
         mapsService.setMapStatus({ dragEnable: true, zoomEnable: true });
         mapsService.off('mousemove', handleDragMove);
         document.removeEventListener('mouseup', handleDragEnd);
-        
+
         if (onDragEnd) {
           onDragEnd(lngLatRef.current.lng, lngLatRef.current.lat);
         }
@@ -261,7 +462,7 @@ export function Marker({
       if (onDoubleClick) {
         element.addEventListener('dblclick', (e: any) => onDoubleClick(e));
       }
-      
+
       if (draggable) {
         element.addEventListener('mousedown', handleDragStart);
       }
@@ -276,55 +477,59 @@ export function Marker({
 
     initMarker();
 
-    // 清理函数
     return () => {
       isCancelled = true;
-      
-      // 清理地图事件监听
+
       unregisterEvent(mapsService, 'camerachange', handleUpdate);
       unregisterEvent(mapsService, 'viewchange', handleUpdate);
       unregisterEvent(scene, 'resize', refreshMapSize);
-      
+
       const handlers = handlersRef.current;
       if (handlers && draggable) {
         mapsService.setMapStatus({ dragEnable: true, zoomEnable: true });
       }
 
-      // 卸载 React 组件并移除 DOM 元素
       if (elementRef.current) {
-        unmountComponentAtNode(elementRef.current);
+        if (rootRef.current) {
+          rootRef.current.unmount();
+          rootRef.current = null;
+        }
         if (elementRef.current.parentNode) {
           elementRef.current.parentNode.removeChild(elementRef.current);
         }
         elementRef.current = null;
       }
-      
+
       handlersRef.current = null;
     };
-  }, [scene, className, anchor, offsetX, offsetY, overflowHide, draggable, overlayContainer]);
+  }, [scene, computedClassName, anchor, offsetX, offsetY, overflowHide, draggable, overlayContainer]);
 
   // 渲染内容
   useEffect(() => {
     if (!elementRef.current) return;
     const element = elementRef.current;
 
-    const renderContent = content || (
-      <svg display="block" height="48px" width="48px" viewBox="0 0 1024 1024">
-        <path 
-          d="M512 490.666667C453.12 490.666667 405.333333 442.88 405.333333 384 405.333333 325.12 453.12 277.333333 512 277.333333 570.88 277.333333 618.666667 325.12 618.666667 384 618.666667 442.88 570.88 490.666667 512 490.666667M512 85.333333C346.88 85.333333 213.333333 218.88 213.333333 384 213.333333 608 512 938.666667 512 938.666667 512 938.666667 810.666667 608 810.666667 384 810.666667 218.88 677.12 85.333333 512 85.333333Z"
-          fill="var(--color-primary, #004ac6)"
-        />
-      </svg>
-    );
+    if (isHtmlString(markerContent)) {
+      element.innerHTML = markerContent as string;
+    } else {
+      if (!rootRef.current) {
+        rootRef.current = createRoot(element);
+      }
+      rootRef.current.render(<>{markerContent}</>);
+    }
+  }, [markerContent]);
 
-    render(<>{renderContent}</>, element);
-  }, [content]);
+  // 更新 className（selected/inactive/color 变化时）
+  useEffect(() => {
+    if (elementRef.current) {
+      elementRef.current.className = computedClassName;
+    }
+  }, [computedClassName]);
 
   // 更新经纬度
   useEffect(() => {
     lngLatRef.current = { lng: longitude, lat: latitude };
-    
-    // 立即更新位置
+
     if (scene && elementRef.current) {
       const mapsService = (scene as any).mapService;
       if (mapsService) {
