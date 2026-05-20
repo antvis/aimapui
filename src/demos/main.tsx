@@ -29,10 +29,17 @@ import MarkerTest from './marker/MarkerTest';
 import Popup from './popup/Popup';
 // Layer
 import PointLayer from './layer/PointLayer';
+import ColumnLayer from './layer/ColumnLayer';
 import ColorMapping from './layer/ColorMapping';
 import SizeMapping from './layer/SizeMapping';
 import LineLayer from './layer/LineLayer';
+import PathMap from './layer/PathMap';
+import LineAnimate from './layer/LineAnimate';
+import ArcMap from './layer/ArcMap';
+import FlowMap from './layer/FlowMap';
+import IsolineMap from './layer/IsolineMap';
 import HeatmapLayer from './layer/HeatmapLayer';
+import HexagonHeatmap2D from './layer/HexagonHeatmap2D';
 import MultiLayer from './layer/MultiLayer';
 import LayerEvents from './layer/LayerEvents';
 import MapEvents from './layer/MapEvents';
@@ -83,16 +90,23 @@ const demos = [
   // ── Layer 基础图层 ────────────────────────
   // 点
   { name: '点图层', icon: '◉', component: PointLayer, group: 'Layer 基础图层', file: 'layer/PointLayer' },
+  { name: '3D 柱图', icon: '📊', component: ColumnLayer, group: 'Layer 基础图层', file: 'layer/ColumnLayer' },
   { name: '颜色映射', icon: '🌈', component: ColorMapping, group: 'Layer 基础图层', file: 'layer/ColorMapping' },
   { name: '大小映射', icon: '⭕', component: SizeMapping, group: 'Layer 基础图层', file: 'layer/SizeMapping' },
   // 线
   { name: '线图层', icon: '🔀', component: LineLayer, group: 'Layer 基础图层', file: 'layer/LineLayer' },
+  { name: '路径地图', icon: '🛤', component: PathMap, group: 'Layer 基础图层', file: 'layer/PathMap' },
+  { name: '线动画', icon: '✈️', component: LineAnimate, group: 'Layer 基础图层', file: 'layer/LineAnimate' },
+  { name: '弧线地图', icon: '🌈', component: ArcMap, group: 'Layer 基础图层', file: 'layer/ArcMap' },
+  { name: '流向图', icon: '🔄', component: FlowMap, group: 'Layer 基础图层', file: 'layer/FlowMap' },
+  { name: '等值线地图', icon: '〰️', component: IsolineMap, group: 'Layer 基础图层', file: 'layer/IsolineMap' },
   // 面
   { name: '填充图层', icon: '🧩', component: FillLayer, group: 'Layer 基础图层', file: 'advanced/FillLayer' },
   { name: '3D 填充图', icon: '🏙', component: Fill3DLayer, group: 'Layer 基础图层', file: 'advanced/Fill3DLayer' },
   // 热力图
   { name: '热力图', icon: '🔥', component: HeatmapLayer, group: 'Layer 基础图层', file: 'layer/HeatmapLayer' },
   { name: '经典热力图', icon: '🌡', component: HeatmapClassic, group: 'Layer 基础图层', file: 'advanced/HeatmapClassic' },
+  { name: '蜂窝热力图 2D', icon: '⬡', component: HexagonHeatmap2D, group: 'Layer 基础图层', file: 'layer/HexagonHeatmap2D' },
   // 图片 & 栅格
   { name: '图片图层', icon: '🖼', component: ImageLayer, group: 'Layer 基础图层', file: 'advanced/ImageLayer' },
   { name: '栅格瓦片', icon: '🧱', component: RasterTileLayer, group: 'Layer 基础图层', file: 'advanced/RasterTileLayer' },
