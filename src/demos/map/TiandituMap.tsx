@@ -55,7 +55,8 @@ export default function TiandituMap() {
       <Aimap
         key={activeStyle.key}
         map={{
-          basemap: 'map',
+          basemap: 'tianditu',
+          token: TDT_TOKEN,
           center: [116.397, 39.909],
           zoom: 10,
           style: 'blank',

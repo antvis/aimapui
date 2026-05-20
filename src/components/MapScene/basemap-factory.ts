@@ -42,15 +42,10 @@ export async function createBasemap(schema: MapSchema) {
     }
 
     case 'tianditu': {
-      const l7Maps = await import('@antv/l7-maps');
-      const TdtMapCtor = (l7Maps as Record<string, unknown>).TMap ?? (l7Maps as Record<string, unknown>).TdtMap;
-      if (!TdtMapCtor) {
-        throw new Error('[AimapKit] Tianditu map class not found in @antv/l7-maps');
-      }
-      return new (TdtMapCtor as new (...args: unknown[]) => unknown)({
+      const { TMap } = await import('@antv/l7-maps');
+      return new TMap({
         ...commonOptions,
         token,
-        style,
       });
     }
 
