@@ -4,16 +4,16 @@ import { Aimap, PointLayer, ZoomControl } from '../../index';
 /**
  * 3D 柱图 — PointLayer cylinder
  *
- * 参照 L7 示例：point/column/column_light
- * 数据：全国城市温度，使用 cylinder 形状展示 3D 柱状图
+ * 参照 L7 示例：point/column
+ * 数据：上海房价数据，使用多种柱形 + 颜色映射 + 动画效果
  */
 export default function ColumnLayer() {
   const [data, setData] = useState<Record<string, unknown>[] | null>(null);
 
   useEffect(() => {
-    fetch('https://gw.alipayobjects.com/os/rmsportal/oVTMqfzuuRFKiDwhPSFL.json')
+    fetch('https://gw.alipayobjects.com/os/basement_prod/893d1d5f-11d9-45f3-8322-ee9140d288ae.json')
       .then((res) => res.json())
-      .then((json) => setData(json.list))
+      .then((json) => setData(json))
       .catch(() => setData(null));
   }, []);
 
@@ -22,26 +22,25 @@ export default function ColumnLayer() {
       <Aimap
         map={{
           basemap: 'gaode',
-          center: [110, 31.847],
-          zoom: 4,
-          pitch: 60,
+          center: [121.400257, 31.25287],
+          zoom: 14.55,
+          pitch: 66,
+          rotation: 135,
           style: 'dark',
         }}
       >
         {data && (
           <PointLayer
             source={data}
-            sourceConfig={{ x: 'j', y: 'w' }}
-            shape="cylinder"
-            sizeField="t"
-            sizeValues={[1, 1, 80]}
-            color="#006CFF"
+            sourceConfig={{ x: 'longitude', y: 'latitude' }}
+            shapeField="name"
+            shapeValues={['cylinder', 'triangleColumn', 'hexagonColumn', 'squareColumn']}
+            sizeField="unit_price"
+            sizeValues={[6, 6, 100]}
+            colorField="name"
+            colorValues={['#739DFF', '#61FCBF', '#FFDE74', '#FF896F']}
+            animate={{ enable: true }}
             active
-            style={{
-              opacity: 0.6,
-              opacityLinear: { enable: true, dir: 'up' },
-              lightEnable: false,
-            }}
           />
         )}
         <ZoomControl position="bottomright" />
