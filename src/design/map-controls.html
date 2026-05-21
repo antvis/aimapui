@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图控件 (Map Controls) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #004ac6;
+    --color-primary-container: #dee9fc;
+    --color-on-primary: #fff;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-surface: #f8f9ff;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container: #e6eeff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(222,233,252,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* 玻璃拟态面板 */
+  .glass-panel {
+    background: rgba(248, 249, 255, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(195, 198, 215, 0.3);
+    border-radius: 8px;
+  }
+
+  /* 控件按钮 */
+  .ctrl-btn {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; cursor: pointer;
+    border-radius: 4px; color: var(--color-on-surface-variant);
+    transition: all 0.15s ease;
+  }
+  .ctrl-btn:hover { background: rgba(0, 74, 198, 0.08); color: var(--color-primary); }
+  .ctrl-btn:active { transform: scale(0.95); }
+  .ctrl-btn .material-symbols-outlined { font-size: 20px; }
+  .ctrl-btn--active { background: var(--color-primary); color: var(--color-on-primary); border-radius: 6px; }
+  .ctrl-btn--active:hover { background: var(--color-primary); }
+
+  /* 分隔线 */
+  .ctrl-divider { height: 1px; background: rgba(195,198,215,0.3); margin: 0 4px; }
+
+  /* 地图模拟器 */
+  .map-simulator {
+    position: relative; width: 100%; height: 420px;
+    background: linear-gradient(135deg, #e8edf5 0%, #d5dce8 25%, #c8d4e6 50%, #dde5f0 75%, #eef1f7 100%);
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--color-outline-variant);
+  }
+  .map-simulator::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23b0b8c9' stroke-width='0.3' fill='none'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  /* 控件组 -- 模拟真实地图布局 */
+  .control-group {
+    position: absolute; display: flex; flex-direction: column; gap: 0;
+    z-index: 10;
+  }
+  .control-group--vertical { gap: 0; }
+
+  /* 主题选择器 2x2 网格 */
+  .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; }
+  .theme-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 8px; border: none; border-radius: 6px;
+    background: var(--color-surface-container-low); cursor: pointer;
+    font-size: 10px; color: var(--color-on-surface-variant); transition: all 0.15s;
+  }
+  .theme-btn:hover { background: rgba(0,74,198,0.08); }
+  .theme-btn--active { background: var(--color-primary); color: var(--color-on-primary); box-shadow: 0 2px 8px rgba(0,74,198,0.3); }
+  .theme-btn .material-symbols-outlined { font-size: 16px; }
+
+  /* 状态栏 */
+  .status-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(248, 249, 255, 0.9); backdrop-filter: blur(4px);
+    border-top: 1px solid rgba(195, 198, 215, 0.2);
+    padding: 6px 16px; display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    letter-spacing: 0.05em; color: var(--color-on-surface-variant); z-index: 10;
+  }
+
+  /* 图例 */
+  .legend-panel {
+    position: absolute; z-index: 10;
+    background: rgba(248, 249, 255, 0.9); backdrop-filter: blur(12px);
+    border: 1px solid rgba(195, 198, 215, 0.3); border-radius: 10px;
+    padding: 14px; min-width: 160px;
+  }
+  .legend-title { font-size: 12px; font-weight: 600; color: var(--color-on-surface); margin-bottom: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--color-on-surface-variant); margin-bottom: 4px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .legend-ramp { height: 8px; border-radius: 4px; margin: 6px 0 4px; }
+  .legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--color-on-surface-variant); }
+
+  /* 导出按钮 */
+  .export-group { display: flex; gap: 0; }
+  .export-btn {
+    padding: 4px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--color-outline-variant); background: rgba(248,249,255,0.9);
+    color: var(--color-on-surface-variant); transition: all 0.15s;
+  }
+  .export-btn:first-child { border-radius: 6px 0 0 6px; }
+  .export-btn:last-child { border-radius: 0 6px 6px 0; border-left: none; }
+  .export-btn:hover { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
+
+  /* 响应式断点 */
+  .bp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .bp-card { background: var(--color-surface-container-low); border-radius: 8px; padding: 16px; text-align: center; }
+  .bp-icon { font-size: 28px; color: var(--color-primary); margin-bottom: 8px; }
+  .bp-label { font-size: 14px; font-weight: 600; color: var(--color-on-surface); }
+  .bp-desc { font-size: 12px; color: var(--color-on-surface-variant); margin-top: 4px; }
+
+  /* 移动端演示 */
+  .mobile-frame {
+    width: 280px; height: 480px; border-radius: 24px; border: 3px solid #3a3f4c;
+    background: linear-gradient(135deg, #e8edf5 0%, #d5dce8 50%, #eef1f7 100%);
+    position: relative; overflow: hidden; margin: 0 auto;
+  }
+  .mobile-notch { width: 80px; height: 20px; background: #3a3f4c; border-radius: 0 0 12px 12px; margin: 0 auto; }
+  .mobile-toolbar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(248, 249, 255, 0.9); backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(195,198,215,0.2);
+    border-radius: 16px 16px 0 0; padding: 10px 16px 20px;
+    display: flex; justify-content: space-around;
+  }
+  .mobile-toolbar-item { display: flex; flex-direction: column; align-items: center; gap: 2px; border: none; background: none; cursor: pointer; }
+  .mobile-toolbar-item .material-symbols-outlined { font-size: 20px; color: var(--color-on-surface-variant); }
+  .mobile-toolbar-item span:last-child { font-size: 9px; color: var(--color-on-surface-variant); }
+  .mobile-toolbar-item--active .material-symbols-outlined { color: var(--color-primary); }
+  .mobile-toolbar-item--active span:last-child { color: var(--color-primary); font-weight: 600; }
+
+  .mobile-sheet {
+    position: absolute; bottom: 72px; left: 8px; right: 8px;
+    background: rgba(248, 249, 255, 0.97); border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.1); padding: 12px 16px;
+  }
+  .mobile-sheet-handle { width: 32px; height: 4px; background: var(--color-outline-variant); border-radius: 2px; margin: 0 auto 10px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图控件 (Map Controls) 设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v1.2.0 — PC/桌面端 & 移动端控件体系</p>
+
+  <!-- 1. 核心控件 PC -->
+  <h2>1. 核心控件 (PC / Desktop)</h2>
+
+  <h3>1.1 地图模拟布局</h3>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="map-simulator">
+      <!-- 左上: Zoom -->
+      <div class="control-group glass-panel" style="top:12px;left:12px;border-radius:8px;overflow:hidden">
+        <button class="ctrl-btn"><span class="material-symbols-outlined">add</span></button>
+        <div class="ctrl-divider"></div>
+        <button class="ctrl-btn"><span class="material-symbols-outlined">remove</span></button>
+      </div>
+
+      <!-- 右上: 主题切换 + 全屏 -->
+      <div class="control-group glass-panel" style="top:12px;right:12px;border-radius:10px;overflow:hidden;padding:4px">
+        <div class="theme-grid">
+          <button class="theme-btn theme-btn--active"><span class="material-symbols-outlined">map</span>标准</button>
+          <button class="theme-btn"><span class="material-symbols-outlined">light_mode</span>浅色</button>
+          <button class="theme-btn"><span class="material-symbols-outlined">dark_mode</span>深色</button>
+          <button class="theme-btn"><span class="material-symbols-outlined">satellite_alt</span>卫星</button>
+        </div>
+        <div class="ctrl-divider" style="margin:4px 0"></div>
+        <div style="display:flex;flex-direction:column;gap:0">
+          <button class="ctrl-btn"><span class="material-symbols-outlined">fullscreen</span></button>
+          <div class="ctrl-divider"></div>
+          <button class="ctrl-btn"><span class="material-symbols-outlined">my_location</span></button>
+        </div>
+      </div>
+
+      <!-- 左下: 图例 -->
+      <div class="legend-panel" style="bottom:40px;left:12px">
+        <div class="legend-title">物流密度</div>
+        <div class="legend-ramp" style="background:linear-gradient(90deg,#dee9fc,#004ac6)"></div>
+        <div class="legend-labels"><span>0</span><span>50K+</span></div>
+        <div style="margin-top:10px">
+          <div class="legend-title">站点类型</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#004ac6"></div>枢纽站</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>配送站</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>自提点</div>
+        </div>
+      </div>
+
+      <!-- 右下: 导出 + 坐标 -->
+      <div style="position:absolute;bottom:40px;right:12px;z-index:10;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <div class="export-group">
+          <button class="export-btn">PNG</button>
+          <button class="export-btn">PDF</button>
+        </div>
+      </div>
+
+      <!-- 底部状态栏 -->
+      <div class="status-bar">
+        <span>CURSOR: 48.86111 / 2.33583</span>
+        <span>ALTITUDE: 32m AMSL</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>1.2 控件规格</h3>
+  <div class="card">
+    <table class="spec-table">
+      <tr><th>控件</th><th>图标</th><th>样式</th><th>交互</th></tr>
+      <tr><td><strong>ZoomControl</strong></td><td><code>add</code> / <code>remove</code></td><td>玻璃拟态垂直组，36px 按钮</td><td>hover 高亮，active <code>scale-95</code></td></tr>
+      <tr><td><strong>FullscreenControl</strong></td><td><code>fullscreen</code></td><td>同上，独立按钮</td><td>切换全屏视图</td></tr>
+      <tr><td><strong>GeoLocateControl</strong></td><td><code>my_location</code></td><td>同上</td><td>定位到当前位置</td></tr>
+      <tr><td><strong>MapThemeControl</strong></td><td><code>map</code>等</td><td>2×2 网格，激活态 <code>bg-primary</code></td><td>切换底图主题</td></tr>
+      <tr><td><strong>MouseLocation</strong></td><td>—</td><td>底部状态条，<code>font-mono xs</code></td><td>实时显示经纬/海拔</td></tr>
+      <tr><td><strong>ScaleControl</strong></td><td>—</td><td>底部状态条</td><td>比例尺指示</td></tr>
+      <tr><td><strong>ExportImage</strong></td><td>—</td><td>按钮组，<code>rounded-md px-3 py-1</code></td><td>PNG / PDF 导出</td></tr>
+    </table>
+  </div>
+
+  <!-- 2. 信息与叠加层 -->
+  <h2>2. 信息与叠加层</h2>
+
+  <h3>2.1 Marker 标注点</h3>
+  <div class="card">
+    <div class="card-title">水滴型 (Pin) & 圆型 (Circle)</div>
+    <div style="display:flex;gap:40px;align-items:flex-end;justify-content:center;padding:24px 0">
+      <!-- Pin 标注 -->
+      <div style="text-align:center">
+        <svg width="32" height="44" viewBox="0 0 32 44"><path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 28 16 28s16-16 16-28C32 7.2 24.8 0 16 0z" fill="#004ac6" stroke="#fff" stroke-width="2"/><circle cx="16" cy="15" r="6" fill="#fff"/></svg>
+        <div style="font-size:12px;margin-top:8px;color:var(--color-on-surface-variant)">Pin 型</div>
+      </div>
+      <!-- Circle 标注 -->
+      <div style="text-align:center">
+        <div style="width:28px;height:28px;border-radius:50%;background:#004ac6;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,74,198,0.4);display:flex;align-items:center;justify-content:center"><span class="material-symbols-outlined" style="font-size:14px;color:#fff">local_shipping</span></div>
+        <div style="font-size:12px;margin-top:8px;color:var(--color-on-surface-variant)">Circle 型</div>
+      </div>
+      <!-- 脉冲标注 -->
+      <div style="text-align:center;position:relative">
+        <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,74,198,0.2);display:flex;align-items:center;justify-content:center;position:relative">
+          <div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid #004ac6;animation:marker-pulse 1.6s ease-out infinite"></div>
+          <div style="width:12px;height:12px;border-radius:50%;background:#004ac6"></div>
+        </div>
+        <div style="font-size:12px;margin-top:8px;color:var(--color-on-surface-variant)">脉冲型</div>
+      </div>
+      <!-- 拖拽态 -->
+      <div style="text-align:center">
+        <svg width="36" height="48" viewBox="0 0 32 44" style="transform:scale(1.1);filter:drop-shadow(0 8px 16px rgba(0,0,0,0.2))"><path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 28 16 28s16-16 16-28C32 7.2 24.8 0 16 0z" fill="#004ac6" stroke="#fff" stroke-width="2"/><circle cx="16" cy="15" r="6" fill="#fff"/></svg>
+        <div style="font-size:12px;margin-top:8px;color:var(--color-on-surface-variant)">拖拽态 · scale-110</div>
+      </div>
+    </div>
+    @keyframes marker-pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.8); opacity: 0; } }
+  </div>
+
+  <h3>2.2 图例 (Legend)</h3>
+  <div class="card">
+    <div class="card-title">三种图例子类型</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
+      <!-- 分类图例 -->
+      <div style="background:var(--color-surface-container-low);border-radius:10px;padding:16px;min-width:160px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:10px">LegendCategories</div>
+        <div style="font-size:12px;color:var(--color-on-surface-variant)"><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:8px;height:8px;border-radius:50%;background:#004ac6"></div>枢纽站</div><div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="width:8px;height:8px;border-radius:50%;background:#10b981"></div>配送站</div><div style="display:flex;align-items:center;gap:8px"><div style="width:8px;height:8px;border-radius:50%;background:#f59e0b"></div>自提点</div></div>
+      </div>
+      <!-- 渐变图例 -->
+      <div style="background:var(--color-surface-container-low);border-radius:10px;padding:16px;min-width:180px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:10px">LegendRamp</div>
+        <div style="height:8px;border-radius:4px;background:linear-gradient(90deg,#dee9fc,#5b8def,#004ac6);margin-bottom:4px"></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-on-surface-variant)"><span>0</span><span>25K</span><span>50K+</span></div>
+      </div>
+      <!-- 比例图例 -->
+      <div style="background:var(--color-surface-container-low);border-radius:10px;padding:16px;min-width:160px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:10px">LegendProportion</div>
+        <div style="display:flex;align-items:flex-end;gap:8px;padding-left:8px">
+          <div style="width:20px;height:20px;border-radius:50%;background:rgba(0,74,198,0.15);border:2px solid rgba(0,74,198,0.4)"></div>
+          <div style="width:30px;height:30px;border-radius:50%;background:rgba(0,74,198,0.25);border:2px solid rgba(0,74,198,0.5)"></div>
+          <div style="width:40px;height:40px;border-radius:50%;background:rgba(0,74,198,0.4);border:2px solid rgba(0,74,198,0.7)"></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:6px;font-size:10px;color:var(--color-on-surface-variant)"><span>1x</span><span>3x</span><span>6x</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 移动端组件 -->
+  <h2>3. 移动端组件</h2>
+
+  <div class="card">
+    <div class="card-title">移动端布局模拟</div>
+    <div style="display:flex;gap:32px;justify-content:center;align-items:flex-start;flex-wrap:wrap">
+      <!-- 手机模拟 -->
+      <div class="mobile-frame">
+        <div class="mobile-notch"></div>
+        <!-- 模拟地图内容 -->
+        <div style="position:absolute;inset:0;top:20px;background:url(&quot;data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23b0b8c9' stroke-width='0.3' fill='none'/%3E%3C/svg%3E&quot;);opacity:0.3"></div>
+
+        <!-- 浮动缩放 -->
+        <div class="glass-panel" style="position:absolute;top:24px;right:8px;border-radius:8px;overflow:hidden;display:flex;flex-direction:column">
+          <button class="ctrl-btn" style="width:32px;height:32px"><span class="material-symbols-outlined" style="font-size:18px">add</span></button>
+          <div class="ctrl-divider"></div>
+          <button class="ctrl-btn" style="width:32px;height:32px"><span class="material-symbols-outlined" style="font-size:18px">remove</span></button>
+        </div>
+
+        <!-- 底部图例抽屉 -->
+        <div class="mobile-sheet">
+          <div class="mobile-sheet-handle"></div>
+          <div style="font-size:11px;font-weight:600;margin-bottom:6px">物流密度</div>
+          <div style="height:6px;border-radius:3px;background:linear-gradient(90deg,#dee9fc,#004ac6);margin-bottom:2px"></div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--color-on-surface-variant)"><span>0</span><span>50K+</span></div>
+        </div>
+
+        <!-- 底部工具栏 -->
+        <div class="mobile-toolbar">
+          <button class="mobile-toolbar-item mobile-toolbar-item--active"><span class="material-symbols-outlined">explore</span><span>探索</span></button>
+          <button class="mobile-toolbar-item"><span class="material-symbols-outlined">legend_toggle</span><span>图例</span></button>
+          <button class="mobile-toolbar-item"><span class="material-symbols-outlined">build</span><span>工具</span></button>
+          <button class="mobile-toolbar-item"><span class="material-symbols-outlined">person</span><span>我的</span></button>
+        </div>
+      </div>
+
+      <div style="max-width:280px">
+        <h3 style="margin-top:0">MobileToolbar</h3>
+        <p style="font-size:13px">底部固定浮动岛 / 工具栏。<code>bg-surface/90 backdrop-blur-lg</code>，<code>rounded-full</code> 或 <code>rounded-t-xl</code>。</p>
+        <h3>MobileSheetLegend</h3>
+        <p style="font-size:13px">底部抽屉式图例。顶部拖拽手柄，<code>rounded-t-3xl</code>，<code>shadow-[0_-8px_24px_rgba(0,0,0,0.1)]</code>。</p>
+        <h3>TouchGesturePanel</h3>
+        <p style="font-size:13px">点击时的径向涟漪反馈；拖放时幽灵标注效果。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 定位锚点 & 响应式 -->
+  <h2>4. 定位锚点 & 响应式</h2>
+
+  <div class="card">
+    <div class="card-title">控件定位锚点</div>
+    <table class="spec-table">
+      <tr><th>位置</th><th>CSS 类</th><th>典型控件</th></tr>
+      <tr><td>左上</td><td><code>.l7-top.l7-left</code></td><td>缩放、定位</td></tr>
+      <tr><td>右上</td><td><code>.l7-top.l7-right</code></td><td>主题切换、全屏</td></tr>
+      <tr><td>左下</td><td><code>.l7-bottom.l7-left</code></td><td>图例、比例尺</td></tr>
+      <tr><td>右下</td><td><code>.l7-bottom.l7-right</code></td><td>导出、鼠标位置</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">响应式断点</div>
+    <div class="bp-grid">
+      <div class="bp-card">
+        <div class="bp-icon"><span class="material-symbols-outlined" style="font-size:28px">desktop_windows</span></div>
+        <div class="bp-label">&ge; 1024px</div>
+        <div class="bp-desc">桌面端：全功能控件组<br>浮动面板布局</div>
+      </div>
+      <div class="bp-card">
+        <div class="bp-icon"><span class="material-symbols-outlined" style="font-size:28px">tablet_mac</span></div>
+        <div class="bp-label">768 – 1023px</div>
+        <div class="bp-desc">平板：控件收缩为图标<br>图例折叠</div>
+      </div>
+      <div class="bp-card">
+        <div class="bp-icon"><span class="material-symbols-outlined" style="font-size:28px">smartphone</span></div>
+        <div class="bp-label">&lt; 768px</div>
+        <div class="bp-desc">移动端：底部工具栏<br>底部抽屉，手势优先</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 玻璃拟态基础 -->
+  <h2>5. 玻璃拟态基础</h2>
+  <div class="card">
+    <div class="card-title">Glass Panel CSS</div>
+    <div style="background:#1e1e2e;border-radius:8px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#cdd6f4;line-height:1.7">
+<span style="color:#89b4fa">.glass-panel</span> {
+  <span style="color:#a6e3a1">background</span>: <span style="color:#f9e2af">rgba(248, 249, 255, 0.7)</span>;
+  <span style="color:#a6e3a1">backdrop-filter</span>: <span style="color:#f9e2af">blur(12px)</span>;
+  <span style="color:#a6e3a1">-webkit-backdrop-filter</span>: <span style="color:#f9e2af">blur(12px)</span>;
+  <span style="color:#a6e3a1">border</span>: <span style="color:#f9e2af">1px solid rgba(195, 198, 215, 0.3)</span>;
+}
+    </div>
+  </div>
+
+</div>
+
+<style>
+  @keyframes marker-pulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+</style>
+</body>
+</html>

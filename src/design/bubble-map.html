@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图气泡图 (Bubble Map) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #004ac6;
+    --color-primary-light: rgba(0, 74, 198, 0.4);
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-success: #10b981;
+    --color-surface: #f8f9ff;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container: #e6eeff;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container-high: #dee9fc;
+    --color-surface-container-highest: #d9e3f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-surface-container); padding: 2px 6px; border-radius: 4px; }
+  .section { margin-bottom: 32px; }
+
+  /* 浅灰卡片面板 */
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+
+  /* 气泡展示区 */
+  .bubble-row { display: flex; align-items: center; gap: 32px; justify-content: center; padding: 32px 0; flex-wrap: wrap; }
+  .bubble-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .bubble-label { font-size: 11px; color: var(--color-on-surface-variant); font-family: 'JetBrains Mono', monospace; }
+
+  .bubble {
+    border-radius: 50%;
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary-light);
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .bubble:hover {
+    opacity: 0.6;
+    border-width: 2px;
+    transform: scale(1.08);
+  }
+
+  /* 尺寸等级 */
+  .bubble--xs { width: 8px; height: 8px; }
+  .bubble--sm { width: 16px; height: 16px; }
+  .bubble--md { width: 32px; height: 32px; }
+  .bubble--lg { width: 48px; height: 48px; }
+  .bubble--xl { width: 64px; height: 64px; }
+
+  /* 色彩语义 */
+  .bubble--primary { background: rgba(0,74,198,0.4); border-color: #004ac6; }
+  .bubble--warning { background: rgba(245,158,11,0.4); border-color: #f59e0b; }
+  .bubble--error   { background: rgba(239,68,68,0.4); border-color: #ef4444; }
+  .bubble--success { background: rgba(16,185,129,0.4); border-color: #10b981; }
+
+  /* 单色渐变 */
+  .bubble--seq-10 { background: rgba(0,74,198,0.10); }
+  .bubble--seq-40 { background: rgba(0,74,198,0.40); }
+  .bubble--seq-100 { background: rgba(0,74,198,1); }
+
+  /* 色彩行 */
+  .color-row { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .color-chip { display: flex; align-items: center; gap: 8px; }
+  .color-swatch { width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.06); }
+  .color-info { font-size: 12px; line-height: 1.4; }
+  .color-name { font-weight: 600; color: var(--color-on-surface); }
+  .color-value { color: var(--color-on-surface-variant); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+  /* 交互演示 */
+  .hover-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; }
+  .hover-card { background: var(--color-surface-container-low); border-radius: 8px; padding: 16px; text-align: center; }
+  .hover-card .bubble { margin: 0 auto 12px; }
+  .hover-card .state-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-on-surface-variant); }
+
+  /* 代码块 */
+  .code-block { background: var(--color-on-surface); color: #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; }
+  .code-block .kw { color: #c084fc; }
+  .code-block .str { color: #86efac; }
+  .code-block .cmt { color: #64748b; }
+  .code-block .attr { color: #93c5fd; }
+
+  /* 叠加效果 */
+  .stack-demo { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+  .stack-demo .bubble { position: absolute; }
+
+  /* 规格表 */
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: var(--color-surface-container-low); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图气泡图 (Bubble Map) 设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v1.2.0 — 高精度空间数据可视化</p>
+
+  <!-- 1. 气泡视觉定义 -->
+  <h2>1. 气泡视觉定义</h2>
+
+  <h3>基础样式</h3>
+  <div class="card">
+    <div class="card-title">圆形 · 半透明填充 · 实色描边</div>
+    <div class="bubble-row">
+      <div class="bubble-item">
+        <div class="bubble bubble--md bubble--primary"></div>
+        <span class="bubble-label">默认</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--md bubble--primary" style="backdrop-filter:blur(4px)"></div>
+        <span class="bubble-label">+backdrop-blur</span>
+      </div>
+    </div>
+    <p style="margin-top:12px">形态：完美圆形，<code>bg-primary/40</code> 半透明填充 + <code>border-primary 1px</code> 实色描边，<code>backdrop-blur-sm</code> 增强可读性。</p>
+  </div>
+
+  <h3>尺寸映射 (Size Mapping)</h3>
+  <div class="card">
+    <div class="card-title">5 级视觉等级</div>
+    <div class="bubble-row">
+      <div class="bubble-item">
+        <div class="bubble bubble--xs bubble--primary"></div>
+        <span class="bubble-label">L1 · 8px</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--sm bubble--primary"></div>
+        <span class="bubble-label">L2 · 16px</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--md bubble--primary"></div>
+        <span class="bubble-label">L3 · 32px</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--lg bubble--primary"></div>
+        <span class="bubble-label">L4 · 48px</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--xl bubble--primary"></div>
+        <span class="bubble-label">L5 · 64px</span>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>等级</th><th>直径</th><th>场景</th></tr>
+      <tr><td>L1 (极小)</td><td>8px</td><td>长尾数据 / 背景参考</td></tr>
+      <tr><td>L2 (小)</td><td>16px</td><td>标准离散点位</td></tr>
+      <tr><td>L3 (中)</td><td>32px</td><td>核心关注区域</td></tr>
+      <tr><td>L4 (大)</td><td>48px</td><td>显著权重区域</td></tr>
+      <tr><td>L5 (极大)</td><td>64px+</td><td>峰值 / 聚合极点</td></tr>
+    </table>
+  </div>
+
+  <!-- 2. 色彩语义 -->
+  <h2>2. 色彩语义</h2>
+
+  <h3>定性区分色板</h3>
+  <div class="card">
+    <div class="card-title">4 色语义系统</div>
+    <div class="bubble-row">
+      <div class="bubble-item">
+        <div class="bubble bubble--lg bubble--primary"></div>
+        <span class="bubble-label">Primary · 默认</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--lg bubble--warning"></div>
+        <span class="bubble-label">Warning · 预警</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--lg bubble--error"></div>
+        <span class="bubble-label">Error · 故障</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--lg bubble--success"></div>
+        <span class="bubble-label">Success · 达成</span>
+      </div>
+    </div>
+    <div class="color-row" style="margin-top:16px">
+      <div class="color-chip">
+        <div class="color-swatch" style="background:#004ac6"></div>
+        <div class="color-info"><div class="color-name">Primary</div><div class="color-value">#004ac6</div></div>
+      </div>
+      <div class="color-chip">
+        <div class="color-swatch" style="background:#f59e0b"></div>
+        <div class="color-info"><div class="color-name">Warning</div><div class="color-value">#f59e0b</div></div>
+      </div>
+      <div class="color-chip">
+        <div class="color-swatch" style="background:#ef4444"></div>
+        <div class="color-info"><div class="color-name">Error</div><div class="color-value">#ef4444</div></div>
+      </div>
+      <div class="color-chip">
+        <div class="color-swatch" style="background:#10b981"></div>
+        <div class="color-info"><div class="color-name">Success</div><div class="color-value">#10b981</div></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>单色渐变 (Sequential)</h3>
+  <div class="card">
+    <div class="card-title">Primary 透明度阶梯</div>
+    <div class="bubble-row">
+      <div class="bubble-item">
+        <div class="bubble bubble--lg" style="background:rgba(0,74,198,0.10);border-color:#004ac6"></div>
+        <span class="bubble-label">低值 /10</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--lg" style="background:rgba(0,74,198,0.40);border-color:#004ac6"></div>
+        <span class="bubble-label">中值 /40</span>
+      </div>
+      <div class="bubble-item">
+        <div class="bubble bubble--lg" style="background:rgba(0,74,198,1);border-color:#004ac6"></div>
+        <span class="bubble-label">高值 实色</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 交互行为 -->
+  <h2>3. 交互行为</h2>
+
+  <div class="card">
+    <div class="card-title">Hover &amp; Click 状态</div>
+    <div class="hover-grid">
+      <div class="hover-card">
+        <div class="bubble bubble--md bubble--primary"></div>
+        <div class="state-label">默认</div>
+      </div>
+      <div class="hover-card">
+        <div class="bubble bubble--md bubble--primary" style="opacity:0.6;border-width:2px"></div>
+        <div class="state-label">悬停 (Hover)</div>
+      </div>
+      <div class="hover-card">
+        <div class="bubble bubble--md bubble--primary" style="box-shadow:0 0 0 8px rgba(0,74,198,0.2)"></div>
+        <div class="state-label">点击涟漪</div>
+      </div>
+    </div>
+    <p style="margin-top:16px">悬停：填充不透明度增至 60%，描边加粗至 2px。<br>点击：产生微弱扩散涟漪动画。</p>
+  </div>
+
+  <!-- 4. 堆叠与覆盖 -->
+  <h2>4. 堆叠与覆盖</h2>
+  <div class="card">
+    <div class="card-title">透明度叠加 + 小气泡在下层</div>
+    <div class="stack-demo">
+      <div class="bubble bubble--xl bubble--primary" style="left:40px;top:40px"></div>
+      <div class="bubble bubble--md bubble--warning" style="left:80px;top:60px"></div>
+      <div class="bubble bubble--sm bubble--error" style="left:110px;top:90px"></div>
+    </div>
+    <p style="text-align:center;margin-top:12px">较小气泡置于较大气泡之上，确保可点击。透明度叠加直观反映数据密度。</p>
+  </div>
+
+  <!-- 5. AimapKit 代码 -->
+  <h2>AimapKit 默认实现</h2>
+  <div class="card">
+    <div class="card-title">BubbleLayer API</div>
+    <div class="code-block"><span class="cmt">// 默认：圆形、半透明填充、1px 描边</span>
+<span class="cmt">// 大小映射默认值: [8, 16, 32, 48, 64]</span>
+<span class="cmt">// 语义色板: primary / warning / error / success</span>
+
+&lt;<span class="kw">BubbleLayer</span>
+  <span class="attr">source</span>=<span class="str">{data}</span>
+  <span class="attr">sourceType</span>=<span class="str">"geojson"</span>
+  <span class="attr">sizeField</span>=<span class="str">"value"</span>
+  <span class="attr">semanticColorField</span>=<span class="str">"status"</span>
+  <span class="attr">labelField</span>=<span class="str">"name"</span>
+/&gt;</div>
+  </div>
+
+</div>
+</body>
+</html>

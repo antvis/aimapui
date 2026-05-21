@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图填充图 (Choropleth Map) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #004ac6;
+    --color-primary-light: rgba(0, 74, 198, 0.4);
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-success: #10b981;
+    --color-surface: #f8f9ff;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container: #e6eeff;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container-high: #dee9fc;
+    --color-surface-container-highest: #d9e3f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-surface-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: var(--color-surface-container-low); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+  .code-block { background: var(--color-on-surface); color: #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; }
+  .code-block .kw { color: #c084fc; }
+  .code-block .str { color: #86efac; }
+  .code-block .cmt { color: #64748b; }
+  .code-block .attr { color: #93c5fd; }
+
+  /* 色阶条 */
+  .color-scale { display: flex; height: 48px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
+  .color-scale div { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(255,255,255,0.8); font-family: 'JetBrains Mono', monospace; }
+  .scale-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--color-on-surface-variant); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+
+  /* 地图区域模拟 */
+  .map-mock { position: relative; width: 100%; height: 280px; background: var(--color-surface-container-low); border-radius: 12px; overflow: hidden; }
+  .region { position: absolute; border: 0.5px solid rgba(255,255,255,0.3); transition: all 0.2s ease; cursor: pointer; }
+  .region:hover { opacity: 1 !important; border: 2px solid #fff; box-shadow: 0 0 12px rgba(0,74,198,0.3); }
+  .region-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #fff; text-shadow: -1px -1px 0 rgba(0,0,0,0.3), 1px -1px 0 rgba(0,0,0,0.3), -1px 1px 0 rgba(0,0,0,0.3), 1px 1px 0 rgba(0,0,0,0.3), 0 0 2px rgba(0,0,0,0.3); pointer-events: none; white-space: nowrap; }
+
+  /* 发散色阶 */
+  .diverging-scale { display: flex; height: 48px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
+  .diverging-scale div { flex: 1; display: flex; align-items: center; justify-content: center; }
+
+  /* 分类色块 */
+  .categorical-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cat-chip { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 8px; }
+  .cat-swatch { width: 24px; height: 24px; border-radius: 6px; }
+  .cat-label { font-size: 12px; font-weight: 500; }
+
+  /* 边界线示意 */
+  .border-demo { display: flex; gap: 32px; align-items: center; justify-content: center; padding: 24px 0; }
+  .border-item { text-align: center; }
+  .border-item .region-preview { width: 80px; height: 80px; border-radius: 12px; margin: 0 auto 8px; }
+  .border-item .label { font-size: 11px; color: var(--color-on-surface-variant); font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图填充图 (Choropleth Map) 设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v1.2.0 — 分级统计图色彩映射</p>
+
+  <!-- 1. 色彩映射 -->
+  <h2>1. 色彩映射规范</h2>
+
+  <h3>单色渐变 (Sequential)</h3>
+  <div class="card">
+    <div class="card-title">Primary 明度 &amp; 饱和度梯度</div>
+    <div class="color-scale">
+      <div style="background:rgba(0,74,198,0.10)">/10</div>
+      <div style="background:rgba(0,74,198,0.20)">/20</div>
+      <div style="background:rgba(0,74,198,0.30)">/30</div>
+      <div style="background:rgba(0,74,198,0.40)">/40</div>
+      <div style="background:rgba(0,74,198,0.55)">/55</div>
+      <div style="background:rgba(0,74,198,0.70)">/70</div>
+      <div style="background:rgba(0,74,198,0.85)">/85</div>
+      <div style="background:rgba(0,74,198,1.0)">100%</div>
+    </div>
+    <div class="scale-labels"><span>低值</span><span>中值</span><span>高值</span></div>
+    <p style="margin-top:12px">用于展示单一指标数值高低（人口密度、降雨量等）。低值使用 <code>bg-primary/10</code>，高值使用 <code>bg-primary</code> 实色。</p>
+  </div>
+
+  <h3>发散渐变 (Diverging)</h3>
+  <div class="card">
+    <div class="card-title">偏离中性参考点 — 正负双向色阶</div>
+    <div class="diverging-scale">
+      <div style="background:rgba(16,185,129,0.9);color:#fff;font-size:10px">+3</div>
+      <div style="background:rgba(16,185,129,0.6);color:#fff;font-size:10px">+2</div>
+      <div style="background:rgba(16,185,129,0.3);color:#333;font-size:10px">+1</div>
+      <div style="background:var(--color-surface-container);font-size:10px;color:var(--color-on-surface-variant)">0</div>
+      <div style="background:rgba(239,68,68,0.3);color:#333;font-size:10px">-1</div>
+      <div style="background:rgba(239,68,68,0.6);color:#fff;font-size:10px">-2</div>
+      <div style="background:rgba(239,68,68,0.9);color:#fff;font-size:10px">-3</div>
+    </div>
+    <div class="scale-labels"><span style="color:#10b981">正向极值 (Success)</span><span>中性 (Surface)</span><span style="color:#ef4444">负向极值 (Error)</span></div>
+    <p style="margin-top:12px">展示偏离中性参考点的数据（增长率、气温偏差等）。</p>
+  </div>
+
+  <h3>分类映射 (Categorical)</h3>
+  <div class="card">
+    <div class="card-title">高辨识度互补色，不暗示量级</div>
+    <div class="categorical-row">
+      <div class="cat-chip"><div class="cat-swatch" style="background:#004ac6"></div><div class="cat-label">商业区</div></div>
+      <div class="cat-chip"><div class="cat-swatch" style="background:#10b981"></div><div class="cat-label">绿地</div></div>
+      <div class="cat-chip"><div class="cat-swatch" style="background:#f59e0b"></div><div class="cat-label">工业区</div></div>
+      <div class="cat-chip"><div class="cat-swatch" style="background:#ef4444"></div><div class="cat-label">限制区</div></div>
+      <div class="cat-chip"><div class="cat-swatch" style="background:#8b5cf6"></div><div class="cat-label">居住区</div></div>
+      <div class="cat-chip"><div class="cat-swatch" style="background:#06b6d4"></div><div class="cat-label">水域</div></div>
+    </div>
+  </div>
+
+  <!-- 2. 视觉细节 -->
+  <h2>2. 视觉细节规范</h2>
+
+  <h3>区域样式</h3>
+  <div class="card">
+    <div class="card-title">填充不透明度 &amp; 边界线</div>
+    <div class="border-demo">
+      <div class="border-item">
+        <div class="region-preview" style="background:rgba(0,74,198,0.8);border:0.5px solid rgba(255,255,255,0.3)"></div>
+        <div class="label">默认 0.8 opacity<br>0.5px white/30</div>
+      </div>
+      <div class="border-item">
+        <div class="region-preview" style="background:rgba(0,74,198,0.8);border:2px solid #fff;box-shadow:0 0 8px rgba(0,74,198,0.3)"></div>
+        <div class="label">高亮 2px white<br>+ glow</div>
+      </div>
+      <div class="border-item">
+        <div class="region-preview" style="background:rgba(0,74,198,0.8);border:2px solid #004ac6;backdrop-filter:blur(4px)"></div>
+        <div class="label">+ backdrop-blur</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 交互行为 -->
+  <h2>3. 交互行为</h2>
+  <div class="card">
+    <div class="card-title">模拟地图区域交互</div>
+    <div class="map-mock" id="mapMock">
+      <!-- 模拟行政区 -->
+      <div class="region" style="left:5%;top:10%;width:28%;height:40%;background:rgba(0,74,198,0.25);opacity:0.8;border-radius:8px"><div class="region-label">朝阳区<br>¥2.3K</div></div>
+      <div class="region" style="left:33%;top:5%;width:30%;height:35%;background:rgba(0,74,198,0.80);opacity:0.8;border-radius:8px"><div class="region-label">海淀区<br>¥8.9K</div></div>
+      <div class="region" style="left:63%;top:15%;width:32%;height:30%;background:rgba(0,74,198,0.50);opacity:0.8;border-radius:8px"><div class="region-label">东城区<br>¥5.4K</div></div>
+      <div class="region" style="left:10%;top:52%;width:42%;height:38%;background:rgba(0,74,198,0.65);opacity:0.8;border-radius:8px"><div class="region-label">丰台区<br>¥6.8K</div></div>
+      <div class="region" style="left:55%;top:50%;width:38%;height:40%;background:rgba(0,74,198,0.40);opacity:0.8;border-radius:8px"><div class="region-label">西城区<br>¥4.1K</div></div>
+    </div>
+    <p style="margin-top:12px">悬停区域时填充不透明度提升至 100%，边界线加粗并伴有外发光。点击自动缩放定位至区域中心。</p>
+  </div>
+
+  <!-- 4. 标注与可读性 -->
+  <h2>4. 标注与可读性</h2>
+  <div class="card">
+    <div class="card-title">文本中心化 + 反色光晕 (Halo)</div>
+    <div style="display:flex;gap:24px;justify-content:center;padding:24px 0;flex-wrap:wrap">
+      <div style="position:relative;width:120px;height:120px;background:rgba(0,74,198,0.8);border-radius:12px;display:flex;align-items:center;justify-content:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#fff;text-shadow:-1px -1px 0 rgba(0,0,0,0.3),1px -1px 0 rgba(0,0,0,0.3),-1px 1px 0 rgba(0,0,0,0.3),1px 1px 0 rgba(0,0,0,0.3),0 0 2px rgba(0,0,0,0.3)">深色填充<br>+ Halo</span>
+      </div>
+      <div style="position:relative;width:120px;height:120px;background:rgba(0,74,198,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--color-on-surface);text-shadow:-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff,1px 1px 0 #fff,0 0 2px #fff">浅色填充<br>+ Halo</span>
+      </div>
+      <div style="position:relative;width:120px;height:120px;background:rgba(0,74,198,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;opacity:0.4">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--color-on-surface-variant)">面积过小<br>→ 隐藏标注</span>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:12px">
+      <tr><th>规则</th><th>实现</th></tr>
+      <tr><td>文本位置</td><td>区域地理中心 (Centroid)</td></tr>
+      <tr><td>字体样式</td><td><code>font-mono-data</code></td></tr>
+      <tr><td>对比增强</td><td>2px 反色光晕 (Halo)</td></tr>
+      <tr><td>面积阈值</td><td>显示面积过小时自动隐藏标注</td></tr>
+      <tr><td>缩放级过滤</td><td>低缩放级 (<code>minLabelZoom</code>) 自动隐藏</td></tr>
+    </table>
+  </div>
+
+  <!-- 5. AimapKit 代码 -->
+  <h2>AimapKit 默认实现</h2>
+  <div class="card">
+    <div class="card-title">FillLayer API</div>
+    <div class="code-block"><span class="cmt">// 三种配色: sequential | diverging | categorical</span>
+<span class="cmt">// 填充默认 0.8 透明度，边界 0.5px white/30</span>
+
+&lt;<span class="kw">FillLayer</span>
+  <span class="attr">source</span>=<span class="str">{geojson}</span>
+  <span class="attr">sourceType</span>=<span class="str">"geojson"</span>
+  <span class="attr">colorField</span>=<span class="str">"value"</span>
+  <span class="attr">colorMapping</span>=<span class="str">"sequential"</span>
+  <span class="attr">showLabel</span>
+  <span class="attr">labelField</span>=<span class="str">"name"</span>
+  <span class="attr">percentageField</span>=<span class="str">"ratio"</span>
+  <span class="attr">onDrilldown</span>={<span class="str">(feature) =&gt; {</span>
+    <span class="cmt">// 加载下级行政区数据</span>
+    console.log(feature);
+  }}
+/&gt;</div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PC 端地图应用设计规范 — Cartographic Precision System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #2563eb;
+    --color-primary-container: #dbeafe;
+    --color-on-primary: #fff;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-surface: #f8f9ff;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container: #e6eeff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* 应用框架模拟 */
+  .app-shell { width: 100%; height: 420px; background: linear-gradient(135deg, #e8edf5 0%, #d0d8e8 50%, #e2e8f2 100%); border-radius: 12px; border: 1px solid var(--color-outline-variant); overflow: hidden; position: relative; display: flex; }
+  .app-shell::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23b0b8c9' stroke-width='0.3' fill='none'/%3E%3C/svg%3E"); opacity: 0.2; pointer-events: none; z-index: 0; }
+
+  /* 侧边栏 */
+  .sidebar { width: 280px; background: rgba(248,249,255,0.92); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-right: 1px solid rgba(195,198,215,0.3); display: flex; flex-direction: column; z-index: 2; flex-shrink: 0; }
+  .sidebar-header { padding: 16px; border-bottom: 1px solid rgba(195,198,215,0.2); display: flex; align-items: center; gap: 10px; }
+  .sidebar-logo { width: 28px; height: 28px; border-radius: 8px; background: var(--color-primary); display: flex; align-items: center; justify-content: center; }
+  .sidebar-logo .material-symbols-outlined { font-size: 16px; color: #fff; }
+  .sidebar-title { font-size: 14px; font-weight: 600; }
+  .sidebar-section { padding: 12px 16px; }
+  .sidebar-section-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-on-surface-variant); margin-bottom: 8px; }
+  .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; font-size: 12px; color: var(--color-on-surface-variant); cursor: pointer; transition: background 0.15s; }
+  .sidebar-item:hover { background: rgba(0,74,198,0.06); }
+  .sidebar-item--active { background: var(--color-primary-container); color: var(--color-primary); font-weight: 600; }
+  .sidebar-item .material-symbols-outlined { font-size: 18px; }
+  .sidebar-toggle { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+  .sidebar-toggle-track { width: 32px; height: 18px; border-radius: 9px; background: #c3c6d7; position: relative; cursor: pointer; transition: background 0.2s; }
+  .sidebar-toggle-track--on { background: var(--color-primary); }
+  .sidebar-toggle-thumb { width: 14px; height: 14px; border-radius: 50%; background: #fff; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+  .sidebar-toggle-track--on .sidebar-toggle-thumb { left: 16px; }
+  .sidebar-opacity { padding: 4px 0; }
+  .sidebar-opacity input { width: 100%; accent-color: var(--color-primary); }
+
+  /* 顶栏 */
+  .topbar { position: absolute; top: 0; left: 280px; right: 0; height: 64px; background: rgba(248,249,255,0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(195,198,215,0.3); display: flex; align-items: center; padding: 0 16px; gap: 12px; z-index: 2; }
+  .topbar-brand { font-size: 15px; font-weight: 700; color: var(--color-primary); white-space: nowrap; }
+  .topbar-search { flex: 1; max-width: 400px; height: 36px; border-radius: 8px; border: 1px solid var(--color-outline-variant); background: #fff; padding: 0 12px; font-size: 13px; color: var(--color-on-surface-variant); display: flex; align-items: center; gap: 8px; }
+  .topbar-search .material-symbols-outlined { font-size: 18px; color: var(--color-outline-variant); }
+  .topbar-status { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+  .topbar-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+  .topbar-status-text { font-size: 12px; color: var(--color-on-surface-variant); font-family: 'JetBrains Mono', monospace; }
+
+  /* 主视口 */
+  .main-viewport { flex: 1; position: relative; z-index: 1; }
+
+  /* 地图控件 */
+  .ctrl-group { position: absolute; right: 16px; top: 80px; display: flex; flex-direction: column; gap: 2px; z-index: 3; }
+  .ctrl-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.95); border: none; cursor: pointer; color: var(--color-on-surface-variant); box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.15s; }
+  .ctrl-btn:hover { background: rgba(0,74,198,0.06); color: var(--color-primary); }
+  .ctrl-btn:active { transform: scale(0.95); }
+  .ctrl-btn:first-child { border-radius: 8px 8px 0 0; }
+  .ctrl-btn:last-child { border-radius: 0 0 8px 8px; }
+  .ctrl-btn .material-symbols-outlined { font-size: 20px; }
+  .ctrl-btn--solo { border-radius: 8px !important; margin-top: 8px; }
+
+  /* 状态栏 */
+  .status-bar { position: absolute; bottom: 0; left: 280px; right: 0; height: 28px; background: rgba(248,249,255,0.9); backdrop-filter: blur(4px); border-top: 1px solid rgba(195,198,215,0.2); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.04em; color: var(--color-on-surface-variant); z-index: 3; text-transform: uppercase; }
+  .status-bar-sep { width: 1px; height: 14px; background: var(--color-outline-variant); margin: 0 12px; }
+
+  /* Marker */
+  @keyframes marker-pulse { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2); opacity: 0; } }
+
+  /* Tooltip */
+  .tooltip-box { position: absolute; z-index: 5; background: rgba(217,227,246,0.9); backdrop-filter: blur(8px); border-radius: 6px; padding: 8px 12px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); border: 1px solid rgba(195,198,215,0.3); pointer-events: none; }
+  .tooltip-box-title { font-weight: 600; color: var(--color-on-surface); }
+  .tooltip-box-row { display: flex; justify-content: space-between; gap: 16px; margin-top: 2px; color: var(--color-on-surface-variant); font-size: 11px; }
+  .tooltip-box-val { font-family: 'JetBrains Mono', monospace; color: var(--color-on-surface); font-weight: 500; }
+
+  /* 图例 */
+  .legend-panel { position: absolute; left: 296px; bottom: 44px; background: rgba(248,249,255,0.92); backdrop-filter: blur(12px); border: 1px solid rgba(195,198,215,0.3); border-radius: 10px; padding: 12px; z-index: 3; width: 160px; }
+  .legend-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 8px; }
+  .legend-ramp { height: 8px; border-radius: 4px; background: linear-gradient(90deg, #dbeafe, #2563eb); margin-bottom: 4px; }
+  .legend-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--color-on-surface-variant); }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--color-on-surface-variant); margin-bottom: 3px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .param-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .param-card { background: var(--color-surface-container-low); border-radius: 8px; padding: 16px; text-align: center; }
+  .param-value { font-size: 22px; font-weight: 700; color: var(--color-primary); font-family: 'JetBrains Mono', monospace; }
+  .param-label { font-size: 11px; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>PC 端地图应用设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v2.4.0 PC Module — 高精度 GIS 桌面端视觉与交互</p>
+
+  <!-- 1. 核心布局框架 -->
+  <h2>1. 核心布局框架</h2>
+
+  <div class="card">
+    <div class="card-title">Shell 布局演示</div>
+    <div class="app-shell">
+      <!-- 侧边栏 -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo"><span class="material-symbols-outlined">map</span></div>
+          <div class="sidebar-title">GeoLink Pro</div>
+        </div>
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">图层管理</div>
+          <div class="sidebar-item sidebar-item--active">
+            <span class="material-symbols-outlined">layers</span>
+            <span style="flex:1">物流密度</span>
+            <div class="sidebar-toggle-track sidebar-toggle-track--on"><div class="sidebar-toggle-thumb"></div></div>
+          </div>
+          <div class="sidebar-item">
+            <span class="material-symbols-outlined">Hub</span>
+            <span style="flex:1">站点分布</span>
+            <div class="sidebar-toggle-track sidebar-toggle-track--on"><div class="sidebar-toggle-thumb"></div></div>
+          </div>
+          <div class="sidebar-item">
+            <span class="material-symbols-outlined">route</span>
+            <span style="flex:1">运输路线</span>
+            <div class="sidebar-toggle-track"><div class="sidebar-toggle-thumb"></div></div>
+          </div>
+          <div class="sidebar-item">
+            <span class="material-symbols-outlined">local_fire_department</span>
+            <span style="flex:1">热力图</span>
+            <div class="sidebar-toggle-track"><div class="sidebar-toggle-thumb"></div></div>
+          </div>
+          <div class="sidebar-opacity" style="margin-top:8px">
+            <div style="font-size:10px;color:var(--color-on-surface-variant);margin-bottom:4px;display:flex;justify-content:space-between"><span>透明度</span><span style="font-family:'JetBrains Mono',monospace">80%</span></div>
+            <input type="range" min="0" max="100" value="80" style="width:100%;accent-color:var(--color-primary);height:4px">
+          </div>
+        </div>
+        <div class="sidebar-section" style="border-top:1px solid rgba(195,198,215,0.2)">
+          <div class="sidebar-section-title">分析工具</div>
+          <div class="sidebar-item"><span class="material-symbols-outlined">analytics</span><span>区域分析</span></div>
+          <div class="sidebar-item"><span class="material-symbols-outlined">filter_alt</span><span>数据筛选</span></div>
+          <div class="sidebar-item"><span class="material-symbols-outlined">download</span><span>导出报表</span></div>
+        </div>
+      </div>
+
+      <!-- 主视口 -->
+      <div class="main-viewport">
+        <!-- 顶栏 -->
+        <div class="topbar">
+          <div class="topbar-brand">GeoLink Pro</div>
+          <div class="topbar-search">
+            <span class="material-symbols-outlined">search</span>
+            <span>搜索地点、坐标或图层...</span>
+          </div>
+          <div class="topbar-status">
+            <div class="topbar-status-dot"></div>
+            <span class="topbar-status-text">ONLINE</span>
+            <span class="topbar-status-text" style="margin-left:8px">14:32:07</span>
+          </div>
+        </div>
+
+        <!-- 地图标记 -->
+        <svg style="position:absolute;top:45%;left:45%;transform:translate(-50%,-70%);z-index:4" width="28" height="36" viewBox="0 0 28 36"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.3 21.7 0 14 0z" fill="#2563eb" stroke="#fff" stroke-width="2"/><circle cx="14" cy="13" r="5" fill="#fff"/></svg>
+        <svg style="position:absolute;top:35%;left:60%;transform:translate(-50%,-70%);z-index:4" width="28" height="36" viewBox="0 0 28 36"><path d="M14 0C6.3 0 0 6.3 0 14c0 10.5 14 22 14 22s14-11.5 14-22C28 6.3 21.7 0 14 0z" fill="#10b981" stroke="#fff" stroke-width="2"/><circle cx="14" cy="13" r="5" fill="#fff"/></svg>
+
+        <!-- Tooltip -->
+        <div class="tooltip-box" style="top:38%;left:38%">
+          <div class="tooltip-box-title">华东枢纽中心</div>
+          <div class="tooltip-box-row"><span>吞吐量</span><span class="tooltip-box-val">12,450</span></div>
+          <div class="tooltip-box-row"><span>准点率</span><span class="tooltip-box-val" style="color:#10b981">98.6%</span></div>
+        </div>
+
+        <!-- 地图控件 -->
+        <div class="ctrl-group">
+          <button class="ctrl-btn"><span class="material-symbols-outlined">add</span></button>
+          <button class="ctrl-btn"><span class="material-symbols-outlined">remove</span></button>
+          <button class="ctrl-btn ctrl-btn--solo"><span class="material-symbols-outlined">my_location</span></button>
+          <button class="ctrl-btn ctrl-btn--solo" style="margin-top:2px"><span class="material-symbols-outlined">fullscreen</span></button>
+        </div>
+
+        <!-- 图例 -->
+        <div class="legend-panel">
+          <div class="legend-title">物流密度</div>
+          <div class="legend-ramp"></div>
+          <div class="legend-labels"><span>0</span><span>50K+</span></div>
+          <div style="margin-top:10px">
+            <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div>枢纽站</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>配送站</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>自提点</div>
+          </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <div class="status-bar">
+          <div style="display:flex;align-items:center">
+            <span>CURSOR: 39.9042°N / 116.4074°E</span>
+            <div class="status-bar-sep"></div>
+            <span>ALT: 32m AMSL</span>
+          </div>
+          <div style="display:flex;align-items:center">
+            <span>SCALE: 1:50,000</span>
+            <div class="status-bar-sep"></div>
+            <span style="color:#10b981">● SYSTEM READY</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">布局参数</div>
+    <div class="param-grid">
+      <div class="param-card">
+        <div class="param-value">360px</div>
+        <div class="param-label">侧边栏宽度</div>
+      </div>
+      <div class="param-card">
+        <div class="param-value">64px</div>
+        <div class="param-label">顶栏高度</div>
+      </div>
+      <div class="param-card">
+        <div class="param-value">24px</div>
+        <div class="param-label">画布页边距</div>
+      </div>
+      <div class="param-card">
+        <div class="param-value">12–16px</div>
+        <div class="param-label">控件间隙</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 视觉材质 -->
+  <h2>2. 视觉材质与风格</h2>
+
+  <div class="card">
+    <div class="card-title">玻璃拟态 (Glassmorphism)</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+      <div style="background:rgba(248,249,255,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(195,198,215,0.3);border-radius:12px;padding:20px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.08)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Surface/80</div>
+        <code>bg-surface/80</code>
+        <div style="margin-top:4px;font-size:12px;color:var(--color-on-surface-variant)"><code>backdrop-blur-md</code></div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(195,198,215,0.3);border-radius:12px;padding:20px;text-align:center;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Shadow-lg</div>
+        <code>shadow-lg</code>
+        <div style="margin-top:4px;font-size:12px;color:var(--color-on-surface-variant)">大半径扩散阴影</div>
+      </div>
+      <div style="background:var(--color-surface-container-low);border:1px solid var(--color-outline-variant);border-radius:12px;padding:20px;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">边框</div>
+        <code>1px outline/30</code>
+        <div style="margin-top:4px;font-size:12px;color:var(--color-on-surface-variant)">界定物理边界</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">颜色系统</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border-radius:10px;background:#2563eb;margin:0 auto"></div>
+        <div style="font-size:12px;font-weight:600;margin-top:6px">Primary</div>
+        <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--color-on-surface-variant)">#2563EB</div>
+      </div>
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border-radius:10px;background:#f8f9ff;border:1px solid var(--color-outline-variant);margin:0 auto"></div>
+        <div style="font-size:12px;font-weight:600;margin-top:6px">Surface</div>
+        <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--color-on-surface-variant)">#F8F9FF</div>
+      </div>
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border-radius:10px;background:#121c2a;margin:0 auto"></div>
+        <div style="font-size:12px;font-weight:600;margin-top:6px">On-Surface</div>
+        <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--color-on-surface-variant)">#121C2A</div>
+      </div>
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border-radius:10px;background:#434655;margin:0 auto"></div>
+        <div style="font-size:12px;font-weight:600;margin-top:6px">On-Surface-V</div>
+        <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--color-on-surface-variant)">#434655</div>
+      </div>
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border-radius:10px;background:#10b981;margin:0 auto"></div>
+        <div style="font-size:12px;font-weight:600;margin-top:6px">Success</div>
+        <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--color-on-surface-variant)">#10B981</div>
+      </div>
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border-radius:10px;background:#f59e0b;margin:0 auto"></div>
+        <div style="font-size:12px;font-weight:600;margin-top:6px">Warning</div>
+        <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--color-on-surface-variant)">#F59E0B</div>
+      </div>
+      <div style="text-align:center">
+        <div style="width:48px;height:48px;border-radius:10px;background:#ef4444;margin:0 auto"></div>
+        <div style="font-size:12px;font-weight:600;margin-top:6px">Error</div>
+        <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--color-on-surface-variant)">#EF4444</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 地图交互控件 -->
+  <h2>3. 地图交互控件</h2>
+
+  <div class="card">
+    <div class="card-title">核心控制组 & 状态栏</div>
+    <div style="display:flex;gap:32px;align-items:flex-start;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="display:flex;flex-direction:column;gap:2px;width:fit-content;margin:0 auto;background:linear-gradient(135deg,#e8edf5,#d0d8e8);padding:16px;border-radius:12px">
+          <button class="ctrl-btn" style="pointer-events:none"><span class="material-symbols-outlined">add</span></button>
+          <button class="ctrl-btn" style="pointer-events:none"><span class="material-symbols-outlined">remove</span></button>
+          <button class="ctrl-btn ctrl-btn--solo" style="pointer-events:none"><span class="material-symbols-outlined">my_location</span></button>
+          <button class="ctrl-btn ctrl-btn--solo" style="margin-top:2px;pointer-events:none"><span class="material-symbols-outlined">fullscreen</span></button>
+        </div>
+        <div style="font-size:13px;font-weight:600;margin-top:12px">控件组</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">玻璃拟态 · <code>rounded-lg</code><br>40×40px · <code>hover/active</code></div>
+      </div>
+      <div style="flex:1;min-width:280px">
+        <div style="background:rgba(248,249,255,0.9);border-top:1px solid rgba(195,198,215,0.2);border-radius:8px;padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--color-on-surface-variant);letter-spacing:0.04em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center">
+          <span>CURSOR: 39.9042°N / 116.4074°E</span>
+          <span style="width:1px;height:14px;background:var(--color-outline-variant)"></span>
+          <span>SCALE: 1:50,000</span>
+          <span style="width:1px;height:14px;background:var(--color-outline-variant)"></span>
+          <span style="color:#10b981">● SYSTEM READY</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;margin-top:12px">状态栏</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)"><code>font-mono text-xs uppercase tracking-wider</code><br>底部横向拉通</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 专题图层 -->
+  <h2>4. 专题图层与可视化</h2>
+
+  <div class="card">
+    <div class="card-title">Marker 标注点</div>
+    <div style="display:flex;gap:32px;align-items:flex-end;justify-content:center;padding:24px 0;flex-wrap:wrap">
+      <div style="text-align:center">
+        <svg width="32" height="44" viewBox="0 0 32 44"><path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 28 16 28s16-16 16-28C32 7.2 24.8 0 16 0z" fill="#2563eb" stroke="#fff" stroke-width="2"/><circle cx="16" cy="15" r="6" fill="#fff"/></svg>
+        <div style="font-size:12px;margin-top:8px;font-weight:600">Pin Marker</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">SVG 水滴型<br><code>1.5px</code> 白色描边</div>
+      </div>
+      <div style="text-align:center">
+        <svg width="32" height="44" viewBox="0 0 32 44" style="transform:scale(1.1);filter:drop-shadow(0 6px 10px rgba(0,0,0,0.2))"><path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 28 16 28s16-16 16-28C32 7.2 24.8 0 16 0z" fill="#2563eb" stroke="#fff" stroke-width="2"/><circle cx="16" cy="15" r="6" fill="#fff"/></svg>
+        <div style="font-size:12px;margin-top:8px;font-weight:600">Hover</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)"><code>scale-110</code> + 位移<br><code>shadow-md</code></div>
+      </div>
+      <div style="text-align:center;position:relative">
+        <svg width="32" height="44" viewBox="0 0 32 44"><path d="M16 0C7.2 0 0 7.2 0 16c0 12 16 28 16 28s16-16 16-28C32 7.2 24.8 0 16 0z" fill="#2563eb" stroke="#fff" stroke-width="2.5"/><circle cx="16" cy="15" r="6" fill="#fff"/><circle cx="16" cy="15" r="6" fill="none" stroke="#2563eb" stroke-width="2" opacity="0"><animate attributeName="r" values="6;18" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0" dur="1.5s" repeatCount="indefinite"/><animate attributeName="stroke-width" values="2;0.5" dur="1.5s" repeatCount="indefinite"/></circle></svg>
+        <div style="font-size:12px;margin-top:8px;font-weight:600">Selected</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">脉冲光晕<br><code>animate-pulse</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">图层管理器</div>
+    <div style="max-width:280px;margin:0 auto;background:rgba(248,249,255,0.92);backdrop-filter:blur(16px);border:1px solid rgba(195,198,215,0.3);border-radius:12px;padding:16px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-primary);margin-bottom:10px">图层管理</div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--color-primary-container)">
+          <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-primary)">layers</span>
+          <span style="flex:1;font-size:12px;font-weight:600;color:var(--color-primary)">物流密度</span>
+          <div class="sidebar-toggle-track sidebar-toggle-track--on" style="transform:scale(0.85)"><div class="sidebar-toggle-thumb"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px">
+          <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-on-surface-variant)">Hub</span>
+          <span style="flex:1;font-size:12px">站点分布</span>
+          <div class="sidebar-toggle-track sidebar-toggle-track--on" style="transform:scale(0.85)"><div class="sidebar-toggle-thumb"></div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;opacity:0.5">
+          <span class="material-symbols-outlined" style="font-size:18px;color:var(--color-on-surface-variant)">route</span>
+          <span style="flex:1;font-size:12px">运输路线</span>
+          <div class="sidebar-toggle-track" style="transform:scale(0.85)"><div class="sidebar-toggle-thumb"></div></div>
+        </div>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:var(--color-on-surface-variant);display:flex;justify-content:space-between"><span>透明度</span><span style="font-family:'JetBrains Mono',monospace">80%</span></div>
+      <input type="range" min="0" max="100" value="80" style="width:100%;accent-color:var(--color-primary);height:4px;margin-top:4px">
+      <div style="display:flex;gap:4px;margin-top:10px;border-top:1px solid rgba(195,198,215,0.2);padding-top:10px">
+        <span style="font-size:10px;color:var(--color-on-surface-variant);cursor:pointer;display:flex;align-items:center;gap:2px"><span class="material-symbols-outlined" style="font-size:14px">drag_indicator</span>拖拽排序</span>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:13px;margin-top:12px">抽屉式展开/收起 · 显隐切换 · 透明度调节 · 层级拖拽排序</p>
+  </div>
+
+  <!-- 5. 交互行为 -->
+  <h2>5. 交互行为规范</h2>
+
+  <div class="card">
+    <div class="card-title">悬停 & 选中</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px;background:var(--color-surface-container-low);border-radius:10px;padding:20px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--color-primary)">Tooltip</div>
+        <div style="font-size:12px;color:var(--color-on-surface-variant);margin-bottom:12px"><code>bg-surface-container-highest/90</code></div>
+        <div style="background:rgba(217,227,246,0.9);backdrop-filter:blur(8px);border-radius:6px;padding:10px 14px;font-size:12px;box-shadow:0 4px 8px rgba(0,0,0,0.1)">
+          <div style="font-weight:600;margin-bottom:4px">华东枢纽中心</div>
+          <div style="display:flex;justify-content:space-between;color:var(--color-on-surface-variant);font-size:11px"><span>类型</span><span style="font-family:'JetBrains Mono',monospace;color:var(--color-on-surface)">区域枢纽</span></div>
+          <div style="display:flex;justify-content:space-between;color:var(--color-on-surface-variant);font-size:11px"><span>吞吐量</span><span style="font-family:'JetBrains Mono',monospace;color:var(--color-on-surface)">12,450</span></div>
+        </div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:8px">深色高对比度 · 与要素保持 <code>8px</code> 间距</div>
+      </div>
+      <div style="flex:1;min-width:240px;background:var(--color-surface-container-low);border-radius:10px;padding:20px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--color-primary)">选中高亮</div>
+        <div style="font-size:12px;color:var(--color-on-surface-variant);margin-bottom:12px">外发光 <code>drop-shadow</code> 或边界加粗</div>
+        <div style="width:80px;height:80px;border-radius:12px;background:var(--color-primary-container);border:2.5px solid var(--color-primary);box-shadow:0 0 16px rgba(37,99,235,0.35);display:flex;align-items:center;justify-content:center;margin:0 auto">
+          <span class="material-symbols-outlined" style="font-size:32px;color:var(--color-primary)">local_shipping</span>
+        </div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:8px;text-align:center">选中态 · 发光边框</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">动效规范</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+      <div style="background:var(--color-surface-container-low);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:24px;font-weight:700;color:var(--color-primary);font-family:'JetBrains Mono',monospace">300ms</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px">面板切换</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)"><code>ease-in-out</code><br>侧边栏滑动</div>
+      </div>
+      <div style="background:var(--color-surface-container-low);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:24px;font-weight:700;color:var(--color-primary);font-family:'JetBrains Mono',monospace">惯性</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px">平滑缩放</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">地图平移/缩放<br>惯性平滑感</div>
+      </div>
+      <div style="background:var(--color-surface-container-low);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-top:4px;color:var(--color-primary)">hover / active</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px"><code>hover:bg-primary-container/20</code><br><code>active:scale-95</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">CSS 速查</div>
+    <div style="background:#1e1e2e;border-radius:8px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#cdd6f4;line-height:1.7;overflow-x:auto">
+<span style="color:#89b4fa">.glass-panel</span> {
+  <span style="color:#a6e3a1">background</span>: <span style="color:#f9e2af">rgba(248, 249, 255, 0.8)</span>;
+  <span style="color:#a6e3a1">backdrop-filter</span>: <span style="color:#f9e2af">blur(12px)</span>;
+  <span style="color:#a6e3a1">border</span>: <span style="color:#f9e2af">1px solid rgba(195, 198, 215, 0.3)</span>;
+  <span style="color:#a6e3a1">box-shadow</span>: <span style="color:#f9e2af">0 10px 15px -3px rgba(0, 0, 0, 0.1)</span>;
+}
+
+<span style="color:#89b4fa">.status-bar</span> {
+  <span style="color:#a6e3a1">font-family</span>: <span style="color:#f9e2af">'JetBrains Mono', monospace</span>;
+  <span style="color:#a6e3a1">font-size</span>: <span style="color:#f9e2af">11px</span>;
+  <span style="color:#a6e3a1">letter-spacing</span>: <span style="color:#f9e2af">0.04em</span>;
+  <span style="color:#a6e3a1">text-transform</span>: <span style="color:#f9e2af">uppercase</span>;
+}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图聚合图 (Marker Clustering) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #004ac6;
+    --color-primary-light: rgba(0, 74, 198, 0.4);
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-success: #10b981;
+    --color-surface: #f8f9ff;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container: #e6eeff;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container-high: #dee9fc;
+    --color-surface-container-highest: #d9e3f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-surface-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: var(--color-surface-container-low); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* 聚合点 */
+  .cluster-wrap { display: flex; align-items: center; gap: 48px; justify-content: center; padding: 32px 0; flex-wrap: wrap; }
+  .cluster-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .cluster { display: flex; align-items: center; justify-content: center; border-radius: 50%; cursor: pointer; transition: transform 0.2s ease; position: relative; }
+  .cluster:hover { transform: scale(1.1); }
+  .cluster-text { color: #fff; font-family: 'JetBrains Mono', monospace; font-weight: 700; pointer-events: none; }
+
+  /* 小规模 */
+  .cluster--sm { width: 32px; height: 32px; background: rgba(0,74,198,0.2); box-shadow: inset 0 0 0 8px #004ac6; }
+  .cluster--sm .cluster-text { font-size: 10px; }
+
+  /* 中规模 */
+  .cluster--md { width: 40px; height: 40px; background: rgba(0,74,198,0.3); border: 2px solid rgba(255,255,255,0.5); }
+  .cluster--md .cluster-text { font-size: 12px; font-weight: 700; }
+
+  /* 大规模 */
+  .cluster--lg { width: 48px; height: 48px; }
+  .cluster--lg .cluster-text { font-size: 14px; }
+  .cluster--lg-bg { width: 100%; height: 100%; border-radius: 50%; background: linear-gradient(135deg, #004ac6, #1e3a6e); box-shadow: 0 4px 16px rgba(0,74,198,0.4); }
+
+  /* 脉冲光晕 */
+  @keyframes pulse-ring {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  .pulse-ring { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--color-primary); animation: pulse-ring 1.6s ease-out infinite; pointer-events: none; }
+
+  /* 交互列 */
+  .state-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .state-card { background: var(--color-surface-container-low); border-radius: 8px; padding: 20px; text-align: center; }
+  .state-card .state-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-on-surface-variant); margin-top: 12px; }
+
+  /* 蜘蛛布局 */
+  .spider-demo { position: relative; width: 280px; height: 280px; margin: 0 auto; }
+  .spider-center { position: absolute; width: 16px; height: 16px; border-radius: 50%; background: var(--color-primary); border: 2px solid #fff; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 10; box-shadow: 0 2px 8px rgba(0,74,198,0.4); }
+  .spider-line { position: absolute; left: 50%; top: 50%; height: 2px; background: rgba(195,198,215,0.5); transform-origin: left center; z-index: 1; }
+  .spider-marker { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: var(--color-primary); border: 1.5px solid #fff; display: flex; align-items: center; justify-content: center; z-index: 5; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+  .spider-marker .material-symbols-outlined { font-size: 12px; color: #fff; }
+
+  /* 动效演示 */
+  @keyframes count-up {
+    0% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-4px); opacity: 0; }
+    51% { transform: translateY(4px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  .anim-number { display: inline-block; animation: count-up 0.3s ease; }
+
+  /* 技术参数 */
+  .param-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .param-card { background: var(--color-surface-container-low); border-radius: 8px; padding: 16px; text-align: center; }
+  .param-value { font-size: 24px; font-weight: 700; color: var(--color-primary); font-family: 'JetBrains Mono', monospace; }
+  .param-label { font-size: 11px; color: var(--color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图聚合图 (Marker Clustering) 设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v1.2.0 — 大规模点要素聚合可视化</p>
+
+  <!-- 1. 视觉分级系统 -->
+  <h2>1. 视觉分级系统</h2>
+
+  <div class="card">
+    <div class="card-title">3 级聚合等级</div>
+    <div class="cluster-wrap">
+      <div class="cluster-item">
+        <div class="cluster cluster--sm">
+          <span class="cluster-text">42</span>
+        </div>
+        <span class="label" style="font-size:11px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">小规模 · 32px<br>2–99 要素</span>
+      </div>
+      <div class="cluster-item">
+        <div class="cluster cluster--md">
+          <span class="cluster-text">486</span>
+        </div>
+        <span class="label" style="font-size:11px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">中规模 · 40px<br>100–999 要素</span>
+      </div>
+      <div class="cluster-item">
+        <div class="cluster cluster--lg">
+          <div class="pulse-ring"></div>
+          <div class="cluster--lg-bg" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;border-radius:50%">
+            <span class="cluster-text">1.2K</span>
+          </div>
+        </div>
+        <span class="label" style="font-size:11px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">大规模 · 48px<br>1000+ 要素 · Pulse</span>
+      </div>
+    </div>
+
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>等级</th><th>要素数量</th><th>直径</th><th>视觉样式</th><th>文字</th></tr>
+      <tr>
+        <td><strong>小规模</strong></td>
+        <td>2 – 99</td>
+        <td>32px</td>
+        <td><code>bg-primary/20</code> 外圈 + <code>bg-primary</code> 实心内圈</td>
+        <td>白色 <code>font-label-sm</code></td>
+      </tr>
+      <tr>
+        <td><strong>中规模</strong></td>
+        <td>100 – 999</td>
+        <td>40px</td>
+        <td><code>bg-primary/30</code> + 2px <code>border-white/50</code></td>
+        <td>白色 <code>font-label-md</code> 粗体</td>
+      </tr>
+      <tr>
+        <td><strong>大规模</strong></td>
+        <td>1000+</td>
+        <td>48px</td>
+        <td><code>bg-primary</code> 渐变 + 强脉冲光晕 + <code>shadow-lg</code></td>
+        <td>白色 <code>font-headline-sm</code></td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- 2. 核心技术参数 -->
+  <h2>2. 核心技术参数</h2>
+  <div class="card">
+    <div class="card-title">逻辑与阈值</div>
+    <div class="param-grid">
+      <div class="param-card">
+        <div class="param-value">60px</div>
+        <div class="param-label">网格大小 (Grid Size)</div>
+      </div>
+      <div class="param-card">
+        <div class="param-value">2 pts</div>
+        <div class="param-label">最小聚合阈值</div>
+      </div>
+      <div class="param-card">
+        <div class="param-value">300ms</div>
+        <div class="param-label">动画时长</div>
+      </div>
+      <div class="param-card">
+        <div class="param-value" style="font-size:16px">(0.4, 0, 0.2, 1)</div>
+        <div class="param-label">插值函数 (Easing)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 交互行为 -->
+  <h2>3. 交互行为</h2>
+
+  <h3>悬停探索</h3>
+  <div class="card">
+    <div class="card-title">Hover → scale-110 + Tooltip</div>
+    <div class="state-grid">
+      <div class="state-card">
+        <div class="cluster cluster--md" style="transform:scale(1.1)">
+          <span class="cluster-text">486</span>
+        </div>
+        <div class="state-label">悬停放大 110%</div>
+      </div>
+      <div class="state-card">
+        <div style="background:rgba(248,249,255,0.95);backdrop-filter:blur(12px);border:1px solid rgba(195,198,215,0.3);border-radius:8px;padding:10px 14px;font-size:12px;text-align:left;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+          <div style="font-weight:600;margin-bottom:4px">聚合点详情</div>
+          <div style="color:var(--color-on-surface-variant)">包含 <span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--color-primary)">1,245</span> 个物流站点</div>
+        </div>
+        <div class="state-label">Tooltip 数据浮窗</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>点击缩放 (Click to Zoom)</h3>
+  <div class="card">
+    <div class="card-title">点击 → FitBounds 缩放至子要素最小边界</div>
+    <div style="display:flex;gap:16px;align-items:center;justify-content:center;padding:16px 0">
+      <div style="position:relative;width:100px;height:100px;background:var(--color-surface-container-low);border-radius:12px;display:flex;align-items:center;justify-content:center">
+        <div class="cluster cluster--md" style="cursor:pointer">
+          <span class="cluster-text">486</span>
+        </div>
+        <div style="position:absolute;inset:8px;border:2px dashed var(--color-outline-variant);border-radius:8px;pointer-events:none"></div>
+      </div>
+      <div style="font-size:24px;color:var(--color-outline-variant)">&rarr;</div>
+      <div style="position:relative;width:100px;height:100px;background:var(--color-surface-container-low);border-radius:12px;display:flex;align-items:center;justify-content:center;gap:2px;flex-wrap:wrap;padding:8px">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary);opacity:0.6"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary);opacity:0.8"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary)"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary);opacity:0.7"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary);opacity:0.5"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary);opacity:0.9"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary);opacity:0.4"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary);opacity:0.6"></div>
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--color-primary);opacity:0.7"></div>
+      </div>
+    </div>
+    <p>视口插值至下一个能完全离散的整数缩放级别。</p>
+  </div>
+
+  <h3>蜘蛛布局 (Spiderfier)</h3>
+  <div class="card">
+    <div class="card-title">最大缩放级仍重叠时触发</div>
+    <div class="spider-demo">
+      <div class="spider-center"></div>
+
+      <div class="spider-line" style="width:80px;transform:rotate(0deg)"></div>
+      <div class="spider-line" style="width:90px;transform:rotate(72deg)"></div>
+      <div class="spider-line" style="width:85px;transform:rotate(144deg)"></div>
+      <div class="spider-line" style="width:95px;transform:rotate(216deg)"></div>
+      <div class="spider-line" style="width:78px;transform:rotate(288deg)"></div>
+
+      <div class="spider-marker" style="left:calc(50% + 72px);top:calc(50% - 12px)"><span class="material-symbols-outlined">local_shipping</span></div>
+      <div class="spider-marker" style="left:calc(50% + 10px);top:calc(50% - 86px)"><span class="material-symbols-outlined">local_shipping</span></div>
+      <div class="spider-marker" style="left:calc(50% - 82px);top:calc(50% - 22px)"><span class="material-symbols-outlined">local_shipping</span></div>
+      <div class="spider-marker" style="left:calc(50% - 40px);top:calc(50% + 72px)"><span class="material-symbols-outlined">local_shipping</span></div>
+      <div class="spider-marker" style="left:calc(50% + 50px);top:calc(50% + 58px)"><span class="material-symbols-outlined">local_shipping</span></div>
+    </div>
+    <p style="text-align:center;margin-top:12px">从中心坐标点延伸细实线 (<code>stroke-outline-variant/50</code>)，螺旋/圆形展开确保独立可见。</p>
+  </div>
+
+  <!-- 4. 动效 -->
+  <h2>4. 动效与动感</h2>
+  <div class="card">
+    <div class="card-title">数字垂直平移切换 + 边界吸附</div>
+    <div style="display:flex;gap:32px;align-items:center;justify-content:center;padding:20px">
+      <div style="text-align:center">
+        <div style="font-size:32px;font-weight:700;color:var(--color-primary);font-family:'JetBrains Mono',monospace">
+          <span style="display:inline-block;animation:count-up 2s ease infinite">1,245</span>
+        </div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">数字更新动效</div>
+      </div>
+      <div style="font-size:20px;color:var(--color-outline-variant)">|</div>
+      <div style="text-align:center">
+        <div style="font-size:12px;color:var(--color-on-surface-variant);max-width:200px">聚合点移动时保持平滑轨迹合并，避免视觉闪烁 (<code>300ms cubic-bezier</code>)</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">边界吸附平滑</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

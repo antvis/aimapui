@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图蜂窝热力图 (Hexbin Map) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #2563eb;
+    --color-primary-container: #dbeafe;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-surface: #f8f9ff;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container-low: #eff4ff;
+    --color-secondary: #7c3aed;
+    --color-secondary-container: #ede9fe;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* 六边形关键帧 */
+  @keyframes hex-enter {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes hex-highlight {
+    0%, 100% { stroke-width: 0.5; stroke: transparent; }
+    50% { stroke-width: 2; stroke: #7c3aed; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图蜂窝热力图 (Hexbin Map) 设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v1.2.0 — 六边形网格化空间统计图层</p>
+
+  <!-- 1. 基础几何定义 -->
+  <h2>1. 基础几何定义</h2>
+
+  <div class="card">
+    <div class="card-title">2D 平面模式 · 正六边形阵列</div>
+    <div style="position:relative;width:100%;height:320px;background:linear-gradient(135deg,#e8edf5 0%,#d5dce8 50%,#eef1f7 100%);border-radius:12px;overflow:hidden">
+      <svg viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+        <defs>
+          <!-- 六边形模板 flat-top -->
+          <polygon id="hex" points="20,0 40,11.5 40,34.5 20,46 0,34.5 0,11.5"/>
+        </defs>
+
+        <!-- 蜂窝网格 - 使用不同透明度表示权重 -->
+        <!-- 第1行 -->
+        <use href="#hex" x="60" y="30" fill="#2563eb" opacity="0.1" style="animation:hex-enter 0.4s ease-out 0.05s both"/>
+        <use href="#hex" x="100" y="30" fill="#2563eb" opacity="0.2" style="animation:hex-enter 0.4s ease-out 0.1s both"/>
+        <use href="#hex" x="140" y="30" fill="#2563eb" opacity="0.35" style="animation:hex-enter 0.4s ease-out 0.15s both"/>
+        <use href="#hex" x="180" y="30" fill="#2563eb" opacity="0.15" style="animation:hex-enter 0.4s ease-out 0.2s both"/>
+
+        <!-- 第2行 (偏移) -->
+        <use href="#hex" x="40" y="53" fill="#2563eb" opacity="0.15" style="animation:hex-enter 0.4s ease-out 0.08s both"/>
+        <use href="#hex" x="80" y="53" fill="#2563eb" opacity="0.5" style="animation:hex-enter 0.4s ease-out 0.13s both"/>
+        <use href="#hex" x="120" y="53" fill="#2563eb" opacity="0.8" style="animation:hex-enter 0.4s ease-out 0.18s both"/>
+        <use href="#hex" x="160" y="53" fill="#2563eb" opacity="0.6" style="animation:hex-enter 0.4s ease-out 0.23s both"/>
+        <use href="#hex" x="200" y="53" fill="#2563eb" opacity="0.3" style="animation:hex-enter 0.4s ease-out 0.28s both"/>
+
+        <!-- 第3行 -->
+        <use href="#hex" x="60" y="76" fill="#2563eb" opacity="0.2" style="animation:hex-enter 0.4s ease-out 0.1s both"/>
+        <use href="#hex" x="100" y="76" fill="#2563eb" opacity="0.9" style="animation:hex-enter 0.4s ease-out 0.15s both"/>
+        <use href="#hex" x="140" y="76" fill="#2563eb" opacity="1.0" style="animation:hex-enter 0.4s ease-out 0.2s both"/>
+        <use href="#hex" x="180" y="76" fill="#2563eb" opacity="0.7" style="animation:hex-enter 0.4s ease-out 0.25s both"/>
+
+        <!-- 第4行 (偏移) -->
+        <use href="#hex" x="40" y="99" fill="#2563eb" opacity="0.25" style="animation:hex-enter 0.4s ease-out 0.12s both"/>
+        <use href="#hex" x="80" y="99" fill="#2563eb" opacity="0.7" style="animation:hex-enter 0.4s ease-out 0.17s both"/>
+        <use href="#hex" x="120" y="99" fill="#2563eb" opacity="0.95" style="animation:hex-enter 0.4s ease-out 0.22s both"/>
+        <use href="#hex" x="160" y="99" fill="#2563eb" opacity="0.85" style="animation:hex-enter 0.4s ease-out 0.27s both"/>
+        <use href="#hex" x="200" y="99" fill="#2563eb" opacity="0.4" style="animation:hex-enter 0.4s ease-out 0.32s both"/>
+
+        <!-- 第5行 -->
+        <use href="#hex" x="60" y="122" fill="#2563eb" opacity="0.15" style="animation:hex-enter 0.4s ease-out 0.14s both"/>
+        <use href="#hex" x="100" y="122" fill="#2563eb" opacity="0.55" style="animation:hex-enter 0.4s ease-out 0.19s both"/>
+        <use href="#hex" x="140" y="122" fill="#2563eb" opacity="0.75" style="animation:hex-enter 0.4s ease-out 0.24s both"/>
+        <use href="#hex" x="180" y="122" fill="#2563eb" opacity="0.5" style="animation:hex-enter 0.4s ease-out 0.29s both"/>
+
+        <!-- 中心区域更密集 - 右侧扩展 -->
+        <use href="#hex" x="260" y="53" fill="#2563eb" opacity="0.2" style="animation:hex-enter 0.4s ease-out 0.3s both"/>
+        <use href="#hex" x="240" y="76" fill="#2563eb" opacity="0.4" style="animation:hex-enter 0.4s ease-out 0.32s both"/>
+        <use href="#hex" x="280" y="76" fill="#2563eb" opacity="0.3" style="animation:hex-enter 0.4s ease-out 0.34s both"/>
+        <use href="#hex" x="260" y="99" fill="#2563eb" opacity="0.55" style="animation:hex-enter 0.4s ease-out 0.36s both"/>
+        <use href="#hex" x="240" y="122" fill="#2563eb" opacity="0.25" style="animation:hex-enter 0.4s ease-out 0.38s both"/>
+
+        <!-- 高亮悬停六边形 -->
+        <use href="#hex" x="100" y="76" fill="none" stroke="#7c3aed" stroke-width="2" opacity="1">
+          <animate attributeName="stroke-opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
+        </use>
+
+        <!-- Tooltip -->
+        <rect x="120" y="50" width="140" height="56" rx="6" fill="rgba(39,49,63,0.95)" filter="url(#hex-shadow)"/>
+        <polygon points="114,70 120,66 120,74" fill="rgba(39,49,63,0.95)"/>
+        <text x="132" y="67" font-size="10" fill="#eaf1ff" font-weight="600" font-family="Inter">区域 #A-12</text>
+        <text x="132" y="81" font-size="9" fill="rgba(234,241,255,0.7)" font-family="Inter">聚合总数:</text>
+        <text x="248" y="81" font-size="9" fill="#eaf1ff" font-family="JetBrains Mono" text-anchor="end" font-weight="600">2,847</text>
+        <text x="132" y="95" font-size="9" fill="rgba(234,241,255,0.7)" font-family="Inter">覆盖率:</text>
+        <text x="248" y="95" font-size="9" fill="#22c55e" font-family="JetBrains Mono" text-anchor="end" font-weight="600">78.3%</text>
+
+        <defs>
+          <filter id="hex-shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.15"/>
+          </filter>
+        </defs>
+
+        <!-- 右侧尺寸标注 -->
+        <line x1="335" y1="34.5" x2="335" y2="111.5" stroke="#434655" stroke-width="1" stroke-dasharray="3 3"/>
+        <line x1="325" y1="34.5" x2="340" y2="34.5" stroke="#434655" stroke-width="1"/>
+        <line x1="325" y1="111.5" x2="340" y2="111.5" stroke="#434655" stroke-width="1"/>
+        <text x="345" y="76" font-size="10" fill="#434655" font-family="JetBrains Mono" font-weight="500">40px</text>
+
+        <!-- 间距标注 -->
+        <line x1="100" y1="140" x2="120" y2="140" stroke="#434655" stroke-width="1"/>
+        <line x1="100" y1="136" x2="100" y2="144" stroke="#434655" stroke-width="1"/>
+        <line x1="120" y1="136" x2="120" y2="144" stroke="#434655" stroke-width="1"/>
+        <text x="110" y="154" font-size="9" fill="#434655" font-family="JetBrains Mono" text-anchor="middle">1px gap</text>
+
+        <!-- 不透明度标注 -->
+        <text x="580" y="40" font-size="11" fill="#434655" font-family="Inter" font-weight="600">图层不透明度</text>
+        <text x="580" y="56" font-size="10" fill="#434655" font-family="JetBrains Mono">opacity: 0.8</text>
+
+        <!-- 混合模式说明 -->
+        <text x="580" y="90" font-size="11" fill="#434655" font-family="Inter" font-weight="600">混合模式</text>
+        <text x="580" y="106" font-size="10" fill="#434655" font-family="JetBrains Mono">浅色底: multiply</text>
+        <text x="580" y="122" font-size="10" fill="#434655" font-family="JetBrains Mono">深色底: screen</text>
+
+        <!-- 尺寸范围 -->
+        <text x="580" y="160" font-size="11" fill="#434655" font-family="Inter" font-weight="600">半径范围</text>
+        <text x="580" y="176" font-size="10" fill="#434655" font-family="JetBrains Mono">20px — 40px</text>
+      </svg>
+    </div>
+    <p style="text-align:center;font-size:13px;margin-top:12px">正六边形阵列，<code>1px</code> 物理间距，极细描边或无描边，整体 <code>opacity-80</code>。</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">六边形尺寸规格</div>
+    <table class="spec-table">
+      <tr><th>属性</th><th>值</th><th>说明</th></tr>
+      <tr><td><strong>半径</strong></td><td>20px – 40px</td><td>屏幕空间，随缩放级别自适应</td></tr>
+      <tr><td><strong>间距</strong></td><td><code>1px</code></td><td>蜂窝单元间物理间距</td></tr>
+      <tr><td><strong>描边</strong></td><td>无 或 <code>0.5px</code></td><td>极细描边，增强几何阵列感</td></tr>
+      <tr><td><strong>整体不透明度</strong></td><td><code>opacity-80</code></td><td>确保底图路网可见</td></tr>
+      <tr><td><strong>混合模式 (浅)</strong></td><td><code>multiply</code></td><td>复杂底图上的叠加效果</td></tr>
+      <tr><td><strong>混合模式 (深)</strong></td><td><code>screen</code></td><td>深色底图上的光效叠加</td></tr>
+    </table>
+  </div>
+
+  <!-- 2. 视觉分级与映射 -->
+  <h2>2. 视觉分级与映射</h2>
+
+  <h3>2.1 色彩映射 (Color Ramp)</h3>
+  <div class="card">
+    <div style="display:flex;gap:32px;align-items:center;justify-content:center;padding:16px 0;flex-wrap:wrap">
+      <!-- 色阶条 -->
+      <div style="flex:1;min-width:280px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">单色渐变 · Primary</div>
+        <div style="display:flex;height:48px;border-radius:8px;overflow:hidden;border:1px solid var(--color-outline-variant)">
+          <div style="flex:1;background:rgba(37,99,235,0.1);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">10%</div>
+          <div style="flex:1;background:rgba(37,99,235,0.25);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">25%</div>
+          <div style="flex:1;background:rgba(37,99,235,0.5);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-family:'JetBrains Mono',monospace">50%</div>
+          <div style="flex:1;background:rgba(37,99,235,0.75);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-family:'JetBrains Mono',monospace">75%</div>
+          <div style="flex:1;background:rgba(37,99,235,1);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-family:'JetBrains Mono',monospace">100%</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--color-on-surface-variant)">
+          <span>低权重</span>
+          <span>中权重</span>
+          <span>高权重</span>
+        </div>
+      </div>
+
+      <!-- 蜂窝样本 -->
+      <div style="text-align:center">
+        <svg width="200" height="80" viewBox="0 0 200 80">
+          <polygon points="30,10 50,21 50,43 30,54 10,43 10,21" fill="rgba(37,99,235,0.1)"/>
+          <polygon points="70,10 90,21 90,43 70,54 50,43 50,21" fill="rgba(37,99,235,0.35)"/>
+          <polygon points="110,10 130,21 130,43 110,54 90,43 90,21" fill="rgba(37,99,235,0.6)"/>
+          <polygon points="150,10 170,21 170,43 150,54 130,43 130,21" fill="rgba(37,99,235,0.85)"/>
+          <polygon points="190,10 200,21 200,43 190,54 170,43 170,21" fill="rgba(37,99,235,1)"/>
+        </svg>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">六边形色阶样本</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>2.2 3D 挤压模式</h3>
+  <div class="card">
+    <div class="card-title">3D Extrusion · 高度映射权重</div>
+    <div style="position:relative;width:100%;height:280px;background:linear-gradient(135deg,#e8edf5,#d5dce8);border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+      <svg viewBox="0 0 600 280" style="width:100%;height:100%;max-width:600px">
+        <defs>
+          <linearGradient id="hex-top" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#3b82f6"/>
+            <stop offset="100%" stop-color="#2563eb"/>
+          </linearGradient>
+          <linearGradient id="hex-side" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1e40af"/>
+            <stop offset="100%" stop-color="#1d4ed8"/>
+          </linearGradient>
+        </defs>
+
+        <!-- 3D 柱体1 (最矮) -->
+        <g transform="translate(60, 160)">
+          <polygon points="20,0 40,-11.5 40,-34.5 20,-46 0,-34.5 0,-11.5" fill="url(#hex-top)"/>
+          <polygon points="0,-11.5 0,40 20,51.5 20,0" fill="url(#hex-side)"/>
+          <polygon points="40,-11.5 40,40 20,51.5 20,0" fill="#1e3a8a"/>
+        </g>
+
+        <!-- 3D 柱体2 (中) -->
+        <g transform="translate(130, 140)">
+          <polygon points="20,0 40,-11.5 40,-34.5 20,-46 0,-34.5 0,-11.5" fill="url(#hex-top)"/>
+          <polygon points="0,-11.5 0,80 20,91.5 20,0" fill="url(#hex-side)"/>
+          <polygon points="40,-11.5 40,80 20,91.5 20,0" fill="#1e3a8a"/>
+          <!-- 光照效果 -->
+          <polygon points="20,0 40,-11.5 40,-34.5 20,-46 0,-34.5 0,-11.5" fill="rgba(255,255,255,0.1)"/>
+        </g>
+
+        <!-- 3D 柱体3 (最高) -->
+        <g transform="translate(200, 110)">
+          <polygon points="20,0 40,-11.5 40,-34.5 20,-46 0,-34.5 0,-11.5" fill="url(#hex-top)"/>
+          <polygon points="0,-11.5 0,140 20,151.5 20,0" fill="url(#hex-side)"/>
+          <polygon points="40,-11.5 40,140 20,151.5 20,0" fill="#1e3a8a"/>
+          <polygon points="20,0 40,-11.5 40,-34.5 20,-46 0,-34.5 0,-11.5" fill="rgba(255,255,255,0.15)"/>
+        </g>
+
+        <!-- 3D 柱体4 (中) -->
+        <g transform="translate(270, 140)">
+          <polygon points="20,0 40,-11.5 40,-34.5 20,-46 0,-34.5 0,-11.5" fill="url(#hex-top)"/>
+          <polygon points="0,-11.5 0,80 20,91.5 20,0" fill="url(#hex-side)"/>
+          <polygon points="40,-11.5 40,80 20,91.5 20,0" fill="#1e3a8a"/>
+        </g>
+
+        <!-- 3D 柱体5 (矮) -->
+        <g transform="translate(340, 155)">
+          <polygon points="20,0 40,-11.5 40,-34.5 20,-46 0,-34.5 0,-11.5" fill="url(#hex-top)"/>
+          <polygon points="0,-11.5 0,50 20,61.5 20,0" fill="url(#hex-side)"/>
+          <polygon points="40,-11.5 40,50 20,61.5 20,0" fill="#1e3a8a"/>
+        </g>
+
+        <!-- 高度标注 -->
+        <text x="220" y="20" font-size="10" fill="#434655" font-family="JetBrains Mono" text-anchor="middle">H = f(聚合值)</text>
+        <line x1="248" y1="30" x2="248" y2="230" stroke="#434655" stroke-width="0.5" stroke-dasharray="3 3" opacity="0.5"/>
+        <text x="258" y="80" font-size="9" fill="#2563eb" font-family="JetBrains Mono">高</text>
+        <text x="258" y="170" font-size="9" fill="#2563eb" font-family="JetBrains Mono">低</text>
+
+        <!-- 右侧说明 -->
+        <text x="420" y="40" font-size="11" fill="#434655" font-family="Inter" font-weight="600">3D 挤压规则</text>
+        <text x="420" y="60" font-size="10" fill="#434655" font-family="JetBrains Mono">高度 H ∝ 值(x)</text>
+        <text x="420" y="80" font-size="10" fill="#434655" font-family="Inter">侧面比顶面深 15%-20%</text>
+        <text x="420" y="100" font-size="10" fill="#434655" font-family="Inter">45° 固定光源模拟</text>
+        <text x="420" y="120" font-size="10" fill="#434655" font-family="JetBrains Mono">shadow-md 投影</text>
+      </svg>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>属性</th><th>值</th><th>说明</th></tr>
+      <tr><td><strong>高度映射</strong></td><td>线性 / 对数</td><td>随聚合要素数量或指标值增长</td></tr>
+      <tr><td><strong>侧面颜色</strong></td><td>顶面深 15-20%</td><td>增强立体感与深度</td></tr>
+      <tr><td><strong>光照效果</strong></td><td>45° 固定光源</td><td>模拟自然光方向</td></tr>
+      <tr><td><strong>投影</strong></td><td><code>shadow-md</code></td><td>微弱投影增强浮起感</td></tr>
+    </table>
+  </div>
+
+  <!-- 3. 交互行为 -->
+  <h2>3. 交互行为</h2>
+
+  <h3>3.1 悬停探索</h3>
+  <div class="card">
+    <div style="display:flex;gap:24px;flex-wrap:wrap">
+      <!-- 2D Hover -->
+      <div style="flex:1;min-width:240px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--color-primary)">2D 模式</div>
+        <div style="background:var(--color-surface-container-low);border-radius:10px;padding:24px;display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <!-- 周边六边形(低亮) -->
+            <polygon points="10,25 20,19 30,25 30,37 20,43 10,37" fill="rgba(37,99,235,0.2)"/>
+            <polygon points="30,25 40,19 50,25 50,37 40,43 30,37" fill="rgba(37,99,235,0.2)"/>
+            <polygon points="50,25 60,19 70,25 70,37 60,43 50,37" fill="rgba(37,99,235,0.15)"/>
+            <polygon points="20,7 30,1 40,7 40,19 30,25 20,19" fill="rgba(37,99,235,0.15)"/>
+            <polygon points="20,43 30,37 40,43 40,55 30,61 20,55" fill="rgba(37,99,235,0.1)"/>
+            <polygon points="40,7 50,1 60,7 60,19 50,25 40,19" fill="rgba(37,99,235,0.15)"/>
+            <polygon points="40,43 50,37 60,43 60,55 50,61 40,55" fill="rgba(37,99,235,0.1)"/>
+            <!-- 高亮六边形 -->
+            <polygon points="30,25 40,19 50,25 50,37 40,43 30,37" fill="none" stroke="#7c3aed" stroke-width="2"/>
+            <polygon points="30,25 40,19 50,25 50,37 40,43 30,37" fill="rgba(124,58,237,0.15)"/>
+          </svg>
+          <div>
+            <div style="font-size:12px;color:var(--color-on-surface)">边缘加粗 <code>2px</code></div>
+            <div style="font-size:12px;color:var(--color-on-surface)">颜色切换 <code>secondary</code></div>
+          </div>
+        </div>
+      </div>
+      <!-- 3D Hover -->
+      <div style="flex:1;min-width:240px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:var(--color-primary)">3D 模式</div>
+        <div style="background:var(--color-surface-container-low);border-radius:10px;padding:24px;display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <!-- 3D 柱体高亮 -->
+            <g transform="translate(20, 15)">
+              <polygon points="20,0 40,-11.5 40,-34.5 20,-46 0,-34.5 0,-11.5" fill="#7c3aed"/>
+              <polygon points="0,-11.5 0,40 20,51.5 20,0" fill="#6d28d9"/>
+              <polygon points="40,-11.5 40,40 20,51.5 20,0" fill="#5b21b6"/>
+              <!-- 发光边缘 -->
+              <polygon points="20,0 40,-11.5 40,-34.5 20,-46 0,-34.5 0,-11.5" fill="none" stroke="#a78bfa" stroke-width="2"/>
+            </g>
+          </svg>
+          <div>
+            <div style="font-size:12px;color:var(--color-on-surface)">整体高亮</div>
+            <div style="font-size:12px;color:var(--color-on-surface)">发光边缘 <code>glow</code></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>3.2 点击下钻</h3>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:center;gap:16px;padding:16px 0;flex-wrap:wrap">
+      <div style="text-align:center">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <polygon points="30,5 52,17 52,43 30,55 8,43 8,17" fill="#2563eb" opacity="0.7" stroke="#7c3aed" stroke-width="2"/>
+        </svg>
+        <div style="font-size:12px;margin-top:6px;color:var(--color-on-surface-variant)">点击蜂巢单元</div>
+      </div>
+      <div style="font-size:24px;color:var(--color-outline-variant)">&rarr;</div>
+      <div style="text-align:center">
+        <svg width="60" height="60" viewBox="0 0 60 60">
+          <text x="30" y="30" text-anchor="middle" font-size="22" fill="var(--color-primary)" font-family="Inter" font-weight="700">Z+</text>
+        </svg>
+        <div style="font-size:12px;margin-top:6px;color:var(--color-on-surface-variant)">Zoom In 下钻</div>
+      </div>
+      <div style="font-size:24px;color:var(--color-outline-variant)">&rarr;</div>
+      <div style="text-align:center">
+        <div style="display:flex;gap:3px;justify-content:center">
+          <svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7" fill="#2563eb" opacity="0.5"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7" fill="#2563eb" opacity="0.7"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7" fill="#2563eb" opacity="0.3"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7" fill="#2563eb" opacity="0.6"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" style="margin-top:12px"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7" fill="#2563eb" opacity="0.4"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" style="margin-top:12px"><polygon points="12,2 20,7 20,17 12,22 4,17 4,7" fill="#2563eb" opacity="0.8"/></svg>
+        </div>
+        <div style="font-size:11px;margin-top:4px;color:var(--color-on-surface-variant)">更小网格或原始点</div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:13px">点击后视口 Zoom In 至该蜂巢覆盖范围，自动拆解为更小一级网格或还原为原始 Marker 点。</p>
+  </div>
+
+  <!-- 4. 动效规范 -->
+  <h2>4. 动效规范</h2>
+
+  <div class="card">
+    <div class="card-title">数据平滑 & 入场动画</div>
+    <div style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center">
+      <!-- 数据更新 -->
+      <div style="flex:1;min-width:200px;background:var(--color-surface-container-low);border-radius:10px;padding:20px;text-align:center">
+        <svg width="140" height="80" viewBox="0 0 140 80">
+          <!-- 低柱 update 到高柱 -->
+          <polygon points="20,60 35,52 35,28 20,36 5,28 5,52" fill="#2563eb" opacity="0.7"/>
+          <polygon points="5,28 5,52 20,60 20,36" fill="#1e40af"/>
+
+          <!-- 过渡箭头 -->
+          <text x="48" y="48" font-size="16" fill="#434655" font-family="Inter">&rarr;</text>
+
+          <!-- 高柱 -->
+          <polygon points="80,60 95,52 95,8 80,16 65,8 65,52" fill="#2563eb" opacity="0.9"/>
+          <polygon points="65,8 65,52 80,60 80,16" fill="#1e40af"/>
+        </svg>
+        <div style="font-size:13px;font-weight:600;margin-top:8px">数据平滑过渡</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px"><code>500ms ease-out</code></div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">高度变化平滑，避免瞬间跳变</div>
+      </div>
+      <!-- 入场 -->
+      <div style="flex:1;min-width:200px;background:var(--color-surface-container-low);border-radius:10px;padding:20px;text-align:center">
+        <svg width="140" height="80" viewBox="0 0 140 80">
+          <!-- 中心向外扩散效果 -->
+          <polygon points="70,20 82,26 82,38 70,44 58,38 58,26" fill="#2563eb" opacity="0.3" transform="scale(0.7) translate(30, 20)"/>
+          <polygon points="50,10 62,16 62,28 50,34 38,28 38,16" fill="#2563eb" opacity="0.5"/>
+          <polygon points="90,10 102,16 102,28 90,34 78,28 78,16" fill="#2563eb" opacity="0.5"/>
+          <polygon points="30,30 42,36 42,48 30,54 18,48 18,36" fill="#2563eb" opacity="0.8"/>
+          <polygon points="110,30 122,36 122,48 110,54 98,48 98,36" fill="#2563eb" opacity="0.8"/>
+          <polygon points="70,50 82,56 82,68 70,74 58,68 58,56" fill="#2563eb" opacity="1"/>
+        </svg>
+        <div style="font-size:13px;font-weight:600;margin-top:8px">入场动画</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">从中心向外逐一淡入</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">伴随轻微 <code>scale</code> 缩放效果</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

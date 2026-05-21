@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图图例 (Legend) 设计规范 — Cartographic Precision System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #004ac6;
+    --primary-container: #dbeafe;
+    --surface: #f8f9ff;
+    --on-surface: #121c2a;
+    --on-surface-variant: #434655;
+    --outline-variant: #c3c6d7;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --glass-bg: rgba(248, 249, 255, 0.8);
+    --glass-border: rgba(195, 198, 215, 0.3);
+    --glass-blur: blur(12px);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface); color: var(--on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* 地图模拟背景 */
+  .map-sim {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    background: linear-gradient(135deg, #e8edf5 0%, #d0d8e8 50%, #e2e8f2 100%);
+    border-radius: 12px;
+    border: 1px solid var(--outline-variant);
+    overflow: hidden;
+  }
+  .map-sim::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23b0b8c9' stroke-width='0.3' fill='none'/%3E%3C/svg%3E");
+    opacity: 0.2;
+    pointer-events: none;
+  }
+
+  /* 图例面板通用 — 玻璃拟态 */
+  .legend-panel {
+    position: absolute;
+    z-index: 10;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+    padding: 12px 14px;
+    max-height: 40%;
+    overflow-y: auto;
+    color: var(--on-surface);
+  }
+  .legend-title {
+    font-size: 12px; line-height: 16px; font-weight: 600;
+    letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--on-surface-variant); margin-bottom: 8px;
+  }
+
+  /* ── 分类图例 ── */
+  .cat-list { display: flex; flex-direction: column; gap: 4px; }
+  .cat-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 2px 4px; border-radius: 4px; cursor: pointer;
+    transition: background 0.15s, opacity 0.15s; user-select: none;
+  }
+  .cat-item:hover { background: rgba(0,74,198,0.06); }
+  .cat-item.dimmed { opacity: 0.35; }
+  .cat-swatch {
+    width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08);
+  }
+  .cat-swatch--circle { border-radius: 50%; }
+  .cat-label {
+    font-size: 12px; line-height: 16px; color: var(--on-surface);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ── 连续色带 ── */
+  .ramp-bar {
+    display: flex; height: 12px; border-radius: 4px; overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .ramp-segment { flex: 1; }
+  .ramp-labels {
+    display: flex; justify-content: space-between; margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    line-height: 14px; font-weight: 450; color: var(--on-surface-variant);
+  }
+  .ramp-ticks {
+    display: flex; justify-content: space-between; height: 6px; position: relative; margin-top: 3px;
+  }
+  .ramp-tick {
+    width: 1px; height: 100%; background: var(--outline-variant);
+    position: absolute;
+  }
+
+  /* ── 分级色带 ── */
+  .classed-labels {
+    display: flex; margin-top: 4px;
+  }
+  .classed-label {
+    flex: 1; text-align: center; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--on-surface-variant); line-height: 14px;
+  }
+  .classed-label:first-child { text-align: left; }
+  .classed-label:last-child { text-align: right; }
+
+  /* ── 发散图例 ── */
+  .diverging-bar {
+    display: flex; height: 12px; border-radius: 4px; overflow: hidden;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .diverging-labels {
+    display: flex; justify-content: space-between; margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    line-height: 14px; font-weight: 450; color: var(--on-surface-variant);
+  }
+  .diverging-middle {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: var(--on-surface-variant); white-space: nowrap; bottom: -18px;
+  }
+
+  /* ── 阈值图例 ── */
+  .threshold-list { display: flex; flex-direction: column; gap: 6px; }
+  .threshold-item {
+    display: flex; align-items: center; gap: 8px; cursor: pointer;
+    transition: opacity 0.15s; user-select: none;
+  }
+  .threshold-item:hover { opacity: 0.8; }
+  .threshold-item.dimmed { opacity: 0.35; }
+  .threshold-swatch {
+    width: 24px; height: 12px; border-radius: 2px; flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .threshold-range {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    line-height: 14px; color: var(--on-surface-variant);
+  }
+
+  /* ── 大小图例 ── */
+  .size-row { display: flex; align-items: flex-end; gap: 8px; padding: 0 4px; }
+  .size-circle {
+    border-radius: 50%; flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .size-labels { display: flex; align-items: flex-end; gap: 8px; margin-top: 4px; }
+  .size-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    line-height: 14px; color: var(--on-surface-variant); white-space: nowrap;
+  }
+
+  /* ── 线宽图例 ── */
+  .linewidth-list { display: flex; flex-direction: column; gap: 6px; }
+  .linewidth-item {
+    display: flex; align-items: center; gap: 10px; padding: 2px 0;
+    cursor: pointer; transition: opacity 0.15s; user-select: none;
+  }
+  .linewidth-item:hover { opacity: 0.8; }
+  .linewidth-item.dimmed { opacity: 0.35; }
+  .linewidth-line {
+    width: 28px; flex-shrink: 0; border-radius: 9999px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
+  }
+  .linewidth-label {
+    font-size: 12px; line-height: 16px; color: var(--on-surface);
+    white-space: nowrap;
+  }
+
+  /* ── 范围刷选 ── */
+  .brush-area {
+    position: relative; height: 12px; margin-top: 6px; cursor: ew-resize;
+  }
+  .brush-range {
+    position: absolute; top: 0; height: 100%;
+    border: 2px solid var(--primary); border-radius: 2px;
+    background: rgba(0,74,198,0.1); pointer-events: none;
+  }
+  .brush-handle {
+    position: absolute; top: 50%; width: 8px; height: 16px;
+    background: var(--primary); border-radius: 2px;
+    transform: translate(-50%, -50%); cursor: ew-resize;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: box-shadow 0.15s;
+  }
+  .brush-handle:hover { box-shadow: 0 2px 6px rgba(0,74,198,0.3); }
+
+  /* 颜色白板 */
+  .color-swatch {
+    width: 48px; height: 48px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.15s;
+  }
+  .color-swatch:hover { transform: scale(1.1); }
+
+  /* 交互说明 */
+  .interact-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
+  }
+  .interact-card {
+    background: var(--glass-bg); backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border); border-radius: 10px; padding: 16px;
+  }
+  .interact-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--primary); }
+  .interact-card p { font-size: 12px; color: var(--on-surface-variant); margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图图例 (Legend) 设计规范</h1>
+  <p class="subtitle">Scale 度量驱动 — Domain→Range 映射展示标准 · Cartographic Precision System</p>
+
+  <!-- 1. 基础视觉 -->
+  <h2>1. 基础视觉准则</h2>
+
+  <div class="card">
+    <div class="card-title">容器材质规范</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+      <div style="background:rgba(248,249,255,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(195,198,215,0.3);border-radius:12px;padding:20px;text-align:center;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Glassmorphism</div>
+        <code>bg-surface/80</code>
+        <div style="margin-top:4px;font-size:12px;color:var(--on-surface-variant)"><code>backdrop-blur-md</code></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--outline-variant);border-radius:12px;padding:20px;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">圆角 & 阴影</div>
+        <code>rounded-xl (12px)</code>
+        <div style="margin-top:4px;font-size:12px;color:var(--on-surface-variant)"><code>shadow-lg</code> 浮动感</div>
+      </div>
+      <div style="background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--glass-border);border-radius:12px;padding:20px;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">标题</div>
+        <code>font-headline-sm</code>
+        <div style="margin-top:4px;font-size:12px;color:var(--on-surface-variant)"><code>text-on-surface</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Core Concept Mapping</div>
+    <div style="display:flex;gap:32px;align-items:center;justify-content:center;padding:16px 0;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="font-size:22px;font-weight:700;color:var(--primary);font-family:'JetBrains Mono',monospace">Domain</div>
+        <div style="font-size:12px;color:var(--on-surface-variant);margin-top:4px">数据值范围<br>→ 图例标签 (Label)</div>
+      </div>
+      <div style="font-size:24px;color:var(--outline-variant)">→</div>
+      <div style="text-align:center">
+        <div style="font-size:22px;font-weight:700;color:var(--primary);font-family:'JetBrains Mono',monospace">Range</div>
+        <div style="font-size:12px;color:var(--on-surface-variant);margin-top:4px">视觉变量<br>→ 色块 / 渐变 / 图形</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 分类与枚举 -->
+  <h2>2. 分类与枚举图例 (Categorical)</h2>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="map-sim" style="height:360px">
+      <!-- 左下：方形色块 -->
+      <div class="legend-panel" style="left:16px;bottom:16px;width:150px">
+        <div class="legend-title">Land Use</div>
+        <div class="cat-list">
+          <div class="cat-item" onmouseenter="dimOthers(this)" onmouseleave="undimAll(this)" onclick="toggleDim(this)">
+            <span class="cat-swatch" style="background:#2563eb"></span>
+            <span class="cat-label">Residential</span>
+          </div>
+          <div class="cat-item" onmouseenter="dimOthers(this)" onmouseleave="undimAll(this)" onclick="toggleDim(this)">
+            <span class="cat-swatch" style="background:#10b981"></span>
+            <span class="cat-label">Commercial</span>
+          </div>
+          <div class="cat-item" onmouseenter="dimOthers(this)" onmouseleave="undimAll(this)" onclick="toggleDim(this)">
+            <span class="cat-swatch" style="background:#f59e0b"></span>
+            <span class="cat-label">Industrial</span>
+          </div>
+          <div class="cat-item" onmouseenter="dimOthers(this)" onmouseleave="undimAll(this)" onclick="toggleDim(this)">
+            <span class="cat-swatch" style="background:#8b5cf6"></span>
+            <span class="cat-label">Green Space</span>
+          </div>
+          <div class="cat-item dimmed" onmouseenter="dimOthers(this)" onmouseleave="undimAll(this)" onclick="toggleDim(this)">
+            <span class="cat-swatch" style="background:#ef4444"></span>
+            <span class="cat-label">Transport</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右下：圆形色块 -->
+      <div class="legend-panel" style="right:16px;bottom:16px;width:140px">
+        <div class="legend-title">Regions</div>
+        <div class="cat-list">
+          <div class="cat-item" onmouseenter="dimOthers(this)" onmouseleave="undimAll(this)">
+            <span class="cat-swatch cat-swatch--circle" style="background:#3b82f6"></span>
+            <span class="cat-label">East</span>
+          </div>
+          <div class="cat-item" onmouseenter="dimOthers(this)" onmouseleave="undimAll(this)">
+            <span class="cat-swatch cat-swatch--circle" style="background:#06b6d4"></span>
+            <span class="cat-label">North</span>
+          </div>
+          <div class="cat-item" onmouseenter="dimOthers(this)" onmouseleave="undimAll(this)">
+            <span class="cat-swatch cat-swatch--circle" style="background:#f97316"></span>
+            <span class="cat-label">South</span>
+          </div>
+          <div class="cat-item" onmouseenter="dimOthers(this)" onmouseleave="undimAll(this)">
+            <span class="cat-swatch cat-swatch--circle" style="background:#a855f7"></span>
+            <span class="cat-label">West</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Spec</div>
+    <table class="spec-table">
+      <tr><th>属性</th><th>值</th><th>说明</th></tr>
+      <tr><td>色块尺寸</td><td><code>12×12px</code></td><td>square: rounded-sm / circle: border-radius 50%</td></tr>
+      <tr><td>布局</td><td>垂直列表</td><td>色块 + 文本标签，行间距 4px</td></tr>
+      <tr><td>推断逻辑</td><td>字符串类型 → 自动匹配</td><td>Qualitative Scale</td></tr>
+      <tr><td>交互</td><td>hover dim / click toggle</td><td>§5 交互行为</td></tr>
+    </table>
+  </div>
+
+  <!-- 3. 连续与分级 -->
+  <h2>3. 连续与分级图例 (Continuous & Classed)</h2>
+
+  <!-- 3.1 Linear 连续线性 -->
+  <h3>3.1 Linear 连续线性 (Sequential)</h3>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="map-sim" style="height:280px">
+      <!-- 连续渐变条 -->
+      <div class="legend-panel" style="left:16px;bottom:16px;width:200px">
+        <div class="legend-title">Temperature (°C)</div>
+        <div class="ramp-bar" style="background:linear-gradient(to right, #dbeafe, #60a5fa, #2563eb, #1e40af)"></div>
+        <div class="ramp-labels">
+          <span>-10</span>
+          <span>15</span>
+          <span>40</span>
+        </div>
+        <!-- 带刻度线版本 -->
+        <div style="margin-top:16px">
+          <div class="legend-title" style="margin-bottom:6px">With Ticks</div>
+          <div class="ramp-bar" style="background:linear-gradient(to right, #ecfdf5, #6ee7b7, #10b981, #047857)"></div>
+          <div class="ramp-ticks" style="position:relative">
+            <div class="ramp-tick" style="left:25%"></div>
+            <div class="ramp-tick" style="left:50%"></div>
+            <div class="ramp-tick" style="left:75%"></div>
+          </div>
+          <div class="ramp-labels" style="margin-top:2px">
+            <span>0</span>
+            <span>250</span>
+            <span>500+</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 带范围刷选 -->
+      <div class="legend-panel" style="right:16px;bottom:16px;width:200px">
+        <div class="legend-title">Population Density</div>
+        <div class="ramp-bar" style="background:linear-gradient(to right, #fef3c7, #fbbf24, #f59e0b, #d97706)"></div>
+        <div class="ramp-labels">
+          <span>Low</span>
+          <span>High</span>
+        </div>
+        <!-- Range Brush -->
+        <div class="brush-area">
+          <div class="brush-range" style="left:20%;width:55%"></div>
+          <div class="brush-handle" style="left:20%"></div>
+          <div class="brush-handle" style="left:75%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--primary)">20%</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--primary)">75%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Spec — Sequential / Continuous</div>
+    <table class="spec-table">
+      <tr><th>属性</th><th>值</th></tr>
+      <tr><td>色条高度</td><td><code>12px</code>，<code>rounded</code> 4px</td></tr>
+      <tr><td>渐变</td><td><code>linear-gradient(to right, ...)</code></td></tr>
+      <tr><td>标签</td><td>两侧 min/max <code>font-mono-data</code>，可选中间刻度</td></tr>
+      <tr><td>刷选</td><td>双柄拖动 <code>onBrush([min, max])</code></td></tr>
+    </table>
+  </div>
+
+  <!-- 3.2 Quantize / Quantile -->
+  <h3>3.2 Quantize & Quantile (Classed)</h3>
+
+  <div class="card">
+    <div class="card-title">分段色带</div>
+    <div style="max-width:320px;margin:0 auto">
+      <div class="legend-title">Quantile — GDP Per Capita</div>
+      <div class="ramp-bar">
+        <div class="ramp-segment" style="background:#dbeafe"></div>
+        <div class="ramp-segment" style="background:#93c5fd"></div>
+        <div class="ramp-segment" style="background:#60a5fa"></div>
+        <div class="ramp-segment" style="background:#3b82f6"></div>
+        <div class="ramp-segment" style="background:#1d4ed8"></div>
+      </div>
+      <div class="classed-labels">
+        <span class="classed-label">$2K</span>
+        <span class="classed-label">$8K</span>
+        <span class="classed-label">$16K</span>
+        <span class="classed-label">$32K</span>
+        <span class="classed-label">$48K</span>
+        <span class="classed-label">$80K+</span>
+      </div>
+
+      <div style="margin-top:20px">
+        <div class="legend-title">Quantize — Risk Level</div>
+        <div class="ramp-bar">
+          <div class="ramp-segment" style="background:#d1fae5"></div>
+          <div class="ramp-segment" style="background:#6ee7b7"></div>
+          <div class="ramp-segment" style="background:#fbbf24"></div>
+          <div class="ramp-segment" style="background:#f97316"></div>
+          <div class="ramp-segment" style="background:#ef4444"></div>
+        </div>
+        <div class="classed-labels">
+          <span class="classed-label">Low</span>
+          <span class="classed-label">Medium</span>
+          <span class="classed-label">High</span>
+          <span class="classed-label">Very High</span>
+          <span class="classed-label">Critical</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3.3 Threshold -->
+  <h3>3.3 Threshold 自定义分段</h3>
+
+  <div class="card">
+    <div class="card-title">垂直列表 + [A, B) 区间</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center">
+      <div style="width:200px;background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+        <div class="legend-title">PM2.5 (μg/m³)</div>
+        <div class="threshold-list">
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#22c55e"></span>
+            <span class="threshold-range">[0, 35)</span>
+          </div>
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#eab308"></span>
+            <span class="threshold-range">[35, 75)</span>
+          </div>
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#f97316"></span>
+            <span class="threshold-range">[75, 115)</span>
+          </div>
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#ef4444"></span>
+            <span class="threshold-range">[115, 150)</span>
+          </div>
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#7c3aed"></span>
+            <span class="threshold-range">[150, 250)</span>
+          </div>
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#7f1d1d"></span>
+            <span class="threshold-range">[250, 500)</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:200px;background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+        <div class="legend-title">Flood Depth (m)</div>
+        <div class="threshold-list">
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#bfdbfe"></span>
+            <span class="threshold-range">[0, 0.5)</span>
+          </div>
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#60a5fa"></span>
+            <span class="threshold-range">[0.5, 1.0)</span>
+          </div>
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#2563eb"></span>
+            <span class="threshold-range">[1.0, 1.5)</span>
+          </div>
+          <div class="threshold-item" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#1e40af"></span>
+            <span class="threshold-range">[1.5, 3.0)</span>
+          </div>
+          <div class="threshold-item dimmed" onclick="toggleDim(this)">
+            <span class="threshold-swatch" style="background:#1e3a5f"></span>
+            <span class="threshold-range">[3.0, 6.0)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 发散图例 -->
+  <h2>4. 离散与发散图例 (Diverging)</h2>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="map-sim" style="height:240px">
+      <div class="legend-panel" style="left:16px;bottom:16px;width:240px">
+        <div class="legend-title">Growth Rate (%)</div>
+        <div style="position:relative">
+          <div class="diverging-bar" style="background:linear-gradient(to right, #ef4444, #fca5a5, #e5e7eb, #86efac, #10b981)"></div>
+          <!-- 中间标记 -->
+          <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:1px;height:20px;background:var(--outline-variant)"></div>
+          <div class="diverging-middle">0</div>
+        </div>
+        <div class="diverging-labels" style="margin-top:20px">
+          <span>-20%</span>
+          <span>+20%</span>
+        </div>
+      </div>
+
+      <div class="legend-panel" style="right:16px;bottom:16px;width:240px">
+        <div class="legend-title">Price Change</div>
+        <div style="position:relative">
+          <div class="diverging-bar" style="background:linear-gradient(to right, #dc2626, #f87171, #f3f4f6, #93c5fd, #2563eb)"></div>
+          <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:1px;height:20px;background:var(--outline-variant)"></div>
+          <div class="diverging-middle">Avg</div>
+        </div>
+        <div class="diverging-labels" style="margin-top:20px">
+          <span>Decrease</span>
+          <span>Increase</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Spec — Diverging</div>
+    <table class="spec-table">
+      <tr><th>属性</th><th>值</th></tr>
+      <tr><td>色条</td><td>双极渐变 <code>linear-gradient</code>，12px 高度</td></tr>
+      <tr><td>中间标记</td><td>1px 竖线 + 中性标签（如 <code>0</code> 或 <code>Avg</code>）</td></tr>
+      <tr><td>色调</td><td>两端不同色调（红→灰→绿），中心为中性色</td></tr>
+    </table>
+  </div>
+
+  <!-- 5. 大小 & 线宽图例 -->
+  <h2>5. 大小与线宽图例</h2>
+
+  <div class="card">
+    <div style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center">
+      <!-- Size 比例圆 -->
+      <div style="background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;width:220px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+        <div class="legend-title">Population</div>
+        <div class="size-row">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:24px">
+            <div class="size-circle" style="width:6px;height:6px;background:#3b82f6;opacity:0.85"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:24px">
+            <div class="size-circle" style="width:12px;height:12px;background:#3b82f6;opacity:0.85"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:24px">
+            <div class="size-circle" style="width:18px;height:18px;background:#3b82f6;opacity:0.85"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:24px">
+            <div class="size-circle" style="width:24px;height:24px;background:#3b82f6;opacity:0.85"></div>
+          </div>
+        </div>
+        <div class="size-labels">
+          <span class="size-label">100K</span>
+          <span class="size-label">500K</span>
+          <span class="size-label">1M</span>
+          <span class="size-label">5M+</span>
+        </div>
+      </div>
+
+      <!-- LineWidth 线宽 -->
+      <div style="background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;width:200px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+        <div class="legend-title">Traffic Volume</div>
+        <div class="linewidth-list">
+          <div class="linewidth-item" onmouseenter="dimOthersLw(this)" onmouseleave="undimAllLw(this)" onclick="toggleDimLw(this)">
+            <div class="linewidth-line" style="height:2px;background:#3b82f6;opacity:0.85"></div>
+            <span class="linewidth-label">Light</span>
+          </div>
+          <div class="linewidth-item" onmouseenter="dimOthersLw(this)" onmouseleave="undimAllLw(this)" onclick="toggleDimLw(this)">
+            <div class="linewidth-line" style="height:4px;background:#3b82f6;opacity:0.85"></div>
+            <span class="linewidth-label">Moderate</span>
+          </div>
+          <div class="linewidth-item" onmouseenter="dimOthersLw(this)" onmouseleave="undimAllLw(this)" onclick="toggleDimLw(this)">
+            <div class="linewidth-line" style="height:6px;background:#3b82f6;opacity:0.85"></div>
+            <span class="linewidth-label">Heavy</span>
+          </div>
+          <div class="linewidth-item dimmed" onmouseenter="dimOthersLw(this)" onmouseleave="undimAllLw(this)" onclick="toggleDimLw(this)">
+            <div class="linewidth-line" style="height:10px;background:#3b82f6;opacity:0.85"></div>
+            <span class="linewidth-label">Congested</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 交互行为 -->
+  <h2>6. 交互行为 (Interaction)</h2>
+
+  <div class="card">
+    <div class="interact-grid">
+      <div class="interact-card">
+        <h4>Hover Highlight</h4>
+        <p>鼠标移入某项，地图对应要素高亮，非对应要素置灰 (dimmed <code>opacity: 0.35</code>)</p>
+        <p style="margin-top:6px;color:var(--primary);font-family:'JetBrains Mono',monospace;font-size:11px">onHover(index: number)</p>
+      </div>
+      <div class="interact-card">
+        <h4>Toggle Visibility</h4>
+        <p>点击图例项，切换该类要素在地图上的可见性（dimmed 态表示已隐藏）</p>
+        <p style="margin-top:6px;color:var(--primary);font-family:'JetBrains Mono',monospace;font-size:11px">onToggle(index: number)</p>
+      </div>
+      <div class="interact-card">
+        <h4>Range Brush</h4>
+        <p>连续型图例支持拖动双柄，动态筛选展示的数据范围</p>
+        <p style="margin-top:6px;color:var(--primary);font-family:'JetBrains Mono',monospace;font-size:11px">onBrush([min, max])</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. 组件接口 -->
+  <h2>7. Schema 接口速查</h2>
+
+  <div class="card">
+    <div class="card-title">LegendSchema Union Type</div>
+    <pre style="background:#1e1e2e;border-radius:8px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#cdd6f4;line-height:1.9;overflow-x:auto;margin:0"><span style="color:#89b4fa">type LegendSchema</span> =
+  | <span style="color:#a6e3a1">LegendCategoriesSchema</span>   <span style="color:#6c7086">// 定性: 色块 + 标签</span>
+  | <span style="color:#a6e3a1">LegendRampSchema</span>          <span style="color:#6c7086">// 连续/分级: 渐变条</span>
+  | <span style="color:#a6e3a1">LegendDivergingSchema</span>     <span style="color:#6c7086">// 发散: 双极渐变</span>
+  | <span style="color:#a6e3a1">LegendThresholdSchema</span>     <span style="color:#6c7086">// 阈值: [A, B) 区间</span>
+  | <span style="color:#a6e3a1">LegendSizeSchema</span>          <span style="color:#6c7086">// 比例: 大小圆</span>
+  | <span style="color:#a6e3a1">LegendLineWidthSchema</span>     <span style="color:#6c7086">// 线宽: 粗细线段</span>
+  | <span style="color:#a6e3a1">LegendProportionSchema</span>    <span style="color:#6c7086">// 比例: [min, max] 区间圆</span>
+  | <span style="color:#a6e3a1">LegendIconSchema</span>          <span style="color:#6c7086">// 图标: URL 图片 + 标签</span>
+
+<span style="color:#89b4fa">interface LegendInteractionCallbacks</span> {
+  <span style="color:#a6e3a1">onHover</span>?:  <span style="color:#f9e2af">(index: number) =&gt; void</span>
+  <span style="color:#a6e3a1">onToggle</span>?: <span style="color:#f9e2af">(index: number) =&gt; void</span>
+  <span style="color:#a6e3a1">onBrush</span>?:  <span style="color:#f9e2af">(range: [number, number]) =&gt; void</span>
+}</pre>
+  </div>
+
+</div>
+
+<script>
+  // 分类图例交互
+  function dimOthers(el) {
+    const list = el.parentElement;
+    list.querySelectorAll('.cat-item').forEach(item => {
+      if (item !== el) item.classList.add('dimmed');
+    });
+  }
+  function undimAll(el) {
+    const list = el.parentElement;
+    list.querySelectorAll('.cat-item').forEach(item => {
+      item.classList.remove('dimmed');
+    });
+  }
+  function toggleDim(el) {
+    el.classList.toggle('dimmed');
+  }
+
+  // 线宽图例交互
+  function dimOthersLw(el) {
+    const list = el.parentElement;
+    list.querySelectorAll('.linewidth-item').forEach(item => {
+      if (item !== el) item.classList.add('dimmed');
+    });
+  }
+  function undimAllLw(el) {
+    const list = el.parentElement;
+    list.querySelectorAll('.linewidth-item').forEach(item => {
+      item.classList.remove('dimmed');
+    });
+  }
+  function toggleDimLw(el) {
+    el.classList.toggle('dimmed');
+  }
+</script>
+</body>
+</html>

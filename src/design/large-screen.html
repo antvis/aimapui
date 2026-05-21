@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Large Screen Dashboard 设计规范 — CPS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<style>
+  :root {
+    --ls-bg: #0B0E14;
+    --ls-surface: rgba(20, 24, 33, 0.8);
+    --ls-primary: #3B82F6;
+    --ls-success: #10B981;
+    --ls-warning: #F59E0B;
+    --ls-danger: #EF4444;
+    --ls-text: #E2E8F0;
+    --ls-text-dim: rgba(255, 255, 255, 0.5);
+    --ls-border: rgba(255, 255, 255, 0.1);
+    --ls-glow-primary: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f8f9ff; color: #121c2a; line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: #434655; font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #c3c6d7; }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: #434655; margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: #dbeafe; padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid #c3c6d7; border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #2563eb; margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid #c3c6d7; }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* === 大屏模拟器 === */
+  .dashboard-shell {
+    width: 100%; aspect-ratio: 16/9; min-height: 400px;
+    background: var(--ls-bg);
+    border-radius: 12px; border: 2px solid rgba(255,255,255,0.1);
+    position: relative; overflow: hidden;
+    font-family: 'Inter', system-ui, sans-serif; color: var(--ls-text);
+  }
+  .dashboard-shell::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%231f2937' stroke-width='0.3' fill='none'/%3E%3C/svg%3E");
+    opacity: 0.5; pointer-events: none; z-index: 0;
+  }
+
+  /* 全局 Header */
+  .ls-header {
+    position: absolute; top: 0; left: 0; right: 0; height: 48px;
+    background: rgba(11, 14, 20, 0.9); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--ls-border);
+    display: flex; align-items: center; padding: 0 20px; gap: 16px; z-index: 10;
+  }
+  .ls-header-brand { font-size: 14px; font-weight: 700; color: var(--ls-primary); letter-spacing: 0.02em; }
+  .ls-header-search { flex: 1; max-width: 360px; height: 32px; border-radius: 6px; background: rgba(255,255,255,0.06); border: 1px solid var(--ls-border); display: flex; align-items: center; padding: 0 12px; gap: 6px; }
+  .ls-header-search span { font-size: 12px; color: rgba(255,255,255,0.3); }
+  .ls-header-search .material-symbols-outlined { font-size: 16px; color: rgba(255,255,255,0.3); }
+  .ls-header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .ls-header-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ls-success); box-shadow: 0 0 8px rgba(16,185,129,0.5); }
+  .ls-header-text { font-size: 11px; color: rgba(255,255,255,0.5); font-family: 'JetBrains Mono', monospace; }
+
+  /* 侧面板 */
+  .ls-panel { position: absolute; top: 48px; bottom: 32px; width: 220px; background: var(--ls-surface); backdrop-filter: blur(20px); border: 1px solid var(--ls-border); z-index: 5; padding: 12px; overflow-y: auto; }
+  .ls-panel--left { left: 0; border-left: none; border-top: none; border-bottom: none; }
+  .ls-panel--right { right: 0; border-right: none; border-top: none; border-bottom: none; }
+  .ls-panel-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.35); margin-bottom: 8px; }
+  .ls-panel-item { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 4px; font-size: 11px; color: rgba(255,255,255,0.7); }
+  .ls-panel-item .material-symbols-outlined { font-size: 15px; }
+
+  /* 数据卡片 */
+  .ls-stat { background: rgba(255,255,255,0.04); border: 1px solid var(--ls-border); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .ls-stat-label { font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.05em; }
+  .ls-stat-value { font-size: 20px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--ls-text); margin-top: 2px; }
+  .ls-stat-change { font-size: 10px; font-family: 'JetBrains Mono', monospace; }
+  .ls-stat-change--up { color: var(--ls-success); }
+  .ls-stat-change--down { color: var(--ls-danger); }
+
+  /* 图表占位 */
+  .ls-chart { background: rgba(255,255,255,0.03); border: 1px solid var(--ls-border); border-radius: 8px; height: 60px; margin-bottom: 8px; display: flex; align-items: flex-end; padding: 6px; gap: 3px; }
+  .ls-chart-bar { flex: 1; border-radius: 2px 2px 0 0; }
+
+  /* 表格 */
+  .ls-table { width: 100%; font-size: 10px; }
+  .ls-table th { text-align: left; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .ls-table td { padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.03); color: rgba(255,255,255,0.7); }
+  .ls-table .mono { font-family: 'JetBrains Mono', monospace; }
+  .ls-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+
+  /* Data Ticker */
+  .ls-ticker {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 32px;
+    background: rgba(11, 14, 20, 0.95); border-top: 1px solid var(--ls-border);
+    display: flex; align-items: center; padding: 0 16px; z-index: 10;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(255,255,255,0.4);
+    letter-spacing: 0.03em;
+  }
+  .ls-ticker-item { margin-right: 24px; white-space: nowrap; }
+  .ls-ticker-highlight { color: var(--ls-warning); }
+
+  /* 地图中心内容 */
+  .ls-map-center { position: absolute; top: 48px; left: 220px; right: 220px; bottom: 32px; z-index: 1; display: flex; align-items: center; justify-content: center; }
+
+  /* 脉冲标记 */
+  @keyframes ls-ping { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.5); opacity: 0; } }
+
+  /* 扫描线 */
+  @keyframes scanline { 0% { top: 48px; } 100% { top: calc(100% - 32px); } }
+  .ls-scanline { position: absolute; left: 220px; right: 220px; height: 1px; background: linear-gradient(90deg, transparent, rgba(59,130,246,0.15), transparent); z-index: 2; animation: scanline 4s linear infinite; pointer-events: none; }
+
+  /* 亮色区域的颜色块 */
+  .color-swatch { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s; }
+  .color-swatch:hover { transform: scale(1.1); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Large Screen Dashboard 设计规范</h1>
+  <p class="subtitle">CPS Large Screen Module v1.0.0 — 大屏指挥中心 · 暗色高对比度 · 高密度数据可视化</p>
+
+  <!-- 1. 视觉基础 -->
+  <h2>1. 视觉基础 (Dark Mode / High Contrast)</h2>
+
+  <div class="card">
+    <div class="card-title">色彩系统</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#0B0E14;border:1px solid rgba(255,255,255,0.15)"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Deep Surface</div>
+        <div style="font-size:10px;color:#434655;font-family:'JetBrains Mono',monospace">#0B0E14</div>
+      </div>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:rgba(20,24,33,0.8);border:1px solid rgba(255,255,255,0.1)"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Container</div>
+        <div style="font-size:10px;color:#434655;font-family:'JetBrains Mono',monospace">rgba(20,24,33,0.8)</div>
+      </div>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#3B82F6"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Primary</div>
+        <div style="font-size:10px;color:#434655;font-family:'JetBrains Mono',monospace">#3B82F6</div>
+      </div>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#10B981"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Success</div>
+        <div style="font-size:10px;color:#434655;font-family:'JetBrains Mono',monospace">#10B981</div>
+      </div>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#F59E0B"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Warning</div>
+        <div style="font-size:10px;color:#434655;font-family:'JetBrains Mono',monospace">#F59E0B</div>
+      </div>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#EF4444"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Danger</div>
+        <div style="font-size:10px;color:#434655;font-family:'JetBrains Mono',monospace">#EF4444</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">材质与纹理</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div style="background:#0B0E14;border:1px solid rgba(20,24,33,0.8);border-radius:12px;padding:20px;color:#e2e8f0;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Glassmorphism</div>
+        <code style="color:#93c5fd;font-size:11px">backdrop-blur-md</code>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">12-20px 模糊</div>
+      </div>
+      <div style="background:#0B0E14;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:20px;color:#e2e8f0;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Border</div>
+        <code style="color:#93c5fd;font-size:11px">1px border-white/10</code>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">微弱内发光</div>
+      </div>
+      <div style="background:#0B0E14;border-radius:12px;padding:20px;color:#e2e8f0;text-align:center;box-shadow:0 0 20px rgba(59,130,246,0.2)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Glow Effect</div>
+        <code style="color:#93c5fd;font-size:11px">drop-shadow</code>
+        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">轻量发光效果</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 布局与组合 -->
+  <h2>2. 布局与组合</h2>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="dashboard-shell" style="min-height:480px">
+      <div class="ls-scanline"></div>
+
+      <!-- 全局 Header -->
+      <div class="ls-header">
+        <div class="ls-header-brand">⬡ COMMAND CENTER</div>
+        <div class="ls-header-search">
+          <span class="material-symbols-outlined">search</span>
+          <span>Search coordinates, layers...</span>
+        </div>
+        <div class="ls-header-right">
+          <div class="ls-header-dot"></div>
+          <span class="ls-header-text">ONLINE</span>
+          <span class="ls-header-text" style="color:rgba(255,255,255,0.7)">14:32:07 UTC+8</span>
+        </div>
+      </div>
+
+      <!-- 左侧面板: 操作 & 图层 -->
+      <div class="ls-panel ls-panel--left">
+        <div class="ls-panel-title">Operations</div>
+        <div class="ls-panel-item" style="background:rgba(59,130,246,0.15);color:#93c5fd"><span class="material-symbols-outlined">layers</span>图层管理</div>
+        <div class="ls-panel-item"><span class="material-symbols-outlined">analytics</span>数据分析</div>
+        <div class="ls-panel-item"><span class="material-symbols-outlined">filter_alt</span>实时筛选</div>
+        <div class="ls-panel-item"><span class="material-symbols-outlined">swap_horiz</span>路线规划</div>
+
+        <div class="ls-panel-title" style="margin-top:14px">Active Layers</div>
+        <div class="ls-panel-item"><span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;flex-shrink:0"></span>物流密度 <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.25)">80%</span></div>
+        <div class="ls-panel-item"><span style="width:8px;height:8px;border-radius:50%;background:#10B981;flex-shrink:0"></span>站点分布 <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:rgba(255,255,255,0.25)">100%</span></div>
+        <div class="ls-panel-item" style="opacity:0.4"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;flex-shrink:0"></span>运输路线 <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px">OFF</span></div>
+
+        <div class="ls-panel-title" style="margin-top:14px">Legend</div>
+        <div style="height:6px;border-radius:3px;background:linear-gradient(90deg,#1e3a5f,#3B82F6);margin-bottom:4px"></div>
+        <div style="display:flex;justify-content:space-between;font-size:9px;color:rgba(255,255,255,0.3)"><span>0</span><span>25K</span><span>50K+</span></div>
+      </div>
+
+      <!-- 右侧面板: 实时分析 -->
+      <div class="ls-panel ls-panel--right" style="padding:12px">
+        <div class="ls-panel-title">Real-time Analytics</div>
+
+        <div class="ls-stat">
+          <div class="ls-stat-label">Total Shipments</div>
+          <div class="ls-stat-value">128,459</div>
+          <div class="ls-stat-change ls-stat-change--up">▲ +12.3%</div>
+        </div>
+        <div class="ls-stat">
+          <div class="ls-stat-label">Active Vehicles</div>
+          <div class="ls-stat-value" style="color:#3B82F6">3,827</div>
+          <div class="ls-stat-change ls-stat-change--up">▲ +5.8%</div>
+        </div>
+        <div class="ls-stat">
+          <div class="ls-stat-label">Avg Delivery Time</div>
+          <div class="ls-stat-value">2.4<span style="font-size:12px;font-weight:400;color:rgba(255,255,255,0.4)">h</span></div>
+          <div class="ls-stat-change ls-stat-change--down">▼ -3.1%</div>
+        </div>
+
+        <div class="ls-panel-title" style="margin-top:10px">Throughput</div>
+        <div class="ls-chart">
+          <div class="ls-chart-bar" style="height:40%;background:#3B82F6"></div>
+          <div class="ls-chart-bar" style="height:55%;background:#3B82F6"></div>
+          <div class="ls-chart-bar" style="height:70%;background:#3B82F6"></div>
+          <div class="ls-chart-bar" style="height:50%;background:#3B82F6"></div>
+          <div class="ls-chart-bar" style="height:85%;background:#3B82F6"></div>
+          <div class="ls-chart-bar" style="height:90%;background:#60a5fa"></div>
+          <div class="ls-chart-bar" style="height:65%;background:#3B82F6"></div>
+          <div class="ls-chart-bar" style="height:75%;background:#3B82F6"></div>
+          <div class="ls-chart-bar" style="height:60%;background:#3B82F6"></div>
+          <div class="ls-chart-bar" style="height:95%;background:#93c5fd"></div>
+        </div>
+
+        <div class="ls-panel-title" style="margin-top:6px">Region Status</div>
+        <table class="ls-table">
+          <tr><th>Region</th><th>Load</th><th>OK</th></tr>
+          <tr><td>华东</td><td class="mono">98.2%</td><td><span class="ls-dot" style="background:#10B981"></span></td></tr>
+          <tr><td>华北</td><td class="mono">87.5%</td><td><span class="ls-dot" style="background:#10B981"></span></td></tr>
+          <tr><td>华南</td><td class="mono">72.1%</td><td><span class="ls-dot" style="background:#F59E0B"></span></td></tr>
+          <tr><td>西部</td><td class="mono">45.3%</td><td><span class="ls-dot" style="background:#EF4444"></span></td></tr>
+        </table>
+      </div>
+
+      <!-- 地图中心标记 -->
+      <div class="ls-map-center">
+        <svg width="40" height="52" viewBox="0 0 40 52" style="filter:drop-shadow(0 0 12px rgba(59,130,246,0.5))">
+          <path d="M20 0C8.95 0 0 8.95 0 20c0 14 20 32 20 32s20-18 20-32C40 8.95 31.05 0 20 0z" fill="#3B82F6" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+          <circle cx="20" cy="19" r="8" fill="rgba(255,255,255,0.9)"/>
+          <circle cx="20" cy="19" r="8" fill="none" stroke="#3B82F6" stroke-width="1" opacity="0">
+            <animate attributeName="r" values="8;24" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.5;0" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="stroke-width" values="2;0.5" dur="2s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+      </div>
+
+      <!-- 地图左下角图例 -->
+      <div style="position:absolute;left:232px;bottom:44px;background:rgba(20,24,33,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;z-index:5;font-size:10px;color:rgba(255,255,255,0.6)">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;color:rgba(255,255,255,0.35)">Legend</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:50%;background:#3B82F6"></span>Hub</div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px"><span style="width:8px;height:8px;border-radius:50%;background:#10B981"></span>Station</div>
+        <div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B"></span>Pickup</div>
+      </div>
+
+      <!-- 地图右下角控件 -->
+      <div style="position:absolute;right:232px;bottom:44px;display:flex;flex-direction:column;gap:2px;z-index:5">
+        <button style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);border-radius:6px 6px 0 0;color:rgba(255,255,255,0.7);cursor:pointer"><span class="material-symbols-outlined" style="font-size:18px">add</span></button>
+        <button style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);border-top:none;border-radius:0 0 6px 6px;color:rgba(255,255,255,0.7);cursor:pointer"><span class="material-symbols-outlined" style="font-size:18px">remove</span></button>
+        <button style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:rgba(255,255,255,0.7);margin-top:6px;cursor:pointer"><span class="material-symbols-outlined" style="font-size:18px">3d_rotation</span></button>
+      </div>
+
+      <!-- Data Ticker -->
+      <div class="ls-ticker">
+        <span class="ls-ticker-item">LAT 39.9042</span>
+        <span class="ls-ticker-item">LON 116.4074</span>
+        <span class="ls-ticker-item">ZOOM 10.07</span>
+        <span class="ls-ticker-item ls-ticker-highlight">⚠ 华南区域负载超过 70%</span>
+        <span class="ls-ticker-item">SYS UPTIME: 72d 14h 32m</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">布局参数</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+      <div style="background:#eff4ff;border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#2563eb;font-family:'JetBrains Mono',monospace">400px</div>
+        <div style="font-size:11px;color:#434655;text-transform:uppercase;letter-spacing:0.04em;margin-top:4px">侧面板宽度</div>
+      </div>
+      <div style="background:#eff4ff;border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#2563eb;font-family:'JetBrains Mono',monospace">56px</div>
+        <div style="font-size:11px;color:#434655;text-transform:uppercase;letter-spacing:0.04em;margin-top:4px">全局 Header</div>
+      </div>
+      <div style="background:#eff4ff;border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#2563eb;font-family:'JetBrains Mono',monospace">32px</div>
+        <div style="font-size:11px;color:#434655;text-transform:uppercase;letter-spacing:0.04em;margin-top:4px">Data Ticker</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 组件规范 -->
+  <h2>3. 组件规范</h2>
+
+  <div class="card">
+    <div class="card-title">高密度数据表格</div>
+    <div style="background:#0B0E14;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,0.1)">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;color:#e2e8f0">
+        <thead>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+            <th style="text-align:left;padding:8px 16px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3)">Station</th>
+            <th style="text-align:left;padding:8px 16px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3)">Region</th>
+            <th style="text-align:right;padding:8px 16px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3)">Throughput</th>
+            <th style="text-align:right;padding:8px 16px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3)">On-Time</th>
+            <th style="text-align:center;padding:8px 16px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.3)">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+            <td style="padding:8px 16px;font-weight:500">华东枢纽 A</td>
+            <td style="padding:8px 16px;color:rgba(255,255,255,0.5)">上海</td>
+            <td style="padding:8px 16px;text-align:right;font-family:'JetBrains Mono',monospace">12,450</td>
+            <td style="padding:8px 16px;text-align:right;font-family:'JetBrains Mono',monospace;color:#10B981">98.6%</td>
+            <td style="padding:8px 16px;text-align:center"><span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;box-shadow:0 0 8px rgba(16,185,129,0.5)"></span></td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+            <td style="padding:8px 16px;font-weight:500">华北中心 B</td>
+            <td style="padding:8px 16px;color:rgba(255,255,255,0.5)">北京</td>
+            <td style="padding:8px 16px;text-align:right;font-family:'JetBrains Mono',monospace">9,827</td>
+            <td style="padding:8px 16px;text-align:right;font-family:'JetBrains Mono',monospace;color:#10B981">96.2%</td>
+            <td style="padding:8px 16px;text-align:center"><span style="width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;box-shadow:0 0 8px rgba(16,185,129,0.5)"></span></td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.03);transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+            <td style="padding:8px 16px;font-weight:500">华南节点 C</td>
+            <td style="padding:8px 16px;color:rgba(255,255,255,0.5)">深圳</td>
+            <td style="padding:8px 16px;text-align:right;font-family:'JetBrains Mono',monospace">6,543</td>
+            <td style="padding:8px 16px;text-align:right;font-family:'JetBrains Mono',monospace;color:#F59E0B">72.1%</td>
+            <td style="padding:8px 16px;text-align:center"><span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;display:inline-block;box-shadow:0 0 8px rgba(245,158,11,0.5)"></span></td>
+          </tr>
+          <tr style="transition:background 0.15s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+            <td style="padding:8px 16px;font-weight:500">西部仓库 D</td>
+            <td style="padding:8px 16px;color:rgba(255,255,255,0.5)">成都</td>
+            <td style="padding:8px 16px;text-align:right;font-family:'JetBrains Mono',monospace">3,210</td>
+            <td style="padding:8px 16px;text-align:right;font-family:'JetBrains Mono',monospace;color:#EF4444">45.3%</td>
+            <td style="padding:8px 16px;text-align:center"><span style="width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block;box-shadow:0 0 8px rgba(239,68,68,0.5)"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:#434655;margin-top:12px">表头 <code>font-label-caps uppercase tracking-widest text-white/50</code> · 行高 <code>h-10</code> · Hover <code>bg-white/5</code> · 状态指示灯带发光效果</p>
+  </div>
+
+  <!-- 4. 动效 -->
+  <h2>4. 交互与动效</h2>
+
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
+      <div style="background:#eff4ff;border-radius:10px;padding:20px;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#2563eb;font-family:'JetBrains Mono',monospace">500ms</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px">面板切换</div>
+        <div style="font-size:11px;color:#434655"><code>ease-in-out</code></div>
+      </div>
+      <div style="background:#eff4ff;border-radius:10px;padding:20px;text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#2563eb;font-family:'JetBrains Mono',monospace">Counter</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px">数据滚动</div>
+        <div style="font-size:11px;color:#434655">数值更新平滑过渡</div>
+      </div>
+      <div style="background:#eff4ff;border-radius:10px;padding:20px;text-align:center">
+        <div style="font-size:13px;font-weight:600;color:#2563eb;margin-top:4px">Ping Pulse</div>
+        <div style="font-size:11px;color:#434655;margin-top:4px">高优先级标记<br>多阶段径向脉冲</div>
+      </div>
+      <div style="background:#eff4ff;border-radius:10px;padding:20px;text-align:center">
+        <div style="font-size:13px;font-weight:600;color:#2563eb;margin-top:4px">Scanline</div>
+        <div style="font-size:11px;color:#434655;margin-top:4px">地图扫描线<br>增强科技感</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">CSS 速查</div>
+    <div style="background:#0B0E14;border-radius:8px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#cdd6f4;line-height:1.7;overflow-x:auto">
+<span style="color:#89b4fa">.ls-surface</span> {
+  <span style="color:#a6e3a1">background</span>: <span style="color:#f9e2af">rgba(20, 24, 33, 0.8)</span>;
+  <span style="color:#a6e3a1">backdrop-filter</span>: <span style="color:#f9e2af">blur(20px)</span>;
+  <span style="color:#a6e3a1">border</span>: <span style="color:#f9e2af">1px solid rgba(255, 255, 255, 0.1)</span>;
+}
+
+<span style="color:#89b4fa">.ls-glow--primary</span> {
+  <span style="color:#a6e3a1">box-shadow</span>: <span style="color:#f9e2af">0 0 20px rgba(59, 130, 246, 0.3)</span>;
+}
+
+<span style="color:#89b4fa">.ls-table-header</span> {
+  <span style="color:#a6e3a1">font-size</span>: <span style="color:#f9e2af">10px</span>;
+  <span style="color:#a6e3a1">text-transform</span>: <span style="color:#f9e2af">uppercase</span>;
+  <span style="color:#a6e3a1">letter-spacing</span>: <span style="color:#f9e2af">0.1em</span>;
+  <span style="color:#a6e3a1">color</span>: <span style="color:#f9e2af">rgba(255, 255, 255, 0.3)</span>;
+}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

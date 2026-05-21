@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图轻提示 (Tooltip) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #004ac6;
+    --color-primary-container: #dee9fc;
+    --color-on-primary: #fff;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-surface: #f8f9ff;
+    --color-inverse-surface: #27313f;
+    --color-inverse-on-surface: #eaf1ff;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container-highest: #d9e3f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(222,233,252,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* ====== Tooltip 实体 ====== */
+  .tooltip {
+    position: relative;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    animation: tooltip-enter 150ms ease-out;
+  }
+  @keyframes tooltip-enter {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Dark 变体 */
+  .tooltip--dark {
+    background: rgba(39, 49, 63, 0.95);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 0.5px solid rgba(195, 198, 215, 0.2);
+    color: #eaf1ff;
+  }
+
+  /* Glass 变体 */
+  .tooltip--glass {
+    background: rgba(248, 249, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #004ac6;
+  }
+
+  /* Light 变体 */
+  .tooltip--light {
+    background: rgba(248, 249, 255, 0.95);
+    border: 0.5px solid rgba(195, 198, 215, 0.3);
+    color: #434655;
+  }
+
+  /* 箭头 */
+  .tooltip-arrow { position: absolute; left: 50%; transform: translateX(-50%); }
+  .tooltip-arrow--bottom { bottom: -6px; }
+  .tooltip-arrow--top { top: -6px; }
+  .tooltip-arrow--bottom svg { display: block; }
+  .tooltip-arrow--top svg { display: block; transform: rotate(180deg); }
+
+  /* 结构化内容 */
+  .tooltip-title { font-weight: 600; font-size: 12px; line-height: 16px; margin-bottom: 2px; }
+  .tooltip-items { display: flex; flex-direction: column; gap: 1px; }
+  .tooltip-item { display: flex; justify-content: space-between; gap: 12px; }
+  .tooltip-item-label { opacity: 0.7; font-size: 11px; }
+  .tooltip-item-value { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500; }
+
+  /* 背景演示区 */
+  .demo-bg { padding: 48px 32px; border-radius: 12px; display: flex; gap: 32px; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+  /* 点击目标模拟 */
+  .marker-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--color-primary); border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,74,198,0.4);
+    cursor: pointer; position: relative;
+  }
+
+  /* CSS 类名高亮 */
+  .cls { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+
+  /* 动效 */
+  @keyframes tooltip-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .anim-tooltip {
+    animation: tooltip-fade-in 150ms ease-out;
+  }
+
+  /* 流程步 */
+  .flow-step { background: var(--color-primary-container); border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: var(--color-primary); display: inline-block; }
+  .flow-arrow { color: var(--color-outline-variant); font-size: 18px; margin: 0 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图轻提示 (Tooltip) 设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v1.2.0 — 悬停即时反馈容器</p>
+
+  <!-- 1. 三种视觉变体 -->
+  <h2>1. 视觉变体</h2>
+
+  <div class="card">
+    <div class="card-title">三种变体对比</div>
+    <table class="spec-table" style="margin-bottom:24px">
+      <tr><th>属性</th><th>深色变体 (dark)</th><th>玻璃变体 (glass)</th><th>浅色变体 (light)</th></tr>
+      <tr><td><strong>背景</strong></td><td><code>rgba(39,49,63,0.95)</code></td><td><code>rgba(248,249,255,0.7)</code></td><td><code>rgba(248,249,255,0.95)</code></td></tr>
+      <tr><td><strong>文字</strong></td><td><code>#eaf1ff</code></td><td><code>#004ac6</code> (Primary)</td><td><code>#434655</code></td></tr>
+      <tr><td><strong>边框</strong></td><td><code>0.5px outline/20</code></td><td><code>1px white/40</code></td><td><code>0.5px outline/30</code></td></tr>
+      <tr><td><strong>模糊</strong></td><td><code>blur(4px)</code></td><td><code>blur(12px)</code></td><td>无</td></tr>
+      <tr><td><strong>适用场景</strong></td><td>卫星图、亮色底图</td><td>简洁数据地图</td><td>深色底图</td></tr>
+    </table>
+
+    <!-- Dark 变体 -->
+    <h3 style="margin-top:24px">Dark Contrast · 深色对比</h3>
+    <div class="demo-bg" style="background:linear-gradient(135deg,#a8d8ea,#d4e7c5,#f7e1ae);position:relative">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div class="tooltip tooltip--dark anim-tooltip" style="animation-delay:0s">
+          <div class="tooltip-title">物流站点 A</div>
+          <div class="tooltip-arrow tooltip-arrow--bottom">
+            <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 0 L6 6 L12 0 Z" fill="rgba(39,49,63,0.95)"/></svg>
+          </div>
+        </div>
+        <div class="marker-dot"></div>
+        <span style="font-size:11px;color:var(--color-on-surface-variant)">单行标题</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div class="tooltip tooltip--dark anim-tooltip" style="animation-delay:0.1s;white-space:nowrap">
+          <div class="tooltip-title">华东枢纽</div>
+          <div class="tooltip-items" style="margin-top:3px">
+            <div class="tooltip-item"><span class="tooltip-item-label" style="color:rgba(234,241,255,0.6)">类型</span><span class="tooltip-item-value" style="color:#eaf1ff">区域枢纽</span></div>
+            <div class="tooltip-item"><span class="tooltip-item-label" style="color:rgba(234,241,255,0.6)">吞吐</span><span class="tooltip-item-value" style="color:#eaf1ff">12,450</span></div>
+          </div>
+          <div class="tooltip-arrow tooltip-arrow--bottom">
+            <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 0 L6 6 L12 0 Z" fill="rgba(39,49,63,0.95)"/></svg>
+          </div>
+        </div>
+        <div class="marker-dot"></div>
+        <span style="font-size:11px;color:var(--color-on-surface-variant)">标题 + 键值对</span>
+      </div>
+    </div>
+
+    <!-- Glass 变体 -->
+    <h3 style="margin-top:24px">Glass Morphism · 玻璃拟态</h3>
+    <div class="demo-bg" style="background:linear-gradient(135deg,#e8edf5,#c8d4e6,#dde5f0)">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div class="tooltip tooltip--glass anim-tooltip" style="animation-delay:0.2s">
+          <div class="tooltip-title">配送站点 B</div>
+          <div class="tooltip-arrow tooltip-arrow--bottom">
+            <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 0 L6 6 L12 0 Z" fill="rgba(248,249,255,0.7)"/></svg>
+          </div>
+        </div>
+        <div class="marker-dot"></div>
+        <span style="font-size:11px;color:var(--color-on-surface-variant)">单行标题</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div class="tooltip tooltip--glass anim-tooltip" style="animation-delay:0.3s;white-space:nowrap">
+          <div class="tooltip-title">配送站点 C</div>
+          <div class="tooltip-items" style="margin-top:3px">
+            <div class="tooltip-item"><span class="tooltip-item-label" style="color:rgba(0,74,198,0.6)">站点数</span><span class="tooltip-item-value" style="color:#004ac6">48</span></div>
+            <div class="tooltip-item"><span class="tooltip-item-label" style="color:rgba(0,74,198,0.6)">平均时效</span><span class="tooltip-item-value" style="color:#004ac6">2.4h</span></div>
+          </div>
+          <div class="tooltip-arrow tooltip-arrow--bottom">
+            <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 0 L6 6 L12 0 Z" fill="rgba(248,249,255,0.7)"/></svg>
+          </div>
+        </div>
+        <div class="marker-dot"></div>
+        <span style="font-size:11px;color:var(--color-on-surface-variant)">标题 + 键值对</span>
+      </div>
+    </div>
+
+    <!-- Light 变体 -->
+    <h3 style="margin-top:24px">Light · 浅色</h3>
+    <div class="demo-bg" style="background:linear-gradient(135deg,#27313f,#1a2332,#2d3a4c)">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div class="tooltip tooltip--light anim-tooltip" style="animation-delay:0.4s">
+          <div class="tooltip-title">自提点 D</div>
+          <div class="tooltip-arrow tooltip-arrow--bottom">
+            <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 0 L6 6 L12 0 Z" fill="rgba(248,249,255,0.95)"/></svg>
+          </div>
+        </div>
+        <div class="marker-dot" style="background:#10b981"></div>
+        <span style="font-size:11px;color:rgba(255,255,255,0.5)">单行标题</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+        <div class="tooltip tooltip--light anim-tooltip" style="animation-delay:0.5s;white-space:nowrap">
+          <div class="tooltip-title">自提点 E</div>
+          <div class="tooltip-items" style="margin-top:3px">
+            <div class="tooltip-item"><span class="tooltip-item-label" style="color:rgba(67,70,85,0.6)">库存</span><span class="tooltip-item-value" style="color:#434655">326</span></div>
+            <div class="tooltip-item"><span class="tooltip-item-label" style="color:rgba(67,70,85,0.6)">状态</span><span class="tooltip-item-value" style="color:#10b981">正常</span></div>
+          </div>
+          <div class="tooltip-arrow tooltip-arrow--bottom">
+            <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 0 L6 6 L12 0 Z" fill="rgba(248,249,255,0.95)"/></svg>
+          </div>
+        </div>
+        <div class="marker-dot" style="background:#f59e0b"></div>
+        <span style="font-size:11px;color:rgba(255,255,255,0.5)">标题 + 键值对</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 文本规范 -->
+  <h2>2. 文本规范</h2>
+  <div class="card">
+    <table class="spec-table">
+      <tr><th>类型</th><th>字体</th><th>大小</th><th>行高</th><th>粗细</th></tr>
+      <tr><td><strong>标题</strong></td><td>Inter</td><td>12px</td><td>16px</td><td>600 (semi-bold)</td></tr>
+      <tr><td><strong>数值</strong></td><td>JetBrains Mono</td><td>12px</td><td>16px</td><td>450</td></tr>
+      <tr><td><strong>标签</strong></td><td>Inter</td><td>11px</td><td>—</td><td>400</td></tr>
+    </table>
+    <div style="margin-top:16px;display:flex;gap:24px;align-items:center;justify-content:center;padding:12px">
+      <div style="text-align:center">
+        <div style="font-size:12px;font-weight:600;color:var(--color-on-surface)">华东枢纽</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:2px">标题 · 12px/600</div>
+      </div>
+      <div style="width:1px;height:28px;background:var(--color-outline-variant)"></div>
+      <div style="text-align:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--color-primary)">12,450</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:2px">数值 · Mono 12px</div>
+      </div>
+      <div style="width:1px;height:28px;background:var(--color-outline-variant)"></div>
+      <div style="text-align:center">
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">吞吐量</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:2px">标签 · 11px/400</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 箭头 & 定位 -->
+  <h2>3. 箭头与定位</h2>
+  <div class="card">
+    <div class="card-title">等腰三角形 · 底宽12px · 高6px</div>
+    <div style="display:flex;gap:40px;align-items:center;justify-content:center;padding:32px 0;flex-wrap:wrap">
+      <!-- 上方箭头 (tooltip在下) -->
+      <div style="text-align:center">
+        <div style="display:flex;justify-content:center;margin-bottom:-1px">
+          <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 6 L6 0 L12 6 Z" fill="rgba(39,49,63,0.95)"/></svg>
+        </div>
+        <div style="background:rgba(39,49,63,0.95);border-radius:6px;padding:6px 10px;color:#eaf1ff;font-size:12px;font-weight:600;white-space:nowrap">Tooltip (bottom)</div>
+        <div style="margin-top:12px;font-size:11px;color:var(--color-on-surface-variant)">arrow 在上方</div>
+      </div>
+      <!-- 下方箭头 (tooltip在上) -->
+      <div style="text-align:center">
+        <div style="background:rgba(39,49,63,0.95);border-radius:6px;padding:6px 10px;color:#eaf1ff;font-size:12px;font-weight:600;white-space:nowrap">Tooltip (top)</div>
+        <div style="display:flex;justify-content:center;margin-top:-1px">
+          <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 0 L6 6 L12 0 Z" fill="rgba(39,49,63,0.95)"/></svg>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--color-on-surface-variant)">arrow 在下方</div>
+      </div>
+      <!-- 左侧箭头 -->
+      <div style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:0">
+        <div style="display:flex;align-items:center">
+          <svg width="6" height="12" viewBox="0 0 6 12"><path d="M6 0 L0 6 L6 12 Z" fill="rgba(39,49,63,0.95)"/></svg>
+          <div style="background:rgba(39,49,63,0.95);border-radius:6px;padding:6px 10px;color:#eaf1ff;font-size:12px;font-weight:600;white-space:nowrap">Tooltip (left)</div>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--color-on-surface-variant)">arrow 在左侧</div>
+      </div>
+      <!-- 右侧箭头 -->
+      <div style="text-align:center;display:flex;flex-direction:column;align-items:center">
+        <div style="display:flex;align-items:center">
+          <div style="background:rgba(39,49,63,0.95);border-radius:6px;padding:6px 10px;color:#eaf1ff;font-size:12px;font-weight:600;white-space:nowrap">Tooltip (right)</div>
+          <svg width="6" height="12" viewBox="0 0 6 12"><path d="M0 0 L6 6 L0 12 Z" fill="rgba(39,49,63,0.95)"/></svg>
+        </div>
+        <div style="margin-top:12px;font-size:11px;color:var(--color-on-surface-variant)">arrow 在右侧</div>
+      </div>
+    </div>
+    <p style="text-align:center">箭头颜色与容器背景一致，随 <code>placement</code> 自动切换方向。与要素边缘保持 <strong>8px</strong> 固定偏移。</p>
+  </div>
+
+  <!-- 4. 尺寸约束 -->
+  <h2>4. 尺寸约束</h2>
+  <div class="card">
+    <div style="display:flex;gap:24px;align-items:center;justify-content:center;padding:16px 0;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="width:80px;height:32px;border-radius:6px;border:1px dashed var(--color-outline-variant);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--color-on-surface-variant)">Min 80px</div>
+      </div>
+      <div style="font-size:14px;color:var(--color-outline-variant)">&le;</div>
+      <div style="text-align:center">
+        <div style="width:140px;height:48px;border-radius:6px;border:1px solid var(--color-primary);background:rgba(0,74,198,0.05);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--color-primary)">典型宽度</div>
+      </div>
+      <div style="font-size:14px;color:var(--color-outline-variant)">&le;</div>
+      <div style="text-align:center">
+        <div style="width:200px;height:48px;border-radius:6px;border:1px dashed var(--color-outline-variant);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--color-on-surface-variant)">Max 200px</div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>属性</th><th>值</th><th>说明</th></tr>
+      <tr><td><strong>最小宽度</strong></td><td>80px</td><td>防止极短内容过窄</td></tr>
+      <tr><td><strong>最大宽度</strong></td><td>200px</td><td>防止遮挡过多底图</td></tr>
+      <tr><td><strong>内边距</strong></td><td><code>px-2.5 py-1.5</code> (10px 6px)</td><td>紧凑型</td></tr>
+      <tr><td><strong>圆角</strong></td><td><code>rounded-md</code> (6px)</td><td>精确紧凑感</td></tr>
+    </table>
+  </div>
+
+  <!-- 5. 交互逻辑 -->
+  <h2>5. 交互逻辑</h2>
+
+  <div class="card">
+    <div class="card-title">触发与消失</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 0;flex-wrap:wrap">
+      <div class="flow-step">鼠标悬停要素</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-step" style="background:rgba(245,158,11,0.15);color:#b45309">100ms 延迟</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-step" style="background:rgba(16,185,129,0.15);color:#059669">Tooltip 入场</div>
+    </div>
+    <p style="text-align:center;font-size:13px;margin-top:8px">100ms 延迟防止快速划过时的视觉闪烁；鼠标移出后立即消失。</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">入场动效 · 150ms</div>
+    <div style="display:flex;gap:32px;align-items:center;justify-content:center;padding:16px 0">
+      <div style="text-align:center">
+        <div style="width:120px;height:32px;border-radius:6px;background:rgba(39,49,63,0.5);display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(234,241,255,0.5);opacity:0.5;transform:translateY(4px)">translateY(4px)</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:8px">起始态 · opacity: 0</div>
+      </div>
+      <div style="font-size:24px;color:var(--color-outline-variant)">&rarr;</div>
+      <div style="text-align:center">
+        <div style="width:120px;height:32px;border-radius:6px;background:rgba(39,49,63,0.95);display:flex;align-items:center;justify-content:center;font-size:12px;color:#eaf1ff;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)">translateY(0)</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:8px">结束态 · opacity: 1</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:4px">
+      <code>150ms ease-out</code> — <code>translate-y-1 &rarr; translate-y-0</code> + <code>opacity-0 &rarr; opacity-100</code>
+    </div>
+  </div>
+
+  <!-- 6. 碰撞避让 -->
+  <h2>6. 碰撞避让</h2>
+  <div class="card">
+    <div style="position:relative;width:100%;height:200px;background:linear-gradient(135deg,#e8edf5,#d5dce8);border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center">
+      <!-- 中心标记 -->
+      <div style="position:relative">
+        <div class="marker-dot" style="width:16px;height:16px"></div>
+        <!-- 正常位置: 上方 -->
+        <div class="tooltip tooltip--dark" style="position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);white-space:nowrap;z-index:10">
+          <div class="tooltip-title">默认: 上方</div>
+          <div class="tooltip-arrow tooltip-arrow--bottom">
+            <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 0 L6 6 L12 0 Z" fill="rgba(39,49,63,0.95)"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 边缘标记 + 左侧避让 -->
+      <div style="position:absolute;right:16px;top:24px">
+        <div class="marker-dot" style="width:12px;height:12px;background:#10b981"></div>
+        <div class="tooltip tooltip--dark" style="position:absolute;right:0;top:calc(100% + 8px);white-space:nowrap;z-index:10">
+          <div class="tooltip-title">避让: 下方</div>
+          <div class="tooltip-arrow tooltip-arrow--top">
+            <svg width="12" height="6" viewBox="0 0 12 6"><path d="M0 6 L6 0 L12 6 Z" fill="rgba(39,49,63,0.95)"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 左边缘 + 右侧避让 -->
+      <div style="position:absolute;left:16px;top:50%;transform:translateY(-50%)">
+        <div class="marker-dot" style="width:12px;height:12px;background:#f59e0b"></div>
+        <div class="tooltip tooltip--dark" style="position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);white-space:nowrap;z-index:10">
+          <div class="tooltip-title">避让: 右侧</div>
+        </div>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:13px;margin-top:12px">接近屏幕边缘时自动切换至下方、左侧或右侧显示。</p>
+  </div>
+
+  <!-- 7. CSS 类名体系 -->
+  <h2>7. CSS 类名体系</h2>
+  <div class="card">
+    <table class="spec-table">
+      <tr><th>类名</th><th>说明</th></tr>
+      <tr><td><code>.aimapkit-tooltip</code></td><td>外层容器</td></tr>
+      <tr><td><code>.aimapkit-tooltip--glass</code></td><td>玻璃变体</td></tr>
+      <tr><td><code>.aimapkit-tooltip--light</code></td><td>浅色变体</td></tr>
+      <tr><td><code>.aimapkit-tooltip-content</code></td><td>内容容器（默认深色）</td></tr>
+      <tr><td><code>.aimapkit-tooltip-title</code></td><td>标题文字</td></tr>
+      <tr><td><code>.aimapkit-tooltip-items</code></td><td>键值对列表容器</td></tr>
+      <tr><td><code>.aimapkit-tooltip-item</code></td><td>单行键值对</td></tr>
+      <tr><td><code>.aimapkit-tooltip-item-label</code></td><td>键标签</td></tr>
+      <tr><td><code>.aimapkit-tooltip-item-value</code></td><td>值文字</td></tr>
+      <tr><td><code>.aimapkit-tooltip-arrow</code></td><td>箭头基类</td></tr>
+      <tr><td><code>.aimapkit-tooltip-arrow--top</code></td><td>上方箭头</td></tr>
+      <tr><td><code>.aimapkit-tooltip-arrow--bottom</code></td><td>下方箭头</td></tr>
+      <tr><td><code>.aimapkit-tooltip-arrow--left</code></td><td>左方箭头</td></tr>
+      <tr><td><code>.aimapkit-tooltip-arrow--right</code></td><td>右方箭头</td></tr>
+    </table>
+  </div>
+
+  <!-- 8. Props 接口 -->
+  <h2>8. 组件 Props 接口</h2>
+  <div class="card">
+    <div style="background:#1e1e2e;border-radius:8px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#cdd6f4;line-height:1.7;overflow-x:auto">
+<span style="color:#cba6f7">export interface</span> <span style="color:#89b4fa">TooltipProps</span> {
+  <span style="color:#a6e3a1">content</span>?: <span style="color:#89b4fa">string | React.ReactNode</span>;
+  <span style="color:#a6e3a1">variant</span>?: <span style="color:#f9e2af">'dark' | 'glass' | 'light'</span>;
+
+  <span style="color:#6c7086">// 地图模式（经纬度定位）</span>
+  <span style="color:#a6e3a1">longitude</span>?: <span style="color:#89b4fa">number</span>;
+  <span style="color:#a6e3a1">latitude</span>?: <span style="color:#89b4fa">number</span>;
+
+  <span style="color:#6c7086">// DOM 模式（挂载到目标元素）</span>
+  <span style="color:#a6e3a1">targetElement</span>?: <span style="color:#89b4fa">HTMLElement | null</span>;
+
+  <span style="color:#a6e3a1">placement</span>?: <span style="color:#f9e2af">'top' | 'right' | 'bottom' | 'left'</span>;
+  <span style="color:#a6e3a1">offset</span>?: <span style="color:#89b4fa">number</span>;         <span style="color:#6c7086">// 默认 8px</span>
+  <span style="color:#a6e3a1">trigger</span>?: <span style="color:#f9e2af">'hover' | 'click'</span>;
+  <span style="color:#a6e3a1">visible</span>?: <span style="color:#89b4fa">boolean</span>;
+  <span style="color:#a6e3a1">title</span>?: <span style="color:#89b4fa">string</span>;
+  <span style="color:#a6e3a1">items</span>?: <span style="color:#89b4fa">TooltipItem[]</span>;
+  <span style="color:#a6e3a1">className</span>?: <span style="color:#89b4fa">string</span>;
+}
+
+<span style="color:#cba6f7">export interface</span> <span style="color:#89b4fa">TooltipItem</span> {
+  <span style="color:#a6e3a1">label</span>: <span style="color:#89b4fa">string</span>;
+  <span style="color:#a6e3a1">value</span>: <span style="color:#89b4fa">string | number</span>;
+}
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

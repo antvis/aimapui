@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图弹出框 (Popup) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #004ac6;
+    --color-primary-container: #dee9fc;
+    --color-on-primary: #fff;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-surface: #f8f9ff;
+    --color-inverse-surface: #27313f;
+    --color-outline-variant: #c3c6d7;
+    --color-outline: #74778a;
+    --glass-bg: rgba(248, 249, 255, 0.95);
+    --glass-border: rgba(195, 198, 215, 0.3);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(222,233,252,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* ====== Popup 实体演示 ====== */
+  .demo-row { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; padding: 32px 0; }
+
+  /* Popup 容器公共 */
+  .popup { border-radius: 12px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(195,198,215,0.3); background: var(--glass-bg); backdrop-filter: blur(12px); position: relative; }
+
+  /* 封面 */
+  .popup-cover { width: 100%; height: 176px; object-fit: cover; display: block; background: linear-gradient(135deg, #c3c6d7 0%, #74778a 100%); position: relative; }
+  .popup-cover-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; opacity: 0.7; }
+  .popup-cover img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* 头部 */
+  .popup-header { padding: 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .popup-title { font-size: 16px; font-weight: 600; color: var(--color-on-surface); line-height: 1.3; flex: 1; }
+  .popup-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; background: rgba(18,28,42,0.05); border-radius: 50%; cursor: pointer; flex-shrink: 0; }
+  .popup-close:hover { background: rgba(18,28,42,0.1); }
+  .popup-close .material-symbols-outlined { font-size: 18px; color: var(--color-on-surface-variant); }
+
+  /* 内容 */
+  .popup-body { padding: 0 16px 16px; }
+
+  /* 属性列表 - 标准 */
+  .popup-attrs { display: flex; flex-direction: column; gap: 8px; }
+  .popup-attr { display: flex; justify-content: space-between; align-items: center; }
+  .popup-attr-label { font-size: 13px; color: var(--color-on-surface-variant); }
+  .popup-attr-value { font-size: 14px; color: var(--color-on-surface); font-weight: 500; }
+
+  /* 属性列表 - 紧凑（水平） */
+  .popup-attrs--compact { flex-direction: row; gap: 0; border-top: 1px solid rgba(195,198,215,0.2); }
+  .popup-attr--compact { flex: 1; flex-direction: column; align-items: center; gap: 2px; padding: 12px 0; border-right: 1px solid rgba(195,198,215,0.2); }
+  .popup-attr--compact:last-child { border-right: none; }
+  .popup-attr-label--compact { font-size: 11px; }
+  .popup-attr-value--compact { font-size: 14px; font-weight: 600; color: var(--color-on-surface); }
+
+  /* 属性列表 - 详细（图标） */
+  .popup-attrs--detailed { flex-direction: row; gap: 24px; flex-wrap: wrap; }
+  .popup-attr--detailed { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .popup-attr-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--color-primary-container); display: flex; align-items: center; justify-content: center; }
+  .popup-attr-icon .material-symbols-outlined { font-size: 24px; color: var(--color-primary); }
+  .popup-attr-value--detailed { font-size: 20px; font-weight: 700; color: var(--color-on-surface); }
+  .popup-attr-label--detailed { font-size: 12px; color: var(--color-on-surface-variant); }
+
+  /* 状态点 */
+  .popup-header-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+
+  /* 操作栏 */
+  .popup-actions { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid rgba(195,198,215,0.2); }
+  .popup-action-btn { flex: 1; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; text-align: center; }
+  .popup-action-btn--primary { background: var(--color-primary); color: var(--color-on-primary); }
+  .popup-action-btn--outline { background: transparent; color: var(--color-primary); border: 1px solid var(--color-outline-variant); }
+
+  /* 指向箭头 */
+  .popup-tip { display: flex; justify-content: center; margin-top: -1px; }
+  .popup-tip svg { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.05)); }
+
+  /* 入场动效 */
+  @keyframes popup-enter {
+    from { opacity: 0; transform: scale(0.95) translateY(4px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .popup { animation: popup-enter 200ms ease-out; }
+
+  /* 标签 */
+  .size-label { text-align: center; font-size: 12px; font-weight: 600; color: var(--color-primary); margin-top: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .size-desc { text-align: center; font-size: 11px; color: var(--color-on-surface-variant); margin-top: 2px; }
+
+  /* 交互流程 */
+  .flow-steps { display: flex; align-items: center; gap: 12px; justify-content: center; padding: 24px 0; flex-wrap: wrap; }
+  .flow-step { background: var(--color-primary-container); border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; color: var(--color-primary); }
+  .flow-arrow { color: var(--color-outline-variant); font-size: 18px; }
+
+  /* 代码块 */
+  .code-block { background: #1e1e2e; color: #cdd6f4; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; margin-top: 12px; }
+  .code-block .keyword { color: #cba6f7; }
+  .code-block .type { color: #89b4fa; }
+  .code-block .prop { color: #a6e3a1; }
+  .code-block .comment { color: #6c7086; }
+  .code-block .string { color: #f9e2af; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图弹出框 (Popup) 设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v1.2.0 — 高信息密度的地理信息展示容器</p>
+
+  <!-- 1. 基础视觉定义 -->
+  <h2>1. 基础视觉定义</h2>
+
+  <div class="card">
+    <div class="card-title">容器样式</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+      <div style="background:rgba(222,233,252,0.4);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-bottom:4px">背景</div>
+        <code>bg-surface/95</code>
+        <div style="margin-top:8px;width:80px;height:32px;border-radius:6px;background:rgba(248,249,255,0.95);backdrop-filter:blur(12px);border:1px solid rgba(195,198,215,0.3);margin:8px auto 0"></div>
+      </div>
+      <div style="background:rgba(222,233,252,0.4);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-bottom:4px">圆角</div>
+        <code>rounded-xl (12px)</code>
+        <div style="margin-top:8px;width:48px;height:48px;border-radius:12px;background:var(--color-primary-container);border:2px solid var(--color-primary);margin:8px auto 0"></div>
+      </div>
+      <div style="background:rgba(222,233,252,0.4);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-bottom:4px">阴影</div>
+        <code>shadow-2xl</code>
+        <div style="margin-top:8px;width:48px;height:48px;border-radius:8px;background:#fff;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);margin:8px auto 0"></div>
+      </div>
+      <div style="background:rgba(222,233,252,0.4);border-radius:8px;padding:16px;text-align:center">
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-bottom:4px">边框</div>
+        <code>1px border-outline/30</code>
+        <div style="margin-top:8px;width:48px;height:48px;border-radius:8px;background:rgba(248,249,255,0.95);border:1px solid rgba(195,198,215,0.3);margin:8px auto 0"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 三种尺寸变体 -->
+  <h2>2. 尺寸变体</h2>
+
+  <div class="card">
+    <div class="card-title">三种尺寸对比</div>
+    <div class="demo-row" style="align-items:flex-start">
+
+      <!-- Compact -->
+      <div>
+        <div class="popup" style="width:280px;min-width:min-content">
+          <div class="popup-header">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="popup-header-dot" style="background:#10b981"></div>
+              <div class="popup-title" style="font-size:14px">物流站点 A</div>
+            </div>
+            <button class="popup-close"><span class="material-symbols-outlined">close</span></button>
+          </div>
+          <div class="popup-body" style="padding:0 16px 16px">
+            <div class="popup-attrs popup-attrs--compact">
+              <div class="popup-attr popup-attr--compact">
+                <span class="popup-attr-label popup-attr-label--compact">车辆</span>
+                <span class="popup-attr-value popup-attr-value--compact">128</span>
+              </div>
+              <div class="popup-attr popup-attr--compact">
+                <span class="popup-attr-label popup-attr-label--compact">在途</span>
+                <span class="popup-attr-value popup-attr-value--compact">42</span>
+              </div>
+              <div class="popup-attr popup-attr--compact">
+                <span class="popup-attr-label popup-attr-label--compact">完成率</span>
+                <span class="popup-attr-value popup-attr-value--compact">96%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="size-label">Compact · 280px</div>
+        <div class="size-desc">简单文字标注</div>
+      </div>
+
+      <!-- Standard -->
+      <div>
+        <div class="popup" style="width:320px">
+          <div class="popup-cover">
+            <div class="popup-cover-placeholder">
+              <span class="material-symbols-outlined" style="font-size:48px">location_on</span>
+            </div>
+          </div>
+          <div class="popup-header">
+            <div class="popup-title">华东物流枢纽中心</div>
+            <button class="popup-close"><span class="material-symbols-outlined">close</span></button>
+          </div>
+          <div class="popup-body">
+            <div class="popup-attrs">
+              <div class="popup-attr"><span class="popup-attr-label">类型</span><span class="popup-attr-value">区域枢纽</span></div>
+              <div class="popup-attr"><span class="popup-attr-label">覆盖城市</span><span class="popup-attr-value">23 个</span></div>
+              <div class="popup-attr"><span class="popup-attr-label">日均吞吐</span><span class="popup-attr-value">12,450 件</span></div>
+            </div>
+          </div>
+          <div class="popup-actions">
+            <button class="popup-action-btn popup-action-btn--primary">查看详情</button>
+            <button class="popup-action-btn popup-action-btn--outline">路线导航</button>
+          </div>
+        </div>
+        <div class="size-label">Standard · 320px</div>
+        <div class="size-desc">POI 简介</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Detailed 变体 -->
+  <div class="card">
+    <div class="card-title">Detailed 宽幅型</div>
+    <div style="display:flex;justify-content:center;padding:16px 0">
+      <div class="popup" style="width:480px">
+        <div class="popup-cover">
+          <div class="popup-cover-placeholder">
+            <span class="material-symbols-outlined" style="font-size:48px">warehouse</span>
+          </div>
+        </div>
+        <div class="popup-header">
+          <div class="popup-title">全国智慧物流调度中心</div>
+          <button class="popup-close"><span class="material-symbols-outlined" style="font-size:24px">close</span></button>
+        </div>
+        <div class="popup-body">
+          <div class="popup-attrs popup-attrs--detailed">
+            <div class="popup-attr popup-attr--detailed">
+              <div class="popup-attr-icon"><span class="material-symbols-outlined">groups</span></div>
+              <div><div class="popup-attr-value popup-attr-value--detailed">1,245</div><div class="popup-attr-label popup-attr-label--detailed">物流站点</div></div>
+            </div>
+            <div class="popup-attr popup-attr--detailed">
+              <div class="popup-attr-icon"><span class="material-symbols-outlined">local_shipping</span></div>
+              <div><div class="popup-attr-value popup-attr-value--detailed">3,827</div><div class="popup-attr-label popup-attr-label--detailed">在途车辆</div></div>
+            </div>
+            <div class="popup-attr popup-attr--detailed">
+              <div class="popup-attr-icon"><span class="material-symbols-outlined">trending_up</span></div>
+              <div><div class="popup-attr-value popup-attr-value--detailed">98.6%</div><div class="popup-attr-label popup-attr-label--detailed">准时率</div></div>
+            </div>
+            <div class="popup-attr popup-attr--detailed">
+              <div class="popup-attr-icon"><span class="material-symbols-outlined">check_circle</span></div>
+              <div><div class="popup-attr-value popup-attr-value--detailed">正常运行</div><div class="popup-attr-label popup-attr-label--detailed">运行状态</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="popup-actions">
+          <button class="popup-action-btn popup-action-btn--primary">查看详情</button>
+          <button class="popup-action-btn popup-action-btn--outline">收藏</button>
+          <button class="popup-action-btn popup-action-btn--outline">分享</button>
+        </div>
+      </div>
+    </div>
+    <div class="size-label">Detailed · 480px</div>
+    <div class="size-desc">统计图表或详细参数对比</div>
+  </div>
+
+  <!-- 尺寸参数表 -->
+  <div class="card">
+    <div class="card-title">尺寸规格</div>
+    <table class="spec-table">
+      <tr><th>变体</th><th>宽度</th><th>封面高度</th><th>适用场景</th></tr>
+      <tr><td><strong>Compact</strong></td><td>280px</td><td>—</td><td>简单文字标注</td></tr>
+      <tr><td><strong>Standard</strong></td><td>320px</td><td>176px</td><td>POI 简介</td></tr>
+      <tr><td><strong>Detailed</strong></td><td>480px</td><td>176px</td><td>统计图表 / 参数对比</td></tr>
+    </table>
+  </div>
+
+  <!-- 3. 锚点与定位 -->
+  <h2>3. 锚点与指向箭头</h2>
+  <div class="card">
+    <div class="card-title">Tip / Arrow — 等腰三角形 底宽16px 高8px</div>
+    <div style="display:flex;gap:32px;align-items:flex-start;justify-content:center;padding:24px 0;flex-wrap:wrap">
+      <!-- 下方箭头 (popup在上方) -->
+      <div style="text-align:center">
+        <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:16px 24px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+          <div style="font-size:13px;font-weight:500">Popup Content</div>
+        </div>
+        <div style="display:flex;justify-content:center;margin-top:-1px">
+          <svg width="16" height="8" viewBox="0 0 16 8"><path d="M0 0 L8 8 L16 0 Z" fill="rgba(248,249,255,0.95)" stroke="rgba(195,198,215,0.3)" stroke-width="1"/></svg>
+        </div>
+        <div style="margin-top:4px;font-size:11px;color:var(--color-on-surface-variant)">bottom (默认)</div>
+      </div>
+      <!-- 上方箭头 (popup在下方) -->
+      <div style="text-align:center">
+        <div style="display:flex;justify-content:center;margin-bottom:-1px">
+          <svg width="16" height="8" viewBox="0 0 16 8"><path d="M0 8 L8 0 L16 8 Z" fill="rgba(248,249,255,0.95)" stroke="rgba(195,198,215,0.3)" stroke-width="1"/></svg>
+        </div>
+        <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:16px 24px;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
+          <div style="font-size:13px;font-weight:500">Popup Content</div>
+        </div>
+        <div style="margin-top:4px;font-size:11px;color:var(--color-on-surface-variant)">top</div>
+      </div>
+    </div>
+    <p style="text-align:center">箭头随弹出框相对锚点位置自动切换方向，默认居中对齐，支持像素级偏移。</p>
+  </div>
+
+  <!-- 4. 交互逻辑 -->
+  <h2>4. 交互逻辑</h2>
+
+  <div class="card">
+    <div class="card-title">触发与互斥</div>
+    <div class="flow-steps">
+      <div class="flow-step">点击 Marker</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-step">关闭旧 Popup</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-step">打开新 Popup</div>
+    </div>
+    <p style="text-align:center;font-size:13px">同一时间仅显示一个 Popup（互斥）；点击关闭按钮、地图空白处或 <code>Esc</code> 键消失。</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">入场动效 · 200ms</div>
+    <div style="display:flex;gap:32px;align-items:center;justify-content:center;padding:16px 0">
+      <div style="text-align:center">
+        <div style="width:120px;height:60px;border-radius:8px;background:var(--color-primary-container);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--color-primary);opacity:0.5;transform:scale(0.95)">scale(0.95)<br>opacity: 0</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">起始态</div>
+      </div>
+      <div style="font-size:24px;color:var(--color-outline-variant)">&rarr;</div>
+      <div style="text-align:center">
+        <div style="width:120px;height:60px;border-radius:8px;background:var(--color-primary);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;box-shadow:0 4px 12px rgba(0,74,198,0.3)">scale(1.0)<br>opacity: 1</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">结束态</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <code>200ms ease-out</code> — <code>scale-95 &rarr; scale-100</code> + <code>opacity-0 &rarr; opacity-100</code>
+    </div>
+  </div>
+
+  <!-- 5. CSS 类名体系 -->
+  <h2>5. CSS 类名体系</h2>
+  <div class="card">
+    <table class="spec-table">
+      <tr><th>类名</th><th>说明</th></tr>
+      <tr><td><code>.aimapkit-popup</code></td><td>外层容器</td></tr>
+      <tr><td><code>.aimapkit-popup--compact</code></td><td>紧凑型变体</td></tr>
+      <tr><td><code>.aimapkit-popup--standard</code></td><td>标准型变体</td></tr>
+      <tr><td><code>.aimapkit-popup--detailed</code></td><td>宽幅型变体</td></tr>
+      <tr><td><code>.aimapkit-popup-content</code></td><td>内容容器（玻璃拟态）</td></tr>
+      <tr><td><code>.aimapkit-popup-cover</code></td><td>封面图容器</td></tr>
+      <tr><td><code>.aimapkit-popup-header</code></td><td>标题区</td></tr>
+      <tr><td><code>.aimapkit-popup-title</code></td><td>标题文字</td></tr>
+      <tr><td><code>.aimapkit-popup-body</code></td><td>内容区</td></tr>
+      <tr><td><code>.aimapkit-popup-close-btn</code></td><td>关闭按钮</td></tr>
+      <tr><td><code>.aimapkit-popup-attrs</code></td><td>属性列表容器</td></tr>
+      <tr><td><code>.aimapkit-popup-attr</code></td><td>单行属性</td></tr>
+      <tr><td><code>.aimapkit-popup-attr-label</code></td><td>属性标签</td></tr>
+      <tr><td><code>.aimapkit-popup-attr-value</code></td><td>属性值</td></tr>
+      <tr><td><code>.aimapkit-popup-actions</code></td><td>底部操作栏</td></tr>
+      <tr><td><code>.aimapkit-popup-action-btn</code></td><td>操作按钮</td></tr>
+      <tr><td><code>.aimapkit-popup-tip-arrow</code></td><td>指向箭头</td></tr>
+    </table>
+  </div>
+
+  <!-- 6. Props 接口 -->
+  <h2>6. 组件 Props 接口</h2>
+  <div class="card">
+    <div class="code-block"><span class="keyword">export interface</span> <span class="type">PopupProps</span> {
+  <span class="prop">longitude</span>: <span class="type">number</span>;            <span class="comment">// 经度</span>
+  <span class="prop">latitude</span>: <span class="type">number</span>;             <span class="comment">// 纬度</span>
+  <span class="prop">content</span>?: <span class="type">string | React.ReactNode</span>; <span class="comment">// 纯文本 / HTML / ReactNode</span>
+  <span class="prop">closeButton</span>?: <span class="type">boolean</span>;          <span class="comment">// 是否显示关闭按钮</span>
+  <span class="prop">size</span>?: <span class="string">'compact' | 'standard' | 'detailed'</span>; <span class="comment">// 尺寸变体</span>
+  <span class="prop">header</span>?: <span class="type">PopupHeader</span>;           <span class="comment">// 结构化标题栏</span>
+  <span class="prop">attributes</span>?: <span class="type">PopupAttribute[]</span>;    <span class="comment">// 属性列表</span>
+  <span class="prop">actions</span>?: <span class="type">PopupAction[]</span>;        <span class="comment">// 底部操作按钮</span>
+  <span class="prop">visible</span>?: <span class="type">boolean</span>;              <span class="comment">// 受控可见性</span>
+  <span class="prop">onClose</span>?: () => <span class="type">void</span>;            <span class="comment">// 关闭回调</span>
+  <span class="prop">className</span>?: <span class="type">string</span>;             <span class="comment">// 自定义类名</span>
+}</div>
+  </div>
+
+</div>
+</body>
+</html>

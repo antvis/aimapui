@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图弧线与流向 (Arc & OD Flow Map) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #2563eb;
+    --color-primary-container: #dbeafe;
+    --color-success: #22c55e;
+    --color-error: #ba1a1a;
+    --color-warning: #f59e0b;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-surface: #f8f9ff;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container-low: #eff4ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* 地图模拟 */
+  .map-bg {
+    position: relative; width: 100%; height: 360px;
+    background: linear-gradient(135deg, #e8edf5 0%, #d5dce8 50%, #eef1f7 100%);
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--color-outline-variant);
+  }
+  .map-bg::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23b0b8c9' stroke-width='0.3' fill='none'/%3E%3C/svg%3E");
+    opacity: 0.3;
+  }
+  .map-bg svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* 节点 */
+  .node-dot { fill: var(--color-primary); stroke: #fff; stroke-width: 2; }
+  .node-label { font-family: 'Inter', sans-serif; font-size: 10px; fill: var(--color-on-surface-variant); }
+
+  /* 流动动画 */
+  @keyframes flow-dash {
+    to { stroke-dashoffset: -24; }
+  }
+  @keyframes flow-dash-fast {
+    to { stroke-dashoffset: -24; }
+  }
+  .arc-flow {
+    stroke-dasharray: 8 4;
+    animation: flow-dash 2s linear infinite;
+  }
+  .arc-flow--fast {
+    stroke-dasharray: 8 4;
+    animation: flow-dash-fast 1s linear infinite;
+  }
+
+  /* 脉冲 */
+  @keyframes node-pulse {
+    0% { r: 6; opacity: 0.6; }
+    100% { r: 16; opacity: 0; }
+  }
+
+  /* 梯度演示 */
+  .gradient-demo {
+    display: flex; gap: 16px; align-items: center; justify-content: center; padding: 24px 0; flex-wrap: wrap;
+  }
+  .gradient-swatch {
+    width: 200px; height: 16px; border-radius: 8px;
+  }
+
+  /* 线宽演示 */
+  .stroke-demo { display: flex; flex-direction: column; gap: 16px; padding: 16px 0; }
+  .stroke-row { display: flex; align-items: center; gap: 16px; }
+  .stroke-line { flex: 1; border-radius: 4px; }
+  .stroke-label { min-width: 80px; font-size: 13px; font-weight: 600; color: var(--color-on-surface); }
+  .stroke-desc { font-size: 12px; color: var(--color-on-surface-variant); min-width: 140px; }
+
+  /* 交互演示 */
+  .hover-demo svg text { font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图弧线与流向 (Arc & OD Flow Map) 设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v1.2.0 — Node-to-Node 关联与 OD 流向可视化</p>
+
+  <!-- 1. 弧线几何 -->
+  <h2>1. 弧线几何形态</h2>
+
+  <h3>1.1 两种曲线类型</h3>
+  <div class="card">
+    <div class="card-title">大圆航线 & 贝塞尔曲线</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center">
+      <!-- 大圆航线 -->
+      <div style="flex:1;min-width:280px">
+        <svg viewBox="0 0 320 180" style="width:100%;background:linear-gradient(135deg,#e8edf5,#dee5f0);border-radius:8px">
+          <!-- 模拟大圆弧 (长距离) -->
+          <path d="M 40 140 Q 160 10 280 130" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 节点 -->
+          <circle cx="40" cy="140" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+          <circle cx="280" cy="130" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+          <text x="40" y="160" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">上海</text>
+          <text x="280" y="150" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">洛杉矶</text>
+          <text x="160" y="8" text-anchor="middle" font-size="9" fill="#2563eb" font-family="JetBrains Mono" font-weight="600">Great Circle</text>
+        </svg>
+        <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--color-on-surface-variant)">大圆航线 · 跨国/跨洲长距离</div>
+      </div>
+      <!-- 贝塞尔曲线 -->
+      <div style="flex:1;min-width:280px">
+        <svg viewBox="0 0 320 180" style="width:100%;background:linear-gradient(135deg,#e8edf5,#dee5f0);border-radius:8px">
+          <!-- 中短距离贝塞尔 -->
+          <path d="M 60 140 Q 160 40 260 140" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 260 140 Q 160 80 60 140" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="4 4"/>
+          <!-- 节点 -->
+          <circle cx="60" cy="140" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+          <circle cx="260" cy="140" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+          <text x="60" y="160" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">北京</text>
+          <text x="260" y="160" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">东京</text>
+          <text x="155" y="30" text-anchor="middle" font-size="9" fill="#2563eb" font-family="JetBrains Mono" font-weight="600">→ Quadratic Bezier</text>
+          <text x="165" y="105" text-anchor="middle" font-size="9" fill="#22c55e" font-family="JetBrains Mono" font-weight="500">← 返回流向</text>
+        </svg>
+        <div style="text-align:center;margin-top:8px;font-size:12px;color:var(--color-on-surface-variant)">贝塞尔曲线 · 中短距离，默认右侧弯曲</div>
+      </div>
+    </div>
+    <p style="margin-top:12px">弧度高度随起止点直线距离线性增加，确保短线不扁平、长线不突兀。默认向右侧（顺时针）弯曲以减少对冲视觉干扰。</p>
+  </div>
+
+  <h3>1.2 线宽与权重映射</h3>
+  <div class="card">
+    <div class="card-title">Stroke Weight</div>
+    <div class="stroke-demo">
+      <div class="stroke-row">
+        <div class="stroke-label">1px</div>
+        <div style="flex:1;height:1px;background:var(--color-primary);opacity:0.5"></div>
+        <div class="stroke-desc">基础关联 · 低频交互</div>
+      </div>
+      <div class="stroke-row">
+        <div class="stroke-label">2.5px</div>
+        <div style="flex:1;height:2.5px;background:var(--color-primary);border-radius:2px"></div>
+        <div class="stroke-desc">标准流向 · 日常物流链路</div>
+      </div>
+      <div class="stroke-row">
+        <div class="stroke-label">5px</div>
+        <div style="flex:1;height:5px;background:var(--color-primary);border-radius:3px"></div>
+        <div class="stroke-desc">核心枢纽 · 高并发流量中心</div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:12px">
+      <tr><th>指标等级</th><th>像素宽度</th><th>适用场景</th></tr>
+      <tr><td><strong>基础关联</strong></td><td><code>1px</code></td><td>低频交互、背景关系网络</td></tr>
+      <tr><td><strong>标准流向</strong></td><td><code>2.5px</code></td><td>日常物流、标准贸易链路</td></tr>
+      <tr><td><strong>核心枢纽</strong></td><td><code>5px+</code></td><td>关键航线、高并发流量中心</td></tr>
+    </table>
+  </div>
+
+  <!-- 2. 色彩语义 -->
+  <h2>2. 色彩语义与映射</h2>
+
+  <div class="card">
+    <div class="card-title">流向色带</div>
+    <div class="gradient-demo">
+      <div style="text-align:center">
+        <div class="gradient-swatch" style="background:#2563eb"></div>
+        <div style="font-size:12px;margin-top:6px;color:var(--color-on-surface-variant)">单色模式<br><code>primary</code></div>
+      </div>
+      <div style="text-align:center">
+        <div class="gradient-swatch" style="background:linear-gradient(90deg,#dbeafe,#2563eb)"></div>
+        <div style="font-size:12px;margin-top:6px;color:var(--color-on-surface-variant)">梯度模式<br><code>container → primary</code></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">属性映射色彩</div>
+    <div style="display:flex;gap:24px;align-items:center;justify-content:center;padding:16px 0;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:32px;height:4px;border-radius:2px;background:#22c55e"></div>
+        <span style="font-size:13px"><strong>流入</strong> <code>success</code></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:32px;height:4px;border-radius:2px;background:#2563eb"></div>
+        <span style="font-size:13px"><strong>流出</strong> <code>primary</code></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:32px;height:4px;border-radius:2px;background:#ba1a1a"></div>
+        <span style="font-size:13px"><strong>异常</strong> <code>error</code></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 动态流向动画 -->
+  <h2>3. 动态流向与动画</h2>
+
+  <div class="card">
+    <div class="card-title">粒子 / 轨迹动画</div>
+    <div class="map-bg" style="height:320px">
+      <svg viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet">
+        <!-- 底图点 -->
+        <circle cx="120" cy="80" r="4" fill="#c3c6d7" opacity="0.5"/>
+        <circle cx="300" cy="200" r="3" fill="#c3c6d7" opacity="0.4"/>
+        <circle cx="500" cy="60" r="3" fill="#c3c6d7" opacity="0.4"/>
+        <circle cx="650" cy="240" r="4" fill="#c3c6d7" opacity="0.3"/>
+
+        <!-- 主流向 1: 上海 → 东京 (正常流速) -->
+        <path d="M 160 200 Q 340 40 520 180" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" opacity="0.3"/>
+        <path d="M 160 200 Q 340 40 520 180" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" class="arc-flow"/>
+        <!-- 发光效果 -->
+        <path d="M 160 200 Q 340 40 520 180" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" opacity="0.1" filter="blur(4px)"/>
+
+        <!-- 主流向 2: 北京 → 新加坡 (正常流速) -->
+        <path d="M 200 100 Q 500 20 680 260" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" opacity="0.3"/>
+        <path d="M 200 100 Q 500 20 680 260" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" class="arc-flow" style="animation-delay:-0.5s"/>
+
+        <!-- 异常流向 (高速) -->
+        <path d="M 520 180 Q 600 100 700 120" fill="none" stroke="#ba1a1a" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+        <path d="M 520 180 Q 600 100 700 120" fill="none" stroke="#ba1a1a" stroke-width="2" stroke-linecap="round" class="arc-flow--fast"/>
+
+        <!-- 次要关联 (细线) -->
+        <path d="M 160 200 Q 400 160 680 260" fill="none" stroke="#2563eb" stroke-width="1" stroke-linecap="round" opacity="0.2" stroke-dasharray="2 4"/>
+
+        <!-- 节点 -->
+        <circle cx="160" cy="200" r="8" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <circle cx="160" cy="200" r="8" fill="#2563eb" opacity="0">
+          <animate attributeName="r" values="8;20" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.4;0" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <text x="160" y="224" text-anchor="middle" font-size="11" fill="#121c2a" font-weight="600" font-family="Inter">上海</text>
+
+        <circle cx="520" cy="180" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <text x="520" y="204" text-anchor="middle" font-size="11" fill="#121c2a" font-weight="600" font-family="Inter">东京</text>
+
+        <circle cx="200" cy="100" r="6" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <text x="200" y="90" text-anchor="middle" font-size="11" fill="#121c2a" font-weight="600" font-family="Inter">北京</text>
+
+        <circle cx="680" cy="260" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <circle cx="680" cy="260" r="7" fill="#2563eb" opacity="0">
+          <animate attributeName="r" values="7;18" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+          <animate attributeName="opacity" values="0.3;0" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+        </circle>
+        <text x="680" y="284" text-anchor="middle" font-size="11" fill="#121c2a" font-weight="600" font-family="Inter">新加坡</text>
+
+        <circle cx="700" cy="120" r="5" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <text x="700" y="110" text-anchor="middle" font-size="11" fill="#434655" font-family="Inter">首尔</text>
+
+        <!-- 图例 -->
+        <rect x="20" y="268" width="160" height="44" rx="6" fill="rgba(248,249,255,0.9)" stroke="rgba(195,198,215,0.3)"/>
+        <text x="30" y="284" font-size="9" fill="#434655" font-weight="600" font-family="Inter">流速等级</text>
+        <line x1="30" y1="296" x2="60" y2="296" stroke="#2563eb" stroke-width="2.5" stroke-dasharray="8 4"/>
+        <text x="66" y="300" font-size="8" fill="#434655" font-family="Inter">正常 (2s)</text>
+        <line x1="100" y1="296" x2="130" y2="296" stroke="#ba1a1a" stroke-width="2" stroke-dasharray="8 4"/>
+        <text x="136" y="300" font-size="8" fill="#434655" font-family="Inter">紧急 (1s)</text>
+      </svg>
+    </div>
+    <div style="display:flex;gap:32px;justify-content:center;margin-top:16px;flex-wrap:wrap">
+      <div style="text-align:center">
+        <div style="font-size:20px;font-weight:700;color:var(--color-primary);font-family:'JetBrains Mono',monospace">2s</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">正常流速 · <code>duration-2000</code></div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:20px;font-weight:700;color:var(--color-error);font-family:'JetBrains Mono',monospace">1s</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">高速/紧急 · <code>duration-1000</code></div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:13px;color:var(--color-on-surface-variant)">🔗</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">深色底加 <code>drop-shadow</code> 发光</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">节点锚点 · 度中心性映射</div>
+    <div style="display:flex;gap:40px;align-items:flex-end;justify-content:center;padding:24px 0">
+      <div style="text-align:center">
+        <svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="#2563eb" stroke="#fff" stroke-width="1.5"/></svg>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">低关联<br>r=4</div>
+      </div>
+      <div style="text-align:center">
+        <svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="7" fill="#2563eb" stroke="#fff" stroke-width="2"/></svg>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">中关联<br>r=7</div>
+      </div>
+      <div style="text-align:center;position:relative">
+        <svg width="48" height="48" viewBox="0 0 48 48">
+          <circle cx="24" cy="24" r="10" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+          <circle cx="24" cy="24" r="10" fill="#2563eb" opacity="0">
+            <animate attributeName="r" values="10;22" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.3;0" dur="2s" repeatCount="indefinite"/>
+          </circle>
+        </svg>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">高关联 · Pulse<br>r=10</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 交互行为 -->
+  <h2>4. 交互行为</h2>
+
+  <div class="card">
+    <div class="card-title">悬停探索 (Hover)</div>
+    <div class="hover-demo" style="position:relative;width:100%;height:240px;background:linear-gradient(135deg,#e8edf5,#d5dce8);border-radius:12px;overflow:hidden">
+      <svg viewBox="0 0 800 240" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%">
+        <!-- 置灰的背景路径 -->
+        <path d="M 100 180 Q 280 40 460 160" fill="none" stroke="#c3c6d7" stroke-width="1.5" stroke-linecap="round" opacity="0.1"/>
+        <path d="M 300 200 Q 500 60 700 140" fill="none" stroke="#c3c6d7" stroke-width="1" stroke-linecap="round" opacity="0.1"/>
+
+        <!-- 高亮的选中路径 -->
+        <path d="M 180 180 Q 380 20 580 160" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+        <path d="M 180 180 Q 380 20 580 160" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" opacity="0.15"/>
+
+        <!-- 高亮起终点 -->
+        <circle cx="180" cy="180" r="8" fill="#2563eb" stroke="#fff" stroke-width="2.5"/>
+        <circle cx="580" cy="160" r="8" fill="#2563eb" stroke="#fff" stroke-width="2.5"/>
+
+        <!-- 置灰节点 -->
+        <circle cx="100" cy="180" r="5" fill="#c3c6d7" opacity="0.2"/>
+        <circle cx="460" cy="160" r="5" fill="#c3c6d7" opacity="0.2"/>
+        <circle cx="700" cy="140" r="5" fill="#c3c6d7" opacity="0.2"/>
+
+        <!-- Tooltip 浮窗 -->
+        <rect x="310" y="8" width="180" height="80" rx="6" fill="rgba(39,49,63,0.95)" filter="url(#shadow)"/>
+        <text x="324" y="28" font-size="11" fill="#eaf1ff" font-weight="600" font-family="Inter">上海 → 东京</text>
+        <text x="324" y="45" font-size="10" fill="rgba(234,241,255,0.7)" font-family="Inter">流量</text>
+        <text x="470" y="45" font-size="10" fill="#eaf1ff" font-family="JetBrains Mono" text-anchor="end">12,450 件/日</text>
+        <text x="324" y="60" font-size="10" fill="rgba(234,241,255,0.7)" font-family="Inter">同比增长</text>
+        <text x="470" y="60" font-size="10" fill="#22c55e" font-family="JetBrains Mono" text-anchor="end">+18.3%</text>
+        <text x="324" y="75" font-size="10" fill="rgba(234,241,255,0.7)" font-family="Inter">预计耗时</text>
+        <text x="470" y="75" font-size="10" fill="#eaf1ff" font-family="JetBrains Mono" text-anchor="end">2.4h</text>
+
+        <defs>
+          <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-opacity="0.15"/>
+          </filter>
+        </defs>
+      </svg>
+    </div>
+    <p style="text-align:center;font-size:13px;margin-top:8px">悬停弧线或节点时，高亮该路径及关联起终点，其他路径置灰 <code>opacity-10</code>。</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">过滤与聚合</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px;background:var(--color-surface-container-low);border-radius:8px;padding:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">流量过滤</div>
+        <p style="font-size:12px;color:var(--color-on-surface-variant)">滑动条过滤低权重弧线，减少"蜘蛛网"效应。</p>
+        <div style="margin-top:12px">
+          <input type="range" min="0" max="100" value="30" style="width:100%;accent-color:var(--color-primary)">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-on-surface-variant);margin-top:4px"><span>全部显示</span><span>仅核心枢纽</span></div>
+        </div>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--color-surface-container-low);border-radius:8px;padding:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">区域聚合</div>
+        <p style="font-size:12px;color:var(--color-on-surface-variant)">低缩放级别下，细分流向聚合为区域间的粗体流向。</p>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+          <div style="font-size:10px;color:var(--color-on-surface-variant)">Z3</div>
+          <svg width="40" height="12"><path d="M 0 6 Q 20 0 40 6" fill="none" stroke="#c3c6d7" stroke-width="1" stroke-dasharray="2 2"/></svg>
+          <div style="font-size:16px;color:var(--color-outline-variant)">&rarr;</div>
+          <svg width="40" height="12"><path d="M 0 6 Q 20 0 40 6" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/></svg>
+          <div style="font-size:10px;color:var(--color-on-surface-variant)">Z7</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 渲染细节 -->
+  <h2>5. 渲染细节</h2>
+  <div class="card">
+    <table class="spec-table">
+      <tr><th>属性</th><th>值</th><th>说明</th></tr>
+      <tr><td><strong>抗锯齿</strong></td><td><code>shape-rendering: geometricPrecision</code></td><td>弧线渲染平滑</td></tr>
+      <tr><td><strong>合成模式 (浅色底)</strong></td><td><code>mix-blend-mode: multiply</code></td><td>多线重叠处表现流量叠加深度</td></tr>
+      <tr><td><strong>合成模式 (深色底)</strong></td><td><code>mix-blend-mode: screen</code></td><td>深色底图下的叠加光效</td></tr>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>
