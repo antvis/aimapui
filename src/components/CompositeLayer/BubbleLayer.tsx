@@ -72,6 +72,11 @@ export interface BubbleLayerProps extends Omit<LayerSchema, 'type' | 'source' | 
  * - 圆形 + 半透明填充 + 实色描边
  * - 五级尺寸映射（8/16/32/48/64）
  * - 默认启用 hover/click 交互反馈
+ * - 利用 L7 2.28+ anchor 参数自动布局标签，避免与气泡重叠
+ *
+ * 推荐锚点组合：
+ * - bubbleAnchor='center', labelAnchor='center' — 标签居中覆盖气泡（适合短文本）
+ * - bubbleAnchor='bottom', labelAnchor='top' — 标签在气泡上方（经典布局）
  */
 export function BubbleLayer({
   source,
@@ -83,8 +88,8 @@ export function BubbleLayer({
   showLabel = true,
   labelOffset,
   sizeDomain,
-  bubbleAnchor = 'top',
-  labelAnchor = 'bottom',
+  bubbleAnchor = 'bottom',
+  labelAnchor = 'top',
   hoverEffect = true,
   clickEffect = true,
   tooltipEffect = true,
@@ -119,28 +124,6 @@ export function BubbleLayer({
   const mappedSizeValues = sizeField
     ? (sizeValues ?? [...BUBBLE_SIZE_LEVELS])
     : sizeValues;
-
-  const maxBubbleDiameter = (() => {
-    if (Array.isArray(mappedSizeValues) && mappedSizeValues.length > 0) {
-      return Math.max(...mappedSizeValues);
-    }
-    if (typeof size === 'number') return size;
-    return 16;
-  })();
-
-  const radius = Math.round(maxBubbleDiameter / 2);
-  const gap = labelSize + 10;
-
-  // 通过 bubbleAnchor + labelAnchor 共同决定默认布局
-  // bubbleAnchor: 气泡上连接点
-  // labelAnchor: 文本框锚点（由 textAnchor 接收）
-  const bubbleVec = anchorToVec(bubbleAnchor);
-  const resolvedLabelOffset: [number, number] =
-    labelOffset
-    ?? [
-      Math.round((radius + gap) * bubbleVec[0]),
-      Math.round((radius + gap) * bubbleVec[1]),
-    ];
 
   const defaultActive: ActiveConfig = { color: '#60a5fa' };
   const defaultSelect: SelectConfig = { color: '#1d4ed8' };
@@ -181,141 +164,31 @@ export function BubbleLayer({
           opacity: 0.4,
           stroke: '#004ac6',
           strokeWidth: 1,
-          // 让小气泡在上层，提升重叠时可选中性
-          raisingHeight: 0,
+          anchor: bubbleAnchor,
           ...(style ?? {}),
         }}
       />
 
-      {showLabel && renderLabelLayers({
-        source,
-        sourceType,
-        sourceConfig,
-        labelField,
-        labelColor,
-        labelSize,
-        labelAnchor,
-        labelOffset,
-        sizeField,
-        mappedSizeValues,
-        sizeDomain,
-        fallbackOffset: resolvedLabelOffset,
-      })}
+      {showLabel && (
+        <PointLayer
+          source={source}
+          sourceType={sourceType}
+          sourceConfig={sourceConfig}
+          shapeField={labelField}
+          shapeValues="text"
+          color={labelColor}
+          size={labelSize}
+          style={{
+            textAnchor: labelAnchor,
+            textOffset: labelOffset ?? [0, 0],
+            stroke: '#fff',
+            strokeWidth: 2,
+            textAllowOverlap: true,
+          }}
+        />
+      )}
     </>
   );
-}
-
-function renderLabelLayers(params: {
-  source: LayerSchema['source'];
-  sourceType: LayerSchema['sourceType'];
-  sourceConfig: LayerSchema['sourceConfig'];
-  labelField: string;
-  labelColor: string;
-  labelSize: number;
-  labelAnchor: BubbleAnchor;
-  labelOffset?: [number, number];
-  sizeField?: string;
-  mappedSizeValues?: number[];
-  sizeDomain?: Array<string | number>;
-  fallbackOffset: [number, number];
-}) {
-  const {
-    source,
-    sourceType,
-    sourceConfig,
-    labelField,
-    labelColor,
-    labelSize,
-    labelAnchor,
-    labelOffset,
-    sizeField,
-    mappedSizeValues,
-    sizeDomain,
-    fallbackOffset,
-  } = params;
-
-  if (!sizeField || !Array.isArray(mappedSizeValues) || mappedSizeValues.length === 0 || labelOffset) {
-    return (
-      <PointLayer
-        source={source}
-        sourceType={sourceType}
-        sourceConfig={sourceConfig}
-        shapeField={labelField}
-        shapeValues="text"
-        color={labelColor}
-        size={labelSize}
-        style={{
-          textOffset: fallbackOffset,
-          textAnchor: labelAnchor,
-          stroke: '#fff',
-          strokeWidth: 2,
-          textAllowOverlap: true,
-        }}
-      />
-    );
-  }
-
-  const domain = sizeDomain ?? mappedSizeValues.map((_, i) => i + 1);
-
-  return (
-    <>
-      {domain.map((value, idx) => {
-        const diameter = mappedSizeValues[Math.min(idx, mappedSizeValues.length - 1)];
-        const radius = Math.round(diameter / 2);
-        const gap = labelSize + 10;
-        const offset: [number, number] = [
-          Math.round((radius + gap) * anchorToVec(labelAnchor === 'center' ? 'top' : labelAnchor)[0]),
-          Math.round((radius + gap) * anchorToVec(labelAnchor === 'center' ? 'top' : labelAnchor)[1]),
-        ];
-
-        return (
-          <PointLayer
-            key={`bubble-label-${String(value)}`}
-            source={source}
-            sourceType={sourceType}
-            sourceConfig={sourceConfig}
-            shapeField={labelField}
-            shapeValues="text"
-            color={labelColor}
-            size={labelSize}
-            filterField={sizeField}
-            filterValues={[value]}
-            style={{
-              textOffset: offset,
-              textAnchor: labelAnchor,
-              stroke: '#fff',
-              strokeWidth: 2,
-              textAllowOverlap: true,
-            }}
-          />
-        );
-      })}
-    </>
-  );
-}
-
-function anchorToVec(anchor: BubbleAnchor): [number, number] {
-  switch (anchor) {
-    case 'top':
-      return [0, 1];
-    case 'right':
-      return [1, 0];
-    case 'bottom':
-      return [0, -1];
-    case 'left':
-      return [-1, 0];
-    case 'top-left':
-      return [-1, 1];
-    case 'top-right':
-      return [1, 1];
-    case 'bottom-left':
-      return [-1, -1];
-    case 'bottom-right':
-      return [1, -1];
-    case 'center':
-    default:
-      return [0, 0];
-  }
 }
 
 export default BubbleLayer;

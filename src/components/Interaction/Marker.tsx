@@ -289,8 +289,15 @@ export function Marker({
     if (!element || !mapsService) return;
 
     const { lng, lat } = lngLatRef.current;
-    const pos = mapsService.lngLatToContainer([lng, lat]);
-    if (!pos) return;
+    if (isNaN(lng) || isNaN(lat)) return;
+
+    let pos;
+    try {
+      pos = mapsService.lngLatToContainer([lng, lat]);
+    } catch {
+      return;
+    }
+    if (!pos || isNaN(pos.x) || isNaN(pos.y)) return;
 
     const x = pos.x + offsetX;
     const y = pos.y - offsetY;

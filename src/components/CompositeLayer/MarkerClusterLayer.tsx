@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Supercluster from 'supercluster';
 import { useScene } from '../../context/SceneContext';
 import type { LayerSchema } from '../../schema/types';
 import { Marker } from '../Interaction/Marker';
@@ -12,10 +13,14 @@ interface ClusterPoint {
 
 interface ClusterItem {
   id: string;
+  /** supercluster 分配的 cluster ID（仅聚合点有，单点为 -1） */
+  clusterId: number;
   lng: number;
   lat: number;
-  points: ClusterPoint[];
+  /** 聚合包含的点数，单点为 1 */
+  pointCount: number;
   isCluster: boolean;
+  properties: Record<string, unknown>;
 }
 
 export interface MarkerClusterLayerProps {
@@ -23,7 +28,9 @@ export interface MarkerClusterLayerProps {
   sourceType?: LayerSchema['sourceType'];
   sourceConfig?: LayerSchema['sourceConfig'];
 
+  /** 聚合半径（像素），对应 supercluster 的 radius 参数 */
   gridSize?: number;
+  /** 形成聚合的最小点数 */
   minClusterSize?: number;
   animationDuration?: number;
   easing?: string;
@@ -33,13 +40,17 @@ export interface MarkerClusterLayerProps {
 }
 
 /**
- * Marker 聚合图层（基于 DOM Marker）
+ * Marker 聚合图层（基于 supercluster）
+ *
+ * 性能优化策略：
+ * 1. 使用 supercluster R-tree 空间索引，O(log n) 查询
+ * 2. 仅在 zoom 变化时重新聚合（平移时 Marker 组件通过 camerachange 自行更新 DOM 位置）
+ * 3. 点击聚合使用 getClusterExpansionZoom 精确缩放
+ * 4. SpiderLine 使用 ref + 直接 DOM 操作，避免 setState 重渲染
  *
  * 设计规范：Cartographic Precision System v1.2.0
  * - 视觉分级：小规模(2-99)、中规模(100-999)、大规模(1000+)
- * - 网格大小：60px，最小聚合阈值：2 pts
- * - 动画时长：300ms，插值：cubic-bezier(0.4, 0, 0.2, 1)
- * - 交互：悬停放大(scale-110)、点击缩放(FitBounds)、最大级别蜘蛛布局(Spiderfier)
+ * - 交互：悬停放大(scale-110)、点击缩放、最大级别蜘蛛布局展开
  */
 export function MarkerClusterLayer({
   source,
@@ -56,76 +67,111 @@ export function MarkerClusterLayer({
   const [clusters, setClusters] = useState<ClusterItem[]>([]);
   const [expandedClusterId, setExpandedClusterId] = useState<string | null>(null);
   const [hoveredClusterId, setHoveredClusterId] = useState<string | null>(null);
-  const prevClustersRef = useRef<Map<string, ClusterItem>>(new Map());
 
-  const points = useMemo(() => normalizePoints(source, sourceType, sourceConfig), [source, sourceType, sourceConfig]);
+  const indexRef = useRef<Supercluster | null>(null);
+  const lastZoomRef = useRef<number>(-1);
 
-  const recomputeClusters = useCallback(() => {
-    if (!scene || points.length === 0) {
+  const points = useMemo(
+    () => normalizePoints(source, sourceType, sourceConfig),
+    [source, sourceType, sourceConfig],
+  );
+
+  // ─── 构建 supercluster 索引 ───
+  useEffect(() => {
+    if (points.length === 0) {
+      indexRef.current = null;
       setClusters([]);
-      prevClustersRef.current.clear();
+      lastZoomRef.current = -1;
       return;
     }
 
-    try {
-      const mapsService = (scene as any).mapService;
-      if (!mapsService) return;
+    const index = new Supercluster({
+      radius: gridSize,
+      minPoints: minClusterSize,
+      maxZoom: 20,
+      minZoom: 0,
+    });
 
-      const cells = new Map<string, ClusterPoint[]>();
+    const features = points.map((p) => ({
+      type: 'Feature' as const,
+      properties: { id: p.id, ...p.properties },
+      geometry: {
+        type: 'Point' as const,
+        coordinates: [p.lng, p.lat] as [number, number],
+      },
+    }));
 
-      for (const p of points) {
-        const pixel = mapsService.lngLatToContainer([p.lng, p.lat]);
-        if (!pixel) continue;
+    index.load(features);
+    indexRef.current = index;
+    lastZoomRef.current = -1; // 强制下次查询重新聚合
+  }, [points, gridSize, minClusterSize]);
 
-        const gx = Math.floor(pixel.x / gridSize);
-        const gy = Math.floor(pixel.y / gridSize);
-        const key = `${gx}:${gy}`;
+  // ─── 查询聚合结果（仅在 zoom 变化时调用） ───
+  const queryClusters = useCallback(
+    (index: Supercluster, sceneObj: any) => {
+      try {
+        const zoom = Math.floor(sceneObj.getZoom());
+        if (zoom === lastZoomRef.current) return;
+        lastZoomRef.current = zoom;
 
-        const arr = cells.get(key);
-        if (arr) arr.push(p);
-        else cells.set(key, [p]);
+        // 获取地图视口边界，用于空间查询
+        let bbox: [number, number, number, number] = [-180, -90, 180, 90];
+        try {
+          const bounds = sceneObj.getBounds();
+          if (bounds) {
+            bbox = [bounds[0][0], bounds[0][1], bounds[1][0], bounds[1][1]];
+          }
+        } catch {
+          // 降级：使用全球范围
+        }
+
+        const results = index.getClusters(bbox, zoom);
+        const items: ClusterItem[] = results.map((f) => {
+          const coords = f.geometry.coordinates;
+          const lng = coords[0];
+          const lat = coords[1];
+          if (f.properties.cluster) {
+            return {
+              id: `cluster-${f.properties.cluster_id}`,
+              clusterId: f.properties.cluster_id,
+              lng,
+              lat,
+              pointCount: f.properties.point_count,
+              isCluster: true,
+              properties: {},
+            };
+          }
+          return {
+            id: `point-${f.properties.id}`,
+            clusterId: -1,
+            lng,
+            lat,
+            pointCount: 1,
+            isCluster: false,
+            properties: f.properties,
+          };
+        });
+
+        setClusters(items);
+        setExpandedClusterId(null);
+      } catch {
+        // ignore
       }
+    },
+    [],
+  );
 
-      const next: ClusterItem[] = [];
-      cells.forEach((arr, key) => {
-        if (arr.length >= minClusterSize) {
-          const lng = arr.reduce((s, i) => s + i.lng, 0) / arr.length;
-          const lat = arr.reduce((s, i) => s + i.lat, 0) / arr.length;
-          next.push({ id: `cluster-${key}`, lng, lat, points: arr, isCluster: true });
-        } else {
-          arr.forEach((p) => {
-            next.push({ id: `point-${p.id}-${p.lng}-${p.lat}`, lng: p.lng, lat: p.lat, points: [p], isCluster: false });
-          });
-        }
-      });
-
-      // 边界吸附：保留前一帧位置用于平滑过渡
-      const prevMap = prevClustersRef.current;
-      const merged = next.map((item) => {
-        const prev = prevMap.get(item.id);
-        if (prev && prev.isCluster === item.isCluster) {
-          return { ...item, lng: prev.lng * 0.7 + item.lng * 0.3, lat: prev.lat * 0.7 + item.lat * 0.3 };
-        }
-        return item;
-      });
-
-      prevClustersRef.current = new Map(merged.map((c) => [c.id, c]));
-      setClusters(merged);
-    } catch {
-      // ignore
-    }
-  }, [scene, points, gridSize, minClusterSize]);
-
+  // ─── 监听地图事件：仅 zoom 变化时重新聚合 ───
   useEffect(() => {
     if (!scene) return;
-
     const mapsService = (scene as any).mapService;
 
-    // 确保地图完全加载后再计算聚合
     const doInit = () => {
-      // 延迟一帧，确保地图视口已准备好
       requestAnimationFrame(() => {
-        recomputeClusters();
+        const index = indexRef.current;
+        if (index && (scene as any).loaded) {
+          queryClusters(index, scene);
+        }
       });
     };
 
@@ -135,140 +181,151 @@ export function MarkerClusterLayer({
       scene.once('loaded', doInit);
     }
 
-    const onCam = () => {
-      setExpandedClusterId(null);
-      recomputeClusters();
+    // 地图相机变化时检查 zoom 是否改变
+    const onCameraChange = () => {
+      const index = indexRef.current;
+      if (index) queryClusters(index, scene);
     };
 
-    mapsService?.on?.('camerachange', onCam);
-    mapsService?.on?.('zoomchange', onCam);
-    mapsService?.on?.('move', onCam);
+    // camerachange / viewchange 是 L7 核心地图变化事件
+    // queryClusters 内部会比较 zoom，只在 zoom 变化时才重新聚合
+    // 平移时 zoom 不变 → 不触发 setClusters → 不重渲染 Marker
+    mapsService?.on?.('camerachange', onCameraChange);
+    mapsService?.on?.('viewchange', onCameraChange);
 
     return () => {
       scene.off('loaded', doInit);
-      mapsService?.off?.('camerachange', onCam);
-      mapsService?.off?.('zoomchange', onCam);
-      mapsService?.off?.('move', onCam);
+      mapsService?.off?.('camerachange', onCameraChange);
+      mapsService?.off?.('viewchange', onCameraChange);
     };
-  }, [scene, recomputeClusters]);
+  }, [scene, queryClusters]);
 
-  const handleClusterClick = useCallback((cluster: ClusterItem) => {
-    if (!scene || !cluster.isCluster) return;
-    onClusterClick?.(cluster);
+  // ─── 点击聚合 → 缩放展开 ───
+  const handleClusterClick = useCallback(
+    (item: ClusterItem) => {
+      if (!scene || !item.isCluster) return;
+      onClusterClick?.(item);
+
+      try {
+        const index = indexRef.current;
+        const maxZoom = 20;
+        const currentZoom = scene.getZoom();
+
+        // 最大级别：展开为 spiderfier
+        if (currentZoom >= maxZoom - 0.5) {
+          setExpandedClusterId((prev) => (prev === item.id ? null : item.id));
+          return;
+        }
+
+        if (index) {
+          // 使用 supercluster 获取子叶点边界，fitBounds 展开聚合
+          const leaves = index.getLeaves(item.clusterId, Infinity);
+          if (leaves.length > 0) {
+            const coords = leaves.map((l) => l.geometry.coordinates);
+            const lngs = coords.map((c) => c[0]);
+            const lats = coords.map((c) => c[1]);
+            const sw: [number, number] = [Math.min(...lngs), Math.min(...lats)];
+            const ne: [number, number] = [Math.max(...lngs), Math.max(...lats)];
+            scene.fitBounds([sw, ne], {
+              padding: [40, 40, 40, 40] as [number, number, number, number],
+              duration: animationDuration,
+            });
+          }
+        }
+      } catch {
+        // ignore
+      }
+    },
+    [scene, onClusterClick, animationDuration],
+  );
+
+  // ─── Spiderfier 展开计算 ───
+  const spiderItems = useMemo(() => {
+    if (!scene || !expandedClusterId || !indexRef.current) return [];
+    const cluster = clusters.find((c) => c.id === expandedClusterId && c.isCluster);
+    if (!cluster) return [];
 
     try {
+      const leaves = indexRef.current!.getLeaves(cluster.clusterId, Infinity);
       const mapsService = (scene as any).mapService;
-      const zoom = scene.getZoom();
-      const maxZoom = mapsService?.getMaxZoom?.() ?? 18;
+      if (!mapsService) return [];
 
-      if (zoom >= maxZoom - 0.1) {
-        setExpandedClusterId((prev) => (prev === cluster.id ? null : cluster.id));
-        return;
-      }
+      const centerPixel = mapsService.lngLatToContainer([cluster.lng, cluster.lat]);
+      if (!centerPixel) return [];
 
-      const lons = cluster.points.map((p) => p.lng);
-      const lats = cluster.points.map((p) => p.lat);
-      const sw: [number, number] = [Math.min(...lons), Math.min(...lats)];
-      const ne: [number, number] = [Math.max(...lons), Math.max(...lats)];
+      const n = leaves.length;
+      const radius = Math.max(24, Math.min(72, 18 + n * 2));
 
-      scene.fitBounds([sw, ne], { padding: [40, 40, 40, 40], duration: animationDuration, easing });
+      return leaves.map((leaf: any, i: number) => {
+        const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+        const px = centerPixel.x + Math.cos(angle) * radius;
+        const py = centerPixel.y + Math.sin(angle) * radius;
+        const ll = mapsService.containerToLngLat([px, py]);
+        return {
+          id: `spider-${cluster.id}-${leaf.properties?.id ?? i}`,
+          lng: ll.lng,
+          lat: ll.lat,
+          point: {
+            id: String(leaf.properties?.id ?? i),
+            lng: leaf.geometry.coordinates[0],
+            lat: leaf.geometry.coordinates[1],
+            properties: leaf.properties ?? {},
+          },
+        };
+      });
     } catch {
-      // ignore
+      return [];
     }
-  }, [scene, onClusterClick, animationDuration, easing]);
-
-  const spiderItems = useMemo(() => {
-    if (!scene || !expandedClusterId) return [] as Array<{ id: string; lng: number; lat: number; point: ClusterPoint }>;
-    const cluster = clusters.find((c) => c.id === expandedClusterId && c.isCluster);
-    if (!cluster) return [];
-
-    const mapsService = (scene as any).mapService;
-    if (!mapsService) return [];
-
-    const centerPixel = mapsService.lngLatToContainer([cluster.lng, cluster.lat]);
-    if (!centerPixel) return [];
-
-    const n = cluster.points.length;
-    const radius = Math.max(24, Math.min(72, 18 + n * 2));
-
-    return cluster.points.map((p, i) => {
-      const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-      const px = centerPixel.x + Math.cos(angle) * radius;
-      const py = centerPixel.y + Math.sin(angle) * radius;
-      const ll = mapsService.containerToLngLat([px, py]);
-      return {
-        id: `spider-${cluster.id}-${p.id}`,
-        lng: ll.lng,
-        lat: ll.lat,
-        point: p,
-      };
-    });
   }, [scene, expandedClusterId, clusters]);
 
-  // Spiderfier 连线端点（用于绘制连接线）
-  const spiderLines = useMemo(() => {
-    if (!scene || !expandedClusterId) return [] as Array<{ id: string; lng: number; lat: number }>;
-    const cluster = clusters.find((c) => c.id === expandedClusterId && c.isCluster);
-    if (!cluster) return [];
-
-    const mapsService = (scene as any).mapService;
-    if (!mapsService) return [];
-
-    const centerPixel = mapsService.lngLatToContainer([cluster.lng, cluster.lat]);
-    if (!centerPixel) return [];
-
-    const n = cluster.points.length;
-    const radius = Math.max(24, Math.min(72, 18 + n * 2));
-
-    return cluster.points.map((p, i) => {
-      const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
-      const px = centerPixel.x + Math.cos(angle) * radius;
-      const py = centerPixel.y + Math.sin(angle) * radius;
-      const ll = mapsService.containerToLngLat([px, py]);
-      return {
-        id: `spider-line-${cluster.id}-${p.id}`,
-        lng: ll.lng,
-        lat: ll.lat,
-      };
-    });
-  }, [scene, expandedClusterId, clusters]);
+  const spiderCenter = useMemo(() => {
+    if (!expandedClusterId) return null;
+    return clusters.find((c) => c.id === expandedClusterId && c.isCluster) ?? null;
+  }, [expandedClusterId, clusters]);
 
   return (
     <>
       {/* Spiderfier 连接线 */}
-      {expandedClusterId && spiderLines.length > 0 && (() => {
-        const cluster = clusters.find((c) => c.id === expandedClusterId && c.isCluster);
-        if (!cluster) return null;
-        return spiderLines.map((line) => (
+      {expandedClusterId &&
+        spiderCenter &&
+        spiderItems.map((s) => (
           <Marker
-            key={line.id}
-            longitude={line.lng}
-            latitude={line.lat}
+            key={`line-${s.id}`}
+            longitude={s.lng}
+            latitude={s.lat}
+            anchor="center"
             content={
               <SpiderLine
-                centerLng={cluster.lng}
-                centerLat={cluster.lat}
-                lineLng={line.lng}
-                lineLat={line.lat}
-                animationDuration={animationDuration}
-                easing={easing}
+                centerLng={spiderCenter.lng}
+                centerLat={spiderCenter.lat}
+                lineLng={s.lng}
+                lineLat={s.lat}
               />
             }
           />
-        ));
-      })()}
+        ))}
 
+      {/* 聚合点和单点 */}
       {clusters.map((item) => {
         if (!item.isCluster) {
+          // ── 单点 ──
           return (
             <Marker
               key={item.id}
               longitude={item.lng}
               latitude={item.lat}
+              anchor="center"
               content={
                 <div
-                  title={String(item.points[0]?.properties?.name ?? '单点')}
-                  onClick={() => onPointClick?.(item.points[0])}
+                  title={String(item.properties?.name ?? '单点')}
+                  onClick={() =>
+                    onPointClick?.({
+                      id: String(item.properties?.id ?? ''),
+                      lng: item.lng,
+                      lat: item.lat,
+                      properties: item.properties,
+                    })
+                  }
                   style={{
                     width: 14,
                     height: 14,
@@ -276,7 +333,8 @@ export function MarkerClusterLayer({
                     background: '#2563eb',
                     border: '2px solid #fff',
                     boxShadow: '0 2px 10px rgba(37,99,235,.5), 0 0 0 3px rgba(37,99,235,.15)',
-                    transition: `transform ${animationDuration}ms ${easing}`,
+                    // 只对视觉交互属性加 transition，不包含定位 transform
+                    transition: 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
                     cursor: 'pointer',
                   }}
                 />
@@ -285,7 +343,8 @@ export function MarkerClusterLayer({
           );
         }
 
-        const count = item.points.length;
+        // ── 聚合点 ──
+        const count = item.pointCount;
         const visual = getClusterVisual(count);
         const isHovered = hoveredClusterId === item.id;
 
@@ -294,12 +353,15 @@ export function MarkerClusterLayer({
             key={item.id}
             longitude={item.lng}
             latitude={item.lat}
+            anchor="center"
             content={
               <div
                 title={`包含 ${count} 个要素`}
                 onClick={() => handleClusterClick(item)}
                 onMouseEnter={() => setHoveredClusterId(item.id)}
-                onMouseLeave={() => setHoveredClusterId((prev) => (prev === item.id ? null : prev))}
+                onMouseLeave={() =>
+                  setHoveredClusterId((prev) => (prev === item.id ? null : prev))
+                }
                 style={{
                   width: visual.size,
                   height: visual.size,
@@ -315,7 +377,9 @@ export function MarkerClusterLayer({
                   boxShadow: visual.shadow,
                   position: 'relative',
                   cursor: 'pointer',
-                  transition: `all ${animationDuration}ms ${easing}`,
+                  // 只对视觉交互属性加 transition，不包含定位 transform
+                  // 定位 transform 由 Marker 组件通过 translate3d 控制，不需要动画
+                  transition: 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
                   transform: isHovered ? 'scale(1.1)' : 'scale(1)',
                 }}
               >
@@ -337,11 +401,13 @@ export function MarkerClusterLayer({
         );
       })}
 
+      {/* Spiderfier 子点 */}
       {spiderItems.map((s) => (
         <Marker
           key={s.id}
           longitude={s.lng}
           latitude={s.lat}
+          anchor="center"
           content={
             <div
               title={String(s.point.properties?.name ?? s.point.id)}
@@ -364,26 +430,22 @@ export function MarkerClusterLayer({
 }
 
 /**
- * Spiderfier 连接线组件
- * 从中心点延伸至具体 Marker 的细实线
+ * Spiderfier 连接线 — 使用 ref + 直接 DOM 操作更新位置
+ * 避免 setState 重渲染，平移时直接操作 style
  */
 function SpiderLine({
   centerLng,
   centerLat,
   lineLng,
   lineLat,
-  animationDuration,
-  easing,
 }: {
   centerLng: number;
   centerLat: number;
   lineLng: number;
   lineLat: number;
-  animationDuration: number;
-  easing: string;
 }) {
   const scene = useScene();
-  const [style, setStyle] = useState<React.CSSProperties>({});
+  const lineRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!scene) return;
@@ -391,45 +453,63 @@ function SpiderLine({
     if (!mapsService) return;
 
     const update = () => {
-      const start = mapsService.lngLatToContainer([centerLng, centerLat]);
-      const end = mapsService.lngLatToContainer([lineLng, lineLat]);
-      if (!start || !end) return;
+      const el = lineRef.current;
+      if (!el) return;
+      try {
+        const start = mapsService.lngLatToContainer([centerLng, centerLat]);
+        const end = mapsService.lngLatToContainer([lineLng, lineLat]);
+        if (!start || !end) return;
 
-      const dx = end.x - start.x;
-      const dy = end.y - start.y;
-      const length = Math.sqrt(dx * dx + dy * dy);
-      const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const length = Math.sqrt(dx * dx + dy * dy);
+        const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
 
-      setStyle({
-        position: 'absolute',
-        left: 0,
-        top: 0,
-        width: length,
-        height: 1,
-        background: 'rgba(195, 198, 215, 0.5)',
-        transform: `rotate(${angle}deg)`,
-        transformOrigin: '0 50%',
-        transition: `width ${animationDuration}ms ${easing}`,
-        pointerEvents: 'none',
-      });
+        // 直接操作 DOM，避免 setState → React 重渲染
+        el.style.width = `${length}px`;
+        el.style.transform = `rotate(${angle}deg)`;
+      } catch {
+        // ignore
+      }
     };
 
     update();
-    mapsService?.on?.('move', update);
-    mapsService?.on?.('zoomchange', update);
+
+    // 监听地图事件，直接更新 DOM
+    const registerEvent = (target: any, event: string, handler: () => void) => {
+      try { target?.on?.(event, handler); } catch { /* ignore */ }
+    };
+    const unregisterEvent = (target: any, event: string, handler: () => void) => {
+      try { target?.off?.(event, handler); } catch { /* ignore */ }
+    };
+
+    registerEvent(mapsService, 'camerachange', update);
+    registerEvent(mapsService, 'viewchange', update);
 
     return () => {
-      mapsService?.off?.('move', update);
-      mapsService?.off?.('zoomchange', update);
+      unregisterEvent(mapsService, 'camerachange', update);
+      unregisterEvent(mapsService, 'viewchange', update);
     };
-  }, [scene, centerLng, centerLat, lineLng, lineLat, animationDuration, easing]);
+  }, [scene, centerLng, centerLat, lineLng, lineLat]);
 
-  return <div style={style} />;
+  return (
+    <div
+      ref={lineRef}
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        height: 1,
+        background: 'rgba(195, 198, 215, 0.5)',
+        transformOrigin: '0 50%',
+        pointerEvents: 'none',
+      }}
+    />
+  );
 }
 
 /**
  * 获取聚合点视觉样式
- * 严格遵循设计规范分级系统
  */
 function getClusterVisual(count: number) {
   if (count >= 1000) {
@@ -465,7 +545,11 @@ function getClusterVisual(count: number) {
   };
 }
 
-function normalizePoints(source: unknown, sourceType?: string, sourceConfig?: LayerSchema['sourceConfig']): ClusterPoint[] {
+function normalizePoints(
+  source: unknown,
+  sourceType?: string,
+  sourceConfig?: LayerSchema['sourceConfig'],
+): ClusterPoint[] {
   if (!source) return [];
 
   if (sourceType === 'geojson' && typeof source === 'object' && source !== null) {
