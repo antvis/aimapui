@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IconLayer 设计规范 - 地图标注图层</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #0a0e17;
+    --bg-surface: #111827;
+    --bg-card: rgba(17, 24, 39, 0.85);
+    --bg-elevated: #1f2937;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.3);
+    --accent-soft: rgba(59, 130, 246, 0.12);
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --border: rgba(148, 163, 184, 0.12);
+    --border-accent: rgba(59, 130, 246, 0.3);
+    --halo: rgba(255, 255, 255, 0.9);
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(59,130,246,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(16,185,129,0.04) 0%, transparent 50%);
+  }
+
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 56px 32px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    max-width: 560px;
+  }
+
+  /* Section */
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 48px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 20px 0 12px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    max-width: 640px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin-bottom: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Icon Demo Grid */
+  .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 16px;
+  }
+  .icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 8px;
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+  }
+  .icon-item:hover {
+    border-color: var(--border-accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.1);
+  }
+  .icon-item:hover .icon-symbol {
+    transform: scale(1.1);
+    text-shadow: 0 0 12px var(--accent-glow);
+  }
+  .icon-symbol {
+    font-size: 24px;
+    color: var(--accent);
+    text-shadow: 0 0 8px transparent;
+    transition: all 0.25s ease;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+  }
+  .icon-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: 'IBM Plex Mono', monospace;
+    text-align: center;
+    text-shadow: 0 0 2px var(--halo);
+  }
+
+  /* Size Comparison */
+  .size-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 32px;
+    padding: 24px 0;
+    justify-content: center;
+  }
+  .size-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .size-icon {
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid rgba(59, 130, 246, 0.5);
+    border-radius: 50%;
+    background: var(--accent-soft);
+    filter: drop-shadow(0 2px 4px rgba(59,130,246,0.2));
+  }
+  .size-icon--sm { width: 32px; height: 32px; font-size: 16px; }
+  .size-icon--md { width: 44px; height: 44px; font-size: 24px; }
+  .size-icon--lg { width: 56px; height: 56px; font-size: 32px; }
+  .size-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Anchor Layout Demo */
+  .anchor-demo {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 24px 0;
+  }
+  .anchor-card {
+    width: 160px;
+    height: 120px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: visible;
+  }
+  .anchor-card .anchor-icon {
+    font-size: 24px;
+    color: var(--accent);
+  }
+  .anchor-card .anchor-label {
+    position: absolute;
+    font-size: 11px;
+    color: var(--text-primary);
+    font-family: 'IBM Plex Mono', monospace;
+    white-space: nowrap;
+    text-shadow: 0 0 4px rgba(0,0,0,0.8), 0 0 2px var(--halo);
+    background: rgba(15, 23, 42, 0.7);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .anchor-card--right .anchor-label { left: calc(50% + 20px); top: 50%; transform: translateY(-50%); }
+  .anchor-card--bottom .anchor-label { top: calc(50% + 22px); left: 50%; transform: translateX(-50%); }
+  .anchor-card--top .anchor-label { bottom: calc(50% + 22px); left: 50%; transform: translateX(-50%); }
+  .anchor-card .anchor-mode {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Interaction States */
+  .state-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .state-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .state-card .state-icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+  .state-card .state-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .state-card .state-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* Default state */
+  .state-card--default .state-icon { color: var(--accent); }
+
+  /* Hover state */
+  .state-card--hover .state-icon {
+    color: var(--accent);
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 8px var(--accent-glow));
+  }
+  .state-card--hover {
+    border-color: var(--border-accent);
+    background: linear-gradient(135deg, var(--bg-elevated) 0%, rgba(59,130,246,0.05) 100%);
+  }
+
+  /* Selected state */
+  .state-card--selected .state-icon {
+    color: var(--accent);
+    filter: drop-shadow(0 0 16px var(--accent-glow)) drop-shadow(0 0 4px var(--accent));
+  }
+  .state-card--selected {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow), inset 0 0 12px rgba(59,130,246,0.05);
+  }
+
+  /* Zoom Adaptation */
+  .zoom-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: var(--bg-elevated);
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+  }
+  .zoom-level {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    min-width: 72px;
+  }
+  .zoom-visual {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+  }
+  .zoom-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .zoom-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Spec Table */
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 12px 0;
+  }
+  .spec-table th {
+    text-align: left;
+    padding: 8px 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+  }
+  .spec-table td {
+    padding: 8px 12px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+  }
+
+  /* Animated scanline effect */
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+  .page::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-glow), transparent);
+    animation: scanline 8s linear infinite;
+    pointer-events: none;
+    opacity: 0.3;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>IconLayer 设计规范</h1>
+    <p class="subtitle">地图标注图层的图标+文字组合要素视觉表现与交互逻辑，平衡精度与可读性。</p>
+  </div>
+
+  <!-- 1. Icon Anatomy -->
+  <h2><span class="section-num">01</span> 基础构成与样式</h2>
+
+  <div class="card">
+    <div class="card-title">Icon Catalog</div>
+    <div class="icon-grid">
+      <div class="icon-item">
+        <span class="material-symbols-outlined icon-symbol">location_on</span>
+        <span class="icon-label">location</span>
+      </div>
+      <div class="icon-item">
+        <span class="material-symbols-outlined icon-symbol">restaurant</span>
+        <span class="icon-label">restaurant</span>
+      </div>
+      <div class="icon-item">
+        <span class="material-symbols-outlined icon-symbol">local_hospital</span>
+        <span class="icon-label">hospital</span>
+      </div>
+      <div class="icon-item">
+        <span class="material-symbols-outlined icon-symbol">school</span>
+        <span class="icon-label">school</span>
+      </div>
+      <div class="icon-item">
+        <span class="material-symbols-outlined icon-symbol">local_gas_station</span>
+        <span class="icon-label">gas_station</span>
+      </div>
+      <div class="icon-item">
+        <span class="material-symbols-outlined icon-symbol">park</span>
+        <span class="icon-label">park</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>尺寸规范</h3>
+  <div class="card">
+    <div class="card-title">Size Levels</div>
+    <div class="size-row">
+      <div class="size-item">
+        <div class="size-icon size-icon--sm">
+          <span class="material-symbols-outlined" style="font-size:16px">location_on</span>
+        </div>
+        <span class="size-meta">16px · Compact</span>
+      </div>
+      <div class="size-item">
+        <div class="size-icon size-icon--md">
+          <span class="material-symbols-outlined" style="font-size:24px">location_on</span>
+        </div>
+        <span class="size-meta">24px · Standard</span>
+      </div>
+      <div class="size-item">
+        <div class="size-icon size-icon--lg">
+          <span class="material-symbols-outlined" style="font-size:32px">location_on</span>
+        </div>
+        <span class="size-meta">32px · Emphasis</span>
+      </div>
+    </div>
+    <table class="spec-table">
+      <thead><tr><th>属性</th><th>值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>Fill</td><td>text-primary / 分类色</td><td>主色或业务语义色</td></tr>
+        <tr><td>Stroke</td><td>1px #fff (Halo)</td><td>卫星图上增强辨识度</td></tr>
+        <tr><td>Shadow</td><td>shadow-sm</td><td>轻微物理悬浮感</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>文本规范</h3>
+  <div class="card">
+    <div class="card-title">Label Specs</div>
+    <table class="spec-table">
+      <thead><tr><th>属性</th><th>值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>Font</td><td>font-mono-data / font-body-md</td><td>数据精确性 / 通用可读</td></tr>
+        <tr><td>Size</td><td>12px - 14px</td><td>信息密度与可读性平衡</td></tr>
+        <tr><td>Color</td><td>text-on-surface</td><td>深色文字</td></tr>
+        <tr><td>Halo</td><td>2px white glow</td><td>必须项：确保深色底图可读</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 2. Layout -->
+  <h2><span class="section-num">02</span> 空间布局与锚点</h2>
+
+  <div class="card">
+    <div class="card-title">Anchor Positions</div>
+    <div class="anchor-demo">
+      <div class="anchor-card anchor-card--right">
+        <span class="material-symbols-outlined anchor-icon">local_hospital</span>
+        <span class="anchor-label">人民医院</span>
+        <span class="anchor-mode">→ Right (Default)</span>
+      </div>
+      <div class="anchor-card anchor-card--bottom">
+        <span class="material-symbols-outlined anchor-icon">restaurant</span>
+        <span class="anchor-label">美食广场</span>
+        <span class="anchor-mode">↓ Bottom</span>
+      </div>
+      <div class="anchor-card anchor-card--top">
+        <span class="material-symbols-outlined anchor-icon">school</span>
+        <span class="anchor-label">实验中学</span>
+        <span class="anchor-mode">↑ Top</span>
+      </div>
+    </div>
+    <p>图标与文字间距保持 4px，支持动态避让算法自动切换方向。</p>
+  </div>
+
+  <!-- 3. Interaction -->
+  <h2><span class="section-num">03</span> 交互行为规范</h2>
+
+  <div class="card">
+    <div class="card-title">Interaction States</div>
+    <div class="state-grid">
+      <div class="state-card state-card--default">
+        <span class="material-symbols-outlined state-icon">location_on</span>
+        <div class="state-name">Default</div>
+        <div class="state-desc">opacity: 100%</div>
+      </div>
+      <div class="state-card state-card--hover">
+        <span class="material-symbols-outlined state-icon">location_on</span>
+        <div class="state-name">Hover</div>
+        <div class="state-desc">scale: 110% + glow</div>
+      </div>
+      <div class="state-card state-card--selected">
+        <span class="material-symbols-outlined state-icon">location_on</span>
+        <div class="state-name">Selected</div>
+        <div class="state-desc">brand glow + popup</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Zoom Adaptation -->
+  <h2><span class="section-num">04</span> 缩放适配逻辑</h2>
+
+  <div class="card">
+    <div class="card-title">Zoom Level Adaption</div>
+    <div class="zoom-row">
+      <span class="zoom-level">Zoom 15+</span>
+      <div class="zoom-visual">
+        <span class="material-symbols-outlined" style="font-size:20px;color:var(--accent)">location_on</span>
+        <span style="font-size:11px;color:var(--text-primary);font-family:'IBM Plex Mono',monospace;text-shadow:0 0 3px var(--halo)">西湖文化广场</span>
+      </div>
+      <span class="zoom-desc">Icon + Label</span>
+    </div>
+    <div class="zoom-row">
+      <span class="zoom-level">Zoom 10-14</span>
+      <div class="zoom-visual">
+        <span class="material-symbols-outlined" style="font-size:20px;color:var(--accent)">location_on</span>
+      </div>
+      <span class="zoom-desc">Icon Only</span>
+    </div>
+    <div class="zoom-row">
+      <span class="zoom-level">Zoom &lt;10</span>
+      <div class="zoom-visual">
+        <span class="zoom-dot"></span>
+      </div>
+      <span class="zoom-desc">Dot (6-8px)</span>
+    </div>
+  </div>
+
+  <!-- 5. Performance -->
+  <h2><span class="section-num">05</span> 性能与渲染</h2>
+
+  <div class="card">
+    <div class="card-title">Rendering Spec</div>
+    <table class="spec-table">
+      <thead><tr><th>特性</th><th>配置</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>Collision Detection</td><td>textAllowOverlap: false</td><td>重叠时隐藏低优先级要素</td></tr>
+        <tr><td>Anti-aliasing</td><td>geometricPrecision</td><td>高分屏线条锐度</td></tr>
+        <tr><td>Priority</td><td>weight: business_rank</td><td>基于业务重要度排序</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+</body>
+</html>

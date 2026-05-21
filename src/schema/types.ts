@@ -90,6 +90,11 @@ export interface LayerSchema {
 
   style?: Record<string, unknown>;
 
+  /** 图层整体不透明度，0~1，默认 1 */
+  opacity?: number;
+  /** 图层混合模式，对齐 CSS mix-blend-mode */
+  blend?: 'normal' | 'additive' | 'subtractive' | 'max';
+
   // 过滤 / 动画 / 交互
   filterField?: string;
   filterValues?: unknown[];

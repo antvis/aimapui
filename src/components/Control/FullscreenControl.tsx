@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useMapControl, type ControlPosition } from '../../hooks/useMapControl';
+import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
  * Fullscreen 全屏控件
@@ -27,6 +28,7 @@ export function FullscreenControl({
   style,
 }: FullscreenControlProps) {
   const { getMapContainer, positionClassName } = useMapControl(position);
+  const isInContainer = useControlContainer();
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const getTarget = useCallback(() => {
@@ -58,22 +60,31 @@ export function FullscreenControl({
     return () => document.removeEventListener('fullscreenchange', handleChange);
   }, []);
 
+  const controlContent = (
+    <div className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`} style={style}>
+      <button
+        className="l7-button-control"
+        onClick={handleToggle}
+        title={isFullscreen ? '退出全屏' : '全屏'}
+        aria-label={isFullscreen ? '退出全屏' : '全屏'}
+      >
+        <span className="material-symbols-outlined">
+          {isFullscreen ? 'fullscreen_exit' : 'fullscreen'}
+        </span>
+      </button>
+    </div>
+  );
+
+  if (isInContainer) return controlContent;
+
   return (
     <div className={`l7-control-anchor ${positionClassName}`}>
-      <div className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`} style={style}>
-        <button
-          className="l7-button-control"
-          onClick={handleToggle}
-          title={isFullscreen ? '退出全屏' : '全屏'}
-          aria-label={isFullscreen ? '退出全屏' : '全屏'}
-        >
-          <span className="material-symbols-outlined">
-            {isFullscreen ? 'fullscreen_exit' : 'fullscreen'}
-          </span>
-        </button>
-      </div>
+      {controlContent}
     </div>
   );
 }
+
+// 注册为控件类型，供 ControlContainer 识别
+ControlRegistry.mark(FullscreenControl);
 
 export default FullscreenControl;

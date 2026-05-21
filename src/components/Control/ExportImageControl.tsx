@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useMapControl, type ControlPosition } from '../../hooks/useMapControl';
+import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
  * ExportImage 导出图片控件
@@ -29,6 +30,7 @@ export function ExportImageControl({
   style,
 }: ExportImageControlProps) {
   const { scene, mapsService, positionClassName } = useMapControl(position);
+  const isInContainer = useControlContainer();
 
   const imageType = format === 'jpg' ? 'jpeg' : 'png';
 
@@ -77,18 +79,24 @@ export function ExportImageControl({
     }
   }, [getImage, onExport, imageType, mapsService]);
 
+  const controlContent = (
+    <div className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`} style={style}>
+      <button
+        className="l7-button-control"
+        onClick={handleClick}
+        title="导出图片"
+        aria-label="导出图片"
+      >
+        <span className="material-symbols-outlined">photo_camera</span>
+      </button>
+    </div>
+  );
+
+  if (isInContainer) return controlContent;
+
   return (
     <div className={`l7-control-anchor ${positionClassName}`}>
-      <div className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`} style={style}>
-        <button
-          className="l7-button-control"
-          onClick={handleClick}
-          title="导出图片"
-          aria-label="导出图片"
-        >
-          <span className="material-symbols-outlined">photo_camera</span>
-        </button>
-      </div>
+      {controlContent}
     </div>
   );
 }
@@ -118,5 +126,8 @@ async function mergeImages(base64List: string[], imageType: string): Promise<str
   });
   return canvas.toDataURL(`image/${imageType}`);
 }
+
+// 注册为控件类型，供 ControlContainer 识别
+ControlRegistry.mark(ExportImageControl);
 
 export default ExportImageControl;

@@ -1,24 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Aimap, BubbleLayer, ZoomControl, Popup } from '../../index';
 import type { LayerEventPayload } from '../../index';
 
-type LabelPosition =
-  | 'center'
-  | 'top'
-  | 'right'
-  | 'bottom'
-  | 'left'
-  | 'top-right'
-  | 'top-left'
-  | 'bottom-right'
-  | 'bottom-left';
-
 /**
- * 气泡图（气泡 + 文字）
+ * 气泡图 — 气泡 + 文字标签同时展示
  */
 export default function Demo20BubbleText() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
-  const [labelPosition, setLabelPosition] = useState<LabelPosition>('top');
   const [selectedBubble, setSelectedBubble] = useState<{
     lng: number;
     lat: number;
@@ -35,7 +23,6 @@ export default function Demo20BubbleText() {
           return;
         }
 
-        // 构造演示用 value 字段，展示气泡大小映射
         const enriched = {
           ...json,
           features: json.features.map((feature: Record<string, unknown>, idx: number) => {
@@ -56,21 +43,6 @@ export default function Demo20BubbleText() {
       .catch(() => setData(null));
   }, []);
 
-  const anchorConfig = useMemo(() => {
-    const configs: Record<LabelPosition, { bubbleAnchor: any; labelAnchor: any; labelOffset?: [number, number] }> = {
-      center: { bubbleAnchor: 'center', labelAnchor: 'center', labelOffset: [0, 0] },
-      top: { bubbleAnchor: 'top', labelAnchor: 'bottom' },
-      right: { bubbleAnchor: 'right', labelAnchor: 'left' },
-      bottom: { bubbleAnchor: 'bottom', labelAnchor: 'top' },
-      left: { bubbleAnchor: 'left', labelAnchor: 'right' },
-      'top-right': { bubbleAnchor: 'top-right', labelAnchor: 'bottom-left' },
-      'top-left': { bubbleAnchor: 'top-left', labelAnchor: 'bottom-right' },
-      'bottom-right': { bubbleAnchor: 'bottom-right', labelAnchor: 'top-left' },
-      'bottom-left': { bubbleAnchor: 'bottom-left', labelAnchor: 'top-right' },
-    };
-    return configs[labelPosition];
-  }, [labelPosition]);
-
   const handleBubbleClick = (payload: LayerEventPayload) => {
     const { feature, lng, lat } = payload;
     if (!feature) return;
@@ -84,18 +56,6 @@ export default function Demo20BubbleText() {
     });
   };
 
-  const options: Array<{ label: string; value: LabelPosition }> = [
-    { label: '中间', value: 'center' },
-    { label: '上方', value: 'top' },
-    { label: '右侧', value: 'right' },
-    { label: '下方', value: 'bottom' },
-    { label: '左侧', value: 'left' },
-    { label: '右上', value: 'top-right' },
-    { label: '左上', value: 'top-left' },
-    { label: '右下', value: 'bottom-right' },
-    { label: '左下', value: 'bottom-left' },
-  ];
-
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Aimap map={{ basemap: 'gaode', center: [60.268, 30.3628], zoom: 1.8, style: 'light' }}>
@@ -106,16 +66,16 @@ export default function Demo20BubbleText() {
             labelField="name"
             color="#2f7cf6"
             sizeField="value"
-            sizeValues={[8, 16, 32, 48, 64]}
-            bubbleAnchor={anchorConfig.bubbleAnchor}
-            labelAnchor={anchorConfig.labelAnchor}
-            labelOffset={anchorConfig.labelOffset}
+            sizeValues={[10, 18, 28, 40, 54]}
+            bubbleAnchor="center"
+            labelAnchor="top"
+            labelTrigger="always"
+            labelOffset={[0, -8]}
             onClick={handleBubbleClick}
           />
         )}
         <ZoomControl />
         
-        {/* Popup 展示气泡数据 */}
         {selectedBubble && (
           <Popup
             longitude={selectedBubble.lng}
@@ -145,7 +105,6 @@ export default function Demo20BubbleText() {
           />
         )}
       </Aimap>
-
-      </div>
+    </div>
   );
 }

@@ -92,7 +92,7 @@
   .hover-card .state-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-on-surface-variant); }
 
   /* 代码块 */
-  .code-block { background: var(--color-on-surface); color: #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; }
+  .code-block { background: var(--color-on-surface); color: #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; }
   .code-block .kw { color: #c084fc; }
   .code-block .str { color: #86efac; }
   .code-block .cmt { color: #64748b; }
@@ -270,7 +270,7 @@
   <h2>AimapKit 默认实现</h2>
   <div class="card">
     <div class="card-title">BubbleLayer API</div>
-    <div class="code-block"><span class="cmt">// 默认：圆形、半透明填充、1px 描边</span>
+    <pre class="code-block"><span class="cmt">// 默认：圆形、半透明填充、1px 描边</span>
 <span class="cmt">// 大小映射默认值: [8, 16, 32, 48, 64]</span>
 <span class="cmt">// 语义色板: primary / warning / error / success</span>
 
@@ -280,7 +280,7 @@
   <span class="attr">sizeField</span>=<span class="str">"value"</span>
   <span class="attr">semanticColorField</span>=<span class="str">"status"</span>
   <span class="attr">labelField</span>=<span class="str">"name"</span>
-/&gt;</div>
+/&gt;</pre>
   </div>
 
 </div>

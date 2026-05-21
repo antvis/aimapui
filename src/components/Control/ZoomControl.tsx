@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMapControl, type ControlPosition } from '../../hooks/useMapControl';
+import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
  * Zoom 控件
@@ -37,6 +38,7 @@ export function ZoomControl({
   style,
 }: ZoomControlProps) {
   const { mapsService, positionClassName } = useMapControl(position);
+  const isInContainer = useControlContainer();
   const [zoom, setZoom] = useState<number>(0);
   const [canZoomIn, setCanZoomIn] = useState(true);
   const [canZoomOut, setCanZoomOut] = useState(true);
@@ -75,38 +77,47 @@ export function ZoomControl({
     }
   };
 
+  const controlContent = (
+    <div
+      className={`l7-control l7-control-zoom l7-control--glass${className ? ` ${className}` : ''}`}
+      style={style}
+    >
+      <button
+        className="l7-button-control"
+        onClick={handleZoomIn}
+        disabled={!canZoomIn}
+        title={zoomInTitle}
+        aria-label={zoomInTitle}
+      >
+        {zoomInText ?? <span className="material-symbols-outlined">add</span>}
+      </button>
+      {showZoom && (
+        <button className="l7-button-control l7-control-zoom__number" disabled>
+          {zoom}
+        </button>
+      )}
+      <button
+        className="l7-button-control"
+        onClick={handleZoomOut}
+        disabled={!canZoomOut}
+        title={zoomOutTitle}
+        aria-label={zoomOutTitle}
+      >
+        {zoomOutText ?? <span className="material-symbols-outlined">remove</span>}
+      </button>
+    </div>
+  );
+
+  if (isInContainer) return controlContent;
+
   return (
     <div className={`l7-control-anchor ${positionClassName}`}>
-      <div
-        className={`l7-control l7-control-zoom l7-control--glass${className ? ` ${className}` : ''}`}
-        style={style}
-      >
-        <button
-          className="l7-button-control"
-          onClick={handleZoomIn}
-          disabled={!canZoomIn}
-          title={zoomInTitle}
-          aria-label={zoomInTitle}
-        >
-          {zoomInText ?? <span className="material-symbols-outlined">add</span>}
-        </button>
-        {showZoom && (
-          <button className="l7-button-control l7-control-zoom__number" disabled>
-            {zoom}
-          </button>
-        )}
-        <button
-          className="l7-button-control"
-          onClick={handleZoomOut}
-          disabled={!canZoomOut}
-          title={zoomOutTitle}
-          aria-label={zoomOutTitle}
-        >
-          {zoomOutText ?? <span className="material-symbols-outlined">remove</span>}
-        </button>
-      </div>
+      {controlContent}
     </div>
   );
 }
+
+// 注册为控件类型，供 ControlContainer 识别
+ControlRegistry.mark(ZoomControl);
 
 export default ZoomControl;

@@ -1129,6 +1129,8 @@
 .l7-control-anchor {
   position: absolute;
   display: flex;
+  gap: 8px;
+  padding: 8px;
   z-index: 999;
   pointer-events: none;
 }
@@ -1175,6 +1177,13 @@
   margin: 8px;
 }
 
+/* 在 flex 锚点容器内，重置 float/clear/margin 以适配 flex 布局 */
+.l7-control-anchor > .l7-control {
+  float: none;
+  clear: none;
+  margin: 0;
+}
+
 .l7-control.l7-control--hide {
   display: none;
 }
@@ -1183,8 +1192,8 @@
 .l7-control-container .l7-control {
   position: relative;
   z-index: 999;
-  float: left;
-  clear: both;
+  float: none;
+  clear: none;
   color: #595959;
   font-size: 12px;
   pointer-events: auto;
@@ -1198,7 +1207,7 @@
   pointer-events: none;
 }
 .l7-control-container .l7-top .l7-control:not(.l7-control--hide) {
-  margin-top: 8px;
+  margin-top: 0;
 }
 
 .l7-control-container .l7-right {
@@ -1209,7 +1218,7 @@
   pointer-events: none;
 }
 .l7-control-container .l7-right .l7-control:not(.l7-control--hide) {
-  margin-right: 8px;
+  margin-right: 0;
 }
 
 .l7-control-container .l7-bottom {
@@ -1220,7 +1229,7 @@
   pointer-events: none;
 }
 .l7-control-container .l7-bottom .l7-control:not(.l7-control--hide) {
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .l7-control-container .l7-left {
@@ -1231,7 +1240,7 @@
   pointer-events: none;
 }
 .l7-control-container .l7-left .l7-control:not(.l7-control--hide) {
-  margin-left: 8px;
+  margin-left: 0;
 }
 
 .l7-control-container .l7-row {

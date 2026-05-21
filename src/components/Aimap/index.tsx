@@ -9,6 +9,7 @@ import { ResponsiveProvider } from '../../components/Responsive/useBreakpoint';
 import { MapSceneRenderer } from '../../components/MapScene/MapSceneRenderer';
 import { LayerRenderer } from '../../components/Layer/LayerRenderer';
 import { ControlRenderer } from '../../components/Control/ControlRenderer';
+import { ControlContainer, ControlRegistry } from '../../components/Control/ControlContainer';
 import { InteractionRenderer } from '../../components/Interaction/InteractionRenderer';
 import { LegendRenderer } from '../../components/Legend/LegendRenderer';
 import { useResponsive } from '../../context/ResponsiveContext';
@@ -257,10 +258,46 @@ function AimapCore({
           <MobileToolbar config={schema.responsive.mobile.toolbar} />
         )}
 
-        {/* 组件化模式：children 直接渲染 */}
-        {children}
+        {/* 组件化模式：children 包裹在 ControlContainer 中自动排列控件 */}
+        {isComposableMode ? (
+          <ControlContainerAutoWrap>{children}</ControlContainerAutoWrap>
+        ) : null}
       </MapSceneRenderer>
     </div>
+  );
+}
+
+/**
+ * 组合模式下的控件容器自动包裹组件
+ *
+ * 遍历 children，将控件组件（有 position prop 或已注册的控件类型）
+ * 包裹在 ControlContainer 中按 position 分组自动排列，
+ * 非控件组件保持原样渲染。
+ */
+function ControlContainerAutoWrap({ children }: { children?: React.ReactNode }) {
+  // 分离控件和非控件 children
+  const { controls, others } = useMemo(() => {
+    const controls: React.ReactElement[] = [];
+    const others: React.ReactNode[] = [];
+    React.Children.forEach(children, (child, index) => {
+      if (React.isValidElement(child) && ControlRegistry.check(child)) {
+        controls.push(child);
+      } else {
+        others.push(child);
+      }
+    });
+    return { controls, others };
+  }, [children]);
+
+  return (
+    <>
+      {/* 控件用 ControlContainer 包裹，按 position 分组自动排列 */}
+      {controls.length > 0 && (
+        <ControlContainer>{controls}</ControlContainer>
+      )}
+      {/* 非控件子组件（如 Marker、Layer 等）原样渲染 */}
+      {others}
+    </>
   );
 }
 

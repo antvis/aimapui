@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMapControl } from '../../hooks/useMapControl';
 import type { ControlPosition } from '../../hooks/useMapControl';
+import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
  * 图层配置项 — 支持可见性切换 + 透明度
@@ -63,6 +64,7 @@ export function LayerSwitchControl({
   }, [layers]);
 
   const { positionClassName } = useMapControl(position);
+  const isInContainer = useControlContainer();
 
   // 点击外部关闭
   useEffect(() => {
@@ -85,76 +87,82 @@ export function LayerSwitchControl({
     onOpacityChange?.(layerId, value);
   };
 
-  return (
-    <div className={`l7-control-anchor ${positionClassName}`}>
-      <div
-        ref={containerRef}
-        className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`}
-        style={style}
+  const controlContent = (
+    <div
+      ref={containerRef}
+      className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`}
+      style={style}
+    >
+      <button
+        className="l7-button-control"
+        onClick={() => setOpen(!open)}
+        title="图层控制"
+        aria-label="图层控制"
       >
-        <button
-          className="l7-button-control"
-          onClick={() => setOpen(!open)}
-          title="图层控制"
-          aria-label="图层控制"
-        >
-          <span className="material-symbols-outlined">layers</span>
-        </button>
-        {open && (
-          <div className={`l7-popper ${popperClass}`}>
-            <div className="l7-popper-content l7-layer-panel">
-              <div className="l7-layer-panel__title">
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>layers</span>
-                Layers
-              </div>
-              <div className="l7-layer-panel__list">
-                {layers.map((layer) => {
-                  const isVisible = layer.visible !== false;
-                  const opacity = opacities[layer.id] ?? layer.opacity ?? 1;
-                  const iconName = layer.icon ?? 'layers';
-                  return (
-                    <div
-                      key={layer.id}
-                      className={`l7-layer-item${!isVisible ? ' l7-layer-item--disabled' : ''}`}
-                    >
-                      <div className="l7-layer-item__header">
-                        <span className="material-symbols-outlined l7-layer-item__icon">
-                          {iconName}
-                        </span>
-                        <span className="l7-layer-item__name">{layer.name ?? layer.id}</span>
-                        {/* Toggle Switch */}
-                        <label className="l7-layer-toggle">
-                          <input
-                            type="checkbox"
-                            checked={isVisible}
-                            onChange={() => onToggle(layer.id, !isVisible)}
-                          />
-                          <span className="l7-layer-toggle__track" />
-                        </label>
-                      </div>
-                      {onOpacityChange && (
-                        <div className="l7-layer-item__slider">
-                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                            opacity
-                          </span>
-                          <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            value={Math.round(opacity * 100)}
-                            onChange={(e) => handleOpacityChange(layer.id, +e.target.value / 100)}
-                            className="l7-layer-slider"
-                          />
-                        </div>
-                      )}
+        <span className="material-symbols-outlined">layers</span>
+      </button>
+      {open && (
+        <div className={`l7-popper ${popperClass}`}>
+          <div className="l7-popper-content l7-layer-panel">
+            <div className="l7-layer-panel__title">
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>layers</span>
+              Layers
+            </div>
+            <div className="l7-layer-panel__list">
+              {layers.map((layer) => {
+                const isVisible = layer.visible !== false;
+                const opacity = opacities[layer.id] ?? layer.opacity ?? 1;
+                const iconName = layer.icon ?? 'layers';
+                return (
+                  <div
+                    key={layer.id}
+                    className={`l7-layer-item${!isVisible ? ' l7-layer-item--disabled' : ''}`}
+                  >
+                    <div className="l7-layer-item__header">
+                      <span className="material-symbols-outlined l7-layer-item__icon">
+                        {iconName}
+                      </span>
+                      <span className="l7-layer-item__name">{layer.name ?? layer.id}</span>
+                      {/* Toggle Switch */}
+                      <label className="l7-layer-toggle">
+                        <input
+                          type="checkbox"
+                          checked={isVisible}
+                          onChange={() => onToggle(layer.id, !isVisible)}
+                        />
+                        <span className="l7-layer-toggle__track" />
+                      </label>
                     </div>
-                  );
-                })}
-              </div>
+                    {onOpacityChange && (
+                      <div className="l7-layer-item__slider">
+                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                          opacity
+                        </span>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={Math.round(opacity * 100)}
+                          onChange={(e) => handleOpacityChange(layer.id, +e.target.value / 100)}
+                          className="l7-layer-slider"
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
+  );
+
+  if (isInContainer) return controlContent;
+
+  return (
+    <div className={`l7-control-anchor ${positionClassName}`}>
+      {controlContent}
     </div>
   );
 }
@@ -172,5 +180,8 @@ function getPopperDirection(pos: ControlPosition): string {
     default: return 'l7-popper-bottom';
   }
 }
+
+// 注册为控件类型，供 ControlContainer 识别
+ControlRegistry.mark(LayerSwitchControl);
 
 export default LayerSwitchControl;

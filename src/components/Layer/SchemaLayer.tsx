@@ -149,6 +149,16 @@ async function buildLayer(adapter: LayerAdapter, _scene: Scene): Promise<L7Layer
     layer.select(adapter.schema.select);
   }
 
+  // ========== 不透明度 ==========
+  if (adapter.schema.opacity !== undefined) {
+    layer.style({ opacity: adapter.schema.opacity });
+  }
+
+  // ========== 混合模式 ==========
+  if (adapter.schema.blend) {
+    layer.blend(adapter.schema.blend);
+  }
+
   // ========== 可见性 ==========
   if (adapter.schema.visible === false) {
     layer.hide();
@@ -324,11 +334,19 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
       // 添加到场景
       scene.addLayer(layer);
 
-      // autoFit
-      if (schema.autoFit) {
-        layer.on('inited', () => {
+      // 图层初始化完成后强制触发一次重绘，确保图层立即可见
+      layer.on('inited', () => {
+        if (destroyed) return;
+        // autoFit
+        if (schema.autoFit) {
           scene.fitBounds(layer.getBounds());
-        });
+        }
+        // 强制 scene 重绘，修复异步初始化导致图层首帧不可见的问题
+        scene.render();
+      });
+    }).catch((error: unknown) => {
+      if (!destroyed) {
+        console.error(`[AimapKit] Failed to create layer "${schema.id ?? schema.name ?? schema.type}":`, error);
       }
     });
 

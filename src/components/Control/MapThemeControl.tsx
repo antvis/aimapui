@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useMapControl, type ControlPosition } from '../../hooks/useMapControl';
+import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
  * 地图主题选项 — 支持预览色块
@@ -67,6 +68,7 @@ export function MapThemeControl({
   style,
 }: MapThemeControlProps) {
   const { mapsService, positionClassName } = useMapControl(position);
+  const isInContainer = useControlContainer();
   const [open, setOpen] = useState(false);
   const [currentValue, setCurrentValue] = useState<string>(defaultValue ?? '');
   const [options, setOptions] = useState<ThemeOption[]>(propOptions ?? []);
@@ -149,59 +151,65 @@ export function MapThemeControl({
   // 计算 popper 方向
   const popperClass = getPopperDirection(position);
 
-  return (
-    <div className={`l7-control-anchor ${positionClassName}`}>
-      <div
-        ref={containerRef}
-        className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`}
-        style={style}
+  const controlContent = (
+    <div
+      ref={containerRef}
+      className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`}
+      style={style}
+    >
+      <button
+        className="l7-button-control"
+        onClick={() => setOpen(!open)}
+        title="地图样式"
+        aria-label="地图样式"
       >
-        <button
-          className="l7-button-control"
-          onClick={() => setOpen(!open)}
-          title="地图样式"
-          aria-label="地图样式"
-        >
-          <span className="material-symbols-outlined">palette</span>
-        </button>
-        {open && options.length > 0 && (
-          <div className={`l7-popper ${popperClass}`}>
-            <div className="l7-popper-content l7-theme-panel">
-              <div className="l7-theme-panel__title">
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>palette</span>
-                Map Themes
-              </div>
-              <div className="l7-theme-panel__grid">
-                {options.map((opt) => {
-                  const isActive = currentValue === opt.value;
-                  const previewBg = opt.preview ?? 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)';
-                  return (
-                    <button
-                      key={opt.value}
-                      className={`l7-theme-card${isActive ? ' l7-theme-card--active' : ''}`}
-                      onClick={() => handleSelect(opt.value)}
-                      title={opt.text}
-                    >
-                      <div
-                        className="l7-theme-card__preview"
-                        style={{ background: previewBg }}
-                      />
-                      {isActive && (
-                        <span className="material-symbols-outlined l7-theme-card__check"
-                          style={{ fontVariationSettings: "'FILL' 1" }}
-                        >
-                          check_circle
-                        </span>
-                      )}
-                      <span className="l7-theme-card__label">{opt.text}</span>
-                    </button>
-                  );
-                })}
-              </div>
+        <span className="material-symbols-outlined">palette</span>
+      </button>
+      {open && options.length > 0 && (
+        <div className={`l7-popper ${popperClass}`}>
+          <div className="l7-popper-content l7-theme-panel">
+            <div className="l7-theme-panel__title">
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>palette</span>
+              Map Themes
+            </div>
+            <div className="l7-theme-panel__grid">
+              {options.map((opt) => {
+                const isActive = currentValue === opt.value;
+                const previewBg = opt.preview ?? 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)';
+                return (
+                  <button
+                    key={opt.value}
+                    className={`l7-theme-card${isActive ? ' l7-theme-card--active' : ''}`}
+                    onClick={() => handleSelect(opt.value)}
+                    title={opt.text}
+                  >
+                    <div
+                      className="l7-theme-card__preview"
+                      style={{ background: previewBg }}
+                    />
+                    {isActive && (
+                      <span className="material-symbols-outlined l7-theme-card__check"
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
+                        check_circle
+                      </span>
+                    )}
+                    <span className="l7-theme-card__label">{opt.text}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
+  );
+
+  if (isInContainer) return controlContent;
+
+  return (
+    <div className={`l7-control-anchor ${positionClassName}`}>
+      {controlContent}
     </div>
   );
 }
@@ -222,5 +230,8 @@ function getPopperDirection(pos: ControlPosition): string {
     default: return 'l7-popper-bottom';
   }
 }
+
+// 注册为控件类型，供 ControlContainer 识别
+ControlRegistry.mark(MapThemeControl);
 
 export default MapThemeControl;

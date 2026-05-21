@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMapControl, type ControlPosition } from '../../hooks/useMapControl';
+import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
  * Scale 比例尺控件
@@ -63,6 +64,7 @@ export function ScaleControl({
   style,
 }: ScaleControlProps) {
   const { mapsService, positionClassName } = useMapControl(position);
+  const isInContainer = useControlContainer();
   const [lines, setLines] = useState<{ text: string; width: number }[]>([]);
 
   const updateScale = useRef(() => {
@@ -112,17 +114,26 @@ export function ScaleControl({
     };
   }, [mapsService, maxWidth, metric, imperial, updateWhenIdle]);
 
+  const controlContent = (
+    <div className={`l7-control l7-control-scale l7-control--glass${className ? ` ${className}` : ''}`} style={style}>
+      {lines.map((line, i) => (
+        <div key={i} className="l7-control-scale-line" style={{ width: line.width }}>
+          {line.text}
+        </div>
+      ))}
+    </div>
+  );
+
+  if (isInContainer) return controlContent;
+
   return (
     <div className={`l7-control-anchor ${positionClassName}`}>
-      <div className={`l7-control l7-control-scale l7-control--glass${className ? ` ${className}` : ''}`} style={style}>
-        {lines.map((line, i) => (
-          <div key={i} className="l7-control-scale-line" style={{ width: line.width }}>
-            {line.text}
-          </div>
-        ))}
-      </div>
+      {controlContent}
     </div>
   );
 }
+
+// 注册为控件类型，供 ControlContainer 识别
+ControlRegistry.mark(ScaleControl);
 
 export default ScaleControl;

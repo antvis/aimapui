@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ControlSchema, ControlPosition, LayerSchema } from '../../schema/types';
 import { useScene } from '../../context/SceneContext';
+import { ControlContainer } from './ControlContainer';
 import { ZoomControl } from './ZoomControl';
 import { ScaleControl } from './ScaleControl';
 import { FullscreenControl } from './FullscreenControl';
@@ -20,14 +21,14 @@ export interface ControlRendererProps {
 /**
  * Schema 模式控件渲染器
  *
- * 每个控件自带 .l7-control-anchor 绝对定位，
- * 这里只需用一个 .l7-control-container 覆盖层包裹即可
+ * 使用 ControlContainer 包裹，按 position 自动分组排列，
+ * 同一角度的多个控件自动堆叠而不会重叠
  */
 export function ControlRenderer({ controls, layers, onLayerToggle, containerRef }: ControlRendererProps) {
   const scene = useScene();
 
   return (
-    <div className="l7-control-container">
+    <ControlContainer>
       {controls.map((control, index) => (
         <ControlItem
           key={`${control.type}-${index}`}
@@ -38,7 +39,7 @@ export function ControlRenderer({ controls, layers, onLayerToggle, containerRef 
           containerRef={containerRef}
         />
       ))}
-    </div>
+    </ControlContainer>
   );
 }
 

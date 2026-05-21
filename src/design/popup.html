@@ -108,7 +108,7 @@
   .flow-arrow { color: var(--color-outline-variant); font-size: 18px; }
 
   /* 代码块 */
-  .code-block { background: #1e1e2e; color: #cdd6f4; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; margin-top: 12px; }
+  .code-block { background: #1e1e2e; color: #cdd6f4; padding: 16px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.7; overflow-x: auto; margin-top: 12px; white-space: pre-wrap; }
   .code-block .keyword { color: #cba6f7; }
   .code-block .type { color: #89b4fa; }
   .code-block .prop { color: #a6e3a1; }
@@ -366,7 +366,7 @@
   <!-- 6. Props 接口 -->
   <h2>6. 组件 Props 接口</h2>
   <div class="card">
-    <div class="code-block"><span class="keyword">export interface</span> <span class="type">PopupProps</span> {
+    <pre class="code-block"><span class="keyword">export interface</span> <span class="type">PopupProps</span> {
   <span class="prop">longitude</span>: <span class="type">number</span>;            <span class="comment">// 经度</span>
   <span class="prop">latitude</span>: <span class="type">number</span>;             <span class="comment">// 纬度</span>
   <span class="prop">content</span>?: <span class="type">string | React.ReactNode</span>; <span class="comment">// 纯文本 / HTML / ReactNode</span>
@@ -378,7 +378,7 @@
   <span class="prop">visible</span>?: <span class="type">boolean</span>;              <span class="comment">// 受控可见性</span>
   <span class="prop">onClose</span>?: () => <span class="type">void</span>;            <span class="comment">// 关闭回调</span>
   <span class="prop">className</span>?: <span class="type">string</span>;             <span class="comment">// 自定义类名</span>
-}</div>
+}</pre>
   </div>
 
 </div>

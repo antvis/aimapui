@@ -1,4 +1,5 @@
 import type { LayerSchema } from '../../../schema/types';
+import { buildVisualConfig, buildGeojsonSourceConfig } from './common';
 
 /**
  * Polygon 图层适配器
@@ -6,15 +7,15 @@ import type { LayerSchema } from '../../../schema/types';
 export function adaptPolygonLayer(schema: LayerSchema) {
   return {
     type: 'PolygonLayer' as const,
-    sourceConfig: buildSourceConfig(schema),
-    visual: buildVisual(schema),
+    sourceConfig: buildPolygonSourceConfig(schema),
+    visual: buildVisualConfig(schema),
     schema,
   };
 }
 
-function buildSourceConfig(schema: LayerSchema) {
+function buildPolygonSourceConfig(schema: LayerSchema) {
   if (schema.sourceType === 'geojson') {
-    return { data: schema.source, options: undefined };
+    return buildGeojsonSourceConfig(schema);
   }
   // json 使用 coordinates 字段
   return {
@@ -26,26 +27,4 @@ function buildSourceConfig(schema: LayerSchema) {
       },
     },
   };
-}
-
-function buildVisual(schema: LayerSchema) {
-  const color = schema.colorField
-    ? { field: schema.colorField, values: schema.colorValues }
-    : schema.color
-      ? { values: schema.color }
-      : undefined;
-
-  const size = schema.size !== undefined
-    ? { values: schema.size }
-    : undefined;
-
-  const shape = schema.shapeField
-    ? { field: schema.shapeField, values: schema.shapeValues }
-    : schema.shape
-      ? { values: schema.shape }
-      : undefined;
-
-  const style = schema.style ? { ...schema.style } : undefined;
-
-  return { color, size, shape, style };
 }

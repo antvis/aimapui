@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import type { ActiveConfig, LayerSchema, SelectConfig, LayerEventPayload } from '../../schema/types';
 import { PointLayer } from '../Layer/PointLayer';
 
@@ -32,6 +32,8 @@ export interface BubbleLayerProps extends Omit<LayerSchema, 'type' | 'source' | 
   labelColor?: string;
   labelSize?: number;
   showLabel?: boolean;
+  /** 文本标签触发方式：'always' 始终显示 | 'hover' 鼠标划过时显示，默认 'always' */
+  labelTrigger?: 'always' | 'hover';
   /** 文本偏移量，默认根据气泡最大半径自动计算 */
   labelOffset?: [number, number];
   /** sizeField 为离散值时，对应每个 sizeValues 的域值顺序（默认 1..N） */
@@ -86,6 +88,7 @@ export function BubbleLayer({
   labelColor = '#0b3b8c',
   labelSize = 12,
   showLabel = true,
+  labelTrigger = 'always',
   labelOffset,
   sizeDomain,
   bubbleAnchor = 'bottom',
@@ -125,6 +128,23 @@ export function BubbleLayer({
     ? (sizeValues ?? [...BUBBLE_SIZE_LEVELS])
     : sizeValues;
 
+  // hover 模式下标签的显隐状态
+  const [labelVisible, setLabelVisible] = useState(labelTrigger === 'always');
+
+  const handleMouseEnter = useCallback((payload: LayerEventPayload) => {
+    if (labelTrigger === 'hover') {
+      setLabelVisible(true);
+    }
+    onMouseEnter?.(payload);
+  }, [labelTrigger, onMouseEnter]);
+
+  const handleMouseLeave = useCallback((payload: LayerEventPayload) => {
+    if (labelTrigger === 'hover') {
+      setLabelVisible(false);
+    }
+    onMouseLeave?.(payload);
+  }, [labelTrigger, onMouseLeave]);
+
   const defaultActive: ActiveConfig = { color: '#60a5fa' };
   const defaultSelect: SelectConfig = { color: '#1d4ed8' };
 
@@ -139,10 +159,24 @@ export function BubbleLayer({
     };
   })();
 
+  // 延迟渲染标签图层，确保气泡圆图层先完成 addLayer
+  const [bubbleReady, setBubbleReady] = useState(false);
+  useEffect(() => {
+    const timer = requestAnimationFrame(() => setBubbleReady(true));
+    return () => cancelAnimationFrame(timer);
+  }, []);
+
+  const shouldShowLabel = showLabel && labelVisible && bubbleReady;
+
+  // 气泡圆图层的 size 配置：当有 sizeField 时不传固定 size 避免冲突
+  const bubbleSizeProps = sizeField
+    ? { sizeField, sizeValues: mappedSizeValues }
+    : { size };
+
   return (
     <>
+      {/* 气泡圆图层 — 始终渲染 */}
       <PointLayer
-        {...rest}
         source={source}
         sourceType={sourceType}
         sourceConfig={sourceConfig}
@@ -150,26 +184,29 @@ export function BubbleLayer({
         color={color}
         colorField={mappedColorField}
         colorValues={mappedColorValues}
-        size={size}
-        sizeField={sizeField}
-        sizeValues={mappedSizeValues}
+        {...bubbleSizeProps}
+        opacity={0.75}
         active={hoverEffect ? (active ?? defaultActive) : active}
         select={clickEffect ? (select ?? defaultSelect) : select}
         events={resolvedEvents}
+        zIndex={rest.zIndex ?? 0}
+        autoFit={rest.autoFit}
+        visible={rest.visible}
+        name={rest.name ?? 'bubble-circle'}
         onClick={onClick}
         onMouseMove={onMouseMove}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         style={{
-          opacity: 0.4,
-          stroke: '#004ac6',
-          strokeWidth: 1,
-          anchor: bubbleAnchor,
+          stroke: color ?? '#004ac6',
+          strokeWidth: 2,
+          strokeOpacity: 1,
           ...(style ?? {}),
         }}
       />
 
-      {showLabel && (
+      {/* 文字标签图层 */}
+      {shouldShowLabel && (
         <PointLayer
           source={source}
           sourceType={sourceType}
@@ -178,6 +215,7 @@ export function BubbleLayer({
           shapeValues="text"
           color={labelColor}
           size={labelSize}
+          zIndex={(rest.zIndex ?? 0) + 1}
           style={{
             textAnchor: labelAnchor,
             textOffset: labelOffset ?? [0, 0],

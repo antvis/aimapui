@@ -36,7 +36,7 @@
   .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: var(--color-surface-container-low); border-bottom: 2px solid var(--color-outline-variant); }
   .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
   .spec-table code { font-size: 12px; }
-  .code-block { background: var(--color-on-surface); color: #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; }
+  .code-block { background: var(--color-on-surface); color: #e2e8f0; border-radius: 8px; padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; }
   .code-block .kw { color: #c084fc; }
   .code-block .str { color: #86efac; }
   .code-block .cmt { color: #64748b; }
@@ -191,7 +191,7 @@
   <h2>AimapKit 默认实现</h2>
   <div class="card">
     <div class="card-title">FillLayer API</div>
-    <div class="code-block"><span class="cmt">// 三种配色: sequential | diverging | categorical</span>
+    <pre class="code-block"><span class="cmt">// 三种配色: sequential | diverging | categorical</span>
 <span class="cmt">// 填充默认 0.8 透明度，边界 0.5px white/30</span>
 
 &lt;<span class="kw">FillLayer</span>
@@ -206,7 +206,7 @@
     <span class="cmt">// 加载下级行政区数据</span>
     console.log(feature);
   }}
-/&gt;</div>
+/&gt;</pre>
   </div>
 
 </div>

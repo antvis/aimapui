@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IconFontLayer WebGL 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+  :root {
+    --bg-void: #030712;
+    --bg-surface: #0f172a;
+    --bg-card: rgba(15, 23, 42, 0.92);
+    --bg-elevated: #1e293b;
+    --accent-cyan: #06b6d4;
+    --accent-cyan-glow: rgba(6, 182, 212, 0.35);
+    --accent-cyan-soft: rgba(6, 182, 212, 0.08);
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    --accent-violet: #8b5cf6;
+    --text-bright: #f8fafc;
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --text-muted: #475569;
+    --border: rgba(148, 163, 184, 0.08);
+    --border-glow: rgba(6, 182, 212, 0.25);
+    --grid-line: rgba(6, 182, 212, 0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', system-ui, sans-serif;
+    background: var(--bg-void);
+    color: var(--text-primary);
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+      radial-gradient(ellipse at 30% 20%, rgba(6,182,212,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse at 70% 80%, rgba(139,92,246,0.04) 0%, transparent 50%);
+    background-size: 60px 60px, 60px 60px, 100% 100%, 100% 100%;
+  }
+
+  .page {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 64px 28px;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 56px;
+    position: relative;
+    padding-left: 20px;
+    border-left: 3px solid var(--accent-cyan);
+  }
+  .header .tag {
+    display: inline-block;
+    font-family: 'Azeret Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-cyan);
+    background: var(--accent-cyan-soft);
+    border: 1px solid var(--border-glow);
+    padding: 3px 10px;
+    border-radius: 3px;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--text-bright);
+    margin-bottom: 10px;
+  }
+  .header .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 300;
+    max-width: 580px;
+  }
+
+  /* Section */
+  h2 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 52px 0 18px;
+    color: var(--text-bright);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  h2::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--accent-cyan);
+    border-radius: 2px;
+    box-shadow: 0 0 8px var(--accent-cyan-glow);
+  }
+  h3 {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin: 24px 0 12px;
+  }
+  p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+
+  /* Card */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(16px);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+  }
+  .card-label {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-cyan);
+    margin-bottom: 16px;
+  }
+
+  /* Pipeline Diagram */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 20px 0;
+    overflow-x: auto;
+  }
+  .pipeline-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    min-width: 100px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .pipeline-node:hover {
+    border-color: var(--border-glow);
+    box-shadow: 0 0 16px var(--accent-cyan-soft);
+    transform: translateY(-2px);
+  }
+  .pipeline-node .node-icon {
+    font-size: 22px;
+    color: var(--accent-cyan);
+  }
+  .pipeline-node .node-label {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 9px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .pipeline-arrow {
+    width: 32px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), transparent);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pipeline-arrow::after {
+    content: '▶';
+    position: absolute;
+    right: -2px;
+    top: -7px;
+    font-size: 8px;
+    color: var(--accent-cyan);
+  }
+
+  /* SDF Visualization */
+  .sdf-demo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 32px 0;
+  }
+  .sdf-glyph {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: radial-gradient(circle, var(--accent-cyan-soft) 0%, transparent 70%);
+    border: 1px solid var(--border-glow);
+  }
+  .sdf-glyph .material-symbols-outlined {
+    font-size: 36px;
+    color: var(--accent-cyan);
+    filter: drop-shadow(0 0 6px var(--accent-cyan-glow));
+  }
+  .sdf-glyph .sdf-ring {
+    position: absolute;
+    inset: -4px;
+    border-radius: 16px;
+    border: 1px dashed rgba(6, 182, 212, 0.3);
+    animation: sdf-pulse 3s ease-in-out infinite;
+  }
+  @keyframes sdf-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+  }
+  .sdf-meta {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: left;
+    line-height: 2;
+  }
+  .sdf-meta span {
+    color: var(--accent-cyan);
+  }
+
+  /* Icon Grid */
+  .icon-showcase {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  .icon-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 8px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .icon-cell:hover {
+    border-color: var(--border-glow);
+    transform: translateY(-1px);
+  }
+  .icon-cell .material-symbols-outlined {
+    font-size: 22px;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 8px var(--accent-cyan-glow);
+  }
+  .icon-cell .icon-name {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* Collision Demo */
+  .collision-sim {
+    position: relative;
+    height: 160px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .collision-sim .marker {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Azeret Mono', monospace;
+    font-size: 10px;
+    white-space: nowrap;
+    transition: opacity 0.4s ease;
+  }
+  .collision-sim .marker .dot {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    border-radius: 50%;
+    background: var(--accent-cyan-soft);
+    border: 1px solid rgba(6,182,212,0.4);
+  }
+  .collision-sim .marker .label {
+    color: var(--text-primary);
+    text-shadow: 0 0 4px rgba(0,0,0,0.8);
+    background: rgba(15, 23, 42, 0.7);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  .collision-sim .marker.hidden .label { opacity: 0.2; text-decoration: line-through; }
+  .collision-sim .marker.hidden .dot { opacity: 0.4; }
+
+  /* Zoom Levels */
+  .zoom-strip {
+    display: flex;
+    gap: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .zoom-level {
+    flex: 1;
+    padding: 20px 16px;
+    background: var(--bg-elevated);
+    border-right: 1px solid var(--border);
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .zoom-level:last-child { border-right: none; }
+  .zoom-level:hover { background: rgba(6, 182, 212, 0.03); }
+  .zoom-level .z-tag {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent-cyan);
+    margin-bottom: 12px;
+    letter-spacing: 0.05em;
+  }
+  .zoom-level .z-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 36px;
+    margin-bottom: 8px;
+  }
+  .zoom-level .z-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'Azeret Mono', monospace;
+  }
+  .zoom-dot-only {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 4px var(--accent-cyan-glow);
+  }
+
+  /* Interaction States */
+  .states-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .state-box {
+    padding: 20px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .state-box .state-label {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .state-box .state-icon {
+    font-size: 28px;
+    display: inline-block;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+  }
+  .state-box .state-desc {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-family: 'Azeret Mono', monospace;
+  }
+  .state-box--default .state-icon { color: var(--accent-cyan); }
+  .state-box--hover .state-icon {
+    color: var(--accent-emerald);
+    transform: scale(1.12);
+    filter: drop-shadow(0 0 10px rgba(16,185,129,0.4));
+  }
+  .state-box--hover { border-color: rgba(16,185,129,0.3); }
+  .state-box--selected .state-icon {
+    color: var(--accent-violet);
+    filter: drop-shadow(0 0 14px rgba(139,92,246,0.5)) drop-shadow(0 0 4px rgba(139,92,246,0.8));
+  }
+  .state-box--selected {
+    border-color: rgba(139,92,246,0.4);
+    box-shadow: 0 0 24px rgba(139,92,246,0.08);
+  }
+  .state-box--selected::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 8px;
+    border: 1px solid rgba(139,92,246,0.3);
+    animation: glow-ring 2s ease-in-out infinite;
+  }
+  @keyframes glow-ring {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+
+  /* Perf Table */
+  .perf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .perf-table th {
+    text-align: left;
+    padding: 10px 12px;
+    font-family: 'Azeret Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .perf-table td {
+    padding: 10px 12px;
+    font-family: 'Azeret Mono', monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+  }
+  .perf-table .highlight { color: var(--accent-cyan); font-weight: 600; }
+
+  /* Footer */
+  .footer {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-family: 'Azeret Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="tag">WebGL Rendering Pipeline</div>
+    <h1>IconFontLayer</h1>
+    <p class="subtitle">基于 SDF 纹理映射的字体图标图层，通过 GPU 批次渲染实现 10k+ 要素的流畅空间可视化。</p>
+  </div>
+
+  <!-- 1. Rendering Architecture -->
+  <h2>核心渲染架构</h2>
+
+  <div class="card">
+    <div class="card-label">GPU Pipeline</div>
+    <div class="pipeline">
+      <div class="pipeline-node">
+        <span class="material-symbols-outlined node-icon">data_object</span>
+        <span class="node-label">GeoJSON</span>
+      </div>
+      <div class="pipeline-arrow"></div>
+      <div class="pipeline-node">
+        <span class="material-symbols-outlined node-icon">font_download</span>
+        <span class="node-label">SDF Atlas</span>
+      </div>
+      <div class="pipeline-arrow"></div>
+      <div class="pipeline-node">
+        <span class="material-symbols-outlined node-icon">memory</span>
+        <span class="node-label">Vertex Buffer</span>
+      </div>
+      <div class="pipeline-arrow"></div>
+      <div class="pipeline-node">
+        <span class="material-symbols-outlined node-icon">brush</span>
+        <span class="node-label">Fragment Shader</span>
+      </div>
+      <div class="pipeline-arrow"></div>
+      <div class="pipeline-node">
+        <span class="material-symbols-outlined node-icon">monitor</span>
+        <span class="node-label">Framebuffer</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>SDF Glyph Rendering</h3>
+  <div class="card">
+    <div class="card-label">Signed Distance Fields</div>
+    <div class="sdf-demo">
+      <div class="sdf-glyph">
+        <span class="material-symbols-outlined">restaurant</span>
+        <div class="sdf-ring"></div>
+      </div>
+      <div class="sdf-glyph">
+        <span class="material-symbols-outlined">local_hospital</span>
+        <div class="sdf-ring" style="animation-delay: -1s;"></div>
+      </div>
+      <div class="sdf-glyph">
+        <span class="material-symbols-outlined">school</span>
+        <div class="sdf-ring" style="animation-delay: -2s;"></div>
+      </div>
+      <div class="sdf-meta">
+        <div><span>Resolution:</span> 64×64 texels/glyph</div>
+        <div><span>Halo:</span> SDF isoline @ d=2px</div>
+        <div><span>Batch:</span> Single draw call</div>
+        <div><span>Anti-alias:</span> Sub-pixel smoothstep</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Visual Anatomy -->
+  <h2>视觉解构与样式</h2>
+
+  <div class="card">
+    <div class="card-label">Icon Font Library</div>
+    <div class="icon-showcase">
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">location_on</span>
+        <span class="icon-name">location</span>
+      </div>
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">restaurant</span>
+        <span class="icon-name">food</span>
+      </div>
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">local_hospital</span>
+        <span class="icon-name">medical</span>
+      </div>
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">school</span>
+        <span class="icon-name">education</span>
+      </div>
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">park</span>
+        <span class="icon-name">nature</span>
+      </div>
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">local_gas_station</span>
+        <span class="icon-name">fuel</span>
+      </div>
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">shopping_cart</span>
+        <span class="icon-name">commerce</span>
+      </div>
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">directions_bus</span>
+        <span class="icon-name">transit</span>
+      </div>
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">hotel</span>
+        <span class="icon-name">lodging</span>
+      </div>
+      <div class="icon-cell">
+        <span class="material-symbols-outlined">fitness_center</span>
+        <span class="icon-name">fitness</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Rendering Specs</div>
+    <table class="perf-table">
+      <thead><tr><th>属性</th><th>Icon Layer</th><th>Label Layer</th></tr></thead>
+      <tbody>
+        <tr><td>Shape</td><td class="highlight">text (iconfont)</td><td class="highlight">text (unicode)</td></tr>
+        <tr><td>Size</td><td>16px - 24px</td><td>10px - 14px</td></tr>
+        <tr><td>Halo</td><td>1-2px SDF isoline</td><td>2px white glow</td></tr>
+        <tr><td>Color</td><td>Data-driven mapping</td><td>text-on-surface</td></tr>
+        <tr><td>Font</td><td>iconfont / Material</td><td>font-mono-data</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 3. Collision -->
+  <h2>空间布局与碰撞算法</h2>
+
+  <div class="card">
+    <div class="card-label">R-Tree Collision Detection</div>
+    <div class="collision-sim">
+      <div class="marker" style="top:20px;left:40px;">
+        <span class="dot"><span class="material-symbols-outlined" style="font-size:11px;color:var(--accent-cyan)">restaurant</span></span>
+        <span class="label">老上海饭店</span>
+      </div>
+      <div class="marker" style="top:35px;left:160px;">
+        <span class="dot"><span class="material-symbols-outlined" style="font-size:11px;color:var(--accent-emerald)">local_hospital</span></span>
+        <span class="label">仁济医院</span>
+      </div>
+      <div class="marker hidden" style="top:50px;left:110px;">
+        <span class="dot"><span class="material-symbols-outlined" style="font-size:11px;color:var(--accent-amber)">school</span></span>
+        <span class="label">实验小学</span>
+      </div>
+      <div class="marker" style="top:80px;left:300px;">
+        <span class="dot"><span class="material-symbols-outlined" style="font-size:11px;color:var(--accent-cyan)">park</span></span>
+        <span class="label">世纪公园</span>
+      </div>
+      <div class="marker" style="top:110px;left:480px;">
+        <span class="dot"><span class="material-symbols-outlined" style="font-size:11px;color:var(--accent-violet)">shopping_cart</span></span>
+        <span class="label">环球港</span>
+      </div>
+      <div class="marker hidden" style="top:95px;left:420px;">
+        <span class="dot"><span class="material-symbols-outlined" style="font-size:11px;color:var(--accent-rose)">hotel</span></span>
+        <span class="label">锦江饭店</span>
+      </div>
+      <div class="marker" style="top:40px;left:550px;">
+        <span class="dot"><span class="material-symbols-outlined" style="font-size:11px;color:var(--accent-emerald)">directions_bus</span></span>
+        <span class="label">南京路站</span>
+      </div>
+    </div>
+    <p style="margin-top:12px;font-size:11px;color:var(--text-muted);">
+      灰色 + 删除线 = 被碰撞检测隐藏的低权重要素。图标始终保留，仅文本被移除。
+    </p>
+  </div>
+
+  <!-- 4. Interaction -->
+  <h2>交互行为规范</h2>
+
+  <div class="card">
+    <div class="card-label">GPU Picking & States</div>
+    <div class="states-row">
+      <div class="state-box state-box--default">
+        <div class="state-label">Default</div>
+        <span class="material-symbols-outlined state-icon">location_on</span>
+        <div class="state-desc">opacity: 1.0</div>
+      </div>
+      <div class="state-box state-box--hover">
+        <div class="state-label">Hover</div>
+        <span class="material-symbols-outlined state-icon">location_on</span>
+        <div class="state-desc">scale: 1.12 + glow</div>
+      </div>
+      <div class="state-box state-box--selected">
+        <div class="state-label">Selected</div>
+        <span class="material-symbols-outlined state-icon">location_on</span>
+        <div class="state-desc">z-top + emit glow</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Zoom Adaptation -->
+  <h2>缩放适配逻辑</h2>
+
+  <div class="card">
+    <div class="card-label">Zoom-Dependent Rendering</div>
+    <div class="zoom-strip">
+      <div class="zoom-level">
+        <div class="z-tag">L1 · Z14+</div>
+        <div class="z-visual">
+          <span class="material-symbols-outlined" style="font-size:18px;color:var(--accent-cyan);">location_on</span>
+          <span style="font-family:'Azeret Mono',monospace;font-size:10px;color:var(--text-primary);">西湖广场</span>
+        </div>
+        <div class="z-desc">Icon + Label</div>
+      </div>
+      <div class="zoom-level">
+        <div class="z-tag">L2 · Z10-13</div>
+        <div class="z-visual">
+          <span class="material-symbols-outlined" style="font-size:16px;color:var(--accent-cyan);opacity:0.8;">location_on</span>
+        </div>
+        <div class="z-desc">Icon Only</div>
+      </div>
+      <div class="zoom-level">
+        <div class="z-tag">L3 · Z&lt;10</div>
+        <div class="z-visual">
+          <span class="zoom-dot-only"></span>
+        </div>
+        <div class="z-desc">SDF Dot 4px</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance -->
+  <h2>性能指标</h2>
+  <div class="card">
+    <div class="card-label">Benchmark</div>
+    <table class="perf-table">
+      <thead><tr><th>Metric</th><th>Value</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>Max Features</td><td class="highlight">50,000</td><td>Single layer instance</td></tr>
+        <tr><td>Draw Calls</td><td class="highlight">1</td><td>SDF batched rendering</td></tr>
+        <tr><td>Pick Latency</td><td class="highlight">&lt;2ms</td><td>GPU color buffer picking</td></tr>
+        <tr><td>Texture Atlas</td><td>2048×2048</td><td>Auto-resize on demand</td></tr>
+        <tr><td>Rendering</td><td>geometricPrecision</td><td>Retina sub-pixel sharpness</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    CPS v2.4.0 WebGL Module · IconFontLayer Specification · SDF Rendering Pipeline
+  </div>
+
+</div>
+</body>
+</html>

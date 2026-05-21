@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useMapControl, type ControlPosition } from '../../hooks/useMapControl';
+import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
  * MouseLocation 鼠标坐标控件
@@ -33,6 +34,7 @@ export function MouseLocationControl({
   const defaultTransform = ([lng, lat]: [number, number]) => [+lng.toFixed(precision), +lat.toFixed(precision)] as [number, number];
   const actualTransform = transform ?? defaultTransform;
   const { mapsService, positionClassName } = useMapControl(position);
+  const isInContainer = useControlContainer();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,17 +56,26 @@ export function MouseLocationControl({
     };
   }, [mapsService, actualTransform]);
 
+  const controlContent = (
+    <div
+      ref={containerRef}
+      className={`l7-control l7-control-mouse-location l7-control--glass${className ? ` ${className}` : ''}`}
+      style={style}
+    >
+      &nbsp;
+    </div>
+  );
+
+  if (isInContainer) return controlContent;
+
   return (
     <div className={`l7-control-anchor ${positionClassName}`}>
-      <div
-        ref={containerRef}
-        className={`l7-control l7-control-mouse-location l7-control--glass${className ? ` ${className}` : ''}`}
-        style={style}
-      >
-        &nbsp;
-      </div>
+      {controlContent}
     </div>
   );
 }
+
+// 注册为控件类型，供 ControlContainer 识别
+ControlRegistry.mark(MouseLocationControl);
 
 export default MouseLocationControl;

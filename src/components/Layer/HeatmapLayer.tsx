@@ -9,12 +9,20 @@ export interface HeatmapLayerProps
   sourceType?: LayerSchema['sourceType'];
   sourceConfig?: LayerSchema['sourceConfig'];
 
+  /** 点击事件 */
   onClick?: (payload: LayerEventPayload) => void;
+  /** 鼠标移动事件 */
   onMouseMove?: (payload: LayerEventPayload) => void;
+  /** 鼠标进入事件 */
+  onMouseEnter?: (payload: LayerEventPayload) => void;
+  /** 鼠标离开事件 */
+  onMouseLeave?: (payload: LayerEventPayload) => void;
 }
 
 /**
  * 热力图图层组件
+ *
+ * 支持悬停高亮交互（对齐蜂窝热力图设计规范）
  */
 export function HeatmapLayer({
   source,
@@ -22,6 +30,8 @@ export function HeatmapLayer({
   sourceConfig,
   onClick,
   onMouseMove,
+  onMouseEnter,
+  onMouseLeave,
   ...rest
 }: HeatmapLayerProps) {
   const scene = useScene();
@@ -36,8 +46,8 @@ export function HeatmapLayer({
   };
 
   const eventHandlers: LayerEventHandlers | undefined =
-    onClick || onMouseMove
-      ? { onClick, onMouseMove }
+    onClick || onMouseMove || onMouseEnter || onMouseLeave
+      ? { onClick, onMouseMove, onMouseEnter, onMouseLeave }
       : undefined;
 
   return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} />;

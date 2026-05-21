@@ -87,7 +87,7 @@ export { MapSceneRenderer } from './components/MapScene/MapSceneRenderer';
 export { LayerRenderer } from './components/Layer/LayerRenderer';
 export type { LayerEventHandlers } from './components/Layer/SchemaLayer';
 export { ControlRenderer } from './components/Control/ControlRenderer';
-export { ControlContainer } from './components/Control/ControlContainer';
+export { ControlContainer, ControlRegistry, useControlContainer } from './components/Control/ControlContainer';
 export { InteractionRenderer } from './components/Interaction/InteractionRenderer';
 export { LegendRenderer } from './components/Legend/LegendRenderer';
 
@@ -112,10 +112,13 @@ export { MarkerClusterLayer } from './components/CompositeLayer/MarkerClusterLay
 export type { MarkerClusterLayerProps } from './components/CompositeLayer/MarkerClusterLayer';
 export { FillLayer } from './components/CompositeLayer/FillLayer';
 export type { FillLayerProps } from './components/CompositeLayer/FillLayer';
-export { IconFontLayer } from './components/CompositeLayer/IconFontLayer';
+export { IconFontLayer, BUILTIN_ICON_FONTS } from './components/CompositeLayer/IconFontLayer';
 export type { IconFontLayerProps } from './components/CompositeLayer/IconFontLayer';
+export type { LabelAnchor } from './components/CompositeLayer/IconFontLayer';
 export { IconImageLayer } from './components/CompositeLayer/IconImageLayer';
 export type { IconImageLayerProps } from './components/CompositeLayer/IconImageLayer';
+export { SatelliteLayer, SATELLITE_PROVIDER_NAMES } from './components/CompositeLayer/SatelliteLayer';
+export type { SatelliteLayerProps, SatelliteProvider } from './components/CompositeLayer/SatelliteLayer';
 
 // Control 组件
 export { ZoomControl } from './components/Control/ZoomControl';

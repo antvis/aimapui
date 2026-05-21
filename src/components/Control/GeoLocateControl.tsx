@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { useMapControl, type ControlPosition } from '../../hooks/useMapControl';
+import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
  * GeoLocate 定位控件
@@ -27,6 +28,7 @@ export function GeoLocateControl({
   style,
 }: GeoLocateControlProps) {
   const { mapsService, positionClassName } = useMapControl(position);
+  const isInContainer = useControlContainer();
 
   const handleClick = useCallback(async () => {
     if (!window.navigator.geolocation) {
@@ -58,20 +60,29 @@ export function GeoLocateControl({
     }
   }, [mapsService, transform]);
 
+  const controlContent = (
+    <div className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`} style={style}>
+      <button
+        className="l7-button-control"
+        onClick={handleClick}
+        title="定位"
+        aria-label="定位"
+      >
+        <span className="material-symbols-outlined">my_location</span>
+      </button>
+    </div>
+  );
+
+  if (isInContainer) return controlContent;
+
   return (
     <div className={`l7-control-anchor ${positionClassName}`}>
-      <div className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`} style={style}>
-        <button
-          className="l7-button-control"
-          onClick={handleClick}
-          title="定位"
-          aria-label="定位"
-        >
-          <span className="material-symbols-outlined">my_location</span>
-        </button>
-      </div>
+      {controlContent}
     </div>
   );
 }
+
+// 注册为控件类型，供 ControlContainer 识别
+ControlRegistry.mark(GeoLocateControl);
 
 export default GeoLocateControl;

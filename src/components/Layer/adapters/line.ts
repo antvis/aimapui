@@ -1,4 +1,5 @@
 import type { LayerSchema } from '../../../schema/types';
+import { buildVisualConfig, buildGeojsonSourceConfig } from './common';
 
 /**
  * Line 图层适配器
@@ -6,19 +7,19 @@ import type { LayerSchema } from '../../../schema/types';
 export function adaptLineLayer(schema: LayerSchema) {
   return {
     type: 'LineLayer' as const,
-    sourceConfig: buildSourceConfig(schema),
-    visual: buildVisual(schema),
+    sourceConfig: buildLineSourceConfig(schema),
+    visual: buildVisualConfig(schema),
     schema,
   };
 }
 
-function buildSourceConfig(schema: LayerSchema) {
+function buildLineSourceConfig(schema: LayerSchema) {
   if (schema.sourceConfig?.parser) {
     return { data: schema.source, options: { parser: schema.sourceConfig.parser } };
   }
 
   if (schema.sourceType === 'geojson') {
-    return { data: schema.source, options: undefined };
+    return buildGeojsonSourceConfig(schema);
   }
   if (schema.sourceType === 'csv') {
     return {
@@ -48,28 +49,4 @@ function buildSourceConfig(schema: LayerSchema) {
       },
     },
   };
-}
-
-function buildVisual(schema: LayerSchema) {
-  const color = schema.colorField
-    ? { field: schema.colorField, values: schema.colorValues }
-    : schema.color
-      ? { values: schema.color }
-      : undefined;
-
-  const size = schema.sizeField
-    ? { field: schema.sizeField, values: schema.sizeValues }
-    : schema.size !== undefined
-      ? { values: schema.size }
-      : undefined;
-
-  const shape = schema.shapeField
-    ? { field: schema.shapeField, values: schema.shapeValues }
-    : schema.shape
-      ? { values: schema.shape }
-      : undefined;
-
-  const style = schema.style ? { ...schema.style } : undefined;
-
-  return { color, size, shape, style };
 }
