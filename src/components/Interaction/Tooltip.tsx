@@ -1,35 +1,185 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useScene } from '../../context/SceneContext';
+import { useMapPosition } from '../../hooks/useMapPosition';
+import { cx } from '../../utils/style';
 import type { TooltipSchema } from '../../schema/types';
 
-export interface TooltipProps extends Omit<TooltipSchema, 'type'> {
-  targetElement?: HTMLElement | null;
-  placement?: 'top' | 'right' | 'bottom' | 'left';
-  offset?: number;
-  className?: string;
-  style?: React.CSSProperties;
-}
+// ============================================================
+// Tooltip 类型定义 — Cartographic Precision System v1.2.0
+// ============================================================
 
 /**
- * Tooltip 组件（GeoLink Pro 风格）
- * - 支持 hover/click 触发
- * - 支持 top/right/bottom/left 四向箭头
- * - 使用玻璃态 + MD3 色板视觉
+ * Tooltip 视觉变体
+ * - dark:  深色高对比度（默认），适用于卫星图/亮色底图
+ * - glass: 玻璃拟态毛玻璃，适用于简洁数据地图
+ * - light: 浅色背景，适用于深色底图
  */
+export type TooltipVariant = 'dark' | 'glass' | 'light';
+
+/** Tooltip 方向 */
+export type TooltipPlacement = 'top' | 'right' | 'bottom' | 'left';
+
+/**
+ * Tooltip 键值对数据项
+ */
+export interface TooltipItem {
+  /** 标签 */
+  label: string;
+  /** 值 */
+  value: string | number;
+}
+
+export interface TooltipProps extends Omit<TooltipSchema, 'type'> {
+  /** 内容：纯文本 / ReactNode。优先级高于 title/items */
+  content?: string | React.ReactNode;
+  /** 视觉变体，默认 dark */
+  variant?: TooltipVariant;
+
+  // ── 地图模式 ──
+  /** 经度（地图定位模式） */
+  longitude?: number;
+  /** 纬度（地图定位模式） */
+  latitude?: number;
+
+  // ── DOM 模式 ──
+  /** 目标 DOM 元素 */
+  targetElement?: HTMLElement | null;
+
+  /** 方向，默认 top */
+  placement?: TooltipPlacement;
+  /** 偏移距离，默认 8px */
+  offset?: number;
+  /** 触发方式，默认 hover */
+  trigger?: 'hover' | 'click';
+  /** 受控可见性 */
+  visible?: boolean;
+  /** 结构化标题 */
+  title?: string;
+  /** 结构化键值对列表 */
+  items?: TooltipItem[];
+  /** Overlay 容器 */
+  overlayContainer?: HTMLElement | null;
+  /** 自定义类名 */
+  className?: string;
+}
+
+/** 箭头方向映射：placement -> 箭头所在位置 */
+const ARROW_POSITION_MAP: Record<TooltipPlacement, string> = {
+  top: 'bottom',
+  bottom: 'top',
+  left: 'right',
+  right: 'left',
+};
+
+/** placement 对应的 anchor translate */
+const PLACEMENT_TRANSLATE: Record<TooltipPlacement, string> = {
+  top: 'translate(-50%, -100%)',
+  bottom: 'translate(-50%, 0)',
+  left: 'translate(-100%, -50%)',
+  right: 'translate(0, -50%)',
+};
+
+// ============================================================
+// Tooltip 主组件
+// ============================================================
+
 export function Tooltip({
   content,
-  trigger = 'hover',
+  variant = 'dark',
+  longitude,
+  latitude,
   targetElement,
   placement = 'top',
-  offset = 10,
+  offset = 8,
+  trigger = 'hover',
+  visible: visibleProp,
+  title,
+  items,
+  overlayContainer,
   className,
-  style,
 }: TooltipProps) {
-  const tooltipRef = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
-  const [position, setPosition] = useState({ left: -9999, top: -9999 });
+  const scene = useScene();
+  const isControlled = visibleProp !== undefined;
+  const [internalVisible, setInternalVisible] = useState(false);
+  const visible = isControlled ? visibleProp! : internalVisible;
 
-  const updatePosition = () => {
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isMapMode = longitude !== undefined && latitude !== undefined;
+
+  // 自动获取 overlay 容器（地图模式）
+  const [autoContainer, setAutoContainer] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isMapMode || overlayContainer || !scene) return;
+
+    const tryGetContainer = () => {
+      try {
+        const mapsService = (scene as any).mapService;
+        if (mapsService && typeof mapsService.getMarkerContainer === 'function') {
+          const markerContainer = mapsService.getMarkerContainer() as HTMLElement;
+          if (markerContainer) {
+            setAutoContainer(markerContainer);
+            return true;
+          }
+        }
+      } catch {
+        // 不可用
+      }
+      return false;
+    };
+
+    if (tryGetContainer()) return;
+
+    const onLoaded = () => { tryGetContainer(); };
+    if ((scene as any).loaded) {
+      onLoaded();
+    } else {
+      scene.on('loaded', onLoaded);
+    }
+    return () => { scene.off('loaded', onLoaded); };
+  }, [scene, overlayContainer, isMapMode]);
+
+  const container = isMapMode ? (overlayContainer ?? autoContainer) : null;
+
+  // ── DOM 模式：监听目标元素事件 ──
+  useEffect(() => {
+    if (isMapMode || !targetElement || isControlled) return;
+
+    const showWithDelay = () => {
+      delayTimerRef.current = setTimeout(() => setInternalVisible(true), 100);
+    };
+    const hideImmediately = () => {
+      if (delayTimerRef.current) {
+        clearTimeout(delayTimerRef.current);
+        delayTimerRef.current = null;
+      }
+      setInternalVisible(false);
+    };
+    const toggleOnClick = () => {
+      if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
+      setInternalVisible((v) => !v);
+    };
+
+    if (trigger === 'hover') {
+      targetElement.addEventListener('mouseenter', showWithDelay);
+      targetElement.addEventListener('mouseleave', hideImmediately);
+    } else {
+      targetElement.addEventListener('click', toggleOnClick);
+    }
+
+    return () => {
+      if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
+      targetElement.removeEventListener('mouseenter', showWithDelay);
+      targetElement.removeEventListener('mouseleave', hideImmediately);
+      targetElement.removeEventListener('click', toggleOnClick);
+    };
+  }, [targetElement, trigger, isMapMode, isControlled]);
+
+  // ── DOM 模式：定位到目标元素 ──
+  const updateDomPosition = useCallback(() => {
     if (!targetElement || !tooltipRef.current) return;
 
     const rect = targetElement.getBoundingClientRect();
@@ -58,106 +208,161 @@ export function Tooltip({
         break;
     }
 
-    // 轻量防溢出
     const padding = 8;
     left = Math.max(padding, Math.min(left, window.innerWidth - tipRect.width - padding));
     top = Math.max(padding, Math.min(top, window.innerHeight - tipRect.height - padding));
 
-    setPosition({ left, top });
-  };
+    tooltipRef.current.style.left = `${left}px`;
+    tooltipRef.current.style.top = `${top}px`;
+  }, [targetElement, placement, offset]);
 
   useEffect(() => {
-    if (!targetElement) return;
-
-    const onEnter = () => {
-      if (trigger === 'hover') {
-        setVisible(true);
-      }
-    };
-    const onLeave = () => {
-      if (trigger === 'hover') {
-        setVisible(false);
-      }
-    };
-    const onClick = () => {
-      if (trigger === 'click') {
-        setVisible((v) => !v);
-      }
-    };
-
-    targetElement.addEventListener('mouseenter', onEnter);
-    targetElement.addEventListener('mouseleave', onLeave);
-    targetElement.addEventListener('click', onClick);
-
+    if (isMapMode || !visible || !targetElement) return;
+    updateDomPosition();
+    const onResize = () => updateDomPosition();
+    window.addEventListener('resize', onResize);
+    window.addEventListener('scroll', onResize, true);
     return () => {
-      targetElement.removeEventListener('mouseenter', onEnter);
-      targetElement.removeEventListener('mouseleave', onLeave);
-      targetElement.removeEventListener('click', onClick);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('scroll', onResize, true);
     };
-  }, [targetElement, trigger]);
+  }, [visible, targetElement, isMapMode, updateDomPosition]);
 
-  useEffect(() => {
-    if (!visible) return;
+  // ── 地图模式：定位到经纬度 ──
+  const updateMapPosition = useCallback(() => {
+    const el = tooltipRef.current;
+    if (!el || !scene || !isMapMode) return;
 
-    updatePosition();
+    try {
+      const mapsService = (scene as any).mapService;
+      const pos = mapsService
+        ? mapsService.lngLatToContainer([longitude, latitude])
+        : scene.lngLatToContainer([longitude, latitude]);
 
-    const onViewportChange = () => updatePosition();
-    window.addEventListener('resize', onViewportChange);
-    window.addEventListener('scroll', onViewportChange, true);
+      if (!pos || isNaN(pos.x) || isNaN(pos.y)) return;
 
-    return () => {
-      window.removeEventListener('resize', onViewportChange);
-      window.removeEventListener('scroll', onViewportChange, true);
-    };
-  }, [visible, targetElement, placement, offset]);
+      let offsetX = 0;
+      let offsetY = 0;
+      switch (placement) {
+        case 'top': offsetY = -offset; break;
+        case 'bottom': offsetY = offset; break;
+        case 'left': offsetX = -offset; break;
+        case 'right': offsetX = offset; break;
+      }
 
-  const arrow = useMemo(() => {
-    switch (placement) {
-      case 'right':
-        return <div style={{ position: 'absolute', left: -6, top: '50%', transform: 'translateY(-50%)', width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderRight: '6px solid #27313f' }} />;
-      case 'bottom':
-        return <div style={{ position: 'absolute', top: -6, left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #27313f' }} />;
-      case 'left':
-        return <div style={{ position: 'absolute', right: -6, top: '50%', transform: 'translateY(-50%)', width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '6px solid #27313f' }} />;
-      case 'top':
-      default:
-        return <div style={{ position: 'absolute', bottom: -6, left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderTop: '6px solid #27313f' }} />;
+      const rx = Math.round(pos.x + offsetX);
+      const ry = Math.round(pos.y + offsetY);
+      const anchorTranslate = PLACEMENT_TRANSLATE[placement];
+
+      el.style.left = '0';
+      el.style.top = '0';
+      el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${anchorTranslate}`;
+      el.style.visibility = 'visible';
+    } catch {
+      // 场景未初始化
     }
-  }, [placement]);
+  }, [scene, longitude, latitude, placement, offset, isMapMode]);
+
+  useEffect(() => {
+    if (!isMapMode || !container || !visible) return;
+    const rafId = requestAnimationFrame(() => updateMapPosition());
+    return () => cancelAnimationFrame(rafId);
+  }, [container, visible, isMapMode, updateMapPosition]);
+
+  // 地图交互时持续同步位置
+  useMapPosition(
+    isMapMode ? scene : null,
+    longitude ?? 0,
+    latitude ?? 0,
+    (x, y) => {
+      const el = tooltipRef.current;
+      if (!el || !isMapMode) return;
+
+      let offsetX = 0;
+      let offsetY = 0;
+      switch (placement) {
+        case 'top': offsetY = -offset; break;
+        case 'bottom': offsetY = offset; break;
+        case 'left': offsetX = -offset; break;
+        case 'right': offsetX = offset; break;
+      }
+
+      const rx = Math.round(x + offsetX);
+      const ry = Math.round(y + offsetY);
+      const anchorTranslate = PLACEMENT_TRANSLATE[placement];
+
+      el.style.left = '0';
+      el.style.top = '0';
+      el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${anchorTranslate}`;
+      el.style.visibility = 'visible';
+    },
+  );
 
   if (!visible) return null;
 
-  return createPortal(
+  const arrowDirection = ARROW_POSITION_MAP[placement];
+  const hasStructuredContent = title || (items && items.length > 0);
+
+  const renderContent = () => {
+    if (content) {
+      return typeof content === 'string' ? <span>{content}</span> : content;
+    }
+    if (hasStructuredContent) {
+      return (
+        <>
+          {title && <p className="aimapkit-tooltip-title">{title}</p>}
+          {items && items.length > 0 && (
+            <div className="aimapkit-tooltip-items">
+              {items.map((item, i) => (
+                <div key={i} className="aimapkit-tooltip-item">
+                  <span className="aimapkit-tooltip-item-label">{item.label}</span>
+                  <span className="aimapkit-tooltip-item-value">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      );
+    }
+    return null;
+  };
+
+  const tooltipElement = (
     <div
       ref={tooltipRef}
-      className={className}
-      style={{
-        position: 'fixed',
-        left: position.left,
-        top: position.top,
-        zIndex: 9999,
-        pointerEvents: 'none',
-        background: 'rgba(39,49,63,0.95)',
-        color: '#eaf1ff',
-        border: '1px solid rgba(195,198,215,0.35)',
-        borderRadius: 8,
-        padding: '6px 10px',
-        boxShadow: '0 8px 24px rgba(18,28,42,0.25)',
-        fontSize: 12,
-        lineHeight: '16px',
-        fontWeight: 450,
-        fontFamily: 'JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        whiteSpace: 'nowrap',
-        ...style,
-      }}
+      className={cx('aimapkit-tooltip', variant !== 'dark' && `aimapkit-tooltip--${variant}`)}
+      style={
+        isMapMode
+          ? {
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              transform: 'translate(-9999px, -9999px)',
+              visibility: 'hidden',
+              zIndex: 50,
+              pointerEvents: 'none',
+            }
+          : {
+              position: 'fixed',
+              left: -9999,
+              top: -9999,
+              zIndex: 9999,
+              pointerEvents: 'none',
+            }
+      }
     >
-      {content}
-      {arrow}
-    </div>,
-    document.body,
+      <div className={cx('aimapkit-tooltip-content', className)}>
+        {renderContent()}
+      </div>
+      <div className={`aimapkit-tooltip-arrow aimapkit-tooltip-arrow--${arrowDirection}`} />
+    </div>
   );
+
+  if (isMapMode && container) {
+    return createPortal(tooltipElement, container);
+  }
+
+  return createPortal(tooltipElement, document.body);
 }
 
 export default Tooltip;

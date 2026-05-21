@@ -1,36 +1,97 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useScene } from '../../context/SceneContext';
 import { useMapPosition } from '../../hooks/useMapPosition';
 import { cx } from '../../utils/style';
 import type { PopupSchema } from '../../schema/types';
 
+// ============================================================
+// Popup 类型定义 — Cartographic Precision System v1.2.0
+// ============================================================
+
+/**
+ * Popup 尺寸变体
+ * - compact:   宽度 240px，适用于简单文字标注
+ * - standard:  宽度 320px，适用于 POI 简介等通用场景
+ * - detailed:  宽度 480px，适用于统计图表或详细参数对比
+ */
 export type PopupSize = 'compact' | 'standard' | 'detailed';
 
+/**
+ * 弹出框相对于锚点的位置
+ * - auto: 根据视口边界自动选择（默认）
+ * - top: 始终在锚点上方
+ * - bottom: 始终在锚点下方
+ * - left: 始终在锚点左侧
+ * - right: 始终在锚点右侧
+ */
+export type PopupPlacement = 'auto' | 'top' | 'bottom' | 'left' | 'right';
+
+/**
+ * Popup 标题栏配置
+ */
+export interface PopupHeader {
+  /** 标题文字 */
+  title: string;
+  /** 封面图 URL（可选，显示在顶部 aspect-video 比例） */
+  coverUrl?: string;
+  /** 状态标签（可选，显示在封面图左下角） */
+  statusLabel?: string;
+  /** 状态颜色（可选，默认 emerald-500） */
+  statusColor?: string;
+  /** 标题前的状态点颜色（可选，compact 模式标题前脉冲指示灯） */
+  statusDot?: string;
+}
+
+/**
+ * Popup 属性项
+ */
+export interface PopupAttribute {
+  /** 属性标签 */
+  label: string;
+  /** 属性值 */
+  value: string | number;
+  /** 值颜色（可选，默认使用 on-surface） */
+  valueColor?: string;
+  /** Material Symbols 图标名（仅 detailed 模式渲染图标容器） */
+  icon?: string;
+}
+
+/**
+ * Popup 操作按钮
+ */
+export interface PopupAction {
+  /** 按钮文字 */
+  label: string;
+  /** 按钮类型：primary 主按钮 / secondary 次要按钮 */
+  variant?: 'primary' | 'secondary';
+  /** 点击回调 */
+  onClick?: () => void;
+}
+
 export interface PopupProps extends Omit<PopupSchema, 'type' | 'content'> {
-  /** 弹窗内容，支持纯文本 / HTML 字符串 / ReactNode */
-  content: string | React.ReactNode;
-  /** 尺寸变体 */
+  /** 弹窗内容，支持纯文本 / HTML 字符串 / ReactNode。当使用 header/attributes/actions 结构化模式时可省略 */
+  content?: string | React.ReactNode;
+  /** 尺寸变体，默认 standard */
   size?: PopupSize;
+  /** 弹出位置，默认 auto（自动根据视口边界选择） */
+  placement?: PopupPlacement;
+  /** 弹出框偏移量（像素），默认 8px，正数远离锚点 */
+  offset?: number;
+  /** 结构化标题栏（可选，传入后覆盖简单内容模式） */
+  header?: PopupHeader;
+  /** 属性列表（可选，"标签-值"对齐模式） */
+  attributes?: PopupAttribute[];
+  /** 底部操作按钮（可选） */
+  actions?: PopupAction[];
+  /** 受控可见性：传入时由外部控制显隐；不传或 undefined 时组件内部管理 */
+  visible?: boolean;
+  /** 是否启用互斥模式（默认 false）。启用后同一时间仅显示一个 Popup */
+  singleton?: boolean;
   overlayContainer?: HTMLElement | null;
   onClose?: () => void;
   className?: string;
 }
-
-/**
- * Popup 组件 — 参考 L7 Popup 实现
- *
- * 核心机制：
- * - 挂载到 mapsService.getMarkerContainer()
- * - 使用 useMapPosition 回调模式直接操作 DOM style，避免 setState 延迟
- * - RAF 节流避免高频更新卡顿
- * - 超出可视区域自动隐藏
- */
-const sizeClassMap: Record<PopupSize, string> = {
-  compact: 'w-[240px]',
-  standard: 'w-[320px]',
-  detailed: 'w-[480px]',
-};
 
 /**
  * 检测内容是否为 HTML 字符串
@@ -39,22 +100,315 @@ function isHtmlString(content: unknown): content is string {
   return typeof content === 'string' && /<[a-zA-Z][^>]*>/.test(content);
 }
 
+// ============================================================
+// 互斥管理 — 模块级单例跟踪
+// ============================================================
+
+type PopupId = symbol;
+let activeSingletonPopup: PopupId | null = null;
+const singletonListeners = new Set<(activeId: PopupId | null) => void>();
+
+function registerSingleton(id: PopupId, onClose: () => void) {
+  if (activeSingletonPopup && activeSingletonPopup !== id) {
+    // 通知上一个 Popup 关闭
+    singletonListeners.forEach((fn) => fn(id));
+  }
+  activeSingletonPopup = id;
+}
+
+function unregisterSingleton(id: PopupId) {
+  if (activeSingletonPopup === id) {
+    activeSingletonPopup = null;
+  }
+}
+
+// ============================================================
+// 箭头方向与定位计算
+// ============================================================
+
+/** 根据锚点和 Popup 尺寸判断最佳方向 */
+function computePlacement(
+  anchorX: number,
+  anchorY: number,
+  popupWidth: number,
+  popupHeight: number,
+  mapWidth: number,
+  mapHeight: number,
+  preferred: PopupPlacement,
+  offset: number,
+): { placement: 'top' | 'bottom' | 'left' | 'right'; transform: string } {
+  if (preferred !== 'auto') {
+    return buildTransform(preferred as 'top' | 'bottom' | 'left' | 'right', offset);
+  }
+
+  // 默认 top（锚点上方），检查是否溢出
+  const spaceTop = anchorY;
+  const spaceBottom = mapHeight - anchorY;
+  const spaceLeft = anchorX;
+  const spaceRight = mapWidth - anchorX;
+
+  const tipHeight = 8; // 箭头高度
+
+  // 尝试 top
+  if (spaceTop >= popupHeight + offset + tipHeight) {
+    return buildTransform('top', offset);
+  }
+  // 尝试 bottom
+  if (spaceBottom >= popupHeight + offset + tipHeight) {
+    return buildTransform('bottom', offset);
+  }
+  // 尝试 right
+  if (spaceRight >= popupWidth + offset + tipHeight) {
+    return buildTransform('right', offset);
+  }
+  // 尝试 left
+  if (spaceLeft >= popupWidth + offset + tipHeight) {
+    return buildTransform('left', offset);
+  }
+
+  // 所有方向都不够空间，选择最大空间方向
+  const spaces = { top: spaceTop, bottom: spaceBottom, right: spaceRight, left: spaceLeft };
+  const best = (Object.entries(spaces) as [string, number][]).sort((a, b) => b[1] - a[1])[0][0] as 'top' | 'bottom' | 'left' | 'right';
+  return buildTransform(best, offset);
+}
+
+function buildTransform(
+  placement: 'top' | 'bottom' | 'left' | 'right',
+  offset: number,
+): { placement: 'top' | 'bottom' | 'left' | 'right'; transform: string } {
+  switch (placement) {
+    case 'top':
+      return { placement: 'top', transform: `translate(-50%, -100%) translateY(-${offset}px)` };
+    case 'bottom':
+      return { placement: 'bottom', transform: `translate(-50%, 0) translateY(${offset}px)` };
+    case 'left':
+      return { placement: 'left', transform: `translate(-100%, -50%) translateX(-${offset}px)` };
+    case 'right':
+      return { placement: 'right', transform: `translate(0, -50%) translateX(${offset}px)` };
+  }
+}
+
+// ============================================================
+// Popup 子组件
+// ============================================================
+
+/** 关闭按钮 */
+function CloseButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      className="aimapkit-popup-close-btn"
+      aria-label="关闭"
+    >
+      <span className="material-symbols-outlined">close</span>
+    </button>
+  );
+}
+
+/** 箭头 SVG 路径 — 四方向 */
+const ARROW_PATHS = {
+  // 箭头朝下（Popup 在锚点上方）
+  top: 'M0 0L8 8L16 0',
+  // 箭头朝上（Popup 在锚点下方）
+  bottom: 'M0 8L8 0L16 8',
+  // 箭头朝右（Popup 在锚点左侧）
+  left: 'M0 0L8 8L0 16',
+  // 箭头朝左（Popup 在锚点右侧）
+  right: 'M8 0L0 8L8 16',
+} as const;
+
+/** 指向箭头 — 放置在 .aimapkit-popup-content 外部，不受 overflow:hidden 裁剪 */
+function PopupTip({ placement }: { placement: 'top' | 'bottom' | 'left' | 'right' }) {
+  const isVertical = placement === 'top' || placement === 'bottom';
+  const svgWidth = isVertical ? 16 : 8;
+  const svgHeight = isVertical ? 8 : 16;
+  const viewBox = isVertical ? '0 0 16 8' : '0 0 8 16';
+  const path = ARROW_PATHS[placement];
+
+  // 颜色与容器保持一致
+  const fillColor = 'rgba(248, 249, 255, 0.95)';
+  const strokeColor = 'rgba(195, 198, 215, 0.3)';
+
+  return (
+    <div className={`aimapkit-popup-tip-arrow aimapkit-popup-tip-arrow--${placement === 'top' ? 'bottom' : placement === 'bottom' ? 'top' : placement}`}>
+      <svg width={svgWidth} height={svgHeight} viewBox={viewBox} fill="none">
+        <path d={path} fill={fillColor} />
+        <path d={path} stroke={strokeColor} strokeWidth="0.5" fill="none" />
+      </svg>
+    </div>
+  );
+}
+
+/** 封面图 + 状态标签 */
+function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => void }) {
+  if (!header.coverUrl) return null;
+  return (
+    <div className="aimapkit-popup-cover">
+      <img src={header.coverUrl} alt={header.title} className="aimapkit-popup-cover-img" />
+      <button
+        className="aimapkit-popup-close-btn aimapkit-popup-close-btn--cover"
+        aria-label="关闭"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+      >
+        <span className="material-symbols-outlined">close</span>
+      </button>
+      {header.statusLabel && (
+        <div className="aimapkit-popup-status-badge">
+          <div
+            className="aimapkit-popup-status-dot"
+            style={{ background: header.statusColor || '#10b981' }}
+          />
+          <span>{header.statusLabel}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** 标题区 — 关闭按钮作为 flex 子项 */
+function HeaderSection({
+  header,
+  onClose,
+  hasCover,
+  showStatusDot,
+}: {
+  header: PopupHeader;
+  onClose: () => void;
+  hasCover: boolean;
+  showStatusDot?: boolean;
+}) {
+  return (
+    <div className={cx('aimapkit-popup-header', !hasCover && 'aimapkit-popup-header--with-close')}>
+      {showStatusDot && header.statusDot && (
+        <div
+          className="aimapkit-popup-header-dot"
+          style={{ background: header.statusDot }}
+        />
+      )}
+      <h3 className="aimapkit-popup-title">{header.title}</h3>
+      {!hasCover && <CloseButton onClick={onClose} />}
+    </div>
+  );
+}
+
+/** 属性列表 — 根据 size 变体切换布局 */
+function AttributeList({
+  attributes,
+  size,
+}: {
+  attributes: PopupAttribute[];
+  size: PopupSize;
+}) {
+  const isCompact = size === 'compact';
+  const isDetailed = size === 'detailed';
+  const cols = isCompact ? 1 : 2;
+
+  return (
+    <div
+      className="aimapkit-popup-attrs"
+      style={!isCompact ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : undefined}
+    >
+      {attributes.map((attr, i) => {
+        // Detailed 模式且属性有 icon：渲染图标容器 + 大号值
+        if (isDetailed && attr.icon) {
+          return (
+            <div key={i} className="aimapkit-popup-attr aimapkit-popup-attr--detailed">
+              <div className="aimapkit-popup-attr-icon">
+                <span className="material-symbols-outlined">{attr.icon}</span>
+              </div>
+              <div className="aimapkit-popup-attr-text">
+                <p className="aimapkit-popup-attr-label">{attr.label}</p>
+                <p className="aimapkit-popup-attr-value" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
+                  {attr.value}
+                </p>
+              </div>
+            </div>
+          );
+        }
+
+        // Compact/Standard 模式 — 标签-值左右对齐
+        return (
+          <div key={i} className="aimapkit-popup-attr">
+            <p className="aimapkit-popup-attr-label">{attr.label}</p>
+            <p className="aimapkit-popup-attr-value" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
+              {attr.value}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** 底部操作栏 */
+function ActionBar({ actions }: { actions: PopupAction[] }) {
+  return (
+    <div className="aimapkit-popup-actions">
+      {actions.map((action, i) => (
+        <button
+          key={i}
+          className={cx(
+            'aimapkit-popup-action-btn',
+            action.variant === 'secondary'
+              ? 'aimapkit-popup-action-btn--secondary'
+              : 'aimapkit-popup-action-btn--primary',
+          )}
+          onClick={action.onClick}
+        >
+          {action.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// Popup 主组件
+// ============================================================
+
 export function Popup({
   longitude,
   latitude,
   content,
   closeButton = true,
   size = 'standard',
+  placement: placementProp = 'auto',
+  offset = 8,
+  header,
+  attributes,
+  actions,
+  visible: visibleProp,
+  singleton = false,
   overlayContainer,
   onClose,
   className,
 }: PopupProps) {
   const scene = useScene();
-  const [visible, setVisible] = useState(true);
+  // 如果传入了 visibleProp，则为受控模式；否则内部管理
+  const isControlled = visibleProp !== undefined;
+  const [internalVisible, setInternalVisible] = useState(true);
+  const visible = isControlled ? visibleProp! : internalVisible;
+
+  // 退场动效状态
+  const [exiting, setExiting] = useState(false);
+
+  // 当前生效的箭头方向
+  const [currentPlacement, setCurrentPlacement] = useState<'top' | 'bottom' | 'left' | 'right'>('top');
+
   const popupRef = useRef<HTMLDivElement>(null);
   const isInViewRef = useRef(true);
+  const mountedRef = useRef(false);
 
-  // 自动获取 overlay 容器（组件化模式下）
+  // 互斥 ID
+  const popupIdRef = useRef<PopupId>(Symbol('popup'));
+
+  // 自动获取 overlay 容器
   const [autoContainer, setAutoContainer] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -76,10 +430,8 @@ export function Popup({
       return false;
     };
 
-    // 立即尝试获取容器
     if (tryGetContainer()) return;
 
-    // 如果失败，等待 loaded 事件
     const onLoaded = () => {
       tryGetContainer();
     };
@@ -97,159 +449,306 @@ export function Popup({
 
   const container = overlayContainer ?? autoContainer;
 
-  // 强制重新渲染计数器，用于容器变化时触发重渲染
-  const [, forceUpdate] = useState(0);
+  // ── 关闭处理（含退场动效） ──
+  const handleClose = useCallback(() => {
+    if (exiting) return;
+    setExiting(true);
+    // 等待退场动画完成后再真正关闭
+    setTimeout(() => {
+      if (!isControlled) setInternalVisible(false);
+      onClose?.();
+      setExiting(false);
+    }, 150); // 与 CSS aimapkit-popup-exit 动画时长一致
+  }, [isControlled, onClose, exiting]);
+
+  // ── 互斥管理 ──
+  useEffect(() => {
+    if (!singleton || !visible) return;
+    const id = popupIdRef.current;
+    registerSingleton(id, handleClose);
+    return () => unregisterSingleton(id);
+  }, [singleton, visible, handleClose]);
 
   useEffect(() => {
-    if (container) {
-      // 容器准备好后强制重新渲染
-      forceUpdate((v) => v + 1);
-    }
-  }, [container]);
+    if (!singleton) return;
+    const id = popupIdRef.current;
+    const handler = (newActiveId: PopupId | null) => {
+      // 如果有其他 Popup 成为了 active，关闭自己
+      if (newActiveId !== id && visible) {
+        handleClose();
+      }
+    };
+    singletonListeners.add(handler);
+    return () => {
+      singletonListeners.delete(handler);
+    };
+  }, [singleton, visible, handleClose]);
 
-  // 高性能位置更新：直接操作 DOM，避免 setState 导致的渲染延迟
+  // ── 计算并设置 Popup 位置（含视口边界检测 & 自动翻转） ──
+  const updatePopupPosition = useCallback(() => {
+    const el = popupRef.current;
+    if (!el || !scene) return;
+
+    try {
+      const mapsService = (scene as any).mapService;
+      const pos = mapsService
+        ? mapsService.lngLatToContainer([longitude, latitude])
+        : scene.lngLatToContainer([longitude, latitude]);
+
+      if (pos) {
+        const rx = Math.round(pos.x);
+        const ry = Math.round(pos.y);
+
+        el.style.left = '0';
+        el.style.top = '0';
+
+        // 获取地图容器和 Popup 元素尺寸
+        let mapW = 0, mapH = 0;
+        try {
+          if (mapsService) {
+            const mapContainer = mapsService.getContainer?.() as HTMLElement;
+            if (mapContainer) {
+              mapW = mapContainer.scrollWidth || mapContainer.clientWidth;
+              mapH = mapContainer.scrollHeight || mapContainer.clientHeight;
+            }
+          }
+        } catch { /* 降级 */ }
+
+        // 计算最佳方向
+        const contentEl = el.querySelector('.aimapkit-popup-content') as HTMLElement;
+        const pw = contentEl?.offsetWidth || 320;
+        const ph = contentEl?.offsetHeight || 200;
+
+        const { placement, transform: subTransform } = computePlacement(
+          rx, ry, pw, ph, mapW, mapH, placementProp, offset,
+        );
+
+        setCurrentPlacement(placement);
+        el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${subTransform}`;
+
+        // 视口内判断
+        let inView = true;
+        if (mapW > 0 && mapH > 0) {
+          inView = rx >= 0 && rx <= mapW && ry >= 0 && ry <= mapH;
+        }
+        isInViewRef.current = inView;
+        el.style.visibility = inView ? 'visible' : 'hidden';
+      }
+    } catch {
+      // 场景可能未初始化
+    }
+  }, [scene, longitude, latitude, placementProp, offset]);
+
+  // 容器或 visible 变化后，Portal DOM 准备就绪，重新定位
+  useEffect(() => {
+    if (!container || !visible) return;
+    // 等待 Portal DOM 挂载完成
+    const rafId = requestAnimationFrame(() => {
+      updatePopupPosition();
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, [container, visible, updatePopupPosition]);
+
+  // ESC 键关闭
+  useEffect(() => {
+    if (!visible) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [visible, handleClose]);
+
+  // ── 点击地图空白处关闭 ──
+  useEffect(() => {
+    if (!visible || !container) return;
+    const handleMapClick = (e: MouseEvent) => {
+      const el = popupRef.current;
+      if (!el) return;
+      // 如果点击目标是 Popup 元素内部，不关闭
+      if (el.contains(e.target as Node)) return;
+      // 如果点击目标是 Marker 相关元素，不关闭（由 Marker 的 onClick 处理）
+      const target = e.target as HTMLElement;
+      if (target.closest('.aimapkit-marker') || target.closest('[data-marker]')) return;
+      // 点击地图空白区域，关闭 Popup
+      handleClose();
+    };
+
+    // 获取地图容器并监听点击事件
+    let mapContainer: HTMLElement | null = null;
+    try {
+      const mapsService = (scene as any)?.mapService;
+      if (mapsService) {
+        mapContainer = mapsService.getContainer?.() as HTMLElement;
+      }
+    } catch { /* 降级 */ }
+
+    const targetEl = mapContainer || container.parentElement || container;
+    targetEl.addEventListener('click', handleMapClick, true);
+    return () => targetEl.removeEventListener('click', handleMapClick, true);
+  }, [visible, container, scene, handleClose]);
+
+  // 高性能位置更新 — 地图交互时持续同步
   useMapPosition(scene, longitude, latitude, (x, y) => {
-    // 检查是否在可视区域内
-    let inView = true;
+    const el = popupRef.current;
+    if (!el) return;
+
+    const rx = Math.round(x);
+    const ry = Math.round(y);
+
+    let mapW = 0, mapH = 0;
     try {
       const mapsService = (scene as any)?.mapService;
       if (mapsService) {
         const mapContainer = mapsService.getContainer?.() as HTMLElement;
         if (mapContainer) {
-          const w = mapContainer.scrollWidth || mapContainer.clientWidth;
-          const h = mapContainer.scrollHeight || mapContainer.clientHeight;
-          inView = x >= 0 && x <= w && y >= 0 && y <= h;
+          mapW = mapContainer.scrollWidth || mapContainer.clientWidth;
+          mapH = mapContainer.scrollHeight || mapContainer.clientHeight;
         }
       }
-    } catch {
-      // 降级
+    } catch { /* 降级 */ }
+
+    // 重新计算位置
+    const contentEl = el.querySelector('.aimapkit-popup-content') as HTMLElement;
+    const pw = contentEl?.offsetWidth || 320;
+    const ph = contentEl?.offsetHeight || 200;
+
+    const { placement, transform: subTransform } = computePlacement(
+      rx, ry, pw, ph, mapW, mapH, placementProp, offset,
+    );
+
+    setCurrentPlacement(placement);
+
+    let inView = true;
+    if (mapW > 0 && mapH > 0) {
+      inView = rx >= 0 && rx <= mapW && ry >= 0 && ry <= mapH;
     }
     isInViewRef.current = inView;
 
-    // 直接操作 DOM — 使用 transform 替代 left/top 避免 Layout 重排
-    // translate3d 强制 GPU 合成层，与地图 WebGL 同帧渲染
-    const el = popupRef.current;
-    if (el) {
-      el.style.left = '0';
-      el.style.top = '0';
-      el.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -100%)`;
-      el.style.visibility = inView ? 'visible' : 'hidden';
-      // 确保初始 display 不为 none
-      if (el.style.display === 'none') {
-        el.style.display = 'block';
-      }
-    }
+    el.style.left = '0';
+    el.style.top = '0';
+    el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${subTransform}`;
+    el.style.visibility = inView ? 'visible' : 'hidden';
   });
 
+  // ── 渲染 ──
+
+  // 不可见时不渲染
   if (!visible || !container) return null;
+
+  // 是否有结构化内容
+  const hasStructuredContent = header || attributes || actions;
+  const hasCover = !!(header as PopupHeader)?.coverUrl;
+
+  // 根据 placement 决定 Popup wrapper 的 flex 方向
+  const isHorizontal = currentPlacement === 'left' || currentPlacement === 'right';
 
   // 渲染内容
   const renderContent = () => {
-    if (isHtmlString(content)) {
+    // 简单内容模式（纯文本/HTML/ReactNode）
+    if (!hasStructuredContent) {
+      if (isHtmlString(content)) {
+        return (
+          <div className="aimapkit-popup-body">
+            {closeButton && <CloseButton onClick={handleClose} />}
+            <div dangerouslySetInnerHTML={{ __html: content }} />
+          </div>
+        );
+      }
       return (
-        <div
-          className="text-sm text-on-surface font-body-md leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
+        <div className="aimapkit-popup-body">
+          {closeButton && <CloseButton onClick={handleClose} />}
+          <div>{content ?? ''}</div>
+        </div>
       );
     }
+
+    // 结构化内容模式
     return (
-      <div className="text-sm text-on-surface font-body-md leading-relaxed">
-        {content}
-      </div>
+      <>
+        {/* 封面图 + 封面上的关闭按钮 */}
+        {header && hasCover && <CoverImage header={header} onClose={handleClose} />}
+
+        {/* 标题区 */}
+        {header && (
+          <HeaderSection
+            header={header}
+            onClose={handleClose}
+            hasCover={hasCover}
+            showStatusDot={size === 'compact'}
+          />
+        )}
+
+        {/* 结构化模式下无 header 时的关闭按钮（绝对定位在内容区右上角） */}
+        {!header && closeButton && (
+          <CloseButton onClick={handleClose} />
+        )}
+
+        {/* 内容区 */}
+        <div className="aimapkit-popup-body">
+          {/* 非结构化内容传入时作为 body 补充 */}
+          {content && !isHtmlString(content) && typeof content !== 'string' && <div>{content}</div>}
+          {content && isHtmlString(content) && (
+            <div dangerouslySetInnerHTML={{ __html: content }} />
+          )}
+          {content && !isHtmlString(content) && typeof content === 'string' && <div>{content}</div>}
+          {!content && !attributes?.length && !actions?.length && !header && (
+            <div style={{ color: 'var(--color-on-surface-variant)' }}>无内容</div>
+          )}
+
+          {/* 属性列表 */}
+          {attributes && attributes.length > 0 && (
+            <AttributeList
+              attributes={attributes}
+              size={size}
+            />
+          )}
+        </div>
+
+        {/* 底部操作栏 */}
+        {actions && actions.length > 0 && <ActionBar actions={actions} />}
+      </>
     );
   };
+
+  // 水平模式下的 wrapper 样式
+  const wrapperStyle: React.CSSProperties = isHorizontal
+    ? { display: 'flex', alignItems: 'center' }
+    : { display: 'flex', flexDirection: 'column', alignItems: 'center' };
 
   return createPortal(
     <div
       ref={popupRef}
-      className={cx('aimapkit-popup')}
+      className={cx('aimapkit-popup', `aimapkit-popup--${size}`)}
       style={{
         position: 'absolute',
         left: 0,
         top: 0,
-        transform: 'translate3d(-9999px, -9999px, 0) translate(-50%, -100%)',
-        willChange: 'transform',
+        transform: 'translate(-9999px, -9999px)',
+        visibility: 'hidden',
         zIndex: 30,
-        whiteSpace: 'nowrap',
         pointerEvents: 'auto',
+        ...wrapperStyle,
       }}
     >
-      {/* Popup 内容容器 - MD3 玻璃拟态设计 */}
-      <div
-        className={cx(
-          'aimapkit-popup-content',
-          sizeClassMap[size],
-          className,
-        )}
-        style={{
-          background: 'rgba(248, 249, 255, 0.95)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '12px',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-        }}
-      >
-        {/* 关闭按钮 - icon-button 样式 */}
-        {closeButton && (
-          <button
-            onClick={() => {
-              setVisible(false);
-              onClose?.();
-            }}
-            style={{
-              position: 'absolute',
-              top: '12px',
-              right: '12px',
-              width: '32px',
-              height: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#434655',
-              borderRadius: '8px',
-              transition: 'all 0.2s ease',
-              cursor: 'pointer',
-              background: 'transparent',
-              border: 'none',
-              zIndex: 10,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#dee9fc';
-              e.currentTarget.style.color = '#121c2a';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = '#434655';
-            }}
-            aria-label="关闭"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>close</span>
-          </button>
-        )}
+      {/* 箭头在上方（Popup 在锚点下方时，箭头在上） */}
+      {currentPlacement === 'bottom' && <PopupTip placement={currentPlacement} />}
 
-        {/* 内容区 */}
-        <div style={{ padding: '16px' }}>
-          {renderContent()}
-        </div>
+      {/* 箭头在左侧（Popup 在锚点右侧时，箭头在左） */}
+      {currentPlacement === 'right' && <PopupTip placement={currentPlacement} />}
+
+      {/* Popup 内容容器 - MD3 玻璃拟态 */}
+      <div className={cx('aimapkit-popup-content', exiting && 'aimapkit-popup-content--exit', className)}>
+        {renderContent()}
       </div>
 
-      {/* 指向箭头 - 等腰三角形 */}
-      <div 
-        className="aimapkit-popup-tip"
-        style={{
-          position: 'absolute',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          bottom: '-10px',
-          width: '0',
-          height: '0',
-          borderLeft: '10px solid transparent',
-          borderRight: '10px solid transparent',
-          borderTop: '10px solid rgba(248, 249, 255, 0.95)',
-        }}
-      />
+      {/* 箭头在下方（Popup 在锚点上方时，箭头在下） */}
+      {currentPlacement === 'top' && <PopupTip placement={currentPlacement} />}
+
+      {/* 箭头在右侧（Popup 在锚点左侧时，箭头在右） */}
+      {currentPlacement === 'left' && <PopupTip placement={currentPlacement} />}
     </div>,
     container,
   );

@@ -173,12 +173,30 @@ export interface PopupSchema {
   /** 弹窗内容，支持纯文本 / HTML 字符串 */
   content: string;
   closeButton?: boolean;
+  /** 尺寸变体 */
+  size?: 'compact' | 'standard' | 'detailed';
+  /** 弹出位置，默认 auto */
+  placement?: 'auto' | 'top' | 'bottom' | 'left' | 'right';
+  /** 弹出框偏移量（像素），默认 8 */
+  offset?: number;
+  /** 是否启用互斥模式 */
+  singleton?: boolean;
 }
 
 export interface TooltipSchema {
   type: 'tooltip';
   content: string;
   trigger?: 'hover' | 'click';
+  /** 视觉变体 */
+  variant?: 'dark' | 'glass' | 'light';
+  /** 经度（地图定位模式） */
+  longitude?: number;
+  /** 纬度（地图定位模式） */
+  latitude?: number;
+  /** 方向 */
+  placement?: 'top' | 'right' | 'bottom' | 'left';
+  /** 偏移距离 */
+  offset?: number;
 }
 
 export type InteractionSchema = MarkerSchema | PopupSchema | TooltipSchema;
@@ -187,11 +205,18 @@ export type InteractionSchema = MarkerSchema | PopupSchema | TooltipSchema;
 // 图例
 // ============================================================
 
+/** 分类图例色块形状 */
+export type LegendSwatchShape = 'square' | 'circle';
+
 export interface LegendCategoriesSchema {
   type: 'categories';
   title?: string;
   labels: string[];
   colors: string[];
+  /** 色块形状，默认 'square' */
+  swatchShape?: LegendSwatchShape;
+  /** 是否使用两列网格布局，默认 false */
+  grid?: boolean;
 }
 
 export interface LegendRampSchema {
@@ -199,7 +224,54 @@ export interface LegendRampSchema {
   title?: string;
   labels: string[];
   colors: string[];
+  /** 连续渐变 vs 分段色块，默认 false（分段） */
   isContinuous?: boolean;
+  /** 是否显示刻度线 */
+  showTicks?: boolean;
+  /** 是否启用范围刷选 */
+  brushable?: boolean;
+}
+
+/** 发散图例：双极渐变（如 红→灰→绿） */
+export interface LegendDivergingSchema {
+  type: 'diverging';
+  title?: string;
+  /** 渐变色列表，从左到右（如 ['#ef4444','#ccc','#10b981']） */
+  colors: string[];
+  /** [左端标签, 右端标签] */
+  labels: [string, string];
+  /** 中间值标签（如 '0' 或 'Avg'） */
+  middleLabel?: string;
+}
+
+/** 阈值图例：自定义分段垂直列表 */
+export interface LegendThresholdSchema {
+  type: 'threshold';
+  title?: string;
+  /** 区间定义 [min, max)，从上到下排列 */
+  ranges: [number | string, number | string][];
+  /** 每个区间对应的颜色 */
+  colors: string[];
+}
+
+/** 比例大小图例：圆形大小映射 */
+export interface LegendSizeSchema {
+  type: 'size';
+  title?: string;
+  /** 填充色 */
+  fillColor?: string;
+  /** 大小项：圆直径 (px) + 标签 */
+  items: Array<{ size: number; label: string }>;
+}
+
+/** 线宽图例 */
+export interface LegendLineWidthSchema {
+  type: 'lineWidth';
+  title?: string;
+  /** 线条颜色 */
+  color?: string;
+  /** 线宽项 */
+  items: Array<{ width: number; label: string }>;
 }
 
 export interface LegendProportionSchema {
@@ -223,8 +295,22 @@ export interface LegendIconSchema {
 export type LegendSchema =
   | LegendCategoriesSchema
   | LegendRampSchema
+  | LegendDivergingSchema
+  | LegendThresholdSchema
+  | LegendSizeSchema
+  | LegendLineWidthSchema
   | LegendProportionSchema
   | LegendIconSchema;
+
+/** 图例交互回调 */
+export interface LegendInteractionCallbacks {
+  /** 悬停高亮：传入图例项索引，-1 表示取消 */
+  onHover?: (index: number) => void;
+  /** 点击切换显隐：传入图例项索引 */
+  onToggle?: (index: number) => void;
+  /** 范围刷选：连续型图例的数据范围 [min, max] */
+  onBrush?: (range: [number, number]) => void;
+}
 
 // ============================================================
 // 响应式

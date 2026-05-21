@@ -195,11 +195,9 @@
   pointer-events: auto;
 }
 
-/* Marker 样式
-   定位通过 inline style 控制(left/top/transform)，不在 CSS 中设置 transform 避免优先级冲突 */
 /* ============================================================
    Marker 样式规范 - Cartographic Precision System v1.2.0
-   参考: docs/marker-design-spec.md
+   定位通过 inline style 控制(left/top/transform)，不在 CSS 中设置 transform 避免优先级冲突
    ============================================================ */
 
 .aimapkit-marker {
@@ -215,116 +213,59 @@
   white-space: nowrap;
 }
 
-/* 水滴型 Marker (Pin Marker) - 默认业务点
-   尺寸: 32x40px, bg-primary, 1.5px 白色描边, shadow-md
-   使用 SVG 路径绘制，避免 CSS transform 导致的变形 */
+/* ============================================================
+   水滴型 Marker (Pin Marker) - 默认业务点
+   尺寸: 32x40px, bg-primary, 1.5px 白色描边, drop-shadow
+   用途: POI、物流站点、静态设施
+   SVG 路径实现，避免 CSS transform 伪元素变形
+   ============================================================ */
 .aimapkit-marker-pin {
-  width: 32px;
-  height: 40px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 }
 
 .aimapkit-marker-pin svg {
-  width: 100%;
-  height: 100%;
+  display: block;
   overflow: visible;
 }
 
-.aimapkit-marker-pin__inner {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: white;
-  border-radius: 50%;
-  top: 8px;
-  z-index: 1;
+/* 图标型 Pin — 图标定位在头部圆形区域 */
+.aimapkit-marker-pin--icon {
+  position: relative;
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: center;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 }
 
-/* 圆型 Marker (Circle Marker) - 移动/轻量点
-   尺寸: 24x24px, 半透明背景 + 实心内圆 */
+/* ============================================================
+   圆型 Marker (Circle Marker) - 移动/轻量点
+   尺寸: 24x24px, 半透明背景 + 实心内圆
+   用途: 实时车辆、传感器节点、背景要素
+   ============================================================ */
 .aimapkit-marker-circle {
   width: 24px;
   height: 24px;
-  background: rgba(0, 74, 198, 0.2);
   border: 1.5px solid white;
   border-radius: 50%;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .aimapkit-marker-circle__inner {
   width: 6px;
   height: 6px;
-  background: var(--color-primary, #004ac6);
   border-radius: 50%;
 }
 
-/* Marker 交互状态 */
-
-/* Marker 子元素 hover 过渡 — 只对视觉属性添加 transition，不包含定位 transform */
-.aimapkit-marker-pin,
-.aimapkit-marker-circle {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 悬停状态 (Hover): 尺寸放大 110%, 位移 -2px, 阴影加深 */
-.aimapkit-marker:hover .aimapkit-marker-pin,
-.aimapkit-marker:hover .aimapkit-marker-circle {
-  transform: scale(1.1) translateY(-2px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-}
-
-/* 选中状态 (Selected): 呼吸脉冲动画 */
-.aimapkit-marker--selected .aimapkit-marker-pin::after,
-.aimapkit-marker--selected .aimapkit-marker-circle::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  background: rgba(0, 74, 198, 0.2);
-  animation: aimapkit-marker-pulse 1.6s ease-out infinite;
-  z-index: -1;
-}
-
-@keyframes aimapkit-marker-pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
-  50% {
-    transform: scale(1.3);
-    opacity: 0;
-  }
-}
-
-/* 禁用/离线状态 (Inactive): 灰度, 透明度 50% */
-.aimapkit-marker--inactive .aimapkit-marker-pin::before,
-.aimapkit-marker--inactive .aimapkit-marker-circle {
-  filter: grayscale(100%);
-  opacity: 0.5;
-}
-
-/* 语义颜色变体 */
-.aimapkit-marker--success .aimapkit-marker-pin::before {
-  background: #22c55e;
-}
-
-.aimapkit-marker--warning .aimapkit-marker-pin::before {
-  background: #f59e0b;
-}
-
-.aimapkit-marker--error .aimapkit-marker-pin::before {
-  background: #ba1a1a;
-}
-
-/* 图标型 Marker */
+/* ============================================================
+   图标型 Marker (Icon Marker) — 旧版兼容
+   使用 CSS ::before 伪元素实现的 Pin 形态
+   推荐使用 variant="icon" + 新 SVG Pin
+   ============================================================ */
 .aimapkit-marker-icon {
   width: 32px;
   height: 40px;
@@ -339,7 +280,7 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background: var(--color-primary, #004ac6);
+  background: var(--color-primary, #2563eb);
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
   border: 1.5px solid white;
@@ -354,17 +295,23 @@
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-/* 低缩放级简化点 (Zoom < 10) */
+/* ============================================================
+   低缩放级简化点 (Zoom < 10)
+   在缩放级别较低时降级显示
+   ============================================================ */
 .aimapkit-marker-dot {
   width: 8px;
   height: 8px;
-  background: var(--color-primary, #004ac6);
   border-radius: 50%;
   border: 1.5px solid white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Marker 文本标注 */
+/* ============================================================
+   Marker 文本标注
+   位置: Marker 下方 4px
+   样式: font-mono-data, 2px 白色光晕确保对比度
+   ============================================================ */
 .aimapkit-marker-label {
   position: absolute;
   top: calc(100% + 4px);
@@ -375,54 +322,303 @@
   line-height: 16px;
   font-weight: 450;
   color: var(--color-on-surface, #121c2a);
-  text-shadow: 0 0 2px white, 0 0 2px white;
+  text-shadow: -1px -1px 0 white, 1px -1px 0 white, -1px 1px 0 white, 1px 1px 0 white,
+               0 0 2px white, 0 0 4px rgba(255, 255, 255, 0.5);
   white-space: nowrap;
   pointer-events: none;
 }
 
-@layer components {
-  /* ============================================================
-     Popup 样式规范 - Material Design 3 玻璃拟态设计
-     参考: docs/popup-design-spec.md
-     ============================================================ */
+/* ============================================================
+   Marker 交互状态
+   ============================================================ */
 
-  /* Popup 容器 - 定位通过 inline style 控制 */
+/* Marker 子元素 hover 过渡 — 只对视觉属性添加 transition，不包含定位 transform */
+.aimapkit-marker-pin,
+.aimapkit-marker-circle,
+.aimapkit-marker-icon {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 悬停状态 (Hover): 尺寸放大 110%, 位移 -2px, 阴影加深 */
+.aimapkit-marker:hover .aimapkit-marker-pin,
+.aimapkit-marker:hover .aimapkit-marker-circle,
+.aimapkit-marker:hover .aimapkit-marker-icon {
+  transform: scale(1.1) translateY(-2px);
+  filter: drop-shadow(0 20px 25px -5px rgba(0, 0, 0, 0.1)) drop-shadow(0 8px 10px -6px rgba(0, 0, 0, 0.1));
+}
+
+/* 选中状态 (Selected): 呼吸脉冲动画 + 边框颜色切换 */
+.aimapkit-marker--selected .aimapkit-marker-pin::after,
+.aimapkit-marker--selected .aimapkit-marker-circle::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.2);
+  animation: aimapkit-marker-pulse 1.6s ease-out infinite;
+  z-index: -1;
+}
+
+/* 选中 Pin 也可有脉冲，使用 SVG 外层包装 */
+.aimapkit-marker--selected .aimapkit-marker-pin {
+  position: relative;
+}
+
+@keyframes aimapkit-marker-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* 禁用/离线状态 (Inactive): 灰度, 透明度 50% */
+.aimapkit-marker--inactive {
+  pointer-events: none;
+}
+
+.aimapkit-marker--inactive .aimapkit-marker-pin,
+.aimapkit-marker--inactive .aimapkit-marker-circle,
+.aimapkit-marker--inactive .aimapkit-marker-icon,
+.aimapkit-marker--inactive .aimapkit-marker-dot {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+/* ============================================================
+   语义颜色变体
+   通过 CSS 类名覆盖 SVG fill 和 CSS 背景/边框颜色
+   ============================================================ */
+
+/* Primary (默认蓝) — 由组件内联样式或 SVG fill 控制，无需额外 CSS 覆盖 */
+
+/* Success (绿) */
+.aimapkit-marker--success .aimapkit-marker-pin svg path {
+  fill: #00854d;
+}
+.aimapkit-marker--success .aimapkit-marker-icon::before {
+  background: #00854d;
+}
+.aimapkit-marker--success .aimapkit-marker-dot {
+  background: #00854d;
+}
+.aimapkit-marker--success .aimapkit-marker-circle {
+  background: rgba(0, 133, 77, 0.2);
+}
+.aimapkit-marker--success .aimapkit-marker-circle__inner {
+  background: #00854d;
+}
+.aimapkit-marker--selected.aimapkit-marker--success .aimapkit-marker-pin::after,
+.aimapkit-marker--selected.aimapkit-marker--success .aimapkit-marker-circle::after {
+  background: rgba(0, 133, 77, 0.2);
+}
+
+/* Warning (橙) */
+.aimapkit-marker--warning .aimapkit-marker-pin svg path {
+  fill: #943700;
+}
+.aimapkit-marker--warning .aimapkit-marker-icon::before {
+  background: #943700;
+}
+.aimapkit-marker--warning .aimapkit-marker-dot {
+  background: #943700;
+}
+.aimapkit-marker--warning .aimapkit-marker-circle {
+  background: rgba(148, 55, 0, 0.2);
+}
+.aimapkit-marker--warning .aimapkit-marker-circle__inner {
+  background: #943700;
+}
+.aimapkit-marker--selected.aimapkit-marker--warning .aimapkit-marker-pin::after,
+.aimapkit-marker--selected.aimapkit-marker--warning .aimapkit-marker-circle::after {
+  background: rgba(148, 55, 0, 0.2);
+}
+
+/* Error (红) */
+.aimapkit-marker--error .aimapkit-marker-pin svg path {
+  fill: #ba1a1a;
+}
+.aimapkit-marker--error .aimapkit-marker-icon::before {
+  background: #ba1a1a;
+}
+.aimapkit-marker--error .aimapkit-marker-dot {
+  background: #ba1a1a;
+}
+.aimapkit-marker--error .aimapkit-marker-circle {
+  background: rgba(186, 26, 26, 0.2);
+}
+.aimapkit-marker--error .aimapkit-marker-circle__inner {
+  background: #ba1a1a;
+}
+.aimapkit-marker--selected.aimapkit-marker--error .aimapkit-marker-pin::after,
+.aimapkit-marker--selected.aimapkit-marker--error .aimapkit-marker-circle::after {
+  background: rgba(186, 26, 26, 0.2);
+}
+
+/* ============================================================
+   聚合标记脉冲动画（大规模聚合 1000+）
+   ============================================================ */
+@keyframes aimapkit-cluster-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+   Popup 样式规范 - Cartographic Precision System v1.2.0
+   玻璃拟态设计，三种尺寸变体
+   参考: docs/popup-design-spec.md
+   ============================================================ */
+
+  /* Popup 外层容器 — 定位通过 inline style transform 控制 */
   .aimapkit-popup {
     position: absolute;
     z-index: 10;
-    white-space: nowrap;
     pointer-events: auto;
   }
 
-  /* Popup 内容容器 - MD3 玻璃拟态 */
+  /* Popup 内容容器 — MD3 玻璃拟态 */
   .aimapkit-popup-content {
+    position: relative;
     background: rgba(248, 249, 255, 0.95);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(195, 198, 215, 0.3);
     border-radius: 12px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    animation: popupEnter 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+    animation: aimapkit-popup-enter 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+    overflow: hidden;
   }
 
-  /* Popup 指向箭头 - 等腰三角形 */
-  .aimapkit-popup-tip {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: -10px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-top: 10px solid rgba(248, 249, 255, 0.95);
+  /* ── 尺寸变体 ── */
+  .aimapkit-popup--compact .aimapkit-popup-content {
+    width: 280px;
+    min-width: min-content;
+  }
+  .aimapkit-popup--standard .aimapkit-popup-content {
+    width: 320px;
+  }
+  .aimapkit-popup--detailed .aimapkit-popup-content {
+    width: 400px;
   }
 
-  /* Popup 关闭按钮 - icon-button 样式 */
-  .aimapkit-popup-content .popup-close-btn {
+  /* ── 封面图 ── */
+  .aimapkit-popup-cover {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+  }
+  /* Detailed 封面图更紧凑，避免 Popup 整体过高 */
+  .aimapkit-popup--detailed .aimapkit-popup-cover {
+    aspect-ratio: 2 / 1;
+  }
+  .aimapkit-popup-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* 封面图上的关闭按钮 — 半透明黑底 */
+  .aimapkit-popup-close-btn--cover {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    z-index: 10;
+  }
+  .aimapkit-popup-close-btn--cover:hover {
+    background: rgba(0, 0, 0, 0.5);
+  }
+  .aimapkit-popup-close-btn--cover .material-symbols-outlined {
+    font-size: 18px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  /* 状态标签 — 封面图左下角 */
+  .aimapkit-popup-status-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    background: rgba(248, 249, 255, 0.9);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-on-surface, #121c2a);
+  }
+  .aimapkit-popup-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  /* ── 标题区 ── */
+  .aimapkit-popup-header {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+  }
+  .aimapkit-popup-header--with-close {
+    justify-content: space-between;
+  }
+  /* 有封面图时紧跟封面 */
+  .aimapkit-popup-cover + .aimapkit-popup-header {
+    padding-top: 12px;
+  }
+  .aimapkit-popup-title {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+    color: var(--color-on-surface, #121c2a);
+    margin: 0;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 标题区状态指示灯 (Compact 标题前脉冲点) */
+  .aimapkit-popup-header-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-right: 8px;
+    animation: aimapkit-dot-pulse 2s ease-in-out infinite;
+  }
+
+  /* ── 关闭按钮 — Header 内作为 flex 子项 ── */
+  .aimapkit-popup-close-btn {
     width: 32px;
     height: 32px;
     display: flex;
@@ -430,28 +626,275 @@
     justify-content: center;
     color: var(--color-on-surface-variant, #434655);
     border-radius: 8px;
-    transition: all 0.2s ease;
+    transition: color 0.2s ease, background 0.2s ease;
     cursor: pointer;
     background: transparent;
     border: none;
-    z-index: 10;
+    flex-shrink: 0;
+    padding: 0;
+    margin-left: 8px;
   }
-
-  .aimapkit-popup-content .popup-close-btn:hover {
+  .aimapkit-popup-close-btn:hover {
     color: var(--color-on-surface, #121c2a);
     background: var(--color-surface-container-high, #dee9fc);
   }
-
-  .aimapkit-popup-content .popup-close-btn .material-symbols-outlined {
+  .aimapkit-popup-close-btn .material-symbols-outlined {
     font-size: 20px;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
-}
+  /* 简单内容模式 — body 内的关闭按钮（绝对定位右上角） */
+  .aimapkit-popup-body > .aimapkit-popup-close-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    left: auto;
+    margin-left: 0;
+    z-index: 10;
+  }
+
+  /* ── 内容区 (Body) ── */
+  .aimapkit-popup-body {
+    padding: 16px;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--color-on-surface, #121c2a);
+    word-break: break-word;
+    white-space: normal;
+    position: relative;
+  }
+  /* 简单内容模式 — body 作为首且唯一子元素时，预留右上角关闭按钮空间 */
+  .aimapkit-popup-content > .aimapkit-popup-body:first-child:last-child {
+    padding: 16px;
+    padding-top: 8px;
+    padding-right: 40px;
+  }
+  /* Compact 模式下简单内容：关闭按钮在右上角，body 需预留右侧空间 */
+  .aimapkit-popup--compact .aimapkit-popup-content > .aimapkit-popup-body:first-child:last-child {
+    padding: 12px;
+    padding-top: 4px;
+    padding-right: 36px;
+  }
+
+  /* ── 属性列表 — Standard/Detailed: 标签-值左右对齐 ── */
+  .aimapkit-popup-attrs {
+    display: grid;
+    gap: 8px;
+  }
+  .aimapkit-popup-attr {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .aimapkit-popup-attr-label {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 400;
+    color: var(--color-on-surface-variant, #434655);
+    margin: 0;
+  }
+  .aimapkit-popup-attr-value {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: var(--color-on-surface, #121c2a);
+    margin: 0;
+    text-align: right;
+  }
+
+  /* ── 属性列表 — Compact: 水平 flex + border 分隔线 ── */
+  .aimapkit-popup--compact .aimapkit-popup-attrs {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .aimapkit-popup--compact .aimapkit-popup-attr {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(195, 198, 215, 0.3);
+  }
+  .aimapkit-popup--compact .aimapkit-popup-attr:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .aimapkit-popup--compact .aimapkit-popup-attr:first-child {
+    padding-top: 0;
+  }
+  .aimapkit-popup--compact .aimapkit-popup-attr-value {
+    color: var(--color-on-surface, #121c2a);
+  }
+
+  /* ── 属性图标容器 — Detailed 模式专属 ── */
+  .aimapkit-popup-attr-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: var(--color-surface-container-highest, #d9e3f6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary, #004ac6);
+    flex-shrink: 0;
+  }
+  .aimapkit-popup-attr-icon .material-symbols-outlined {
+    font-size: 28px;
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  /* Detailed 模式 — 带 icon 的属性行：水平排列 icon + label/value */
+  .aimapkit-popup-attr.aimapkit-popup-attr--detailed {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 16px;
+  }
+  .aimapkit-popup-attr.aimapkit-popup-attr--detailed .aimapkit-popup-attr-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .aimapkit-popup-attr.aimapkit-popup-attr--detailed .aimapkit-popup-attr-value {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--color-on-surface, #121c2a);
+  }
+
+  /* ── 底部操作栏 ── */
+  .aimapkit-popup-actions {
+    display: flex;
+    gap: 12px;
+    padding: 0 16px 16px;
+  }
+  .aimapkit-popup-action-btn {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s ease;
+  }
+  .aimapkit-popup-action-btn:active {
+    transform: scale(0.98);
+  }
+  /* 主按钮 */
+  .aimapkit-popup-action-btn--primary {
+    background: var(--color-primary, #004ac6);
+    color: var(--color-on-primary, #ffffff);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  }
+  .aimapkit-popup-action-btn--primary:hover {
+    box-shadow: 0 4px 12px rgba(0, 74, 198, 0.3);
+  }
+  /* 次按钮 */
+  .aimapkit-popup-action-btn--secondary {
+    background: transparent;
+    color: var(--color-on-surface, #121c2a);
+    border: 2px solid var(--color-outline-variant, #c3c6d7);
+  }
+  .aimapkit-popup-action-btn--secondary:hover {
+    background: var(--color-surface-container-low, #eff4ff);
+  }
+
+  /* ── 指向箭头 (Tip Arrow) — SVG 放置在 .aimapkit-popup-content 外部 ── */
+  .aimapkit-popup-tip-arrow {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  /* 箭头默认朝下 (Popup 在锚点上方) */
+  .aimapkit-popup-tip-arrow--bottom {
+    margin-top: -1px;
+  }
+  /* 箭头朝上 (Popup 在锚点下方) */
+  .aimapkit-popup-tip-arrow--top {
+    margin-bottom: -1px;
+    order: -1;
+  }
+  /* 箭头朝左/右 — 水平模式 */
+  .aimapkit-popup-tip-arrow--left,
+  .aimapkit-popup-tip-arrow--right {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+  }
+  .aimapkit-popup-tip-arrow--left {
+    left: -8px;
+  }
+  .aimapkit-popup-tip-arrow--right {
+    right: -8px;
+  }
+  .aimapkit-popup-tip-arrow svg {
+    display: block;
+    filter: drop-shadow(0 4px 2px rgba(0, 0, 0, 0.04));
+  }
+
+  /* ================================================================
+     变体覆盖
+     ================================================================ */
+
+  /* ── Detailed 尺寸 ── */
+  .aimapkit-popup--detailed .aimapkit-popup-header {
+    padding: 20px;
+    background: rgba(239, 244, 255, 0.5);
+    border-bottom: 1px solid rgba(195, 198, 215, 0.3);
+    justify-content: space-between;
+  }
+  /* Detailed 关闭按钮图标加大 24px */
+  .aimapkit-popup--detailed .aimapkit-popup-close-btn .material-symbols-outlined {
+    font-size: 24px;
+  }
+  .aimapkit-popup--detailed .aimapkit-popup-body {
+    padding: 20px;
+  }
+  .aimapkit-popup--detailed .aimapkit-popup-attrs {
+    gap: 32px;
+  }
+  .aimapkit-popup--detailed .aimapkit-popup-actions {
+    padding: 0 20px 20px;
+    gap: 12px;
+  }
+  .aimapkit-popup--detailed .aimapkit-popup-action-btn {
+    padding: 12px 0;
+  }
+
+  /* ── Compact 尺寸 ── */
+  .aimapkit-popup--compact .aimapkit-popup-content {
+    padding: 16px;
+  }
+  .aimapkit-popup--compact .aimapkit-popup-header {
+    padding: 0 0 12px;
+    background: none;
+    border: none;
+  }
+  .aimapkit-popup--compact .aimapkit-popup-body {
+    padding: 0;
+  }
+  .aimapkit-popup--compact .aimapkit-popup-actions {
+    padding: 12px 0 0;
+  }
+  .aimapkit-popup--compact .aimapkit-popup-title {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  .aimapkit-popup--compact .aimapkit-popup-action-btn {
+    padding: 8px 0;
+    font-size: 13px;
+  }
 
 /* Popup 入场动画 - scale-95 -> scale-100 + opacity
    注意：动画只改变 opacity 和 scale，不改变 transform
    因为 Popup 的定位通过父元素的 transform: translate(-50%, -100%) 控制 */
-@keyframes popupEnter {
+@keyframes aimapkit-popup-enter {
   from {
     opacity: 0;
     transform: scale(0.95);
@@ -462,13 +905,199 @@
   }
 }
 
-/* Tooltip 样式 - 深色半透明设计 */
-.aimapkit-tooltip {
-  @apply absolute pointer-events-none z-50;
-  animation: fadeIn 0.2s ease;
+/* Popup 退场动画 — scale + opacity 反向过渡 */
+.aimapkit-popup-content--exit {
+  animation: aimapkit-popup-exit 150ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes aimapkit-popup-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 }
 
-@keyframes fadeIn {
+/* 标题区状态点脉冲动画 */
+@keyframes aimapkit-dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ============================================================
+   Tooltip 样式规范 - Cartographic Precision System v1.2.0
+   轻提示设计，三种视觉变体：dark / glass / light
+   参考: docs/tooltip-design-spec.md
+   ============================================================ */
+
+  /* Tooltip 外层容器 — 定位通过 inline style transform 控制 */
+  .aimapkit-tooltip {
+    position: absolute;
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  /* Tooltip 内容容器 — 默认深色变体 */
+  .aimapkit-tooltip-content {
+    position: relative;
+    background: rgba(39, 49, 63, 0.95);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 0.5px solid rgba(195, 198, 215, 0.2);
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    padding: 6px 10px;
+    min-width: 80px;
+    max-width: 200px;
+    color: #eaf1ff;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 450;
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    white-space: nowrap;
+    animation: aimapkit-tooltip-enter 150ms cubic-bezier(0, 0, 0.2, 1) forwards;
+  }
+
+  /* ── 玻璃变体 (Glass) ── */
+  .aimapkit-tooltip--glass .aimapkit-tooltip-content {
+    background: rgba(248, 249, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: var(--color-primary, #004ac6);
+  }
+
+  /* ── 浅色变体 (Light) ── */
+  .aimapkit-tooltip--light .aimapkit-tooltip-content {
+    background: rgba(248, 249, 255, 0.95);
+    backdrop-filter: none;
+    border: 0.5px solid rgba(195, 198, 215, 0.3);
+    color: var(--color-on-surface-variant, #434655);
+  }
+
+  /* ── Tooltip 标题 ── */
+  .aimapkit-tooltip-title {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    margin: 0 0 2px;
+  }
+
+  /* ── Tooltip 数值 ── */
+  .aimapkit-tooltip-value {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 450;
+    opacity: 0.8;
+    margin: 0;
+  }
+
+  /* ── Tooltip 键值对列表 ── */
+  .aimapkit-tooltip-items {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .aimapkit-tooltip-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .aimapkit-tooltip-item-label {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 400;
+    opacity: 0.7;
+    margin: 0;
+  }
+  .aimapkit-tooltip-item-value {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 450;
+    text-align: right;
+    margin: 0;
+  }
+
+  /* ── 箭头 — 深色变体默认 ── */
+  .aimapkit-tooltip-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+  /* 下方箭头（Tooltip 在上方） */
+  .aimapkit-tooltip-arrow--bottom {
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(39, 49, 63, 0.95);
+  }
+  /* 上方箭头（Tooltip 在下方） */
+  .aimapkit-tooltip-arrow--top {
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid rgba(39, 49, 63, 0.95);
+  }
+  /* 左方箭头（Tooltip 在右方） */
+  .aimapkit-tooltip-arrow--left {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid rgba(39, 49, 63, 0.95);
+  }
+  /* 右方箭头（Tooltip 在左方） */
+  .aimapkit-tooltip-arrow--right {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 6px solid rgba(39, 49, 63, 0.95);
+  }
+
+  /* ── 玻璃变体箭头颜色覆盖 ── */
+  .aimapkit-tooltip--glass .aimapkit-tooltip-arrow--bottom {
+    border-top-color: rgba(248, 249, 255, 0.7);
+  }
+  .aimapkit-tooltip--glass .aimapkit-tooltip-arrow--top {
+    border-bottom-color: rgba(248, 249, 255, 0.7);
+  }
+  .aimapkit-tooltip--glass .aimapkit-tooltip-arrow--left {
+    border-right-color: rgba(248, 249, 255, 0.7);
+  }
+  .aimapkit-tooltip--glass .aimapkit-tooltip-arrow--right {
+    border-left-color: rgba(248, 249, 255, 0.7);
+  }
+
+  /* ── 浅色变体箭头颜色覆盖 ── */
+  .aimapkit-tooltip--light .aimapkit-tooltip-arrow--bottom {
+    border-top-color: rgba(248, 249, 255, 0.95);
+  }
+  .aimapkit-tooltip--light .aimapkit-tooltip-arrow--top {
+    border-bottom-color: rgba(248, 249, 255, 0.95);
+  }
+  .aimapkit-tooltip--light .aimapkit-tooltip-arrow--left {
+    border-right-color: rgba(248, 249, 255, 0.95);
+  }
+  .aimapkit-tooltip--light .aimapkit-tooltip-arrow--right {
+    border-left-color: rgba(248, 249, 255, 0.95);
+  }
+
+/* Tooltip 入场动画 — translateY + opacity */
+@keyframes aimapkit-tooltip-enter {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -1202,4 +1831,382 @@
   cursor: pointer;
   border: none;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================================
+   Legend 样式规范 - Cartographic Precision System v1.2.0
+   参考: docs/legend-design-spec.md
+   玻璃拟态容器 + 多类型图例 + 交互行为
+   ============================================================ */
+
+/* ── 图例面板容器 — 玻璃拟态 ── */
+.aimapkit-legend {
+  position: absolute;
+  z-index: 20;
+  background: rgba(248, 249, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(195, 198, 215, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+              0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  padding: 12px 14px;
+  max-height: 40%;
+  overflow-y: auto;
+  color: var(--color-on-surface, #121c2a);
+}
+.aimapkit-legend::-webkit-scrollbar {
+  width: 4px;
+}
+.aimapkit-legend::-webkit-scrollbar-track {
+  background: transparent;
+}
+.aimapkit-legend::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant, #c3c6d7);
+  border-radius: 10px;
+}
+
+/* ── 图例标题 ── */
+.aimapkit-legend-title {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant, #434655);
+  margin-bottom: 8px;
+}
+
+/* 多图例间距 */
+.aimapkit-legend-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.aimapkit-legend-group > .aimapkit-legend-section + .aimapkit-legend-section {
+  padding-top: 16px;
+  border-top: 1px solid rgba(195, 198, 215, 0.2);
+}
+
+/* ── 分类图例 (Categorical) ── */
+.aimapkit-legend-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.aimapkit-legend-categories--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+}
+.aimapkit-legend-cat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+  user-select: none;
+}
+.aimapkit-legend-cat-item:hover {
+  background: rgba(0, 74, 198, 0.06);
+}
+.aimapkit-legend-cat-item--dimmed {
+  opacity: 0.35;
+}
+.aimapkit-legend-cat-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.aimapkit-legend-cat-swatch--circle {
+  border-radius: 50%;
+}
+.aimapkit-legend-cat-label {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-on-surface, #121c2a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── 连续色带图例 (Ramp / Sequential / Classed) ── */
+.aimapkit-legend-ramp {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.aimapkit-legend-ramp-bar {
+  display: flex;
+  height: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+.aimapkit-legend-ramp-segment {
+  flex: 1;
+  position: relative;
+}
+/* 分段色块之间不需要间隙，紧密拼接 */
+.aimapkit-legend-ramp-segment + .aimapkit-legend-ramp-segment {
+  margin-left: 0;
+}
+/* 连续渐变：整个 bar 作为渐变背景 */
+.aimapkit-legend-ramp-bar--continuous {
+  background-size: 100% 100%;
+}
+.aimapkit-legend-ramp-bar--continuous .aimapkit-legend-ramp-segment {
+  flex: none;
+  width: 0;
+  height: 0;
+}
+.aimapkit-legend-ramp-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 450;
+  color: var(--color-on-surface-variant, #434655);
+}
+/* 刻度线 (Tick marks) */
+.aimapkit-legend-ramp-ticks {
+  display: flex;
+  justify-content: space-between;
+  height: 6px;
+  margin-top: 2px;
+}
+.aimapkit-legend-ramp-tick {
+  width: 1px;
+  height: 100%;
+  background: var(--color-outline-variant, #c3c6d7);
+}
+/* 范围刷选手柄 (Range Brush) */
+.aimapkit-legend-ramp-brush {
+  position: relative;
+  height: 12px;
+  margin-top: 4px;
+  cursor: ew-resize;
+}
+.aimapkit-legend-ramp-brush-range {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border: 2px solid var(--color-primary, #004ac6);
+  border-radius: 2px;
+  background: rgba(0, 74, 198, 0.1);
+  pointer-events: none;
+}
+.aimapkit-legend-ramp-brush-handle {
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 16px;
+  background: var(--color-primary, #004ac6);
+  border-radius: 2px;
+  transform: translate(-50%, -50%);
+  cursor: ew-resize;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.15s ease;
+}
+.aimapkit-legend-ramp-brush-handle:hover {
+  box-shadow: 0 2px 6px rgba(0, 74, 198, 0.3);
+}
+
+/* ── 发散图例 (Diverging) ── */
+.aimapkit-legend-diverging {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.aimapkit-legend-diverging-bar {
+  display: flex;
+  height: 12px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+.aimapkit-legend-diverging-middle {
+  position: relative;
+}
+.aimapkit-legend-diverging-middle::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 20px;
+  background: var(--color-outline-variant, #c3c6d7);
+}
+.aimapkit-legend-diverging-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 450;
+  color: var(--color-on-surface-variant, #434655);
+}
+.aimapkit-legend-diverging-middle-label {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -18px;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: var(--color-on-surface-variant, #434655);
+  white-space: nowrap;
+}
+
+/* ── 阈值图例 (Threshold) ── */
+.aimapkit-legend-threshold {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aimapkit-legend-threshold-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  user-select: none;
+}
+.aimapkit-legend-threshold-item:hover {
+  opacity: 0.8;
+}
+.aimapkit-legend-threshold-item--dimmed {
+  opacity: 0.35;
+}
+.aimapkit-legend-threshold-swatch {
+  width: 24px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+.aimapkit-legend-threshold-range {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--color-on-surface-variant, #434655);
+}
+
+/* ── 比例大小图例 (Size / Proportion) ── */
+.aimapkit-legend-size {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aimapkit-legend-size-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 4px;
+}
+.aimapkit-legend-size-circle {
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+.aimapkit-legend-size-labels {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+.aimapkit-legend-size-label {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--color-on-surface-variant, #434655);
+  white-space: nowrap;
+}
+
+/* ── 线宽图例 (Line Width) ── */
+.aimapkit-legend-linewidth {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aimapkit-legend-linewidth-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+  user-select: none;
+}
+.aimapkit-legend-linewidth-item:hover {
+  opacity: 0.8;
+}
+.aimapkit-legend-linewidth-item--dimmed {
+  opacity: 0.35;
+}
+.aimapkit-legend-linewidth-line {
+  width: 28px;
+  flex-shrink: 0;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+.aimapkit-legend-linewidth-label {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-on-surface, #121c2a);
+  white-space: nowrap;
+}
+
+/* ── 图标图例 (Icon) ── */
+.aimapkit-legend-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.aimapkit-legend-icon-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+  user-select: none;
+}
+.aimapkit-legend-icon-item:hover {
+  background: rgba(0, 74, 198, 0.06);
+}
+.aimapkit-legend-icon-item--dimmed {
+  opacity: 0.35;
+}
+.aimapkit-legend-icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.aimapkit-legend-icon-fallback {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--color-on-surface-variant, #434655);
+}
+.aimapkit-legend-icon-label {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-on-surface, #121c2a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

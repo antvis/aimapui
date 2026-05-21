@@ -34,9 +34,15 @@ export type {
   LegendSchema,
   LegendCategoriesSchema,
   LegendRampSchema,
+  LegendDivergingSchema,
+  LegendThresholdSchema,
+  LegendSizeSchema,
+  LegendLineWidthSchema,
   LegendProportionSchema,
   LegendIconSchema,
   LegendIconItem,
+  LegendSwatchShape,
+  LegendInteractionCallbacks,
   ResponsiveSchema,
   MobileConfig,
   MobileControlConfig,
@@ -131,20 +137,29 @@ export type { LayerSwitchControlProps, LayerItem } from './components/Control/La
 
 // Interaction 组件
 export { Marker } from './components/Interaction/Marker';
-export type { MarkerProps } from './components/Interaction/Marker';
+export type { MarkerProps, MarkerVariant, MarkerColor } from './components/Interaction/Marker';
 export { Popup } from './components/Interaction/Popup';
-export type { PopupProps, PopupSize } from './components/Interaction/Popup';
+export type { PopupProps, PopupSize, PopupPlacement, PopupHeader, PopupAttribute, PopupAction } from './components/Interaction/Popup';
 export { Tooltip } from './components/Interaction/Tooltip';
+export type { TooltipProps, TooltipVariant, TooltipPlacement, TooltipItem } from './components/Interaction/Tooltip';
 
 // Legend 组件
 export { LegendCategories } from './components/Legend/LegendCategories';
 export { LegendRamp } from './components/Legend/LegendRamp';
+export { LegendDiverging } from './components/Legend/LegendDiverging';
+export { LegendThreshold } from './components/Legend/LegendThreshold';
+export { LegendSize } from './components/Legend/LegendSize';
+export { LegendLineWidth } from './components/Legend/LegendLineWidth';
 export { LegendProportion } from './components/Legend/LegendProportion';
 export { LegendIcon } from './components/Legend/LegendIcon';
 
 // Mobile 组件
 export { MobileToolbar } from './components/Mobile/MobileToolbar';
 export { MobileSheetLegend } from './components/Mobile/MobileSheetLegend';
+export { BottomSheet } from './components/Mobile/BottomSheet';
+export type { BottomSheetProps, BottomSheetSnap } from './components/Mobile/BottomSheet';
+export { SearchBar } from './components/Mobile/SearchBar';
+export type { SearchBarProps } from './components/Mobile/SearchBar';
 
 // 图层适配器
 export { adaptPointLayer } from './components/Layer/adapters/point';
