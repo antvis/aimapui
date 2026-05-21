@@ -1,33 +1,32 @@
 import React, { useState } from 'react';
-import type { LegendCategoriesSchema, LegendInteractionCallbacks } from '../../schema/types';
+import type { LegendLineWidthSchema, LegendInteractionCallbacks } from '../../schema/types';
 import { cx } from '../../utils/style';
 
-export interface LegendCategoriesProps extends LegendCategoriesSchema {
+export interface LegendLineWidthProps extends LegendLineWidthSchema {
   className?: string;
-  /** 交互回调 */
   interaction?: LegendInteractionCallbacks;
 }
 
 /**
- * 分类图例 — 离散色块列表
+ * 线宽图例 — 路径粗细映射
+ *
+ * 展示不同宽度的线条与对应数值的映射关系。
+ * 适用于路径、轨迹、流向等线要素的图例说明。
  *
  * 视觉规范:
- * - 色块 12×12px，支持 square (rounded-sm) 和 circle 两种形状
- * - 垂直列表或两列网格布局（grid）
- * - 悬停高亮：其余项 dimmed (opacity 0.35)
- * - 点击切换：dimmed 态表示该项在地图上被隐藏
+ * - 线宽为实际像素值，长度 28px，圆角 pill 形
+ * - 标签在右侧
+ * - 支持悬停高亮和点击显隐切换
  *
- * @see legend.md §2 分类与枚举图例
+ * @see legend.md — LineWidth 类型图例
  */
-export function LegendCategories({
+export function LegendLineWidth({
   title,
-  labels,
-  colors,
-  swatchShape = 'square',
-  grid = false,
+  color = '#4A90D9',
+  items,
   className,
   interaction,
-}: LegendCategoriesProps) {
+}: LegendLineWidthProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number>(-1);
   const [hiddenIndices, setHiddenIndices] = useState<Set<number>>(new Set());
 
@@ -57,13 +56,9 @@ export function LegendCategories({
   return (
     <div className={cx('aimapkit-legend-section', className)}>
       {title && <div className="aimapkit-legend-title">{title}</div>}
-      <div
-        className={cx(
-          'aimapkit-legend-categories',
-          grid && 'aimapkit-legend-categories--grid',
-        )}
-      >
-        {labels.map((label, i) => {
+
+      <div className="aimapkit-legend-linewidth">
+        {items.map((item, i) => {
           const isDimmed =
             hoveredIndex >= 0
               ? hoveredIndex !== i
@@ -73,21 +68,24 @@ export function LegendCategories({
             <div
               key={i}
               className={cx(
-                'aimapkit-legend-cat-item',
-                isDimmed && 'aimapkit-legend-cat-item--dimmed',
+                'aimapkit-legend-linewidth-item',
+                isDimmed && 'aimapkit-legend-linewidth-item--dimmed',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
               onClick={() => handleClick(i)}
             >
-              <span
-                className={cx(
-                  'aimapkit-legend-cat-swatch',
-                  swatchShape === 'circle' && 'aimapkit-legend-cat-swatch--circle',
-                )}
-                style={{ backgroundColor: colors[i] ?? '#ccc' }}
+              <div
+                className="aimapkit-legend-linewidth-line"
+                style={{
+                  height: item.width,
+                  backgroundColor: color,
+                  opacity: 0.85,
+                }}
               />
-              <span className="aimapkit-legend-cat-label">{label}</span>
+              <span className="aimapkit-legend-linewidth-label">
+                {item.label}
+              </span>
             </div>
           );
         })}
@@ -96,4 +94,4 @@ export function LegendCategories({
   );
 }
 
-export default LegendCategories;
+export default LegendLineWidth;

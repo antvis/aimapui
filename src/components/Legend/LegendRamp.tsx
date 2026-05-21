@@ -1,46 +1,154 @@
-import React from 'react';
-import type { LegendRampSchema } from '../../schema/types';
+import React, { useState, useCallback, useRef } from 'react';
+import type { LegendRampSchema, LegendInteractionCallbacks } from '../../schema/types';
 import { cx } from '../../utils/style';
 
 export interface LegendRampProps extends LegendRampSchema {
   className?: string;
+  /** 交互回调 */
+  interaction?: LegendInteractionCallbacks;
 }
 
-export function LegendRamp({ title, labels, colors, isContinuous, className }: LegendRampProps) {
+/**
+ * 连续/分级色带图例
+ *
+ * 视觉规范:
+ * - 色条高度 12px，圆角 4px
+ * - isContinuous: 无级渐变 (linear-gradient)，否则分段色块
+ * - 标签: 两侧 min/max，多标签时显示中间值
+ * - showTicks: 刻度线
+ * - brushable: 范围刷选手柄，支持拖动筛选数据范围
+ *
+ * @see legend.md §3 连续与分级图例
+ */
+export function LegendRamp({
+  title,
+  labels,
+  colors,
+  isContinuous = false,
+  showTicks = false,
+  brushable = false,
+  className,
+  interaction,
+}: LegendRampProps) {
+  const [brushRange, setBrushRange] = useState<[number, number]>([0, 100]);
+  const barRef = useRef<HTMLDivElement>(null);
+
   const gradient = colors.join(', ');
 
+  const handleBrushMouseDown = useCallback(
+    (handle: 'left' | 'right') => (e: React.MouseEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+
+      const bar = barRef.current;
+      if (!bar) return;
+
+      const barWidth = bar.getBoundingClientRect().width;
+
+      const onMove = (moveEvent: MouseEvent) => {
+        const rect = bar!.getBoundingClientRect();
+        const x = moveEvent.clientX - rect.left;
+        const percent = Math.max(0, Math.min(100, (x / barWidth) * 100));
+
+        setBrushRange((prev) => {
+          let next: [number, number];
+          if (handle === 'left') {
+            next = [Math.min(percent, prev[1] - 5), prev[1]];
+          } else {
+            next = [prev[0], Math.max(percent, prev[0] + 5)];
+          }
+          interaction?.onBrush?.(next);
+          return next;
+        });
+      };
+
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      };
+
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    },
+    [interaction, barRef],
+  );
+
   return (
-    <div className={cx('space-y-2', className)}>
-      {title && (
-        <div className="text-label-caps font-label-caps text-on-surface-variant mb-3">{title}</div>
-      )}
-      <div
-        className="h-4 w-full rounded"
-        style={{
-          background: isContinuous
-            ? `linear-gradient(to right, ${gradient})`
-            : undefined,
-          backgroundColor: isContinuous ? undefined : 'transparent',
-        }}
-      >
-        {!isContinuous &&
-          colors.map((color, i) => (
+    <div className={cx('aimapkit-legend-section', className)}>
+      {title && <div className="aimapkit-legend-title">{title}</div>}
+
+      {/* 色条 */}
+      <div className="aimapkit-legend-ramp" ref={barRef}>
+        <div
+          className={cx(
+            'aimapkit-legend-ramp-bar',
+            isContinuous && 'aimapkit-legend-ramp-bar--continuous',
+          )}
+          style={
+            isContinuous
+              ? { background: `linear-gradient(to right, ${gradient})` }
+              : undefined
+          }
+        >
+          {!isContinuous &&
+            colors.map((color, i) => (
+              <div
+                key={i}
+                className="aimapkit-legend-ramp-segment"
+                style={{ backgroundColor: color }}
+              />
+            ))}
+        </div>
+
+        {/* 刻度线 */}
+        {showTicks && (
+          <div className="aimapkit-legend-ramp-ticks">
+            {colors.map((_, i) =>
+              i === 0 ? null : (
+                <div
+                  key={i}
+                  className="aimapkit-legend-ramp-tick"
+                  style={{
+                    position: 'absolute',
+                    left: `${(i / (colors.length - 1)) * 100}%`,
+                  }}
+                />
+              ),
+            )}
+          </div>
+        )}
+
+        {/* 标签 */}
+        <div className="aimapkit-legend-ramp-labels">
+          <span>{labels[0]}</span>
+          {labels.length > 2 && (
+            <span>{labels[Math.floor(labels.length / 2)]}</span>
+          )}
+          <span>{labels[labels.length - 1]}</span>
+        </div>
+
+        {/* 范围刷选 */}
+        {brushable && (
+          <div className="aimapkit-legend-ramp-brush">
             <div
-              key={i}
-              className="inline-block h-full"
+              className="aimapkit-legend-ramp-brush-range"
               style={{
-                backgroundColor: color,
-                width: `${100 / colors.length}%`,
+                left: `${brushRange[0]}%`,
+                width: `${brushRange[1] - brushRange[0]}%`,
               }}
             />
-          ))}
-      </div>
-      <div className="flex justify-between text-mono-data opacity-70">
-        <span>{labels[0]}</span>
-        {labels.length > 2 && (
-          <span>{labels[Math.floor(labels.length / 2)]}</span>
+            <div
+              className="aimapkit-legend-ramp-brush-handle"
+              style={{ left: `${brushRange[0]}%` }}
+              onMouseDown={handleBrushMouseDown('left')}
+            />
+            <div
+              className="aimapkit-legend-ramp-brush-handle"
+              style={{ left: `${brushRange[1]}%` }}
+              onMouseDown={handleBrushMouseDown('right')}
+            />
+          </div>
         )}
-        <span>{labels[labels.length - 1]}</span>
       </div>
     </div>
   );
