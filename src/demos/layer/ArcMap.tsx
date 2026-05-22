@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Aimap, LineLayer, ZoomControl } from '../../index';
 
 /**
- * 弧线地图 — LineLayer arc
+ * 弧线地图 — LineLayer arc (2D)
  *
- * 参照 L7 示例：line/arc/trip_arc
- * 数据：纽约共享单车出行数据，使用 arc3d 弧线展示 OD 流向
+ * 数据：纽约共享单车出行数据，使用 2D 弧线展示 OD 流向
+ * 设计参考 arc-flow-map.md：2D 贝塞尔弧线 + 梯度渐变色带
  */
 export default function ArcMap() {
   const [data, setData] = useState<string | null>(null);
@@ -24,7 +24,6 @@ export default function ArcMap() {
           basemap: 'gaode',
           center: [-74.0697, 40.7204],
           zoom: 12.46,
-          pitch: 60,
           style: 'light',
         }}
       >
@@ -38,10 +37,10 @@ export default function ArcMap() {
               x1: 'end station longitude',
               y1: 'end station latitude',
             }}
-            size={1}
-            shape="arc3d"
-            color="#0C47BF"
-            style={{ blur: 0.9, opacity: 0.9 }}
+            size={2}
+            shape="arc"
+            color="#2563EB"
+            style={{ opacity: 0.6 }}
           />
         )}
         <ZoomControl position="bottomright" />

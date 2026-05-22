@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行政区划可视化图层交互设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #1a56db;
+    --color-primary-light: rgba(26, 86, 219, 0.12);
+    --color-accent: #e85d04;
+    --color-accent-light: rgba(232, 93, 4, 0.1);
+    --color-success: #059669;
+    --color-surface-dim: #f1f3f8;
+    --color-surface-bright: #ffffff;
+    --color-on-surface: #0f172a;
+    --color-on-surface-variant: #475569;
+    --color-outline: #cbd5e1;
+    --color-outline-variant: #e2e8f0;
+    --color-container: #eef2ff;
+    --color-container-high: #dbeafe;
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,0.04), 0 1px 2px rgba(15,23,42,0.06);
+    --shadow-md: 0 4px 16px rgba(15,23,42,0.06), 0 2px 4px rgba(15,23,42,0.04);
+    --shadow-lg: 0 12px 40px rgba(15,23,42,0.08), 0 4px 12px rgba(15,23,42,0.04);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--color-surface-dim); color: var(--color-on-surface); line-height: 1.7; -webkit-font-smoothing: antialiased; }
+
+  /* Layout */
+  .page { max-width: 1080px; margin: 0 auto; padding: 64px 40px; }
+  .header { margin-bottom: 56px; position: relative; }
+  .header::after { content: ''; position: absolute; bottom: -24px; left: 0; width: 64px; height: 4px; background: var(--color-primary); border-radius: 2px; }
+  .header h1 { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 12px; }
+  .header .subtitle { font-size: 15px; color: var(--color-on-surface-variant); font-weight: 400; }
+  .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: var(--color-primary-light); color: var(--color-primary); font-size: 12px; font-weight: 600; border-radius: 20px; margin-bottom: 16px; }
+  .badge::before { content: ''; width: 6px; height: 6px; background: var(--color-primary); border-radius: 50%; }
+
+  /* Sections */
+  .section { margin-bottom: 48px; }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--color-outline-variant); }
+  .section-header h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .section-header .tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); background: var(--color-accent-light); padding: 3px 10px; border-radius: 4px; }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; color: var(--color-on-surface); }
+  p, li { font-size: 14px; color: var(--color-on-surface-variant); }
+  ul { padding-left: 0; list-style: none; }
+  ul li { position: relative; padding-left: 20px; margin-bottom: 10px; }
+  ul li::before { content: ''; position: absolute; left: 0; top: 8px; width: 6px; height: 6px; background: var(--color-primary); border-radius: 2px; transform: rotate(45deg); }
+
+  /* Cards */
+  .card { background: var(--color-surface-bright); border: 1px solid var(--color-outline-variant); border-radius: var(--radius-lg); padding: 28px; margin-bottom: 20px; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s ease; }
+  .card:hover { box-shadow: var(--shadow-md); }
+  .card-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card-label::after { content: ''; flex: 1; height: 1px; background: var(--color-outline-variant); }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* Spec Table */
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 10px 14px; background: var(--color-container); border-bottom: 2px solid var(--color-outline); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .spec-table td { padding: 10px 14px; border-bottom: 1px solid var(--color-outline-variant); }
+  .spec-table tr:last-child td { border-bottom: none; }
+  .spec-table code { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--color-container); padding: 2px 6px; border-radius: 4px; }
+
+  /* Interactive Demo */
+  .demo-container { position: relative; width: 100%; border-radius: var(--radius-lg); overflow: hidden; border: 1px solid var(--color-outline-variant); }
+  .demo-map { position: relative; width: 100%; height: 340px; background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%); overflow: hidden; }
+  .demo-map.drill-mode { background: linear-gradient(135deg, #fafbff 0%, #f5f8ff 100%); }
+
+  /* Map Regions */
+  .region { position: absolute; border-radius: 4px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; }
+  .region .label { font-size: 11px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); pointer-events: none; font-family: 'DM Sans', sans-serif; }
+  .region:hover { transform: scale(1.02); z-index: 10; box-shadow: 0 0 0 2px #fff, 0 4px 20px rgba(26,86,219,0.25); }
+  .region.selected { box-shadow: 0 0 0 3px var(--color-primary), 0 8px 24px rgba(26,86,219,0.2); transform: scale(1.03); }
+  .region.dimmed { opacity: 0.15; pointer-events: none; }
+
+  /* Tooltip */
+  .tooltip { position: absolute; background: rgba(15,23,42,0.92); backdrop-filter: blur(8px); color: #fff; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 12px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 100; white-space: nowrap; }
+  .tooltip.visible { opacity: 1; }
+  .tooltip-title { font-weight: 600; margin-bottom: 4px; }
+  .tooltip-value { color: #94a3b8; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+  /* Breadcrumbs */
+  .breadcrumbs { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: var(--color-surface-bright); border-bottom: 1px solid var(--color-outline-variant); font-size: 12px; font-weight: 500; }
+  .breadcrumbs .crumb { color: var(--color-on-surface-variant); cursor: pointer; transition: color 0.15s; }
+  .breadcrumbs .crumb:hover { color: var(--color-primary); }
+  .breadcrumbs .crumb.active { color: var(--color-primary); font-weight: 600; }
+  .breadcrumbs .sep { color: var(--color-outline); font-size: 10px; }
+
+  /* Mode Switch */
+  .mode-switch { position: absolute; top: 12px; right: 12px; display: flex; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-radius: var(--radius-sm); border: 1px solid var(--color-outline-variant); overflow: hidden; z-index: 20; box-shadow: var(--shadow-sm); }
+  .mode-btn { padding: 8px 14px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--color-on-surface-variant); transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+  .mode-btn.active { background: var(--color-primary); color: #fff; }
+
+  /* Legend */
+  .legend { position: absolute; bottom: 12px; left: 12px; background: rgba(255,255,255,0.95); backdrop-filter: blur(8px); border-radius: var(--radius-sm); padding: 12px 16px; border: 1px solid var(--color-outline-variant); z-index: 20; box-shadow: var(--shadow-sm); }
+  .legend-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-on-surface-variant); margin-bottom: 8px; }
+  .legend-scale { display: flex; height: 10px; border-radius: 5px; overflow: hidden; width: 120px; }
+  .legend-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--color-on-surface-variant); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+
+  /* Divider */
+  .divider { height: 1px; background: linear-gradient(to right, transparent, var(--color-outline-variant), transparent); margin: 48px 0; }
+
+  /* Animation keyframes */
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+  .animate-in { animation: fadeInUp 0.5s ease forwards; }
+  .drill-icon { position: absolute; bottom: 6px; right: 6px; width: 16px; height: 16px; background: rgba(255,255,255,0.9); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; opacity: 0; transition: opacity 0.2s; cursor: pointer; }
+  .region:hover .drill-icon { opacity: 1; }
+
+  /* Flow Diagram */
+  .flow { display: flex; align-items: center; gap: 12px; padding: 20px 0; flex-wrap: wrap; justify-content: center; }
+  .flow-node { padding: 10px 18px; background: var(--color-container); border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; border: 1px solid var(--color-outline-variant); }
+  .flow-node.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+  .flow-arrow { color: var(--color-outline); font-size: 16px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Interaction Spec v1.0</div>
+    <h1>行政区划可视化图层</h1>
+    <p class="subtitle">Administrative Layer Interaction Design — 非下钻与下钻模式的视觉呈现与交互逻辑规范</p>
+  </div>
+
+  <!-- Section 1: Overview -->
+  <div class="section">
+    <div class="section-header">
+      <h2>1. 概述</h2>
+      <span class="tag">Overview</span>
+    </div>
+    <p>本规范定义行政区划地图在"非下钻模式"与"下钻模式"下的视觉呈现与交互逻辑。通过标准化的反馈机制，确保用户在不同层级的数据探索中保持清晰的地理感知。</p>
+    <div class="flow">
+      <div class="flow-node active">全国视图</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node">省级视图</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node">市级视图</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-node">区县视图</div>
+    </div>
+  </div>
+
+  <!-- Section 2: Non-Drill Mode -->
+  <div class="section">
+    <div class="section-header">
+      <h2>2. 非下钻模式</h2>
+      <span class="tag">Macro View</span>
+    </div>
+    <p style="margin-bottom: 20px;">主要用于宏观数据的快速浏览，不涉及地理层级的跳转，侧重于全局对比。</p>
+
+    <div class="demo-container">
+      <div class="demo-map" id="macroMap">
+        <div class="mode-switch">
+          <button class="mode-btn active" onclick="setMode('lock')">🔒 锁定</button>
+          <button class="mode-btn" onclick="setMode('explore')">🔍 深度</button>
+        </div>
+        <div class="legend">
+          <div class="legend-title">GDP 分布 (万亿)</div>
+          <div class="legend-scale">
+            <div style="flex:1;background:#dbeafe"></div>
+            <div style="flex:1;background:#93c5fd"></div>
+            <div style="flex:1;background:#3b82f6"></div>
+            <div style="flex:1;background:#1d4ed8"></div>
+            <div style="flex:1;background:#1e3a8a"></div>
+          </div>
+          <div class="legend-labels"><span>0.2</span><span>5.8</span><span>12.4</span></div>
+        </div>
+        <!-- Simulated Provinces -->
+        <div class="region" style="left:58%;top:12%;width:18%;height:22%;background:#3b82f6;border:2px solid rgba(255,255,255,0.5);clip-path:polygon(10% 0,90% 5%,100% 40%,85% 95%,20% 100%,0 60%)" data-name="山东" data-value="8.3万亿" onclick="selectRegion(this)">
+          <span class="label">山东</span>
+        </div>
+        <div class="region" style="left:62%;top:34%;width:16%;height:20%;background:#1d4ed8;border:2px solid rgba(255,255,255,0.5);clip-path:polygon(5% 10%,85% 0,100% 50%,90% 100%,10% 90%,0 45%)" data-name="江苏" data-value="12.3万亿" onclick="selectRegion(this)">
+          <span class="label">江苏</span>
+        </div>
+        <div class="region" style="left:60%;top:54%;width:14%;height:18%;background:#60a5fa;border:2px solid rgba(255,255,255,0.5);clip-path:polygon(15% 5%,95% 0,100% 60%,80% 100%,5% 90%,0 40%)" data-name="浙江" data-value="7.8万亿" onclick="selectRegion(this)">
+          <span class="label">浙江</span>
+        </div>
+        <div class="region" style="left:52%;top:58%;width:18%;height:24%;background:#1e3a8a;border:2px solid rgba(255,255,255,0.5);clip-path:polygon(10% 5%,80% 0,100% 35%,90% 100%,15% 95%,0 50%)" data-name="广东" data-value="12.9万亿" onclick="selectRegion(this)">
+          <span class="label">广东</span>
+        </div>
+        <div class="region" style="left:30%;top:20%;width:22%;height:28%;background:#93c5fd;border:2px solid rgba(255,255,255,0.5);clip-path:polygon(20% 0,90% 10%,100% 45%,80% 100%,10% 90%,0 50%)" data-name="四川" data-value="5.7万亿" onclick="selectRegion(this)">
+          <span class="label">四川</span>
+        </div>
+        <div class="region" style="left:15%;top:8%;width:20%;height:24%;background:#dbeafe;border:2px solid rgba(255,255,255,0.5);clip-path:polygon(15% 5%,85% 0,100% 50%,90% 95%,10% 100%,0 45%)" data-name="新疆" data-value="1.8万亿" onclick="selectRegion(this)">
+          <span class="label">新疆</span>
+        </div>
+        <div class="tooltip" id="tooltip">
+          <div class="tooltip-title"></div>
+          <div class="tooltip-value"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 20px;">
+      <div class="card">
+        <div class="card-label">视觉表现 Visual</div>
+        <ul>
+          <li><strong>全局热力</strong>：基于最高行政级别进行色阶填充</li>
+          <li><strong>悬浮即得</strong>：悬停显示 Tooltip，边界高亮 <code>1px solid white</code></li>
+          <li><strong>静态标签</strong>：仅显示核心城市名称，避免视觉拥堵</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">交互行为 Interaction</div>
+        <ul>
+          <li><strong>单点选定</strong>：阴影加深 + <code>2px</code> 描边，侧边栏联动</li>
+          <li><strong>平移缩放</strong>：支持当前层级内自由平移与有限缩放</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 3: Drill-down Mode -->
+  <div class="section">
+    <div class="section-header">
+      <h2>3. 下钻模式</h2>
+      <span class="tag">Micro View</span>
+    </div>
+    <p style="margin-bottom: 20px;">用于深度探索特定区域。通过层级切换，将视觉中心由宏观切换至微观（省 → 市 → 区）。</p>
+
+    <div class="demo-container">
+      <div class="breadcrumbs">
+        <span class="crumb" onclick="drillUp()">中国</span>
+        <span class="sep">›</span>
+        <span class="crumb" onclick="drillUp()">广东省</span>
+        <span class="sep">›</span>
+        <span class="crumb active">深圳市</span>
+      </div>
+      <div class="demo-map drill-mode" id="drillMap">
+        <div class="legend">
+          <div class="legend-title">区域 GDP (亿)</div>
+          <div class="legend-scale">
+            <div style="flex:1;background:#fef3c7"></div>
+            <div style="flex:1;background:#fcd34d"></div>
+            <div style="flex:1;background:#f59e0b"></div>
+            <div style="flex:1;background:#d97706"></div>
+            <div style="flex:1;background:#92400e"></div>
+          </div>
+          <div class="legend-labels"><span>320</span><span>2800</span><span>5600</span></div>
+        </div>
+        <!-- Background dimmed parent regions -->
+        <div class="region dimmed" style="left:5%;top:5%;width:30%;height:40%;background:#93c5fd;clip-path:polygon(10% 0,90% 5%,95% 90%,5% 95%)">
+          <span class="label">惠州</span>
+        </div>
+        <div class="region dimmed" style="left:5%;top:50%;width:25%;height:35%;background:#93c5fd;clip-path:polygon(0 10%,95% 0,90% 100%,10% 95%)">
+          <span class="label">东莞</span>
+        </div>
+        <!-- Focus: Shenzhen Districts -->
+        <div class="region" style="left:38%;top:15%;width:20%;height:22%;background:#d97706;border:1px dashed rgba(255,255,255,0.6);clip-path:polygon(5% 5%,92% 0,100% 85%,10% 100%)" data-name="南山区" data-value="GDP: 4,200亿">
+          <span class="label">南山区</span>
+          <div class="drill-icon">⬇</div>
+        </div>
+        <div class="region" style="left:58%;top:12%;width:18%;height:20%;background:#92400e;border:1px dashed rgba(255,255,255,0.6);clip-path:polygon(8% 0,100% 8%,92% 100%,0 90%)" data-name="福田区" data-value="GDP: 5,200亿">
+          <span class="label">福田区</span>
+          <div class="drill-icon">⬇</div>
+        </div>
+        <div class="region" style="left:42%;top:38%;width:22%;height:25%;background:#f59e0b;border:1px dashed rgba(255,255,255,0.6);clip-path:polygon(0 5%,90% 0,100% 90%,8% 100%)" data-name="宝安区" data-value="GDP: 3,800亿">
+          <span class="label">宝安区</span>
+          <div class="drill-icon">⬇</div>
+        </div>
+        <div class="region" style="left:65%;top:32%;width:20%;height:28%;background:#fcd34d;border:1px dashed rgba(255,255,255,0.6);clip-path:polygon(5% 0,100% 10%,95% 95%,0 100%)" data-name="龙岗区" data-value="GDP: 2,400亿">
+          <span class="label">龙岗区</span>
+          <div class="drill-icon">⬇</div>
+        </div>
+        <div class="region" style="left:52%;top:62%;width:24%;height:22%;background:#fef3c7;border:1px dashed rgba(255,255,255,0.6);clip-path:polygon(10% 5%,95% 0,100% 100%,0 92%)" data-name="坪山区" data-value="GDP: 680亿">
+          <span class="label">坪山区</span>
+          <div class="drill-icon">⬇</div>
+        </div>
+        <div class="tooltip" id="tooltip2">
+          <div class="tooltip-title"></div>
+          <div class="tooltip-value"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top: 20px;">
+      <div class="card">
+        <div class="card-label">视觉表现 Visual</div>
+        <ul>
+          <li><strong>焦点隔离</strong>：非焦点区域透明度降至 <code>10-20%</code>，形成掩膜</li>
+          <li><strong>层级渐进</strong>：地图精细度提升，显示更细碎行政边界</li>
+          <li><strong>面包屑导航</strong>：顶部路径 <code>中国 > 广东省 > 深圳市</code></li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">交互行为 Interaction</div>
+        <ul>
+          <li><strong>双击下钻</strong>：双击行政区或点击下钻图标进入下一级</li>
+          <li><strong>转场动画</strong>：中心扩充缩放动画 (Zoom-in Transition)</li>
+          <li><strong>动态图例</strong>：Min/Max 根据当前层级自动重新计算</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 4: Mode Switch -->
+  <div class="section">
+    <div class="section-header">
+      <h2>4. 模式切换机制</h2>
+      <span class="tag">Switching</span>
+    </div>
+    <div class="card">
+      <div class="card-label">控件逻辑</div>
+      <table class="spec-table">
+        <thead><tr><th>模式</th><th>行为</th><th>入口</th></tr></thead>
+        <tbody>
+          <tr><td><strong>🔒 锁定模式 (Lock)</strong></td><td>默认非下钻，点击仅选中区域</td><td>地图右上角控制台</td></tr>
+          <tr><td><strong>🔍 深度模式 (Explore)</strong></td><td>激活下钻逻辑，允许层级穿透</td><td>地图右上角控制台</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Section 5: Visual Mapping -->
+  <div class="section">
+    <div class="section-header">
+      <h2>5. 视觉规范对照</h2>
+      <span class="tag">Visual Mapping</span>
+    </div>
+    <div class="card">
+      <table class="spec-table">
+        <thead>
+          <tr><th>元素</th><th>非下钻 (Macro)</th><th>下钻 (Micro)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>背景色</strong></td><td><code>Surface-Dim</code> #f1f3f8</td><td><code>Surface-Bright</code> #ffffff</td></tr>
+          <tr><td><strong>边界线</strong></td><td><code>2px</code> 实线 (省界)</td><td><code>1px</code> 虚线 (区界)</td></tr>
+          <tr><td><strong>标签规模</strong></td><td>大字号、粗体</td><td>中字号、常规</td></tr>
+          <tr><td><strong>数据卡片</strong></td><td>全局排名</td><td>区域详情 + 趋势图</td></tr>
+          <tr><td><strong>透明度</strong></td><td>所有区域 <code>opacity: 0.8</code></td><td>焦点 <code>1.0</code> / 非焦点 <code>0.15</code></td></tr>
+          <tr><td><strong>图例范围</strong></td><td>全局 Min/Max 固定</td><td>当前层级动态计算</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Tooltip logic
+document.querySelectorAll('.region:not(.dimmed)').forEach(region => {
+  region.addEventListener('mouseenter', function(e) {
+    const map = this.closest('.demo-map');
+    const tooltip = map.querySelector('.tooltip');
+    const name = this.dataset.name;
+    const value = this.dataset.value;
+    if (!name) return;
+    tooltip.querySelector('.tooltip-title').textContent = name;
+    tooltip.querySelector('.tooltip-value').textContent = value;
+    tooltip.classList.add('visible');
+  });
+  region.addEventListener('mousemove', function(e) {
+    const map = this.closest('.demo-map');
+    const tooltip = map.querySelector('.tooltip');
+    const rect = map.getBoundingClientRect();
+    tooltip.style.left = (e.clientX - rect.left + 12) + 'px';
+    tooltip.style.top = (e.clientY - rect.top - 40) + 'px';
+  });
+  region.addEventListener('mouseleave', function() {
+    const map = this.closest('.demo-map');
+    const tooltip = map.querySelector('.tooltip');
+    tooltip.classList.remove('visible');
+  });
+});
+
+// Select region
+function selectRegion(el) {
+  document.querySelectorAll('#macroMap .region').forEach(r => r.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// Mode switch
+function setMode(mode) {
+  document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+  if (mode === 'lock') {
+    document.querySelectorAll('.mode-btn')[0].classList.add('active');
+  } else {
+    document.querySelectorAll('.mode-btn')[1].classList.add('active');
+  }
+}
+
+// Drill up simulation
+function drillUp() {
+  const crumbs = document.querySelectorAll('.crumb');
+  crumbs.forEach(c => c.classList.remove('active'));
+  crumbs[0].classList.add('active');
+}
+</script>
+</body>
+</html>

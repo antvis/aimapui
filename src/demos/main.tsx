@@ -37,10 +37,10 @@ import LineLayer from './layer/LineLayer';
 import PathMap from './layer/PathMap';
 import LineAnimate from './layer/LineAnimate';
 import ArcMap from './layer/ArcMap';
+import AdministrativeMap from './layer/AdministrativeMap';
 import FlowMap from './layer/FlowMap';
 import IsolineMap from './layer/IsolineMap';
 import HeatmapLayer from './layer/HeatmapLayer';
-import HexagonHeatmap2D from './layer/HexagonHeatmap2D';
 import MultiLayer from './layer/MultiLayer';
 import LayerEvents from './layer/LayerEvents';
 import MapEvents from './layer/MapEvents';
@@ -63,6 +63,8 @@ import ChoroplethMap from './advanced/ChoroplethMap';
 // Mobile
 import MobileApp from './mobile/MobileApp';
 import CheckInMap from './mobile/CheckInMap';
+import FootprintMap from './mobile/FootprintMap';
+import TravelStatsMap from './mobile/TravelStatsMap';
 // PC
 import PcApp from './pc/PcApp';
 import ImmersiveTravelMap from './pc/ImmersiveTravelMap';
@@ -191,6 +193,8 @@ const demos = [
   // ── 应用模板（移动端 + 桌面端） ─────────────────────────
   { name: '移动端应用', icon: 'smartphone', component: MobileApp, group: '应用模板', file: 'mobile/MobileApp' },
   { name: '打卡地图', icon: 'location_on', component: CheckInMap, group: '应用模板', file: 'mobile/CheckInMap' },
+  { name: '足迹地图', icon: 'explore', component: FootprintMap, group: '应用模板', file: 'mobile/FootprintMap' },
+  { name: '旅行足迹统计', icon: 'bar_chart', component: TravelStatsMap, group: '应用模板', file: 'mobile/TravelStatsMap' },
   { name: 'PC 端应用', icon: 'desktop_windows', component: PcApp, group: '应用模板', file: 'pc/PcApp' },
   { name: '沉浸式旅游足迹', icon: 'photo_camera', component: ImmersiveTravelMap, group: '应用模板', file: 'pc/ImmersiveTravelMap' },
 
@@ -200,18 +204,17 @@ const demos = [
   { name: '图片标注', icon: 'label', component: IconLabel, group: '复合图层', file: 'advanced/IconLabel' },
   { name: '字体标注', icon: 'font_download', component: IconFontLabel, group: '复合图层', file: 'advanced/IconFontLabel' },
   // 线
-  { name: '路径图', icon: 'moving', component: PathLayer, group: '复合图层', file: 'advanced/PathLayer' },
-  { name: '弧线图', icon: 'ssid_chart', component: ArcLayer, group: '复合图层', file: 'advanced/ArcLayer' },
   // 面
   { name: '分级统计图', icon: 'stacked_bar_chart', component: ChoroplethMap, group: '复合图层', file: 'advanced/ChoroplethMap' },
   // 热力图
   { name: '蜂窝热力图', icon: 'hexagon', component: HexagonHeatmap, group: '复合图层', file: 'advanced/HexagonHeatmap' },
+  { name: '卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '复合图层', file: 'advanced/SatelliteLayer' },
+  { name: 'Marker 聚合', icon: 'scatter_plot', component: MarkerCluster, group: '复合图层', file: 'marker/MarkerCluster' },
 
   // ── Marker 标注 ───────────────────────────
   { name: 'Marker 标注', icon: 'location_on', component: Marker, group: 'Marker 标注', file: 'marker/Marker' },
   { name: 'Marker 测试', icon: 'science', component: MarkerTest, group: 'Marker 标注', file: 'marker/MarkerTest' },
   { name: '可拖拽标注', icon: 'push_pin', component: MarkerDrag, group: 'Marker 标注', file: 'marker/MarkerDrag' },
-  { name: 'Marker 聚合', icon: 'scatter_plot', component: MarkerCluster, group: 'Marker 标注', file: 'marker/MarkerCluster' },
   { name: 'Popup 弹窗', icon: 'chat_bubble', component: Popup, group: 'Marker 标注', file: 'popup/Popup' },
   { name: 'Tooltip 轻提示', icon: 'info', component: TooltipDemo, group: 'Marker 标注', file: 'popup/Tooltip' },
 
@@ -245,15 +248,14 @@ const demos = [
   { name: '等值线地图', icon: 'waves', component: IsolineMap, group: '基础图层', file: 'layer/IsolineMap' },
   // 面
   { name: '填充图层', icon: 'format_shapes', component: FillLayer, group: '基础图层', file: 'advanced/FillLayer' },
+  { name: '行政区划 GDP', icon: 'public', component: AdministrativeMap, group: '基础图层', file: 'layer/AdministrativeMap' },
   { name: '3D 填充图', icon: 'location_city', component: Fill3DLayer, group: '基础图层', file: 'advanced/Fill3DLayer' },
   // 热力图
   { name: '热力图', icon: 'local_fire_department', component: HeatmapLayer, group: '基础图层', file: 'layer/HeatmapLayer' },
   { name: '经典热力图', icon: 'thermostat', component: HeatmapClassic, group: '基础图层', file: 'advanced/HeatmapClassic' },
-  { name: '蜂窝热力图 2D', icon: 'hexagon', component: HexagonHeatmap2D, group: '基础图层', file: 'layer/HexagonHeatmap2D' },
   // 图片 & 栅格
   { name: '图片图层', icon: 'image', component: ImageLayer, group: '基础图层', file: 'advanced/ImageLayer' },
   { name: '栅格瓦片', icon: 'grid_view', component: RasterTileLayer, group: '基础图层', file: 'advanced/RasterTileLayer' },
-  { name: '卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '基础图层', file: 'advanced/SatelliteLayer' },
   // 事件 & 组合
   { name: '多图层叠加', icon: 'layers', component: MultiLayer, group: '基础图层', file: 'layer/MultiLayer' },
   { name: '图层事件', icon: 'touch_app', component: LayerEvents, group: '基础图层', file: 'layer/LayerEvents' },

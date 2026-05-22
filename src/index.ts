@@ -100,8 +100,12 @@ export { PolygonLayer } from './components/Layer/PolygonLayer';
 export type { PolygonLayerProps } from './components/Layer/PolygonLayer';
 export { HeatmapLayer } from './components/Layer/HeatmapLayer';
 export type { HeatmapLayerProps } from './components/Layer/HeatmapLayer';
-export { HeatmapHexagonLayer } from './components/CompositeLayer/HeatmapHexagonLayer';
-export type { HeatmapHexagonLayerProps } from './components/CompositeLayer/HeatmapHexagonLayer';
+export { HexagonLayer } from './components/CompositeLayer/HexagonLayer';
+export type { HexagonLayerProps } from './components/CompositeLayer/HexagonLayer';
+/** @deprecated 使用 HexagonLayer 替代 */
+export { HexagonLayer as HeatmapHexagonLayer } from './components/CompositeLayer/HexagonLayer';
+/** @deprecated 使用 HexagonLayerProps 替代 */
+export type { HexagonLayerProps as HeatmapHexagonLayerProps } from './components/CompositeLayer/HexagonLayer';
 export { RasterLayer } from './components/Layer/RasterLayer';
 export type { RasterLayerProps } from './components/Layer/RasterLayer';
 export { ImageLayer } from './components/Layer/ImageLayer';
@@ -112,6 +116,8 @@ export { MarkerClusterLayer } from './components/CompositeLayer/MarkerClusterLay
 export type { MarkerClusterLayerProps } from './components/CompositeLayer/MarkerClusterLayer';
 export { FillLayer } from './components/CompositeLayer/FillLayer';
 export type { FillLayerProps } from './components/CompositeLayer/FillLayer';
+export { ChinaAdministrativeLayer, ADMIN_SEQUENTIAL_COLORS, DEFAULT_PROVINCE_SOURCE, DEFAULT_CITY_SOURCE, DEFAULT_DISTRICT_SOURCE } from './components/CompositeLayer/AdministrativeLayer';
+export type { AdministrativeLayerProps, AdministrativeLevel, DrillPathNode, BusinessDataItem } from './components/CompositeLayer/AdministrativeLayer';
 export { IconFontLayer, BUILTIN_ICON_FONTS } from './components/CompositeLayer/IconFontLayer';
 export type { IconFontLayerProps } from './components/CompositeLayer/IconFontLayer';
 export type { LabelAnchor } from './components/CompositeLayer/IconFontLayer';

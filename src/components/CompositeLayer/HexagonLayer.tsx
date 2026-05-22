@@ -2,7 +2,7 @@ import React from 'react';
 import type { LayerSchema, LayerEventPayload } from '../../schema/types';
 import { HeatmapLayer } from '../Layer/HeatmapLayer';
 
-export interface HeatmapHexagonLayerProps
+export interface HexagonLayerProps
   extends Omit<LayerSchema, 'type' | 'shape' | 'source' | 'sourceType' | 'sourceConfig'> {
   source: LayerSchema['source'];
   sourceType?: LayerSchema['sourceType'];
@@ -17,7 +17,7 @@ export interface HeatmapHexagonLayerProps
 /**
  * 蜂窝热力图（六边形聚合）
  */
-export function HeatmapHexagonLayer({
+export function HexagonLayer({
   source,
   sourceType = 'json',
   sourceConfig,
@@ -28,7 +28,7 @@ export function HeatmapHexagonLayer({
   onMouseMove,
   style,
   ...rest
-}: HeatmapHexagonLayerProps) {
+}: HexagonLayerProps) {
   const transforms = [
     {
       type: 'hexagon',
@@ -52,4 +52,4 @@ export function HeatmapHexagonLayer({
   );
 }
 
-export default HeatmapHexagonLayer;
+export default HexagonLayer;

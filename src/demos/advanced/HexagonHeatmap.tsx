@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Aimap, HeatmapHexagonLayer, ZoomControl } from '../../index';
+import { Aimap, HexagonLayer, ZoomControl } from '../../index';
+import { Legend } from '../components/Legend';
 /**
  * 蜂窝热力图
  */
@@ -17,7 +18,7 @@ export default function Demo27HexagonHeatmap() {
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Aimap map={{ basemap: 'gaode', center: [114.077376, 22.542657], zoom: 12.48, pitch: 56, rotation: 39, style: 'light' }}>
         {data && (
-          <HeatmapHexagonLayer
+          <HexagonLayer
             source={data}
             sourceType="geojson"
             weightField="h12"
@@ -31,6 +32,16 @@ export default function Demo27HexagonHeatmap() {
         )}
         <ZoomControl />
       </Aimap>
-</div>
+
+      {/* 图例 — 蜂窝热力色带 */}
+      <div style={{ position: 'absolute', bottom: 32, left: 16, zIndex: 10 }}>
+        <Legend
+          type="ramp"
+          title="汇聚强度"
+          colors={['#CEF8D6', '#A1EDB8', '#7BE39E', '#5FD3A6', '#4AC5AF', '#34B6B7', '#289899', '#1D7F7E', '#146968', '#094D4A']}
+          labels={['低', '高']}
+        />
+      </div>
+    </div>
   );
 }

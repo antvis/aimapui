@@ -10,7 +10,7 @@ import type { LegendSchema } from '../../schema/types';
 /* ================================================================
    PC 端地图应用 — GIS 数据分析平台
    遵循 pc-app.md 设计规范：
-   - 侧边导航栏 360px（图层管理 + 分析工具）
+   - 侧边导航栏 280px（图层管理 + 分析工具）
    - 顶部应用栏 64px（品牌 + 搜索 + 状态）
    - 地图主视口（沉浸式全屏）
    - 玻璃拟态控件组
@@ -127,7 +127,7 @@ export default function PcApp() {
     return CATEGORY_COLORS[category] || '#2563eb';
   }, []);
 
-  const sidebarWidth = sidebarOpen ? 360 : 0;
+  const sidebarWidth = sidebarOpen ? 280 : 0;
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -260,7 +260,7 @@ export default function PcApp() {
         </div>
       </div>
 
-      {/* ── 侧边导航栏 360px ── */}
+      {/* ── 侧边导航栏 280px ── */}
       <div
         style={{
           position: 'absolute',

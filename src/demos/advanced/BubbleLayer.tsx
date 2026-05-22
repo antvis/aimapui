@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Aimap, BubbleLayer, ZoomControl, Popup } from '../../index';
 import type { LayerEventPayload } from '../../index';
+import { Legend } from '../components/Legend';
 
 /**
  * 气泡图 — 气泡 + 文字标签同时展示
@@ -105,6 +106,22 @@ export default function Demo20BubbleText() {
           />
         )}
       </Aimap>
+
+      {/* 图例 — 气泡大小映射 */}
+      <div style={{ position: 'absolute', bottom: 32, left: 16, zIndex: 10 }}>
+        <Legend
+          type="size"
+          title="人口规模"
+          color="#2f7cf6"
+          items={[
+            { size: 6, label: '1' },
+            { size: 12, label: '2' },
+            { size: 18, label: '3' },
+            { size: 24, label: '4' },
+            { size: 30, label: '5' },
+          ]}
+        />
+      </div>
     </div>
   );
 }
