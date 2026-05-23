@@ -311,6 +311,45 @@ function App() {
   // 设计规范展示模式：html 预览(markdown渲染) / html demo(加载.html文件)
   // 全局 UI 主题
   const [appTheme, setAppTheme] = React.useState<"light" | "dark">("light");
+
+  // Demo 站点主题色表
+  const isDark = appTheme === "dark";
+  const t = {
+    bg: isDark ? "#0f0f1a" : "#f8fafb",
+    sidebar: isDark ? "linear-gradient(180deg, #13132b 0%, #0d0d1f 100%)" : "linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)",
+    sidebarBorder: isDark ? "1px solid rgba(99, 102, 241, 0.08)" : "1px solid #e2e8f0",
+    sidebarShadow: isDark ? "4px 0 24px rgba(0, 0, 0, 0.3)" : "4px 0 24px rgba(0, 0, 0, 0.04)",
+    logoBorder: isDark ? "1px solid rgba(99, 102, 241, 0.06)" : "1px solid #e2e8f0",
+    logoTitle: isDark ? "#f1f5f9" : "#1e293b",
+    logoSub: isDark ? "rgba(148, 163, 184, 0.7)" : "#64748b",
+    tabActive: isDark ? "#e0e7ff" : "#4338ca",
+    tabInactive: isDark ? "rgba(148, 163, 184, 0.6)" : "#94a3b8",
+    tabBg: isDark ? "rgba(99, 102, 241, 0.12)" : "rgba(99, 102, 241, 0.08)",
+    tabBorder: isDark ? "1px solid rgba(99, 102, 241, 0.06)" : "1px solid #e2e8f0",
+    groupLabel: isDark ? "rgba(99, 102, 241, 0.8)" : "#6366f1",
+    itemActive: isDark ? "#e0e7ff" : "#312e81",
+    itemInactive: isDark ? "rgba(148, 163, 184, 0.7)" : "#64748b",
+    itemBgActive: isDark ? "rgba(99, 102, 241, 0.1)" : "rgba(99, 102, 241, 0.06)",
+    itemHoverBg: isDark ? "rgba(99, 102, 241, 0.06)" : "rgba(99, 102, 241, 0.04)",
+    itemHoverColor: isDark ? "rgba(203, 213, 225, 0.9)" : "#334155",
+    iconActive: isDark ? "#a5b4fc" : "#6366f1",
+    versionColor: isDark ? "rgba(148, 163, 184, 0.4)" : "#94a3b8",
+    headerBg: isDark ? "rgba(15, 15, 26, 0.95)" : "rgba(255, 255, 255, 0.95)",
+    headerBorder: isDark ? "1px solid rgba(99, 102, 241, 0.06)" : "1px solid #e2e8f0",
+    headerText: isDark ? "rgba(148, 163, 184, 0.7)" : "#64748b",
+    headerTitle: isDark ? "#e2e8f0" : "#1e293b",
+    codeBg: isDark ? "#0a0a18" : "#fafbfc",
+    codeBorder: isDark ? "1px solid rgba(99, 102, 241, 0.06)" : "1px solid #e2e8f0",
+    codeText: isDark ? "#c9d1d9" : "#24292f",
+    codeLineNum: isDark ? "rgba(99, 102, 241, 0.25)" : "rgba(99, 102, 241, 0.4)",
+    btnBorder: isDark ? "1px solid rgba(99, 102, 241, 0.15)" : "1px solid #c7d2fe",
+    btnBg: isDark ? "rgba(99, 102, 241, 0.06)" : "rgba(99, 102, 241, 0.04)",
+    btnColor: isDark ? "rgba(165, 180, 252, 0.8)" : "#6366f1",
+    mobileFrame: isDark ? "#2a2a44" : "#d1d5db",
+    mobileFrameBg: isDark ? "#f8f9ff" : "#f8f9ff",
+    mobileShadow: isDark ? "0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99, 102, 241, 0.1)" : "0 25px 80px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)",
+    mobileContainerBg: isDark ? "radial-gradient(ellipse at center, #1a1a35 0%, #0f0f1a 70%)" : "radial-gradient(ellipse at center, #f1f5f9 0%, #e2e8f0 70%)",
+  };
   const [designViewMode, setDesignViewMode] = React.useState<'html' | 'demo'>('demo');
 
   const demo = demos[current];
@@ -344,33 +383,33 @@ function App() {
   const selectedDesignDoc = designDocs[currentDesignDoc];
 
   return (
-    <div data-theme={appTheme} style={{ width: '100%', height: '100%', display: 'flex', background: appTheme === 'dark' ? '#0f0f1a' : '#f5f7fa', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div data-theme={appTheme} style={{ width: '100%', height: '100%', display: 'flex', background: t.bg, fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
       {/* ========== 左侧菜单 ========== */}
       <div
         style={{
           width: 240,
           minWidth: 240,
           height: '100%',
-          background: 'linear-gradient(180deg, #13132b 0%, #0d0d1f 100%)',
-          borderRight: '1px solid rgba(99, 102, 241, 0.08)',
+          background: t.sidebar,
+          borderRight: t.sidebarBorder,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           userSelect: 'none',
-          boxShadow: '4px 0 24px rgba(0, 0, 0, 0.3)',
+          boxShadow: t.sidebarShadow,
         }}
       >
         {/* Logo / 标题 */}
-        <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid rgba(99, 102, 241, 0.06)' }}>
+        <div style={{ padding: '20px 20px 16px', borderBottom: t.logoBorder }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#fff' }}>map</span>
             </div>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#f1f5f9', letterSpacing: 0.3 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: t.logoTitle, letterSpacing: 0.3 }}>
                 AimapKit
               </div>
-              <div style={{ fontSize: 10, color: 'rgba(148, 163, 184, 0.7)', marginTop: 1, letterSpacing: 0.2 }}>
+              <div style={{ fontSize: 10, color: t.logoSub, marginTop: 1, letterSpacing: 0.2 }}>
                 Composable Map Components
               </div>
             </div>
@@ -378,7 +417,7 @@ function App() {
         </div>
 
         {/* 左侧 Tab 切换：可视化 / 设计规范 */}
-        <div style={{ display: 'flex', gap: 2, padding: '8px 12px', borderBottom: '1px solid rgba(99, 102, 241, 0.06)' }}>
+        <div style={{ display: 'flex', gap: 2, padding: '8px 12px', borderBottom: t.logoBorder }}>
           <button
             onClick={() => setSidebarMode('demo')}
             style={{
@@ -386,8 +425,8 @@ function App() {
               padding: '7px 0',
               fontSize: 11,
               fontWeight: 600,
-              color: sidebarMode === 'demo' ? '#e0e7ff' : 'rgba(148, 163, 184, 0.6)',
-              background: sidebarMode === 'demo' ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+              color: sidebarMode === 'demo' ? t.tabActive : t.tabInactive,
+              background: sidebarMode === 'demo' ? t.tabBg : 'transparent',
               border: 'none',
               borderRadius: 6,
               cursor: 'pointer',
@@ -404,8 +443,8 @@ function App() {
               padding: '7px 0',
               fontSize: 11,
               fontWeight: 600,
-              color: sidebarMode === 'design' ? '#e0e7ff' : 'rgba(148, 163, 184, 0.6)',
-              background: sidebarMode === 'design' ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+              color: sidebarMode === 'design' ? t.tabActive : t.tabInactive,
+              background: sidebarMode === 'design' ? t.tabBg : 'transparent',
               border: 'none',
               borderRadius: 6,
               cursor: 'pointer',
@@ -428,7 +467,7 @@ function App() {
                     padding: '14px 20px 6px',
                     fontSize: 10,
                     fontWeight: 700,
-                    color: 'rgba(99, 102, 241, 0.8)',
+                    color: t.groupLabel,
                     letterSpacing: 1.2,
                     textTransform: 'uppercase',
                   }}
@@ -453,8 +492,8 @@ function App() {
                           cursor: 'pointer',
                           fontSize: 12.5,
                           fontWeight: isActive ? 500 : 400,
-                          color: isActive ? '#e0e7ff' : 'rgba(148, 163, 184, 0.7)',
-                          background: isActive ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                          color: isActive ? t.itemActive : t.itemInactive,
+                          background: isActive ? t.itemBgActive : 'transparent',
                           borderRadius: 8,
                           borderLeft: 'none',
                           transition: 'all 0.2s ease',
@@ -462,19 +501,19 @@ function App() {
                         }}
                         onMouseEnter={(e) => {
                           if (!isActive) {
-                            e.currentTarget.style.background = 'rgba(99, 102, 241, 0.06)';
-                            e.currentTarget.style.color = 'rgba(203, 213, 225, 0.9)';
+                            e.currentTarget.style.background = t.itemHoverBg;
+                            e.currentTarget.style.color = t.itemHoverColor;
                           }
                         }}
                         onMouseLeave={(e) => {
                           if (!isActive) {
                             e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = 'rgba(148, 163, 184, 0.7)';
+                            e.currentTarget.style.color = t.itemInactive;
                           }
                         }}
                       >
                         {isActive && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 16, borderRadius: 2, background: 'linear-gradient(180deg, #6366f1, #8b5cf6)' }} />}
-                        <span className="material-symbols-outlined" style={{ width: 20, textAlign: 'center', fontSize: 16, flexShrink: 0, opacity: isActive ? 1 : 0.6, color: isActive ? '#a5b4fc' : 'inherit' }}>
+                        <span className="material-symbols-outlined" style={{ width: 20, textAlign: 'center', fontSize: 16, flexShrink: 0, opacity: isActive ? 1 : 0.6, color: isActive ? t.iconActive : 'inherit' }}>
                           {d.icon}
                         </span>
                         <span>{d.name}</span>
@@ -493,7 +532,7 @@ function App() {
                       padding: '14px 20px 6px',
                       fontSize: 10,
                       fontWeight: 700,
-                      color: 'rgba(99, 102, 241, 0.8)',
+                      color: t.groupLabel,
                       letterSpacing: 1.2,
                       textTransform: 'uppercase',
                     }}
@@ -518,27 +557,27 @@ function App() {
                             cursor: 'pointer',
                             fontSize: 12.5,
                             fontWeight: isActive ? 500 : 400,
-                            color: isActive ? '#e0e7ff' : 'rgba(148, 163, 184, 0.7)',
-                            background: isActive ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                            color: isActive ? t.itemActive : t.itemInactive,
+                            background: isActive ? t.itemBgActive : 'transparent',
                             borderRadius: 8,
                             transition: 'all 0.2s ease',
                             position: 'relative',
                           }}
                           onMouseEnter={(e) => {
                             if (!isActive) {
-                              e.currentTarget.style.background = 'rgba(99, 102, 241, 0.06)';
-                              e.currentTarget.style.color = 'rgba(203, 213, 225, 0.9)';
+                              e.currentTarget.style.background = t.itemHoverBg;
+                              e.currentTarget.style.color = t.itemHoverColor;
                             }
                           }}
                           onMouseLeave={(e) => {
                             if (!isActive) {
                               e.currentTarget.style.background = 'transparent';
-                              e.currentTarget.style.color = 'rgba(148, 163, 184, 0.7)';
+                              e.currentTarget.style.color = t.itemInactive;
                             }
                           }}
                         >
                           {isActive && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 16, borderRadius: 2, background: 'linear-gradient(180deg, #6366f1, #8b5cf6)' }} />}
-                          <span className="material-symbols-outlined" style={{ width: 20, textAlign: 'center', fontSize: 16, flexShrink: 0, opacity: isActive ? 1 : 0.6, color: isActive ? '#a5b4fc' : 'inherit' }}>
+                          <span className="material-symbols-outlined" style={{ width: 20, textAlign: 'center', fontSize: 16, flexShrink: 0, opacity: isActive ? 1 : 0.6, color: isActive ? t.iconActive : 'inherit' }}>
                             {doc.icon}
                           </span>
                           <span>{doc.name}</span>
@@ -552,7 +591,7 @@ function App() {
         </div>
 
         {/* 底部信息 */}
-        <div style={{ padding: '12px 20px', borderTop: '1px solid rgba(99, 102, 241, 0.06)', fontSize: 10, color: 'rgba(148, 163, 184, 0.4)', letterSpacing: 0.3 }}>
+        <div style={{ padding: '12px 20px', borderTop: t.tabBorder, fontSize: 10, color: t.versionColor, letterSpacing: 0.3 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34, 197, 94, 0.4)' }} />
             @antv/aimapkit v0.1.0
@@ -571,19 +610,34 @@ function App() {
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 20px',
-                background: 'rgba(15, 15, 26, 0.95)',
+                background: t.headerBg,
                 backdropFilter: 'blur(12px)',
-                borderBottom: '1px solid rgba(99, 102, 241, 0.06)',
+                borderBottom: t.tabBorder,
                 fontSize: 12,
-                color: 'rgba(148, 163, 184, 0.7)',
+                color: t.headerText,
                 gap: 10,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#a5b4fc' }}>{demo.icon}</span>
-              <span style={{ color: '#e2e8f0', fontWeight: 500, fontSize: 13 }}>{demo.name}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: t.iconActive }}>{demo.icon}</span>
+              <span style={{ color: t.headerTitle, fontWeight: 500, fontSize: 13 }}>{demo.name}</span>
               <span style={{ color: 'rgba(99, 102, 241, 0.3)', fontSize: 10 }}>●</span>
               <span style={{ fontSize: 11 }}>{demo.group}</span>
               <div style={{ flex: 1 }} />
+              {/* 主题切换 */}
+              <div style={{ display: "flex", gap: 2, padding: 2, borderRadius: 6, background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.1)" }}>
+                <button
+                  onClick={() => setAppTheme("light")}
+                  style={{ padding: "4px 8px", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500, transition: "all 0.2s", background: appTheme === "light" ? "rgba(99,102,241,0.15)" : "transparent", color: appTheme === "light" ? "#a5b4fc" : "rgba(148,163,184,0.6)" }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: "middle" }}>light_mode</span>
+                </button>
+                <button
+                  onClick={() => setAppTheme("dark")}
+                  style={{ padding: "4px 8px", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500, transition: "all 0.2s", background: appTheme === "dark" ? "rgba(99,102,241,0.15)" : "transparent", color: appTheme === "dark" ? "#a5b4fc" : "rgba(148,163,184,0.6)" }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: "middle" }}>dark_mode</span>
+                </button>
+              </div>
               {/* 代码预览开关 */}
               <button
                 onClick={() => setShowPanel((v) => !v)}
@@ -592,7 +646,7 @@ function App() {
                   borderRadius: 6,
                   border: '1px solid rgba(99, 102, 241, 0.15)',
                   background: showPanel ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-                  color: showPanel ? '#a5b4fc' : 'rgba(148, 163, 184, 0.7)',
+                  color: showPanel ? t.iconActive : t.headerText,
                   cursor: 'pointer',
                   fontSize: 11,
                   fontWeight: 500,
@@ -615,7 +669,7 @@ function App() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    background: 'radial-gradient(ellipse at center, #1a1a35 0%, #0f0f1a 70%)',
+                    background: t.mobileContainerBg,
                   }}
                 >
                   <div
@@ -625,8 +679,8 @@ function App() {
                       maxHeight: 'calc(100% - 40px)',
                       borderRadius: 20,
                       overflow: 'hidden',
-                      border: '2px solid #2a2a44',
-                      boxShadow: '0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99, 102, 241, 0.1)',
+                      border: `2px solid ${t.mobileFrame}`,
+                      boxShadow: t.mobileShadow,
                       position: 'relative',
                       background: '#f8f9ff',
                     }}
@@ -651,16 +705,16 @@ function App() {
                 display: 'flex',
                 alignItems: 'center',
                 padding: '0 20px',
-                background: 'rgba(15, 15, 26, 0.95)',
+                background: t.headerBg,
                 backdropFilter: 'blur(12px)',
-                borderBottom: '1px solid rgba(99, 102, 241, 0.06)',
+                borderBottom: t.tabBorder,
                 fontSize: 12,
-                color: 'rgba(148, 163, 184, 0.7)',
+                color: t.headerText,
                 gap: 10,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#a5b4fc' }}>{selectedDesignDoc?.icon}</span>
-              <span style={{ color: '#e2e8f0', fontWeight: 500, fontSize: 13 }}>{selectedDesignDoc?.name}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: t.iconActive }}>{selectedDesignDoc?.icon}</span>
+              <span style={{ color: t.headerTitle, fontWeight: 500, fontSize: 13 }}>{selectedDesignDoc?.name}</span>
               <span style={{ color: 'rgba(99, 102, 241, 0.3)', fontSize: 10 }}>●</span>
               <span style={{ fontSize: 11 }}>设计规范</span>
               <div style={{ flex: 1 }} />
@@ -673,7 +727,7 @@ function App() {
                     border: 'none',
                     borderRadius: 6,
                     background: designViewMode === 'html' ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                    color: designViewMode === 'html' ? '#a5b4fc' : 'rgba(148, 163, 184, 0.6)',
+                    color: designViewMode === 'html' ? t.iconActive : t.tabInactive,
                     cursor: 'pointer',
                     fontSize: 11,
                     fontWeight: 500,
@@ -689,7 +743,7 @@ function App() {
                     border: 'none',
                     borderRadius: 6,
                     background: designViewMode === 'demo' ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                    color: designViewMode === 'demo' ? '#a5b4fc' : 'rgba(148, 163, 184, 0.6)',
+                    color: designViewMode === 'demo' ? t.iconActive : t.tabInactive,
                     cursor: 'pointer',
                     fontSize: 11,
                     fontWeight: 500,
@@ -702,7 +756,7 @@ function App() {
             </div>
 
             {/* 文档内容区 */}
-            <div style={{ position: 'absolute', top: 44, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: '#0a0a18' }}>
+            <div style={{ position: 'absolute', top: 44, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: t.codeBg }}>
               {selectedDesignDoc ? (
                 designViewMode === 'html' ? (
                   <div
@@ -717,7 +771,7 @@ function App() {
                       style={{
                         maxWidth: 800,
                         margin: '0 auto',
-                        color: '#c9d1d9',
+                        color: t.codeText,
                         lineHeight: 1.7,
                         fontSize: 13,
                       }}
@@ -763,8 +817,8 @@ function App() {
             width: 440,
             minWidth: 340,
             height: '100%',
-            background: '#0a0a18',
-            borderLeft: '1px solid rgba(99, 102, 241, 0.06)',
+            background: t.codeBg,
+            borderLeft: t.codeBorder,
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -777,12 +831,12 @@ function App() {
               alignItems: 'center',
               gap: 8,
               padding: '10px 16px',
-              background: 'rgba(15, 15, 30, 0.95)',
-              borderBottom: '1px solid rgba(99, 102, 241, 0.06)',
+              background: t.headerBg,
+              borderBottom: t.tabBorder,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#a5b4fc' }}>code</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: '#a5b4fc', letterSpacing: 0.3 }}>源代码</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 14, color: t.iconActive }}>code</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: t.iconActive, letterSpacing: 0.3 }}>源代码</span>
             <div style={{ flex: 1 }} />
             <button
               onClick={() => setShowPanel(false)}
@@ -795,13 +849,13 @@ function App() {
                 borderRadius: 6,
                 border: 'none',
                 background: 'transparent',
-                color: 'rgba(148, 163, 184, 0.5)',
+                color: t.headerText,
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)';
-                e.currentTarget.style.color = '#a5b4fc';
+                e.currentTarget.style.color = t.iconActive;
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';
@@ -817,8 +871,8 @@ function App() {
             style={{
               padding: '8px 16px',
               fontSize: 11,
-              color: 'rgba(148, 163, 184, 0.5)',
-              background: 'rgba(15, 15, 30, 0.6)',
+              color: t.headerText,
+              background: t.headerBg,
               borderBottom: '1px solid rgba(99, 102, 241, 0.04)',
               fontFamily: "'JetBrains Mono', 'SF Mono', Menlo, monospace",
               letterSpacing: 0.3,
@@ -836,7 +890,7 @@ function App() {
                 fontSize: 12,
                 lineHeight: 1.7,
                 fontFamily: "'JetBrains Mono', 'SF Mono', 'Fira Code', Menlo, Monaco, monospace",
-                color: '#c9d1d9',
+                color: t.codeText,
                 whiteSpace: 'pre',
                 tabSize: 2,
               }}
@@ -849,7 +903,7 @@ function App() {
                       minWidth: 48,
                       paddingRight: 16,
                       textAlign: 'right',
-                      color: 'rgba(99, 102, 241, 0.25)',
+                      color: t.codeLineNum,
                       userSelect: 'none',
                       flexShrink: 0,
                     }}
@@ -868,8 +922,8 @@ function App() {
           <div
             style={{
               padding: '10px 16px',
-              borderTop: '1px solid rgba(99, 102, 241, 0.06)',
-              background: 'rgba(15, 15, 30, 0.8)',
+              borderTop: t.tabBorder,
+              background: t.headerBg,
               display: 'flex',
               justifyContent: 'flex-end',
             }}
@@ -891,14 +945,14 @@ function App() {
                 letterSpacing: 0.3,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#a5b4fc';
+                e.currentTarget.style.color = t.iconActive;
                 e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.4)';
                 e.currentTarget.style.background = 'rgba(99, 102, 241, 0.12)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.color = 'rgba(165, 180, 252, 0.8)';
                 e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.15)';
-                e.currentTarget.style.background = 'rgba(99, 102, 241, 0.06)';
+                e.currentTarget.style.background = t.itemHoverBg;
               }}
             >
               复制代码
