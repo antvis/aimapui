@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Aimap, LineLayer, ZoomControl } from '../../index';
+import { Tooltip } from '../../components/Interaction/Tooltip';
+import type { LayerEventPayload } from '../../schema/types';
 
 /**
  * 弧线地图 — LineLayer arc (2D)
@@ -9,12 +11,24 @@ import { Aimap, LineLayer, ZoomControl } from '../../index';
  */
 export default function ArcMap() {
   const [data, setData] = useState<string | null>(null);
+  const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; feature: Record<string, unknown> }>({
+    visible: false, lng: 0, lat: 0, feature: {},
+  });
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/basement_prod/bd33a685-a17e-4686-bc79-b0e6a89fd950.csv')
       .then((res) => res.text())
       .then((text) => setData(text))
       .catch(() => setData(null));
+  }, []);
+
+  const handleMouseMove = useCallback((payload: LayerEventPayload) => {
+    if (!payload.feature) return;
+    setTooltipInfo({ visible: true, lng: payload.lng, lat: payload.lat, feature: payload.feature });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipInfo((prev) => ({ ...prev, visible: false }));
   }, []);
 
   return (
@@ -41,6 +55,21 @@ export default function ArcMap() {
             shape="arc"
             color="#2563EB"
             style={{ opacity: 0.6 }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          />
+        )}
+        {tooltipInfo.visible && (
+          <Tooltip
+            longitude={tooltipInfo.lng}
+            latitude={tooltipInfo.lat}
+            variant="dark"
+            visible={true}
+            title="出行信息"
+            items={[
+              { label: '起点', value: String(tooltipInfo.feature['start station name'] ?? '') },
+              { label: '终点', value: String(tooltipInfo.feature['end station name'] ?? '') },
+            ]}
           />
         )}
         <ZoomControl position="bottomright" />

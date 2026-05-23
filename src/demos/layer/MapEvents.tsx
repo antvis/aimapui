@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Aimap, PointLayer, HeatmapLayer, ZoomControl, ScaleControl } from '../../index';
 import type { MapEventPayload, LayerEventPayload } from '../../index';
+import { Tooltip } from '../../components/Interaction/Tooltip';
 const cities = [
   { lng: 116.4, lat: 39.9, name: '北京', value: 100 },
   { lng: 121.5, lat: 31.2, name: '上海', value: 90 },
@@ -32,8 +33,24 @@ export default function Demo15MapEvents() {
     setMapInfo((prev) => ({ ...prev, zoom: payload.zoom }));
   }, []);
 
+  const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; items: Array<{ label: string; value: string | number }> }>({
+    visible: false, lng: 0, lat: 0, items: [],
+  });
+
   const handleLayerClick = useCallback((_: LayerEventPayload) => {
     setClickCount((c) => c + 1);
+  }, []);
+
+  const handleMouseMove = useCallback((payload: LayerEventPayload) => {
+    if (!payload.feature) return;
+    setTooltipInfo({ visible: true, lng: payload.lng, lat: payload.lat, items: [
+      { label: '城市', value: String(payload.feature.name ?? '') },
+      { label: '数值', value: Number(payload.feature.value ?? 0) },
+    ]});
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipInfo((prev) => ({ ...prev, visible: false }));
   }, []);
 
   return (
@@ -44,7 +61,7 @@ export default function Demo15MapEvents() {
         onMapZoom={handleMapZoom}
       >
         {useHeatmap ? (
-          <HeatmapLayer source={heatData} sizeField="value" onClick={handleLayerClick} />
+          <HeatmapLayer source={heatData} sizeField="value" onClick={handleLayerClick} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} />
         ) : (
           <PointLayer
             source={cities}
@@ -53,6 +70,17 @@ export default function Demo15MapEvents() {
             size={16}
             active={{ color: '#fff' }}
             onClick={handleLayerClick}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          />
+        )}
+        {tooltipInfo.visible && (
+          <Tooltip
+            longitude={tooltipInfo.lng}
+            latitude={tooltipInfo.lat}
+            variant="dark"
+            visible={true}
+            items={tooltipInfo.items}
           />
         )}
         <ZoomControl />

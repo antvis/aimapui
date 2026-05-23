@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Aimap, LineLayer, ZoomControl } from '../../index';
+import { Tooltip } from '../../components/Interaction/Tooltip';
+import type { LayerEventPayload } from '../../schema/types';
 
 /**
  * 等值线地图 — LineLayer isoline
@@ -9,12 +11,24 @@ import { Aimap, LineLayer, ZoomControl } from '../../index';
  */
 export default function IsolineMap() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
+  const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; value: number }>({
+    visible: false, lng: 0, lat: 0, value: 0,
+  });
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/basement_prod/9f6afbcd-3aec-4a26-bd4a-2276d3439e0d.json')
       .then((res) => res.json())
       .then((json) => setData(json))
       .catch(() => setData(null));
+  }, []);
+
+  const handleMouseMove = useCallback((payload: LayerEventPayload) => {
+    if (!payload.feature) return;
+    setTooltipInfo({ visible: true, lng: payload.lng, lat: payload.lat, value: Number(payload.feature.value ?? 0) });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipInfo((prev) => ({ ...prev, visible: false }));
   }, []);
 
   return (
@@ -39,6 +53,17 @@ export default function IsolineMap() {
               '#D7F9F0', '#B8EFE2', '#A6E1E0', '#83CED6', '#72BED6',
               '#64A5D3', '#4D89E5', '#3771D9', '#1558AC', '#0A3663',
             ]}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          />
+        )}
+        {tooltipInfo.visible && (
+          <Tooltip
+            longitude={tooltipInfo.lng}
+            latitude={tooltipInfo.lat}
+            variant="dark"
+            visible={true}
+            items={[{ label: '等值', value: tooltipInfo.value }]}
           />
         )}
         <ZoomControl position="bottomright" />

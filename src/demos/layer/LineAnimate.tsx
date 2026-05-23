@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Aimap, LineLayer, ZoomControl } from '../../index';
+import { Tooltip } from '../../components/Interaction/Tooltip';
+import type { LayerEventPayload } from '../../schema/types';
 
 /**
  * 线动画 — LineLayer greatcircle + animate
@@ -9,12 +11,24 @@ import { Aimap, LineLayer, ZoomControl } from '../../index';
  */
 export default function LineAnimate() {
   const [data, setData] = useState<string | null>(null);
+  const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; feature: Record<string, unknown> }>({
+    visible: false, lng: 0, lat: 0, feature: {},
+  });
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/rmsportal/UEXQMifxtkQlYfChpPwT.txt')
       .then((res) => res.text())
       .then((text) => setData(text))
       .catch(() => setData(null));
+  }, []);
+
+  const handleMouseMove = useCallback((payload: LayerEventPayload) => {
+    if (!payload.feature) return;
+    setTooltipInfo({ visible: true, lng: payload.lng, lat: payload.lat, feature: payload.feature });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipInfo((prev) => ({ ...prev, visible: false }));
   }, []);
 
   return (
@@ -37,6 +51,18 @@ export default function LineAnimate() {
             color="#8C1EB2"
             animate={{ enable: true, speed: 0.1, trailLength: 0.5, duration: 2 }}
             style={{ opacity: 0.8 }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          />
+        )}
+        {tooltipInfo.visible && (
+          <Tooltip
+            longitude={tooltipInfo.lng}
+            latitude={tooltipInfo.lat}
+            variant="light"
+            visible={true}
+            title="航线"
+            items={Object.entries(tooltipInfo.feature).slice(0, 3).map(([key, val]) => ({ label: key, value: String(val ?? '') }))}
           />
         )}
         <ZoomControl position="bottomright" />

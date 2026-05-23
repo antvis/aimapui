@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Aimap, HeatmapLayer, ZoomControl } from '../../index';
+import { Tooltip } from '../../components/Interaction/Tooltip';
+import type { LayerEventPayload } from '../../schema/types';
 
 /**
  * 蜂窝热力图 2D — HeatmapLayer hexagon
@@ -9,12 +11,24 @@ import { Aimap, HeatmapLayer, ZoomControl } from '../../index';
  */
 export default function HexagonHeatmap2D() {
   const [data, setData] = useState<Record<string, unknown>[] | null>(null);
+  const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; value: number }>({
+    visible: false, lng: 0, lat: 0, value: 0,
+  });
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/basement_prod/337ddbb7-aa3f-4679-ab60-d64359241955.json')
       .then((res) => res.json())
       .then((json) => setData(json))
       .catch(() => setData(null));
+  }, []);
+
+  const handleMouseMove = useCallback((payload: LayerEventPayload) => {
+    if (!payload.feature) return;
+    setTooltipInfo({ visible: true, lng: payload.lng, lat: payload.lat, value: Number(payload.feature.sum ?? payload.feature.count ?? 0) });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipInfo((prev) => ({ ...prev, visible: false }));
   }, []);
 
   return (
@@ -43,6 +57,17 @@ export default function HexagonHeatmap2D() {
               '#3F4BBA', '#3F4BBA',
             ]}
             style={{ coverage: 0.9, angle: 0 }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          />
+        )}
+        {tooltipInfo.visible && (
+          <Tooltip
+            longitude={tooltipInfo.lng}
+            latitude={tooltipInfo.lat}
+            variant="dark"
+            visible={true}
+            items={[{ label: '容量总和', value: tooltipInfo.value }]}
           />
         )}
         <ZoomControl position="bottomright" />

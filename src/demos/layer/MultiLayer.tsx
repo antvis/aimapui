@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Aimap, PointLayer, LineLayer, HeatmapLayer, ZoomControl } from '../../index';
+import { Tooltip } from '../../components/Interaction/Tooltip';
+import type { LayerEventPayload } from '../../schema/types';
 const cities = [
   { lng: 116.4, lat: 39.9, name: '北京', pop: 2189 },
   { lng: 121.5, lat: 31.2, name: '上海', pop: 2487 },
@@ -40,7 +42,30 @@ export default function Demo13MultiLayer() {
     heatmap: false,
   });
 
+  const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; items: Array<{ label: string; value: string | number }> }>({
+    visible: false, lng: 0, lat: 0, items: [],
+  });
+
   const toggle = (key: LayerKey) => setVisible((v) => ({ ...v, [key]: !v[key] }));
+
+  const handlePointMouseMove = useCallback((payload: LayerEventPayload) => {
+    if (!payload.feature) return;
+    setTooltipInfo({ visible: true, lng: payload.lng, lat: payload.lat, items: [
+      { label: '城市', value: String(payload.feature.name ?? '') },
+      { label: '人口', value: `${payload.feature.pop ?? 0} 万` },
+    ]});
+  }, []);
+
+  const handleLineMouseMove = useCallback((payload: LayerEventPayload) => {
+    if (!payload.feature) return;
+    setTooltipInfo({ visible: true, lng: payload.lng, lat: payload.lat, items: [
+      { label: '流量', value: Number(payload.feature.volume ?? 0) },
+    ]});
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipInfo((prev) => ({ ...prev, visible: false }));
+  }, []);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -55,6 +80,8 @@ export default function Demo13MultiLayer() {
             sizeField="pop"
             sizeValues={[8, 24]}
             active={{ color: '#fff' }}
+            onMouseMove={handlePointMouseMove}
+            onMouseLeave={handleMouseLeave}
           />
         )}
         {visible.lines && (
@@ -64,10 +91,21 @@ export default function Demo13MultiLayer() {
             color="#5B8FF9"
             size={1.5}
             animate={{ enable: true, duration: 3, trailLength: 1 }}
+            onMouseMove={handleLineMouseMove}
+            onMouseLeave={handleMouseLeave}
           />
         )}
         {visible.heatmap && (
           <HeatmapLayer source={heatData} sizeField="value" />
+        )}
+        {tooltipInfo.visible && (
+          <Tooltip
+            longitude={tooltipInfo.lng}
+            latitude={tooltipInfo.lat}
+            variant="dark"
+            visible={true}
+            items={tooltipInfo.items}
+          />
         )}
         <ZoomControl />
       </Aimap>
