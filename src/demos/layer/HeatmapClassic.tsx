@@ -1,16 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Aimap, HeatmapLayer, ZoomControl } from '../../index';
+import { Tooltip } from '../../components/Interaction/Tooltip';
+import type { LayerEventPayload } from '../../schema/types';
+
 /**
  * 经典热力图
  */
 export default function Demo26Heatmap() {
   const [csvData, setCsvData] = useState<string | null>(null);
+  const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; value: number }>({
+    visible: false, lng: 0, lat: 0, value: 0,
+  });
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/basement_prod/7359a5e9-3c5e-453f-b207-bc892fb23b84.csv')
       .then((res) => res.text())
       .then((text) => setCsvData(text))
       .catch(() => setCsvData(null));
+  }, []);
+
+  const handleMouseMove = useCallback((payload: LayerEventPayload) => {
+    const feature = payload.feature;
+    if (!feature) return;
+    setTooltipInfo({
+      visible: true,
+      lng: payload.lng,
+      lat: payload.lat,
+      value: Number(feature.v ?? 0),
+    });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipInfo((prev) => ({ ...prev, visible: false }));
   }, []);
 
   return (
@@ -35,11 +56,21 @@ export default function Demo26Heatmap() {
                 positions: [0, 0.2, 0.4, 0.6, 0.8, 1],
               },
             }}
-            events={{ enablePopup: true, popupTrigger: 'hover', popupFields: ['v'] }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          />
+        )}
+        {tooltipInfo.visible && (
+          <Tooltip
+            longitude={tooltipInfo.lng}
+            latitude={tooltipInfo.lat}
+            variant="light"
+            visible={true}
+            items={[{ label: '热力值', value: tooltipInfo.value }]}
           />
         )}
         <ZoomControl />
       </Aimap>
-</div>
+    </div>
   );
 }

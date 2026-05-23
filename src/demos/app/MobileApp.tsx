@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
+import type { Scene } from '@antv/l7';
 import { Aimap } from '../../components/Aimap';
 import { ZoomControl } from '../../components/Control/ZoomControl';
 import { GeoLocateControl } from '../../components/Control/GeoLocateControl';
@@ -100,19 +101,59 @@ export default function MobileApp() {
   const [activeDay, setActiveDay] = useState(0);
   const [selectedSpot, setSelectedSpot] = useState<Spot | null>(null);
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
+  const sceneRef = useRef<Scene | null>(null);
 
   const currentRoute = TRAVEL_ROUTES[activeDay];
 
   /** 当日路线的 GeoJSON */
   const lineGeoJSON = useMemo(() => spotsToLineGeoJSON(currentRoute.spots), [currentRoute]);
 
-  /** 地图中心自适应当日路线 */
-  const mapCenter = useMemo(() => {
-    const spots = currentRoute.spots;
-    const avgLng = spots.reduce((sum, spot) => sum + spot.lng, 0) / spots.length;
-    const avgLat = spots.reduce((sum, spot) => sum + spot.lat, 0) / spots.length;
-    return [avgLng, avgLat] as [number, number];
-  }, [currentRoute]);
+  /** 根据景点坐标计算包围盒并 fitBounds，切换路线时自动适配视图 */
+  const fitRouteBounds = useCallback((spots: Spot[], animate = true) => {
+    const scene = sceneRef.current;
+    if (!scene || spots.length === 0) return;
+
+    const lngs = spots.map((s) => s.lng);
+    const lats = spots.map((s) => s.lat);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+
+    // 适当扩展边界（约 20% padding），避免景点贴边
+    const lngPadding = (maxLng - minLng) * 0.2 || 0.01;
+    const latPadding = (maxLat - minLat) * 0.2 || 0.01;
+
+    const sw: [number, number] = [minLng - lngPadding, minLat - latPadding];
+    const ne: [number, number] = [maxLng + lngPadding, maxLat + latPadding];
+
+    try {
+      scene.fitBounds([sw, ne], {
+        padding: [60, 40, 120, 40] as [number, number, number, number], // top, right, bottom, left — 底部留更多空间给 BottomSheet
+        duration: animate ? 600 : 0,
+      });
+    } catch {
+      // 部分底图可能不支持 fitBounds，降级为 setCenter + setZoom
+      const avgLng = (minLng + maxLng) / 2;
+      const avgLat = (minLat + maxLat) / 2;
+      try {
+        scene.setCenter([avgLng, avgLat]);
+        // 根据 span 粗略估算 zoom
+        const maxSpan = Math.max(maxLng - minLng, maxLat - minLat);
+        const zoom = Math.max(10, Math.min(16, Math.log2(0.05 / (maxSpan || 0.01)) + 13));
+        scene.setZoom(zoom);
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
+
+  /** 场景就绪回调 */
+  const handleSceneReady = useCallback((scene: Scene) => {
+    sceneRef.current = scene;
+    // 初始加载时适配第一天路线
+    setTimeout(() => fitRouteBounds(TRAVEL_ROUTES[0].spots, false), 300);
+  }, [fitRouteBounds]);
 
   const handleSpotClick = useCallback((spot: Spot) => {
     setSelectedSpot(spot);
@@ -121,7 +162,9 @@ export default function MobileApp() {
   const handleDayChange = useCallback((dayIndex: number) => {
     setActiveDay(dayIndex);
     setSelectedSpot(null);
-  }, []);
+    // 切换路线时，fitBounds 到新路线的景点范围
+    fitRouteBounds(TRAVEL_ROUTES[dayIndex].spots, true);
+  }, [fitRouteBounds]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
@@ -134,6 +177,7 @@ export default function MobileApp() {
             zoom: 12,
             style: 'light',
           }}
+          onSceneReady={handleSceneReady}
         >
           <ZoomControl position="rightcenter" />
           <GeoLocateControl position="rightcenter" />

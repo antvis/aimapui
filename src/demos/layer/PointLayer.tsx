@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Aimap, PointLayer, ZoomControl } from '../../index';
+import { Tooltip } from '../../components/Interaction/Tooltip';
+import type { LayerEventPayload } from '../../schema/types';
+
 const cities = [
   { lng: 116.4, lat: 39.9, name: '北京', value: 100 },
   { lng: 121.5, lat: 31.2, name: '上海', value: 90 },
@@ -17,6 +20,26 @@ const cities = [
  * 点图层 — PointLayer 基础用法
  */
 export default function Demo08PointLayer() {
+  const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; name: string; value: number }>({
+    visible: false, lng: 0, lat: 0, name: '', value: 0,
+  });
+
+  const handleMouseMove = useCallback((payload: LayerEventPayload) => {
+    const feature = payload.feature;
+    if (!feature) return;
+    setTooltipInfo({
+      visible: true,
+      lng: payload.lng,
+      lat: payload.lat,
+      name: String(feature.name ?? ''),
+      value: Number(feature.value ?? 0),
+    });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipInfo((prev) => ({ ...prev, visible: false }));
+  }, []);
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <Aimap
@@ -32,10 +55,23 @@ export default function Demo08PointLayer() {
           color="#5B8FF9"
           size={12}
           active={{ color: '#F6BD16' }}
-          events={{ enablePopup: true, popupTrigger: 'hover', popupFields: ['name', 'value'] }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
         />
+        {tooltipInfo.visible && (
+          <Tooltip
+            longitude={tooltipInfo.lng}
+            latitude={tooltipInfo.lat}
+            variant="dark"
+            visible={true}
+            items={[
+              { label: '城市', value: tooltipInfo.name },
+              { label: '热度', value: tooltipInfo.value },
+            ]}
+          />
+        )}
         <ZoomControl />
       </Aimap>
-</div>
+    </div>
   );
 }

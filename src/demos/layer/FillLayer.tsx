@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Aimap, FillLayer, ZoomControl } from '../../index';
+
 /**
- * 填充图（填充 + 描边 + 文字）
+ * 填充图（填充 + 描边 + 文字）— 使用 Tooltip
  */
 export default function Demo24FillStrokeText() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
@@ -34,6 +35,6 @@ export default function Demo24FillStrokeText() {
         )}
         <ZoomControl />
       </Aimap>
-</div>
+    </div>
   );
 }

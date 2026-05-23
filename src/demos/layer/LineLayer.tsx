@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Aimap, PointLayer, LineLayer, ZoomControl } from '../../index';
+import { Tooltip } from '../../components/Interaction/Tooltip';
+import type { LayerEventPayload } from '../../schema/types';
+
 const keyPoints = [
   { lng: 116.397, lat: 39.909, name: '天安门' },
   { lng: 116.417, lat: 39.928, name: '鸟巢' },
@@ -21,6 +24,24 @@ const flowData = Array.from({ length: 15 }, () => ({
  */
 export default function Demo11LineLayer() {
   const [animate, setAnimate] = useState(true);
+  const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; value: number }>({
+    visible: false, lng: 0, lat: 0, value: 0,
+  });
+
+  const handleMouseMove = useCallback((payload: LayerEventPayload) => {
+    const feature = payload.feature;
+    if (!feature) return;
+    setTooltipInfo({
+      visible: true,
+      lng: payload.lng,
+      lat: payload.lat,
+      value: Number(feature.value ?? 0),
+    });
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    setTooltipInfo((prev) => ({ ...prev, visible: false }));
+  }, []);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -39,15 +60,24 @@ export default function Demo11LineLayer() {
           color="#5B8FF9"
           size={1.5}
           animate={animate ? { enable: true, duration: 4, trailLength: 2 } : undefined}
-          events={{ enablePopup: true, popupTrigger: 'hover', popupFields: ['value'] }}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
         />
 
         {/* 节点图层 */}
         <PointLayer source={keyPoints} color="#F6BD16" size={10} />
+
+        {tooltipInfo.visible && (
+          <Tooltip
+            longitude={tooltipInfo.lng}
+            latitude={tooltipInfo.lat}
+            variant="light"
+            visible={true}
+            items={[{ label: '流量', value: tooltipInfo.value }]}
+          />
+        )}
         <ZoomControl />
       </Aimap>
-
-      {/* 控制面板 */}
-      </div>
+    </div>
   );
 }
