@@ -5,6 +5,7 @@ import { parseSchema } from '../../core/parser';
 import { applySchemaDefaults } from '../../schema/defaults';
 import { SchemaProvider } from '../../context/SchemaContext';
 import { EventBusProvider } from '../../context/EventBusContext';
+import { ThemeProvider } from '../../context/ThemeContext';
 import { ResponsiveProvider } from '../../components/Responsive/useBreakpoint';
 import { MapSceneRenderer } from '../../components/MapScene/MapSceneRenderer';
 import { LayerRenderer } from '../../components/Layer/LayerRenderer';
@@ -40,6 +41,7 @@ import type { Scene } from '@antv/l7';
 export function Aimap({
   map,
   schema,
+  theme = 'light',
   onSceneReady,
   onLayerClick,
   onLayerMouseMove,
@@ -87,24 +89,26 @@ export function Aimap({
   }), [onMapMove, onMapZoom]);
 
   return (
-    <SchemaProvider schema={resolvedSchema}>
-      <EventBusProvider events={events}>
-        <ResponsiveProvider responsive={resolvedSchema.responsive}>
-          <AimapCore
-            schema={resolvedSchema}
-            isComposableMode={isComposableMode}
-            onSceneReady={onSceneReady}
-            layerEventHandlers={layerEventHandlers}
-            mapEventHandlers={mapEventHandlers}
-            containerRef={containerRef}
-            className={className}
-            style={style}
-          >
-            {children}
-          </AimapCore>
-        </ResponsiveProvider>
-      </EventBusProvider>
-    </SchemaProvider>
+    <ThemeProvider defaultTheme={theme} target="container">
+      <SchemaProvider schema={resolvedSchema}>
+        <EventBusProvider events={events}>
+          <ResponsiveProvider responsive={resolvedSchema.responsive}>
+            <AimapCore
+              schema={resolvedSchema}
+              isComposableMode={isComposableMode}
+              onSceneReady={onSceneReady}
+              layerEventHandlers={layerEventHandlers}
+              mapEventHandlers={mapEventHandlers}
+              containerRef={containerRef}
+              className={className}
+              style={style}
+            >
+              {children}
+            </AimapCore>
+          </ResponsiveProvider>
+        </EventBusProvider>
+      </SchemaProvider>
+    </ThemeProvider>
   );
 }
 

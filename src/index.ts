@@ -72,6 +72,8 @@ export { SceneProvider, useScene } from './context/SceneContext';
 export { SchemaProvider, useSchema } from './context/SchemaContext';
 export { ResponsiveProvider, useResponsive } from './context/ResponsiveContext';
 export { EventBusProvider, useEventBus } from './context/EventBusContext';
+export { ThemeProvider, useTheme } from './context/ThemeContext';
+export type { MapTheme, ThemeProviderProps } from './context/ThemeContext';
 
 // Hooks
 export { useMapPosition } from './hooks/useMapPosition';
@@ -116,8 +118,8 @@ export { MarkerClusterLayer } from './components/CompositeLayer/MarkerClusterLay
 export type { MarkerClusterLayerProps } from './components/CompositeLayer/MarkerClusterLayer';
 export { FillLayer } from './components/CompositeLayer/FillLayer';
 export type { FillLayerProps } from './components/CompositeLayer/FillLayer';
-export { ChinaAdministrativeLayer, ADMIN_SEQUENTIAL_COLORS, DEFAULT_PROVINCE_SOURCE, DEFAULT_CITY_SOURCE, DEFAULT_DISTRICT_SOURCE } from './components/CompositeLayer/AdministrativeLayer';
-export type { AdministrativeLayerProps, AdministrativeLevel, DrillPathNode, BusinessDataItem } from './components/CompositeLayer/AdministrativeLayer';
+export { ChinaDistrict, ADMIN_SEQUENTIAL_COLORS, DEFAULT_PROVINCE_SOURCE, DEFAULT_CITY_SOURCE, DEFAULT_DISTRICT_SOURCE } from './components/CompositeLayer/ChinaDistrict';
+export type { ChinaDistrictProps, AdministrativeLevel, DrillPathNode, BusinessDataItem } from './components/CompositeLayer/ChinaDistrict';
 export { IconFontLayer, BUILTIN_ICON_FONTS } from './components/CompositeLayer/IconFontLayer';
 export type { IconFontLayerProps } from './components/CompositeLayer/IconFontLayer';
 export type { LabelAnchor } from './components/CompositeLayer/IconFontLayer';

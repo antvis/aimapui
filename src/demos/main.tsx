@@ -35,6 +35,7 @@ import PcApp from './app/PcApp';
 import ImmersiveTravelMap from './app/ImmersiveTravelMap';
 import InterestMap from './app/InterestMap';
 import FlightRouteMap from './app/FlightRouteMap';
+import DarkThemeMap from './app/DarkThemeMap';
 // ── 复合图层 ──
 import BubbleLayer from './composite/BubbleLayer';
 import IconLabel from './composite/IconLabel';
@@ -217,6 +218,7 @@ const demos = [
   { name: '沉浸式旅游足迹', icon: 'photo_camera', component: ImmersiveTravelMap, group: '应用模板', file: 'app/ImmersiveTravelMap', device: 'desktop' },
   { name: '兴趣地图', icon: 'interests', component: InterestMap, group: '应用模板', file: 'app/InterestMap', device: 'mobile' },
   { name: '航线地图', icon: 'flight', component: FlightRouteMap, group: '应用模板', file: 'app/FlightRouteMap', device: 'mobile' },
+  { name: '暗色主题', icon: 'dark_mode', component: DarkThemeMap, group: '应用模板', file: 'app/DarkThemeMap', device: 'desktop' },
 
   // ── 复合图层 ──────────────────────────────
   // 点

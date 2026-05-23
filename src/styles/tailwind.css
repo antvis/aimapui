@@ -67,6 +67,155 @@
   --spacing-gutter-desktop: 16px;
 }
 
+/* ============================================================
+   暗色主题 — Material Design 3 Dark Scheme
+   通过 data-theme="dark" 属性激活
+   ============================================================ */
+[data-theme="dark"] {
+  --color-surface: #0f1720;
+  --color-surface-bright: #1a2535;
+  --color-surface-dim: #0f1720;
+  --color-surface-container: #162030;
+  --color-surface-container-low: #121b28;
+  --color-surface-container-high: #1e2c3e;
+  --color-surface-container-highest: #283848;
+  --color-surface-container-lowest: #0a1018;
+  --color-surface-variant: #3a4558;
+  --color-surface-tint: #b4c5ff;
+
+  --color-primary: #b4c5ff;
+  --color-primary-container: #003ea8;
+  --color-on-primary: #002c75;
+  --color-on-primary-container: #dbe1ff;
+  --color-primary-fixed: #dbe1ff;
+  --color-primary-fixed-dim: #b4c5ff;
+  --color-on-primary-fixed: #00174b;
+  --color-on-primary-fixed-variant: #003ea8;
+  --color-inverse-primary: #004ac6;
+
+  --color-secondary: #c0c1ff;
+  --color-secondary-container: #2f2ebe;
+  --color-on-secondary: #1a0b9e;
+  --color-on-secondary-container: #e1e0ff;
+  --color-secondary-fixed: #e1e0ff;
+  --color-secondary-fixed-dim: #c0c1ff;
+
+  --color-tertiary: #ffb596;
+  --color-tertiary-container: #7d2d00;
+  --color-on-tertiary: #5c2100;
+  --color-on-tertiary-container: #ffdbcd;
+
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+
+  --color-background: #0f1720;
+  --color-on-background: #dfe3ec;
+  --color-on-surface: #dfe3ec;
+  --color-on-surface-variant: #c3c6d7;
+
+  --color-outline: #8d9099;
+  --color-outline-variant: #434655;
+
+  --color-inverse-surface: #dfe3ec;
+  --color-inverse-on-surface: #27313f;
+}
+
+/* 暗色主题 — 玻璃态控件覆盖 */
+[data-theme="dark"] .l7-control.l7-control--glass {
+  background: rgba(22, 32, 48, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(180, 197, 255, 0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* 暗色主题 — 普通按钮控件 */
+[data-theme="dark"] .l7-button-control {
+  background-color: #1e2c3e;
+  color: #dfe3ec;
+  box-shadow: 0 0 12px 0 rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .l7-button-control svg {
+  fill: #c3c6d7;
+  color: #c3c6d7;
+}
+[data-theme="dark"] .l7-button-control:not(:disabled):hover {
+  background-color: #283848;
+}
+[data-theme="dark"] .l7-button-control:disabled {
+  background-color: #162030;
+  color: #5a6070;
+}
+[data-theme="dark"] .l7-button-control:disabled svg {
+  fill: #5a6070;
+  color: #5a6070;
+}
+
+/* 暗色主题 — 玻璃态内按钮 */
+[data-theme="dark"] .l7-control--glass .l7-button-control {
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--color-primary);
+}
+[data-theme="dark"] .l7-control--glass .l7-button-control svg {
+  fill: var(--color-primary);
+  color: var(--color-primary);
+}
+[data-theme="dark"] .l7-control--glass .l7-button-control .material-symbols-outlined {
+  color: var(--color-primary);
+}
+[data-theme="dark"] .l7-control--glass .l7-button-control:not(:disabled):hover {
+  background-color: rgba(180, 197, 255, 0.1);
+}
+[data-theme="dark"] .l7-control--glass .l7-button-control:not(:disabled):active {
+  background-color: rgba(180, 197, 255, 0.15);
+}
+
+/* 暗色主题 — Zoom 控件分割线 */
+[data-theme="dark"] .l7-control-zoom .l7-button-control {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .l7-control--glass.l7-control-zoom .l7-button-control {
+  border-bottom-color: rgba(180, 197, 255, 0.06);
+}
+
+/* 暗色主题 — Scale 控件 */
+[data-theme="dark"] .l7-control--glass.l7-control-scale .l7-control-scale-line {
+  border-color: var(--color-on-surface-variant);
+  color: var(--color-on-surface-variant);
+}
+
+/* 暗色主题 — MouseLocation 控件 */
+[data-theme="dark"] .l7-control-mouse-location {
+  background-color: #1e2c3e;
+  color: #dfe3ec;
+}
+[data-theme="dark"] .l7-control--glass.l7-control-mouse-location {
+  background: rgba(15, 23, 32, 0.92);
+  color: var(--color-on-surface);
+}
+
+/* 暗色主题 — MapTheme 面板 */
+[data-theme="dark"] .l7-theme-panel {
+  background: rgba(22, 32, 48, 0.95);
+  border-color: rgba(180, 197, 255, 0.08);
+}
+[data-theme="dark"] .l7-theme-card {
+  background: #1e2c3e;
+  border-color: rgba(180, 197, 255, 0.06);
+}
+[data-theme="dark"] .l7-theme-card:hover {
+  border-color: rgba(180, 197, 255, 0.2);
+}
+[data-theme="dark"] .l7-theme-card--active {
+  border-color: var(--color-primary);
+}
+[data-theme="dark"] .l7-theme-card__label {
+  color: var(--color-on-surface);
+}
+
 /* 自定义工具类 */
 @layer utilities {
   .font-mono-data {
@@ -2257,3 +2406,90 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* ============================================================
+   暗色主题 — Tooltip 适配
+   ============================================================ */
+[data-theme="dark"] .aimapkit-tooltip--glass .aimapkit-tooltip-content {
+  background: rgba(22, 32, 48, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(180, 197, 255, 0.12);
+  color: var(--color-primary);
+}
+
+[data-theme="dark"] .aimapkit-tooltip--light .aimapkit-tooltip-content {
+  background: rgba(22, 32, 48, 0.92);
+  border: 0.5px solid rgba(180, 197, 255, 0.1);
+  color: var(--color-on-surface);
+}
+
+/* ============================================================
+   暗色主题 — Popup 适配
+   ============================================================ */
+[data-theme="dark"] .aimapkit-popup-content {
+  background: rgba(22, 32, 48, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(180, 197, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  color: var(--color-on-surface);
+}
+
+[data-theme="dark"] .aimapkit-popup-status-badge {
+  background: rgba(30, 44, 62, 0.9);
+  color: var(--color-on-surface);
+}
+
+[data-theme="dark"] .aimapkit-popup-close-btn--cover {
+  background: rgba(0, 0, 0, 0.5);
+}
+[data-theme="dark"] .aimapkit-popup-close-btn--cover:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* ============================================================
+   暗色主题 — Legend 适配
+   ============================================================ */
+[data-theme="dark"] .aimapkit-legend {
+  background: rgba(22, 32, 48, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(180, 197, 255, 0.08);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3),
+              0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  color: var(--color-on-surface);
+}
+
+[data-theme="dark"] .aimapkit-legend::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+}
+
+[data-theme="dark"] .aimapkit-legend-title {
+  color: var(--color-on-surface-variant);
+}
+
+[data-theme="dark"] .aimapkit-legend-cat-item:hover {
+  background: rgba(180, 197, 255, 0.08);
+}
+
+[data-theme="dark"] .aimapkit-legend-cat-label {
+  color: var(--color-on-surface);
+}
+
+[data-theme="dark"] .aimapkit-legend-ramp-labels {
+  color: var(--color-on-surface-variant);
+}
+
+[data-theme="dark"] .aimapkit-legend-ramp-tick {
+  background: var(--color-outline-variant);
+}
+
+[data-theme="dark"] .aimapkit-legend-ramp-brush-range {
+  border-color: var(--color-primary);
+  background: rgba(180, 197, 255, 0.1);
+}
+
+[data-theme="dark"] .aimapkit-legend-group > .aimapkit-legend-section + .aimapkit-legend-section {
+  border-top-color: rgba(180, 197, 255, 0.1);
+}
+EOF; __aone_exit=$?; pwd -P > '/var/folders/94/kysz739j6m10xq2dwb7jyklc0000gp/T/aone-copilot-cwd-1779554426564-e88poaax2t7.txt' 2>/dev/null; exit $__aone_exit

@@ -1,3 +1,4 @@
+import type { MapTheme } from '../../context/ThemeContext';
 import type { AimapSchema, MapSchema, LayerEventPayload, MapEventPayload, EventSchema } from '../../schema/types';
 import type { Scene } from '@antv/l7';
 import type React from 'react';
@@ -23,6 +24,14 @@ export interface AimapProps {
    * ```
    */
   schema?: AimapSchema;
+
+  /**
+   * 主题模式
+   * - `'light'`: 亮色主题（默认）
+   * - `'dark'`: 暗色主题
+   * - `'system'`: 跟随系统 prefers-color-scheme
+   */
+  theme?: MapTheme;
 
   /** 场景就绪回调 */
   onSceneReady?: (scene: Scene) => void;

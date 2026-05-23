@@ -31,7 +31,7 @@ export const DEFAULT_PROVINCE_SOURCE = 'https://mdn.alipayobjects.com/antforest/
 export const DEFAULT_CITY_SOURCE = 'https://mdn.alipayobjects.com/antforest/afts/file/A*Xd8TQoduwj8AAAAAgEAAAAgAerd2AQ/original_中国_市.json';
 export const DEFAULT_DISTRICT_SOURCE = 'https://mdn.alipayobjects.com/portal_moelhz/afts/file/A*Rb96Tac1p8EAAAAAgKAAAAgAegAAAQ';
 
-export interface AdministrativeLayerProps {
+export interface ChinaDistrictProps {
   /** 省级 GeoJSON 数据 URL 或对象，默认内置全国省级数据 */
   provinceSource?: string | Record<string, unknown>;
   /** 市级 GeoJSON 数据 URL 或对象，默认内置全国市级数据 */
@@ -100,12 +100,11 @@ interface GeoJSONFeatureCollection {
 }
 
 /**
- * 中国行政区划复合图层
+ * 中国行政区划图层（ChinaDistrict）
  *
  * 内置全国省/市/县三级 GeoJSON 数据，支持下钻模式与业务数据关联色阶映射。
- * 设计参考 src/design/administrative-layer.md
  */
-export function ChinaAdministrativeLayer({
+export function ChinaDistrict({
   provinceSource = DEFAULT_PROVINCE_SOURCE,
   citySource = DEFAULT_CITY_SOURCE,
   districtSource = DEFAULT_DISTRICT_SOURCE,
@@ -131,7 +130,7 @@ export function ChinaAdministrativeLayer({
   tooltipFields,
   onRegionClick,
   zIndex = 0,
-}: AdministrativeLayerProps) {
+}: ChinaDistrictProps) {
   const scene = useScene();
 
   // 数据加载状态

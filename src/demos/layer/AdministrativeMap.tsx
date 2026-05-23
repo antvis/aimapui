@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { Aimap, ZoomControl, ChinaAdministrativeLayer } from '../../index';
-import type { AdministrativeLevel, DrillPathNode, BusinessDataItem } from '../../components/CompositeLayer/AdministrativeLayer';
+import { Aimap, ZoomControl, ChinaDistrict } from '../../index';
+import type { AdministrativeLevel, DrillPathNode, BusinessDataItem } from '../../components/CompositeLayer/ChinaDistrict';
 
 /**
  * 2025 年中国各省 GDP 数据（单位：亿元）
@@ -43,7 +43,7 @@ const GDP_2025: BusinessDataItem[] = [
 /**
  * 中国各省 2025 GDP 分布图
  *
- * 基于 ChinaAdministrativeLayer 组件，展示全国省级 GDP 色阶分布，
+ * 基于 ChinaDistrict 组件，展示全国省级 GDP 色阶分布，
  * 支持省/市/县下钻与锁定模式切换。
  */
 export default function AdministrativeMap() {
@@ -170,7 +170,7 @@ export default function AdministrativeMap() {
           style: 'light',
         }}
       >
-        <ChinaAdministrativeLayer
+        <ChinaDistrict
           level={level}
           drillEnabled={drillEnabled}
           drillPath={drillPath}
