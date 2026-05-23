@@ -35,6 +35,7 @@ export default function Demo26Heatmap() {
                 positions: [0, 0.2, 0.4, 0.6, 0.8, 1],
               },
             }}
+            events={{ enablePopup: true, popupTrigger: 'hover', popupFields: ['v'] }}
           />
         )}
         <ZoomControl />

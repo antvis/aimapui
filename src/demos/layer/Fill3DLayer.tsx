@@ -26,6 +26,7 @@ export default function Demo25Fill3D() {
             colorField="unit_price"
             colorValues={['#163d8f', '#2d5fd1', '#4f85ea', '#86b0ff', '#d7e6ff']}
             style={{ opacity: 0.9 }}
+            events={{ enablePopup: true, popupTrigger: 'hover', popupFields: ['name', 'unit_price'] }}
           />
         )}
         <ZoomControl />

@@ -27,6 +27,9 @@ export default function Demo24FillStrokeText() {
             showStroke
             showLabel
             labelField="name"
+            hoverEffect
+            tooltipEffect
+            tooltipFields={['name', 'unit_price']}
           />
         )}
         <ZoomControl />

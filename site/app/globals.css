@@ -1,6 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1890ff;
+  --color-secondary: #722ed1;
+  --color-surface: #ffffff;
+  --color-surface-container-low: #f5f5f5;
+  --color-surface-container-highest: #e0e0e0;
+  --color-primary-container: #dbeafe;
+  --color-on-primary: #ffffff;
+  --color-on-surface: #1f2937;
+  --color-outline-variant: #d1d5db;
+}
 
 :root {
   --primary-color: #1890ff;
@@ -81,11 +91,11 @@ body {
 }
 
 .hero-actions a:first-child {
-  @apply bg-white text-gray-900 hover:bg-opacity-90;
+  @apply bg-white text-gray-900 hover:bg-white/90;
 }
 
 .hero-actions a:last-child {
-  @apply border-2 border-white hover:bg-white hover:bg-opacity-10;
+  @apply border-2 border-white hover:bg-white/10;
 }
 
 /* Features 区域 */

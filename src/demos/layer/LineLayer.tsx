@@ -39,6 +39,7 @@ export default function Demo11LineLayer() {
           color="#5B8FF9"
           size={1.5}
           animate={animate ? { enable: true, duration: 4, trailLength: 2 } : undefined}
+          events={{ enablePopup: true, popupTrigger: 'hover', popupFields: ['value'] }}
         />
 
         {/* 节点图层 */}

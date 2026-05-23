@@ -13,6 +13,7 @@
     "@antv/aimapkit": "file:..",
     "@antv/l7": "^2.25.7",
     "@antv/l7-maps": "^2.25.7",
+    "@tailwindcss/postcss": "^4.3.0",
     "lucide-react": "^0.469.0",
     "next": "^14.0.0",
     "nextra": "3.0.0",
@@ -21,13 +22,13 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^22.10.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.0.0",
-    "@tailwindcss/vite": "^4.0.0",
     "typescript": "^5.7.2"
   }
 }

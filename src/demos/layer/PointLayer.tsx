@@ -32,6 +32,7 @@ export default function Demo08PointLayer() {
           color="#5B8FF9"
           size={12}
           active={{ color: '#F6BD16' }}
+          events={{ enablePopup: true, popupTrigger: 'hover', popupFields: ['name', 'value'] }}
         />
         <ZoomControl />
       </Aimap>
