@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import type { Scene } from '@antv/l7';
 import { Aimap } from '../../components/Aimap';
 import { ZoomControl } from '../../components/Control/ZoomControl';
 import { GeoLocateControl } from '../../components/Control/GeoLocateControl';
@@ -68,6 +69,7 @@ export default function CheckInMap() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchValue, setSearchValue] = useState('');
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('collapsed');
+  const sceneRef = useRef<Scene | null>(null);
 
   const checkedInCount = spots.filter((s) => s.checkedIn).length;
   const totalCount = spots.length;
@@ -80,6 +82,51 @@ export default function CheckInMap() {
       return categoryMatch && searchMatch;
     });
   }, [spots, activeCategory, searchValue]);
+
+  /** 根据点位坐标计算包围盒并缩放到合适视图 */
+  const fitSpotsBounds = useCallback((spotsToFocus: CheckInSpot[]) => {
+    const scene = sceneRef.current;
+    if (!scene || spotsToFocus.length === 0) return;
+
+    const lngs = spotsToFocus.map((s) => s.lng);
+    const lats = spotsToFocus.map((s) => s.lat);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+
+    const avgLng = (minLng + maxLng) / 2;
+    const avgLat = (minLat + maxLat) / 2;
+
+    // 根据 Web Mercator 投影计算合适的 zoom 级别
+    const lngSpan = maxLng - minLng || 0.001;
+    const latSpan = maxLat - minLat || 0.001;
+    const mapHeight = window.innerHeight || 667;
+    const mapWidth = window.innerWidth || 375;
+    const fractionH = 0.4;  // 点位占视口高度 40%（留出 BottomSheet 和顶部 UI 空间）
+    const fractionW = 0.7;  // 点位占视口宽度 70%
+    const latAtCenter = avgLat * Math.PI / 180;
+    const zLat = Math.log2(fractionH * mapHeight * 360 * Math.cos(latAtCenter) / (256 * latSpan));
+    const zLng = Math.log2(fractionW * mapWidth * 360 / (256 * lngSpan));
+    const zoom = Math.max(3, Math.min(18, Math.floor(Math.min(zLat, zLng))));
+
+    // 向上偏移中心点（为底部 BottomSheet 留空间）
+    const metersPerPixel = 156543.03392 * Math.cos(latAtCenter) / Math.pow(2, zoom);
+    const pixelOffsetY = -80;
+    const latOffset = pixelOffsetY * metersPerPixel / 110540;
+
+    try {
+      scene.setZoomAndCenter(zoom, [avgLng, avgLat + latOffset]);
+    } catch {
+      try { scene.setCenter([avgLng, avgLat + latOffset]); scene.setZoom(zoom); } catch { /* ignore */ }
+    }
+  }, []);
+
+  /** 场景就绪回调 */
+  const handleSceneReady = useCallback((scene: Scene) => {
+    sceneRef.current = scene;
+    setTimeout(() => fitSpotsBounds(SPOTS), 300);
+  }, [fitSpotsBounds]);
 
   /** 打卡 */
   const handleCheckIn = useCallback((spotId: string) => {
@@ -116,10 +163,15 @@ export default function CheckInMap() {
     setSearchValue(value);
   }, []);
 
-  /** 计算地图中心 */
-  const mapCenter = useMemo((): [number, number] => {
-    return [116.397, 39.918]; // 北京故宫附近
-  }, []);
+  /** 切换分类 → fitBounds 到对应景点范围 */
+  const handleCategoryChange = useCallback((category: string) => {
+    setActiveCategory(category);
+    setSelectedSpot(null);
+    const spotsToFocus = category === 'all' ? SPOTS : SPOTS.filter((s) => s.category === category);
+    if (spotsToFocus.length > 0) {
+      fitSpotsBounds(spotsToFocus);
+    }
+  }, [fitSpotsBounds]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
@@ -128,10 +180,11 @@ export default function CheckInMap() {
         <Aimap
           map={{
             basemap: 'gaode',
-            center: mapCenter,
+            center: [116.397, 39.918],
             zoom: 13.5,
             style: 'light',
           }}
+          onSceneReady={handleSceneReady}
         >
           <ZoomControl position="rightcenter" />
           <GeoLocateControl position="rightcenter" />
@@ -184,7 +237,7 @@ export default function CheckInMap() {
               return (
                 <button
                   key={cat.key}
-                  onClick={() => setActiveCategory(cat.key)}
+                  onClick={() => handleCategoryChange(cat.key)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',

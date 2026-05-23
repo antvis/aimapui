@@ -60,15 +60,13 @@ export default function Demo26Heatmap() {
             onMouseLeave={handleMouseLeave}
           />
         )}
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="light"
-            visible={true}
-            items={[{ label: '热力值', value: tooltipInfo.value }]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="light"
+          visible={tooltipInfo.visible}
+          items={[{ label: '热力值', value: tooltipInfo.value }]}
+        />
         <ZoomControl />
       </Aimap>
     </div>

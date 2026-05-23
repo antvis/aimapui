@@ -59,19 +59,17 @@ export default function ArcMap() {
             onMouseLeave={handleMouseLeave}
           />
         )}
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="dark"
-            visible={true}
-            title="出行信息"
-            items={[
-              { label: '起点', value: String(tooltipInfo.feature['start station name'] ?? '') },
-              { label: '终点', value: String(tooltipInfo.feature['end station name'] ?? '') },
-            ]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="dark"
+          visible={tooltipInfo.visible}
+          title="出行信息"
+          items={[
+            { label: '起点', value: String(tooltipInfo.feature['start station name'] ?? '') },
+            { label: '终点', value: String(tooltipInfo.feature['end station name'] ?? '') },
+          ]}
+        />
         <ZoomControl position="bottomright" />
       </Aimap>
     </div>

@@ -71,19 +71,17 @@ export default function Demo14LayerEvents() {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         />
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="dark"
-            visible={true}
-            items={[
-              { label: '城市', value: tooltipInfo.name },
-              { label: '热度', value: tooltipInfo.value },
-              { label: '类别', value: tooltipInfo.category },
-            ]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="dark"
+          visible={tooltipInfo.visible}
+          items={[
+            { label: '城市', value: tooltipInfo.name },
+            { label: '热度', value: tooltipInfo.value },
+            { label: '类别', value: tooltipInfo.category },
+          ]}
+        />
         <ZoomControl />
         <ScaleControl />
       </Aimap>

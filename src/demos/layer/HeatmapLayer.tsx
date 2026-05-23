@@ -60,15 +60,13 @@ export default function Demo12Heatmap() {
           onMouseLeave={handleMouseLeave}
         />
         <PointLayer source={centers} color="#F6BD16" size={8} />
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="light"
-            visible={true}
-            items={[{ label: '热力值', value: Math.round(tooltipInfo.value) }]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="light"
+          visible={tooltipInfo.visible}
+          items={[{ label: '热力值', value: Math.round(tooltipInfo.value) }]}
+        />
         <ZoomControl />
         <ScaleControl />
       </Aimap>

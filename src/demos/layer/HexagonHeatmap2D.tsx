@@ -61,15 +61,13 @@ export default function HexagonHeatmap2D() {
             onMouseLeave={handleMouseLeave}
           />
         )}
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="dark"
-            visible={true}
-            items={[{ label: '容量总和', value: tooltipInfo.value }]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="dark"
+          visible={tooltipInfo.visible}
+          items={[{ label: '容量总和', value: tooltipInfo.value }]}
+        />
         <ZoomControl position="bottomright" />
       </Aimap>
     </div>

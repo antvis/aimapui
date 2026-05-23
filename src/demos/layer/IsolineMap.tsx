@@ -57,15 +57,13 @@ export default function IsolineMap() {
             onMouseLeave={handleMouseLeave}
           />
         )}
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="dark"
-            visible={true}
-            items={[{ label: '等值', value: tooltipInfo.value }]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="dark"
+          visible={tooltipInfo.visible}
+          items={[{ label: '等值', value: tooltipInfo.value }]}
+        />
         <ZoomControl position="bottomright" />
       </Aimap>
     </div>

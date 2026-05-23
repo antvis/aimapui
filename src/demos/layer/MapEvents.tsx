@@ -74,15 +74,13 @@ export default function Demo15MapEvents() {
             onMouseLeave={handleMouseLeave}
           />
         )}
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="dark"
-            visible={true}
-            items={tooltipInfo.items}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="dark"
+          visible={tooltipInfo.visible}
+          items={tooltipInfo.items}
+        />
         <ZoomControl />
         <ScaleControl />
       </Aimap>

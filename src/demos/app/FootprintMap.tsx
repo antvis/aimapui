@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import type { Scene } from '@antv/l7';
 import { Aimap } from '../../components/Aimap';
 import { ZoomControl } from '../../components/Control/ZoomControl';
 import { GeoLocateControl } from '../../components/Control/GeoLocateControl';
@@ -101,10 +102,66 @@ export default function FootprintMap() {
   const [activeCategory, setActiveCategory] = useState<string>('hot');
   const [selectedSpot, setSelectedSpot] = useState<FootprintSpot | null>(null);
   const [activeNav, setActiveNav] = useState<string>('explore');
+  const sceneRef = useRef<Scene | null>(null);
 
   const filteredFootprints = activeCategory === 'hot'
     ? FOOTPRINTS
     : FOOTPRINTS.filter((fp) => fp.category === activeCategory);
+
+  /** 根据足迹坐标计算包围盒并缩放到合适视图 */
+  const fitFootprintsBounds = useCallback((footprints: FootprintSpot[]) => {
+    const scene = sceneRef.current;
+    if (!scene || footprints.length === 0) return;
+
+    const lngs = footprints.map((f) => f.lng);
+    const lats = footprints.map((f) => f.lat);
+    const minLng = Math.min(...lngs);
+    const maxLng = Math.max(...lngs);
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+
+    const avgLng = (minLng + maxLng) / 2;
+    const avgLat = (minLat + maxLat) / 2;
+
+    // 根据 Web Mercator 投影计算合适的 zoom 级别
+    const lngSpan = maxLng - minLng || 0.001;
+    const latSpan = maxLat - minLat || 0.001;
+    const mapHeight = window.innerHeight || 667;
+    const mapWidth = window.innerWidth || 375;
+    const fractionH = 0.4;  // 点位占视口高度 40%（留出底部 UI 空间）
+    const fractionW = 0.7;  // 点位占视口宽度 70%
+    const latAtCenter = avgLat * Math.PI / 180;
+    const zLat = Math.log2(fractionH * mapHeight * 360 * Math.cos(latAtCenter) / (256 * latSpan));
+    const zLng = Math.log2(fractionW * mapWidth * 360 / (256 * lngSpan));
+    const zoom = Math.max(3, Math.min(18, Math.floor(Math.min(zLat, zLng))));
+
+    // 向上偏移中心点（为底部信息卡片留空间）
+    const metersPerPixel = 156543.03392 * Math.cos(latAtCenter) / Math.pow(2, zoom);
+    const pixelOffsetY = -80;
+    const latOffset = pixelOffsetY * metersPerPixel / 110540;
+
+    try {
+      scene.setZoomAndCenter(zoom, [avgLng, avgLat + latOffset]);
+    } catch {
+      try { scene.setCenter([avgLng, avgLat + latOffset]); scene.setZoom(zoom); } catch { /* ignore */ }
+    }
+  }, []);
+
+  /** 场景就绪回调 */
+  const handleSceneReady = useCallback((scene: Scene) => {
+    sceneRef.current = scene;
+    setTimeout(() => fitFootprintsBounds(FOOTPRINTS), 300);
+  }, [fitFootprintsBounds]);
+
+  /** 切换分类 → fitBounds */
+  const handleCategoryChange = useCallback((category: string) => {
+    setActiveCategory(category);
+    setSelectedSpot(null);
+    const footprintsToFocus = category === 'hot' ? FOOTPRINTS : FOOTPRINTS.filter((fp) => fp.category === category);
+    if (footprintsToFocus.length > 0) {
+      fitFootprintsBounds(footprintsToFocus);
+    }
+  }, [fitFootprintsBounds]);
 
   const handleMarkerClick = useCallback((spot: FootprintSpot) => {
     setSelectedSpot((prev) => (prev?.id === spot.id ? null : spot));
@@ -124,6 +181,7 @@ export default function FootprintMap() {
             zoom: 13.5,
             style: 'light',
           }}
+          onSceneReady={handleSceneReady}
         >
         <ZoomControl position="rightcenter" />
         <GeoLocateControl position="rightcenter" />
@@ -259,7 +317,7 @@ export default function FootprintMap() {
             return (
               <button
                 key={cat.key}
-                onClick={() => setActiveCategory(cat.key)}
+                onClick={() => handleCategoryChange(cat.key)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 4,
                   padding: '8px 16px',

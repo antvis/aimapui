@@ -63,18 +63,16 @@ export default function ColumnLayer() {
             onMouseLeave={handleMouseLeave}
           />
         )}
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="light"
-            visible={true}
-            items={[
-              { label: '小区', value: tooltipInfo.name },
-              { label: '单价', value: `${tooltipInfo.price} 元/m²` },
-            ]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="light"
+          visible={tooltipInfo.visible}
+          items={[
+            { label: '小区', value: tooltipInfo.name },
+            { label: '单价', value: `${tooltipInfo.price} 元/m²` },
+          ]}
+        />
         <ZoomControl position="bottomright" />
       </Aimap>
     </div>

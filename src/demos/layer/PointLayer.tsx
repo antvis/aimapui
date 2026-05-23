@@ -58,18 +58,16 @@ export default function Demo08PointLayer() {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         />
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="dark"
-            visible={true}
-            items={[
-              { label: '城市', value: tooltipInfo.name },
-              { label: '热度', value: tooltipInfo.value },
-            ]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="dark"
+          visible={tooltipInfo.visible}
+          items={[
+            { label: '城市', value: tooltipInfo.name },
+            { label: '热度', value: tooltipInfo.value },
+          ]}
+        />
         <ZoomControl />
       </Aimap>
     </div>

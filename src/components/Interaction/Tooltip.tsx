@@ -109,41 +109,6 @@ export function Tooltip({
 
   const isMapMode = longitude !== undefined && latitude !== undefined;
 
-  // 自动获取 overlay 容器（地图模式）
-  const [autoContainer, setAutoContainer] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (!isMapMode || overlayContainer || !scene) return;
-
-    const tryGetContainer = () => {
-      try {
-        const mapsService = (scene as any).mapService;
-        if (mapsService && typeof mapsService.getMarkerContainer === 'function') {
-          const markerContainer = mapsService.getMarkerContainer() as HTMLElement;
-          if (markerContainer) {
-            setAutoContainer(markerContainer);
-            return true;
-          }
-        }
-      } catch {
-        // 不可用
-      }
-      return false;
-    };
-
-    if (tryGetContainer()) return;
-
-    const onLoaded = () => { tryGetContainer(); };
-    if ((scene as any).loaded) {
-      onLoaded();
-    } else {
-      scene.on('loaded', onLoaded);
-    }
-    return () => { scene.off('loaded', onLoaded); };
-  }, [scene, overlayContainer, isMapMode]);
-
-  const container = isMapMode ? (overlayContainer ?? autoContainer) : null;
-
   // ── DOM 模式：监听目标元素事件 ──
   useEffect(() => {
     if (isMapMode || !targetElement || isControlled) return;
@@ -228,17 +193,41 @@ export function Tooltip({
     };
   }, [visible, targetElement, isMapMode, updateDomPosition]);
 
-  // ── 地图模式：定位到经纬度 ──
+  // ── 地图模式：获取地图容器的 viewport 偏移 ──
+  const getMapContainerOffset = useCallback(() => {
+    if (!scene) return { left: 0, top: 0 };
+    try {
+      const mapsService = (scene as any).mapService;
+      const mapContainer = mapsService?.getMarkerContainer?.()
+        ?? (scene as any).getMapContainer?.()
+        ?? (scene as any).container
+        ?? (scene as any).getContainer?.();
+      if (mapContainer instanceof HTMLElement) {
+        const rect = mapContainer.getBoundingClientRect();
+        return { left: rect.left, top: rect.top };
+      }
+    } catch {
+      // ignore
+    }
+    return { left: 0, top: 0 };
+  }, [scene]);
+
+  // ── 地图模式：定位到经纬度（使用 fixed 定位，计算 viewport 绝对坐标）──
   const updateMapPosition = useCallback(() => {
     const el = tooltipRef.current;
-    if (!el || !scene || !isMapMode) return;
+    if (!el || !scene || !isMapMode) {
+      console.log('[Tooltip] updateMapPosition skip:', { el: !!el, scene: !!scene, isMapMode });
+      return;
+    }
 
     try {
       const mapsService = (scene as any).mapService;
+      console.log('[Tooltip] mapsService:', !!mapsService, 'lngLatToContainer:', typeof mapsService?.lngLatToContainer, typeof (scene as any).lngLatToContainer);
       const pos = mapsService
         ? mapsService.lngLatToContainer([longitude, latitude])
-        : scene.lngLatToContainer([longitude, latitude]);
+        : (scene as any).lngLatToContainer([longitude, latitude]);
 
+      console.log('[Tooltip] pos:', pos, 'lng:', longitude, 'lat:', latitude);
       if (!pos || isNaN(pos.x) || isNaN(pos.y)) return;
 
       let offsetX = 0;
@@ -250,26 +239,29 @@ export function Tooltip({
         case 'right': offsetX = offset; break;
       }
 
-      const rx = Math.round(pos.x + offsetX);
-      const ry = Math.round(pos.y + offsetY);
+      // lngLatToContainer 返回相对于地图容器的坐标，需加上容器在 viewport 中的偏移
+      const containerOffset = getMapContainerOffset();
+      console.log('[Tooltip] containerOffset:', containerOffset);
+      const rx = Math.round(pos.x + offsetX + containerOffset.left);
+      const ry = Math.round(pos.y + offsetY + containerOffset.top);
       const anchorTranslate = PLACEMENT_TRANSLATE[placement];
 
-      el.style.left = '0';
-      el.style.top = '0';
       el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${anchorTranslate}`;
       el.style.visibility = 'visible';
-    } catch {
-      // 场景未初始化
+      console.log('[Tooltip] positioned at:', rx, ry);
+    } catch (err) {
+      console.error('[Tooltip] updateMapPosition error:', err);
     }
-  }, [scene, longitude, latitude, placement, offset, isMapMode]);
+  }, [scene, longitude, latitude, placement, offset, isMapMode, getMapContainerOffset]);
 
   useEffect(() => {
-    if (!isMapMode || !container || !visible) return;
+    console.log('[Tooltip] effect triggered, visible:', visible, 'isMapMode:', isMapMode);
+    if (!isMapMode || !visible) return;
     const rafId = requestAnimationFrame(() => updateMapPosition());
     return () => cancelAnimationFrame(rafId);
-  }, [container, visible, isMapMode, updateMapPosition]);
+  }, [visible, isMapMode, updateMapPosition]);
 
-  // 地图交互时持续同步位置
+  // 地图交互时持续同步位置（拖拽/缩放时更新）
   useMapPosition(
     isMapMode ? scene : null,
     longitude ?? 0,
@@ -287,12 +279,11 @@ export function Tooltip({
         case 'right': offsetX = offset; break;
       }
 
-      const rx = Math.round(x + offsetX);
-      const ry = Math.round(y + offsetY);
+      const containerOffset = getMapContainerOffset();
+      const rx = Math.round(x + offsetX + containerOffset.left);
+      const ry = Math.round(y + offsetY + containerOffset.top);
       const anchorTranslate = PLACEMENT_TRANSLATE[placement];
 
-      el.style.left = '0';
-      el.style.top = '0';
       el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${anchorTranslate}`;
       el.style.visibility = 'visible';
     },
@@ -331,25 +322,15 @@ export function Tooltip({
     <div
       ref={tooltipRef}
       className={cx('aimapkit-tooltip', variant !== 'dark' && `aimapkit-tooltip--${variant}`)}
-      style={
-        isMapMode
-          ? {
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              transform: 'translate(-9999px, -9999px)',
-              visibility: 'hidden',
-              zIndex: 50,
-              pointerEvents: 'none',
-            }
-          : {
-              position: 'fixed',
-              left: -9999,
-              top: -9999,
-              zIndex: 9999,
-              pointerEvents: 'none',
-            }
-      }
+      style={{
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        transform: 'translate(-9999px, -9999px)',
+        visibility: 'hidden',
+        zIndex: 9999,
+        pointerEvents: 'none',
+      }}
     >
       <div className={cx('aimapkit-tooltip-content', className)}>
         {renderContent()}
@@ -358,10 +339,7 @@ export function Tooltip({
     </div>
   );
 
-  if (isMapMode && container) {
-    return createPortal(tooltipElement, container);
-  }
-
+  // 统一 portal 到 document.body，使用 fixed 定位 + viewport 坐标
   return createPortal(tooltipElement, document.body);
 }
 

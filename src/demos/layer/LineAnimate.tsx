@@ -55,16 +55,14 @@ export default function LineAnimate() {
             onMouseLeave={handleMouseLeave}
           />
         )}
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="light"
-            visible={true}
-            title="航线"
-            items={Object.entries(tooltipInfo.feature).slice(0, 3).map(([key, val]) => ({ label: key, value: String(val ?? '') }))}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="light"
+          visible={tooltipInfo.visible}
+          title="航线"
+          items={Object.entries(tooltipInfo.feature).slice(0, 3).map(([key, val]) => ({ label: key, value: String(val ?? '') }))}
+        />
         <ZoomControl position="bottomright" />
       </Aimap>
     </div>

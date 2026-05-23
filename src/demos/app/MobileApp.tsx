@@ -108,7 +108,7 @@ export default function MobileApp() {
   /** 当日路线的 GeoJSON */
   const lineGeoJSON = useMemo(() => spotsToLineGeoJSON(currentRoute.spots), [currentRoute]);
 
-  /** 根据景点坐标计算包围盒并 fitBounds，切换路线时自动适配视图 */
+  /** 根据景点坐标计算包围盒并缩放到合适视图 */
   const fitRouteBounds = useCallback((spots: Spot[], animate = true) => {
     const scene = sceneRef.current;
     if (!scene || spots.length === 0) return;
@@ -120,31 +120,33 @@ export default function MobileApp() {
     const minLat = Math.min(...lats);
     const maxLat = Math.max(...lats);
 
-    // 适当扩展边界（约 20% padding），避免景点贴边
-    const lngPadding = (maxLng - minLng) * 0.2 || 0.01;
-    const latPadding = (maxLat - minLat) * 0.2 || 0.01;
+    // 中心点（含 UI 偏移：为底部 BottomSheet 向上偏移）
+    const avgLng = (minLng + maxLng) / 2;
+    const avgLat = (minLat + maxLat) / 2;
 
-    const sw: [number, number] = [minLng - lngPadding, minLat - latPadding];
-    const ne: [number, number] = [maxLng + lngPadding, maxLat + latPadding];
+    // 根据 Web Mercator 投影计算合适的 zoom 级别
+    // zoom z 时视口显示 H * 360 * cos(φ) / (256 * 2^z) 纬度度数
+    // 要求点位跨度占据视口的一定比例（留出 UI 空间）
+    const lngSpan = maxLng - minLng || 0.001;
+    const latSpan = maxLat - minLat || 0.001;
+    const mapHeight = window.innerHeight || 667;
+    const mapWidth = window.innerWidth || 375;
+    const fractionH = 0.4;  // 点位占视口高度 40%（留出 BottomSheet 和顶部 UI 空间）
+    const fractionW = 0.7;  // 点位占视口宽度 70%
+    const latAtCenter = avgLat * Math.PI / 180;
+    const zLat = Math.log2(fractionH * mapHeight * 360 * Math.cos(latAtCenter) / (256 * latSpan));
+    const zLng = Math.log2(fractionW * mapWidth * 360 / (256 * lngSpan));
+    const zoom = Math.max(3, Math.min(18, Math.floor(Math.min(zLat, zLng))));
+
+    // 向上偏移中心点（为底部 BottomSheet 留空间，约偏移可视高度的 20%）
+    const metersPerPixel = 156543.03392 * Math.cos(latAtCenter) / Math.pow(2, zoom);
+    const pixelOffsetY = -80; // 向上 80px
+    const latOffset = pixelOffsetY * metersPerPixel / 110540;
 
     try {
-      scene.fitBounds([sw, ne], {
-        padding: [60, 40, 120, 40] as [number, number, number, number], // top, right, bottom, left — 底部留更多空间给 BottomSheet
-        duration: animate ? 600 : 0,
-      });
+      scene.setZoomAndCenter(zoom, [avgLng, avgLat + latOffset]);
     } catch {
-      // 部分底图可能不支持 fitBounds，降级为 setCenter + setZoom
-      const avgLng = (minLng + maxLng) / 2;
-      const avgLat = (minLat + maxLat) / 2;
-      try {
-        scene.setCenter([avgLng, avgLat]);
-        // 根据 span 粗略估算 zoom
-        const maxSpan = Math.max(maxLng - minLng, maxLat - minLat);
-        const zoom = Math.max(10, Math.min(16, Math.log2(0.05 / (maxSpan || 0.01)) + 13));
-        scene.setZoom(zoom);
-      } catch {
-        // ignore
-      }
+      try { scene.setCenter([avgLng, avgLat + latOffset]); scene.setZoom(zoom); } catch { /* ignore */ }
     }
   }, []);
 

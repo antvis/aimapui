@@ -57,18 +57,16 @@ export default function Demo25Fill3D() {
             onMouseLeave={handleMouseLeave}
           />
         )}
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="dark"
-            visible={true}
-            items={[
-              { label: '区域', value: tooltipInfo.name },
-              { label: '单价', value: `${tooltipInfo.price} 元/m²` },
-            ]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="dark"
+          visible={tooltipInfo.visible}
+          items={[
+            { label: '区域', value: tooltipInfo.name },
+            { label: '单价', value: `${tooltipInfo.price} 元/m²` },
+          ]}
+        />
         <ZoomControl />
       </Aimap>
     </div>

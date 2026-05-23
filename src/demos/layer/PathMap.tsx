@@ -56,15 +56,13 @@ export default function PathMap() {
             onMouseLeave={handleMouseLeave}
           />
         )}
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="dark"
-            visible={true}
-            items={[{ label: '等级', value: tooltipInfo.level }]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="dark"
+          visible={tooltipInfo.visible}
+          items={[{ label: '等级', value: tooltipInfo.level }]}
+        />
         <ZoomControl position="bottomright" />
       </Aimap>
     </div>

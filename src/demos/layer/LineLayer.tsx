@@ -67,15 +67,13 @@ export default function Demo11LineLayer() {
         {/* 节点图层 */}
         <PointLayer source={keyPoints} color="#F6BD16" size={10} />
 
-        {tooltipInfo.visible && (
-          <Tooltip
-            longitude={tooltipInfo.lng}
-            latitude={tooltipInfo.lat}
-            variant="light"
-            visible={true}
-            items={[{ label: '流量', value: tooltipInfo.value }]}
-          />
-        )}
+        <Tooltip
+          longitude={tooltipInfo.lng}
+          latitude={tooltipInfo.lat}
+          variant="light"
+          visible={tooltipInfo.visible}
+          items={[{ label: '流量', value: tooltipInfo.value }]}
+        />
         <ZoomControl />
       </Aimap>
     </div>
