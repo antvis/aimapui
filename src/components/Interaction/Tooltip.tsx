@@ -216,18 +216,15 @@ export function Tooltip({
   const updateMapPosition = useCallback(() => {
     const el = tooltipRef.current;
     if (!el || !scene || !isMapMode) {
-      console.log('[Tooltip] updateMapPosition skip:', { el: !!el, scene: !!scene, isMapMode });
       return;
     }
 
     try {
       const mapsService = (scene as any).mapService;
-      console.log('[Tooltip] mapsService:', !!mapsService, 'lngLatToContainer:', typeof mapsService?.lngLatToContainer, typeof (scene as any).lngLatToContainer);
       const pos = mapsService
         ? mapsService.lngLatToContainer([longitude, latitude])
         : (scene as any).lngLatToContainer([longitude, latitude]);
 
-      console.log('[Tooltip] pos:', pos, 'lng:', longitude, 'lat:', latitude);
       if (!pos || isNaN(pos.x) || isNaN(pos.y)) return;
 
       let offsetX = 0;
@@ -241,21 +238,18 @@ export function Tooltip({
 
       // lngLatToContainer 返回相对于地图容器的坐标，需加上容器在 viewport 中的偏移
       const containerOffset = getMapContainerOffset();
-      console.log('[Tooltip] containerOffset:', containerOffset);
       const rx = Math.round(pos.x + offsetX + containerOffset.left);
       const ry = Math.round(pos.y + offsetY + containerOffset.top);
       const anchorTranslate = PLACEMENT_TRANSLATE[placement];
 
       el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${anchorTranslate}`;
       el.style.visibility = 'visible';
-      console.log('[Tooltip] positioned at:', rx, ry);
-    } catch (err) {
-      console.error('[Tooltip] updateMapPosition error:', err);
+    } catch {
+      // ignore
     }
   }, [scene, longitude, latitude, placement, offset, isMapMode, getMapContainerOffset]);
 
   useEffect(() => {
-    console.log('[Tooltip] effect triggered, visible:', visible, 'isMapMode:', isMapMode);
     if (!isMapMode || !visible) return;
     const rafId = requestAnimationFrame(() => updateMapPosition());
     return () => cancelAnimationFrame(rafId);
@@ -296,7 +290,9 @@ export function Tooltip({
 
   const renderContent = () => {
     if (content) {
-      return typeof content === 'string' ? <span>{content}</span> : content;
+      return typeof content === 'string' ? (
+        <span dangerouslySetInnerHTML={{ __html: content }} />
+      ) : content;
     }
     if (hasStructuredContent) {
       return (

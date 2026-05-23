@@ -275,7 +275,6 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
       const needsMouseMove = Boolean(eventHandlersRef.current?.onMouseMove || layerEvents?.mousemove || (popupEnabled && popupTrigger === 'hover'));
       const needsMouseEnter = Boolean(eventHandlersRef.current?.onMouseEnter || layerEvents?.mouseenter);
       const needsMouseLeave = Boolean(eventHandlersRef.current?.onMouseLeave || layerEvents?.mouseleave || (popupEnabled && popupTrigger === 'hover'));
-      console.log('[SchemaLayer] bindEvents:', { needsClick, needsMouseMove, needsMouseEnter, needsMouseLeave, hasHandlers: !!eventHandlersRef.current, onMouseMove: !!eventHandlersRef.current?.onMouseMove });
 
       // L7 click 事件
       if (needsClick) {
@@ -301,8 +300,6 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
       if (needsMouseMove) {
         layer.on('mousemove', (evt: unknown) => {
           const payload = extractLayerPayload(layerId, schema.type, evt);
-          const e = evt as any;
-          console.log('[SchemaLayer] mousemove raw evt keys:', Object.keys(e || {}), 'feature:', e?.feature, 'data:', e?.data, 'featureId:', e?.featureId, 'target:', e?.target);
           eventHandlersRef.current?.onMouseMove?.(payload);
           if (popupTrigger === 'hover') {
             showPopup(payload);

@@ -20,6 +20,7 @@ import GeoLocateControl from './control/GeoLocateControl';
 import MapThemeControl from './control/MapThemeControl';
 import MouseLocationControl from './control/MouseLocationControl';
 import ExportImageControl from './control/ExportImageControl';
+import ThemeToggle from './control/ThemeToggle';
 // ── Marker 标注 ──
 import Marker from './marker/Marker';
 import MarkerDrag from './marker/MarkerDrag';
@@ -243,9 +244,10 @@ const demos = [
   { name: '缩放控件', icon: 'zoom_in', component: ZoomControl, group: '控件', file: 'control/ZoomControl' },
   { name: '全屏控件', icon: 'fullscreen', component: FullscreenControl, group: '控件', file: 'control/FullscreenControl' },
   { name: '定位控件', icon: 'my_location', component: GeoLocateControl, group: '控件', file: 'control/GeoLocateControl' },
-  { name: '主题切换', icon: 'palette', component: MapThemeControl, group: '控件', file: 'control/MapThemeControl' },
+  { name: '底图主题', icon: 'palette', component: MapThemeControl, group: '控件', file: 'control/MapThemeControl' },
   { name: '鼠标坐标', icon: 'pin_drop', component: MouseLocationControl, group: '控件', file: 'control/MouseLocationControl' },
   { name: '导出图片', icon: 'photo_camera', component: ExportImageControl, group: '控件', file: 'control/ExportImageControl' },
+  { name: 'UI 主题切换', icon: 'dark_mode', component: ThemeToggle, group: '控件', file: 'control/ThemeToggle' },
 
   // ── 地图引擎 ──────────────────────────────
   { name: '高德地图', icon: 'public', component: GaodeMap, group: '地图引擎', file: 'engine/GaodeMap' },
@@ -301,12 +303,14 @@ const getDemoIndexFromHash = (): number => {
 
 function App() {
   const [current, setCurrent] = React.useState(() => getDemoIndexFromHash());
-  const [showPanel, setShowPanel] = React.useState(true);
+  const [showPanel, setShowPanel] = React.useState(false);
   // 左侧主 Tab：可视化 / 设计规范
   const [sidebarMode, setSidebarMode] = React.useState<'demo' | 'design'>('demo');
   // 当前选中的设计规范文档索引
   const [currentDesignDoc, setCurrentDesignDoc] = React.useState(0);
   // 设计规范展示模式：html 预览(markdown渲染) / html demo(加载.html文件)
+  // 全局 UI 主题
+  const [appTheme, setAppTheme] = React.useState<"light" | "dark">("light");
   const [designViewMode, setDesignViewMode] = React.useState<'html' | 'demo'>('demo');
 
   const demo = demos[current];
@@ -340,7 +344,7 @@ function App() {
   const selectedDesignDoc = designDocs[currentDesignDoc];
 
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', background: '#0f0f1a', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+    <div data-theme={appTheme} style={{ width: '100%', height: '100%', display: 'flex', background: appTheme === 'dark' ? '#0f0f1a' : '#f5f7fa', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
       {/* ========== 左侧菜单 ========== */}
       <div
         style={{
