@@ -15,7 +15,9 @@ export type ControlPosition =
   | 'lefttop'
   | 'leftbottom'
   | 'righttop'
-  | 'rightbottom';
+  | 'rightbottom'
+  | 'rightcenter'
+  | 'leftcenter';
 
 /**
  * 控件公共属性
@@ -69,6 +71,8 @@ export function useMapControl(position?: ControlPosition) {
    * 用于外层 wrapper 的定位
    */
   const positionClassName = useMemo(() => {
+    if (position === 'rightcenter') return 'l7-rightcenter l7-column';
+    if (position === 'leftcenter') return 'l7-leftcenter l7-column';
     const { vSide, hSide, direction } = getPositionDir(position ?? 'topright');
     return `l7-${vSide} l7-${hSide} l7-${direction}`;
   }, [position]);
@@ -100,6 +104,8 @@ export function getPositionDir(position: ControlPosition): {
     case 'leftbottom':   return { vSide: 'bottom', hSide: 'left', direction: 'row' };
     case 'righttop':     return { vSide: 'top', hSide: 'right', direction: 'row' };
     case 'rightbottom':  return { vSide: 'bottom', hSide: 'right', direction: 'row' };
+    case 'rightcenter':  return { vSide: 'top', hSide: 'right', direction: 'column' };
+    case 'leftcenter':   return { vSide: 'top', hSide: 'left', direction: 'column' };
     default:             return { vSide: 'top', hSide: 'right', direction: 'column' };
   }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Aimap } from '../../components/Aimap';
 import { ZoomControl } from '../../components/Control/ZoomControl';
+import { GeoLocateControl } from '../../components/Control/GeoLocateControl';
 import { Marker } from '../../components/Interaction/Marker';
 import { BottomSheet } from '../../components/Mobile/BottomSheet';
 import type { BottomSheetSnap } from '../../components/Mobile/BottomSheet';
@@ -132,7 +133,8 @@ export default function CheckInMap() {
             style: 'light',
           }}
         >
-          <ZoomControl position="bottomright" />
+          <ZoomControl position="rightcenter" />
+          <GeoLocateControl position="rightcenter" />
 
           {/* 打卡点标记 */}
           {filteredSpots.map((spot) => (

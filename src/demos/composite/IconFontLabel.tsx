@@ -2,10 +2,10 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { Aimap, IconFontLayer, ZoomControl } from '../../index';
 
 /**
- * 字体图标标注（IconFontLayer 设计规范 Demo）
+ * 字体图标标注（IconFontLayer + Material Symbols Demo）
  *
  * 展示特性：
- * - 内置 Google Material Symbols 字体图标
+ * - 使用 Material Symbols Outlined 字体图标（Google Material Design 图标）
  * - 字体图标 + 文字标签组合
  * - 缩放适配：L1(14+) 全显示 → L2(10-13) 仅图标 → L3(<10) 4px 圆点
  * - 碰撞检测：图标始终可见，仅文本被避让
@@ -21,17 +21,18 @@ export default function DemoIconFontLabel() {
       .catch(() => setData(null));
   }, []);
 
-  // 将原始数据中的 name 字段映射为内置 iconfont 图标名
+  // 将原始数据中的 name 字段映射为 Material Symbols 图标名
   const mappedData = useMemo(() => {
     if (!data) return null;
+    // 原始数据的 name 值为 '00', '01', '02' 等编号，映射为天气图标
     const iconMapping: Record<string, string> = {
-      '00': 'smallRain',
-      '01': 'middleRain',
-      '02': 'hugeRain',
+      '00': 'sunny',
+      '01': 'partly_cloudy_day',
+      '02': 'rainy',
     };
     return data.map((item) => ({
       ...item,
-      icon: iconMapping[item.name as string] ?? 'sun',
+      icon: iconMapping[item.name as string] ?? 'cloud',
     }));
   }, [data]);
 
@@ -43,6 +44,7 @@ export default function DemoIconFontLabel() {
             source={mappedData}
             sourceType="json"
             sourceConfig={{ x: 'longitude', y: 'latitude' }}
+            iconFontFamily="material-symbols"
             iconField="icon"
             iconColor="#06b6d4"
             iconSize={20}

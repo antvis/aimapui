@@ -81,9 +81,9 @@ export function ControlContainer({ children, className, style }: ControlContaine
     <ControlContainerContext.Provider value={true}>
       <div className={`l7-control-container${className ? ` ${className}` : ''}`} style={style}>
         {Object.entries(controlGroups).map(([position, elements]) => {
-          const { vSide, hSide, direction } = getPositionDir(position as ControlPosition);
+          const anchorClass = getPositionAnchorClass(position as ControlPosition);
           return (
-            <div key={position} className={`l7-control-anchor l7-${vSide} l7-${hSide} l7-${direction}`}>
+            <div key={position} className={`l7-control-anchor ${anchorClass}`}>
               {elements}
             </div>
           );
@@ -149,6 +149,16 @@ function getPositionDir(position: ControlPosition): {
     case 'rightbottom':  return { vSide: 'bottom', hSide: 'right', direction: 'row' };
     default:             return { vSide: 'top', hSide: 'right', direction: 'column' };
   }
+}
+
+/**
+ * 根据 position 生成控件锚点的完整 CSS 类名
+ */
+function getPositionAnchorClass(position: ControlPosition): string {
+  if (position === 'rightcenter') return 'l7-rightcenter l7-column';
+  if (position === 'leftcenter') return 'l7-leftcenter l7-column';
+  const { vSide, hSide, direction } = getPositionDir(position);
+  return `l7-${vSide} l7-${hSide} l7-${direction}`;
 }
 
 export default ControlContainer;

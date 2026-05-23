@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { Aimap } from '../../components/Aimap';
 import { ZoomControl } from '../../components/Control/ZoomControl';
+import { GeoLocateControl } from '../../components/Control/GeoLocateControl';
 import { Marker } from '../../components/Interaction/Marker';
 import { LineLayer } from '../../components/Layer/LineLayer';
 import { BottomSheet } from '../../components/Mobile/BottomSheet';
@@ -134,7 +135,8 @@ export default function MobileApp() {
             style: 'light',
           }}
         >
-          <ZoomControl position="bottomright" />
+          <ZoomControl position="rightcenter" />
+          <GeoLocateControl position="rightcenter" />
 
           {/* 当日路线 */}
           <LineLayer

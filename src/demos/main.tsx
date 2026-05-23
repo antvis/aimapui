@@ -7,28 +7,45 @@ import '../styles/tailwind.css';
 // 所有 Demo 均使用组件化 API
 // ============================================================
 
-// Map
-import GaodeMap from './map/GaodeMap';
-import MaplibreMap from './map/MaplibreMap';
-import MapboxMap from './map/MapboxMap';
-import IndependentMap from './map/IndependentMap';
-import TiandituMap from './map/TiandituMap';
-// Control
+// ── 地图引擎 ──
+import GaodeMap from './engine/GaodeMap';
+import MaplibreMap from './engine/MaplibreMap';
+import MapboxMap from './engine/MapboxMap';
+import IndependentMap from './engine/IndependentMap';
+import TiandituMap from './engine/TiandituMap';
+// ── 控件 ──
 import ZoomControl from './control/ZoomControl';
 import FullscreenControl from './control/FullscreenControl';
 import GeoLocateControl from './control/GeoLocateControl';
 import MapThemeControl from './control/MapThemeControl';
 import MouseLocationControl from './control/MouseLocationControl';
 import ExportImageControl from './control/ExportImageControl';
-// Marker
+// ── Marker 标注 ──
 import Marker from './marker/Marker';
 import MarkerDrag from './marker/MarkerDrag';
-import MarkerCluster from './marker/MarkerCluster';
 import MarkerTest from './marker/MarkerTest';
-// Popup
-import Popup from './popup/Popup';
-import TooltipDemo from './popup/Tooltip';
-// Layer
+import Popup from './marker/Popup';
+import TooltipDemo from './marker/Tooltip';
+// ── 应用模板 ──
+import MobileApp from './app/MobileApp';
+import CheckInMap from './app/CheckInMap';
+import FootprintMap from './app/FootprintMap';
+import TravelStatsMap from './app/TravelStatsMap';
+import PcApp from './app/PcApp';
+import ImmersiveTravelMap from './app/ImmersiveTravelMap';
+import InterestMap from './app/InterestMap';
+import FlightRouteMap from './app/FlightRouteMap';
+// ── 复合图层 ──
+import BubbleLayer from './composite/BubbleLayer';
+import IconLabel from './composite/IconLabel';
+import IconFontLabel from './composite/IconFontLabel';
+import ChoroplethMap from './composite/ChoroplethMap';
+import HexagonHeatmap from './composite/HexagonHeatmap';
+import SatelliteLayerDemo from './composite/SatelliteLayer';
+import MarkerCluster from './composite/MarkerCluster';
+import PathLayer from './composite/PathLayer';
+import ArcLayer from './composite/ArcLayer';
+// ── 基础图层 ──
 import PointLayer from './layer/PointLayer';
 import ColumnLayer from './layer/ColumnLayer';
 import ColorMapping from './layer/ColorMapping';
@@ -44,49 +61,30 @@ import HeatmapLayer from './layer/HeatmapLayer';
 import MultiLayer from './layer/MultiLayer';
 import LayerEvents from './layer/LayerEvents';
 import MapEvents from './layer/MapEvents';
-// Advanced
-import BubbleLayer from './advanced/BubbleLayer';
-import IconLabel from './advanced/IconLabel';
-import IconFontLabel from './advanced/IconFontLabel';
-import PathLayer from './advanced/PathLayer';
-import ArcLayer from './advanced/ArcLayer';
-import FillLayer from './advanced/FillLayer';
-import Fill3DLayer from './advanced/Fill3DLayer';
-import HeatmapClassic from './advanced/HeatmapClassic';
-import HexagonHeatmap from './advanced/HexagonHeatmap';
-import ImageLayer from './advanced/ImageLayer';
-import RasterTileLayer from './advanced/RasterTileLayer';
-import SatelliteLayerDemo from './advanced/SatelliteLayer';
-import ChoroplethMap from './advanced/ChoroplethMap';
-
-// 源码文本 — Vite import.meta.glob eager
-// Mobile
-import MobileApp from './mobile/MobileApp';
-import CheckInMap from './mobile/CheckInMap';
-import FootprintMap from './mobile/FootprintMap';
-import TravelStatsMap from './mobile/TravelStatsMap';
-// PC
-import PcApp from './pc/PcApp';
-import ImmersiveTravelMap from './pc/ImmersiveTravelMap';
+import FillLayer from './layer/FillLayer';
+import Fill3DLayer from './layer/Fill3DLayer';
+import HeatmapClassic from './layer/HeatmapClassic';
+import ImageLayer from './layer/ImageLayer';
+import RasterTileLayer from './layer/RasterTileLayer';
 
 const sourceModules = import.meta.glob(
-  ['./{map,control,marker,popup,layer,advanced,mobile,pc}/*.tsx', './{map,control,marker,popup,layer,advanced,mobile,pc}/*.md'],
+  ['./{engine,control,marker,layer,composite,app}/*.tsx', './{engine,control,marker,layer,composite,app}/*.md'],
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
 
-// 设计规范文档 — 从 src/design/ 目录加载 (.md + .html)
+// 设计规范文档 — 从 src/design/ 子目录加载 (.md + .html)
 const designMdModules = import.meta.glob(
-  '../design/*.md',
+  '../design/{app,composite,marker,control,engine,layer}/*.md',
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
 
 const designHtmlModules = import.meta.glob(
-  '../design/*.html',
+  '../design/{app,composite,marker,control,engine,layer}/*.html',
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
 
-// 解析设计规范文件列表
-const nameMap: Record<string, string> = {
+// 解析设计规范文件列表（按目录分组）
+const designNameMap: Record<string, string> = {
   'bubble-map': '气泡图',
   'choropleth-map': '分级统计图',
   'marker-cluster': '标注聚合',
@@ -103,8 +101,11 @@ const nameMap: Record<string, string> = {
   'icon-layer': '图片标注图层',
   'icon-font-layer': '字体图标图层',
   'immersive-travel-map': '沉浸式旅游足迹地图',
+  'administrative-layer': '行政区划',
+  'hierarchy-layout': '控件层级布局',
+  'text-layer': '文本图层',
 };
-const iconMap: Record<string, string> = {
+const designIconMap: Record<string, string> = {
   'bubble-map': 'bubble_chart',
   'choropleth-map': 'map',
   'marker-cluster': 'scatter_plot',
@@ -121,20 +122,37 @@ const iconMap: Record<string, string> = {
   'icon-layer': 'image',
   'icon-font-layer': 'font_download',
   'immersive-travel-map': 'photo_camera',
+  'administrative-layer': 'public',
+  'hierarchy-layout': 'layers',
+  'text-layer': 'text_fields',
+};
+// 目录名 → 中文分组名（与 demo 分组一致）
+const designCategoryMap: Record<string, string> = {
+  app: '应用模板',
+  composite: '复合图层',
+  marker: 'Marker 标注',
+  control: '控件',
+  engine: '地图引擎',
+  layer: '基础图层',
 };
 
 const designDocs = Object.entries(designMdModules).map(([path, mod]) => {
-  const filename = path.split('/').pop()?.replace('.md', '') ?? '';
+  const parts = path.split('/');
+  const dirName = parts[parts.length - 2] ?? '';  // 子目录名，如 app / composite / marker / control / layer
+  const filename = parts.pop()?.replace('.md', '') ?? '';
   const htmlPath = path.replace('.md', '.html');
   const htmlContent = designHtmlModules[htmlPath]?.default ?? '';
   return {
     id: filename,
-    name: nameMap[filename] || filename,
-    icon: iconMap[filename] || 'description',
+    name: designNameMap[filename] || filename,
+    icon: designIconMap[filename] || 'description',
+    group: designCategoryMap[dirName] || dirName,
     content: mod.default,
     htmlDemo: htmlContent,
   };
 });
+
+const designGroups = [...new Set(designDocs.map((d) => d.group))];
 
 // ── 简易 Markdown → HTML 转换器 ──
 function markdownToHtml(md: string): string {
@@ -191,32 +209,33 @@ function markdownToHtml(md: string): string {
 
 const demos = [
   // ── 应用模板（移动端 + 桌面端） ─────────────────────────
-  { name: '移动端应用', icon: 'smartphone', component: MobileApp, group: '应用模板', file: 'mobile/MobileApp' },
-  { name: '打卡地图', icon: 'location_on', component: CheckInMap, group: '应用模板', file: 'mobile/CheckInMap' },
-  { name: '足迹地图', icon: 'explore', component: FootprintMap, group: '应用模板', file: 'mobile/FootprintMap' },
-  { name: '旅行足迹统计', icon: 'bar_chart', component: TravelStatsMap, group: '应用模板', file: 'mobile/TravelStatsMap' },
-  { name: 'PC 端应用', icon: 'desktop_windows', component: PcApp, group: '应用模板', file: 'pc/PcApp' },
-  { name: '沉浸式旅游足迹', icon: 'photo_camera', component: ImmersiveTravelMap, group: '应用模板', file: 'pc/ImmersiveTravelMap' },
+  { name: '移动端应用', icon: 'smartphone', component: MobileApp, group: '应用模板', file: 'app/MobileApp', device: 'mobile' },
+  { name: '打卡地图', icon: 'location_on', component: CheckInMap, group: '应用模板', file: 'app/CheckInMap', device: 'mobile' },
+  { name: '足迹地图', icon: 'explore', component: FootprintMap, group: '应用模板', file: 'app/FootprintMap', device: 'mobile' },
+  { name: '旅行足迹统计', icon: 'bar_chart', component: TravelStatsMap, group: '应用模板', file: 'app/TravelStatsMap', device: 'mobile' },
+  { name: 'PC 端应用', icon: 'desktop_windows', component: PcApp, group: '应用模板', file: 'app/PcApp', device: 'desktop' },
+  { name: '沉浸式旅游足迹', icon: 'photo_camera', component: ImmersiveTravelMap, group: '应用模板', file: 'app/ImmersiveTravelMap', device: 'desktop' },
+  { name: '兴趣地图', icon: 'interests', component: InterestMap, group: '应用模板', file: 'app/InterestMap', device: 'mobile' },
+  { name: '航线地图', icon: 'flight', component: FlightRouteMap, group: '应用模板', file: 'app/FlightRouteMap', device: 'mobile' },
 
   // ── 复合图层 ──────────────────────────────
   // 点
-  { name: '气泡图', icon: 'bubble_chart', component: BubbleLayer, group: '复合图层', file: 'advanced/BubbleLayer' },
-  { name: '图片标注', icon: 'label', component: IconLabel, group: '复合图层', file: 'advanced/IconLabel' },
-  { name: '字体标注', icon: 'font_download', component: IconFontLabel, group: '复合图层', file: 'advanced/IconFontLabel' },
-  // 线
+  { name: '气泡图', icon: 'bubble_chart', component: BubbleLayer, group: '复合图层', file: 'composite/BubbleLayer' },
+  { name: '图片标注', icon: 'label', component: IconLabel, group: '复合图层', file: 'composite/IconLabel' },
+  { name: '字体标注', icon: 'font_download', component: IconFontLabel, group: '复合图层', file: 'composite/IconFontLabel' },
   // 面
-  { name: '分级统计图', icon: 'stacked_bar_chart', component: ChoroplethMap, group: '复合图层', file: 'advanced/ChoroplethMap' },
+  { name: '分级统计图', icon: 'stacked_bar_chart', component: ChoroplethMap, group: '复合图层', file: 'composite/ChoroplethMap' },
   // 热力图
-  { name: '蜂窝热力图', icon: 'hexagon', component: HexagonHeatmap, group: '复合图层', file: 'advanced/HexagonHeatmap' },
-  { name: '卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '复合图层', file: 'advanced/SatelliteLayer' },
-  { name: 'Marker 聚合', icon: 'scatter_plot', component: MarkerCluster, group: '复合图层', file: 'marker/MarkerCluster' },
+  { name: '蜂窝热力图', icon: 'hexagon', component: HexagonHeatmap, group: '复合图层', file: 'composite/HexagonHeatmap' },
+  { name: '卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '复合图层', file: 'composite/SatelliteLayer' },
+  { name: 'Marker 聚合', icon: 'scatter_plot', component: MarkerCluster, group: '复合图层', file: 'composite/MarkerCluster' },
 
   // ── Marker 标注 ───────────────────────────
   { name: 'Marker 标注', icon: 'location_on', component: Marker, group: 'Marker 标注', file: 'marker/Marker' },
   { name: 'Marker 测试', icon: 'science', component: MarkerTest, group: 'Marker 标注', file: 'marker/MarkerTest' },
   { name: '可拖拽标注', icon: 'push_pin', component: MarkerDrag, group: 'Marker 标注', file: 'marker/MarkerDrag' },
-  { name: 'Popup 弹窗', icon: 'chat_bubble', component: Popup, group: 'Marker 标注', file: 'popup/Popup' },
-  { name: 'Tooltip 轻提示', icon: 'info', component: TooltipDemo, group: 'Marker 标注', file: 'popup/Tooltip' },
+  { name: 'Popup 弹窗', icon: 'chat_bubble', component: Popup, group: 'Marker 标注', file: 'marker/Popup' },
+  { name: 'Tooltip 轻提示', icon: 'info', component: TooltipDemo, group: 'Marker 标注', file: 'marker/Tooltip' },
 
   // ── 控件 ──────────────────────────────────
   { name: '缩放控件', icon: 'zoom_in', component: ZoomControl, group: '控件', file: 'control/ZoomControl' },
@@ -227,11 +246,11 @@ const demos = [
   { name: '导出图片', icon: 'photo_camera', component: ExportImageControl, group: '控件', file: 'control/ExportImageControl' },
 
   // ── 地图引擎 ──────────────────────────────
-  { name: '高德地图', icon: 'public', component: GaodeMap, group: '地图引擎', file: 'map/GaodeMap' },
-  { name: 'Maplibre 地图', icon: 'language', component: MaplibreMap, group: '地图引擎', file: 'map/MaplibreMap' },
-  { name: 'Mapbox 地图', icon: 'travel_explore', component: MapboxMap, group: '地图引擎', file: 'map/MapboxMap' },
-  { name: '天地图', icon: 'terrain', component: TiandituMap, group: '地图引擎', file: 'map/TiandituMap' },
-  { name: '独立 Map', icon: 'inventory_2', component: IndependentMap, group: '地图引擎', file: 'map/IndependentMap' },
+  { name: '高德地图', icon: 'public', component: GaodeMap, group: '地图引擎', file: 'engine/GaodeMap' },
+  { name: 'Maplibre 地图', icon: 'language', component: MaplibreMap, group: '地图引擎', file: 'engine/MaplibreMap' },
+  { name: 'Mapbox 地图', icon: 'travel_explore', component: MapboxMap, group: '地图引擎', file: 'engine/MapboxMap' },
+  { name: '天地图', icon: 'terrain', component: TiandituMap, group: '地图引擎', file: 'engine/TiandituMap' },
+  { name: '独立 Map', icon: 'inventory_2', component: IndependentMap, group: '地图引擎', file: 'engine/IndependentMap' },
 
   // ── 基础图层 ──────────────────────────────
   // 点
@@ -247,15 +266,15 @@ const demos = [
   { name: '流向图', icon: 'swap_calls', component: FlowMap, group: '基础图层', file: 'layer/FlowMap' },
   { name: '等值线地图', icon: 'waves', component: IsolineMap, group: '基础图层', file: 'layer/IsolineMap' },
   // 面
-  { name: '填充图层', icon: 'format_shapes', component: FillLayer, group: '基础图层', file: 'advanced/FillLayer' },
+  { name: '填充图层', icon: 'format_shapes', component: FillLayer, group: '基础图层', file: 'layer/FillLayer' },
   { name: '行政区划 GDP', icon: 'public', component: AdministrativeMap, group: '基础图层', file: 'layer/AdministrativeMap' },
-  { name: '3D 填充图', icon: 'location_city', component: Fill3DLayer, group: '基础图层', file: 'advanced/Fill3DLayer' },
+  { name: '3D 填充图', icon: 'location_city', component: Fill3DLayer, group: '基础图层', file: 'layer/Fill3DLayer' },
   // 热力图
   { name: '热力图', icon: 'local_fire_department', component: HeatmapLayer, group: '基础图层', file: 'layer/HeatmapLayer' },
-  { name: '经典热力图', icon: 'thermostat', component: HeatmapClassic, group: '基础图层', file: 'advanced/HeatmapClassic' },
+  { name: '经典热力图', icon: 'thermostat', component: HeatmapClassic, group: '基础图层', file: 'layer/HeatmapClassic' },
   // 图片 & 栅格
-  { name: '图片图层', icon: 'image', component: ImageLayer, group: '基础图层', file: 'advanced/ImageLayer' },
-  { name: '栅格瓦片', icon: 'grid_view', component: RasterTileLayer, group: '基础图层', file: 'advanced/RasterTileLayer' },
+  { name: '图片图层', icon: 'image', component: ImageLayer, group: '基础图层', file: 'layer/ImageLayer' },
+  { name: '栅格瓦片', icon: 'grid_view', component: RasterTileLayer, group: '基础图层', file: 'layer/RasterTileLayer' },
   // 事件 & 组合
   { name: '多图层叠加', icon: 'layers', component: MultiLayer, group: '基础图层', file: 'layer/MultiLayer' },
   { name: '图层事件', icon: 'touch_app', component: LayerEvents, group: '基础图层', file: 'layer/LayerEvents' },
@@ -286,7 +305,7 @@ function App() {
   // 当前选中的设计规范文档索引
   const [currentDesignDoc, setCurrentDesignDoc] = React.useState(0);
   // 设计规范展示模式：html 预览(markdown渲染) / html demo(加载.html文件)
-  const [designViewMode, setDesignViewMode] = React.useState<'html' | 'demo'>('html');
+  const [designViewMode, setDesignViewMode] = React.useState<'html' | 'demo'>('demo');
 
   const demo = demos[current];
   const DemoComponent = demo.component;
@@ -461,60 +480,67 @@ function App() {
           ) : (
             /* 设计规范模式：展示 design docs 列表 */
             <div>
-              <div
-                style={{
-                  padding: '14px 20px 6px',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  color: 'rgba(99, 102, 241, 0.8)',
-                  letterSpacing: 1.2,
-                  textTransform: 'uppercase',
-                }}
-              >
-                设计规范文档
-              </div>
-              {designDocs.map((doc, index) => {
-                const isActive = index === currentDesignDoc;
-                return (
+              {designGroups.map((group) => (
+                <div key={group}>
                   <div
-                    key={doc.id}
-                    onClick={() => setCurrentDesignDoc(index)}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '7px 12px',
-                      margin: '1px 8px',
-                      cursor: 'pointer',
-                      fontSize: 12.5,
-                      fontWeight: isActive ? 500 : 400,
-                      color: isActive ? '#e0e7ff' : 'rgba(148, 163, 184, 0.7)',
-                      background: isActive ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-                      borderRadius: 8,
-                      transition: 'all 0.2s ease',
-                      position: 'relative',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = 'rgba(99, 102, 241, 0.06)';
-                        e.currentTarget.style.color = 'rgba(203, 213, 225, 0.9)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isActive) {
-                        e.currentTarget.style.background = 'transparent';
-                        e.currentTarget.style.color = 'rgba(148, 163, 184, 0.7)';
-                      }
+                      padding: '14px 20px 6px',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: 'rgba(99, 102, 241, 0.8)',
+                      letterSpacing: 1.2,
+                      textTransform: 'uppercase',
                     }}
                   >
-                    {isActive && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 16, borderRadius: 2, background: 'linear-gradient(180deg, #6366f1, #8b5cf6)' }} />}
-                    <span className="material-symbols-outlined" style={{ width: 20, textAlign: 'center', fontSize: 16, flexShrink: 0, opacity: isActive ? 1 : 0.6, color: isActive ? '#a5b4fc' : 'inherit' }}>
-                      {doc.icon}
-                    </span>
-                    <span>{doc.name}</span>
+                    {group}
                   </div>
-                );
-              })}
+                  {designDocs
+                    .map((doc, index) => ({ ...doc, index }))
+                    .filter((doc) => doc.group === group)
+                    .map((doc) => {
+                      const isActive = doc.index === currentDesignDoc;
+                      return (
+                        <div
+                          key={doc.id}
+                          onClick={() => setCurrentDesignDoc(doc.index)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            padding: '7px 12px',
+                            margin: '1px 8px',
+                            cursor: 'pointer',
+                            fontSize: 12.5,
+                            fontWeight: isActive ? 500 : 400,
+                            color: isActive ? '#e0e7ff' : 'rgba(148, 163, 184, 0.7)',
+                            background: isActive ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
+                            borderRadius: 8,
+                            transition: 'all 0.2s ease',
+                            position: 'relative',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isActive) {
+                              e.currentTarget.style.background = 'rgba(99, 102, 241, 0.06)';
+                              e.currentTarget.style.color = 'rgba(203, 213, 225, 0.9)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isActive) {
+                              e.currentTarget.style.background = 'transparent';
+                              e.currentTarget.style.color = 'rgba(148, 163, 184, 0.7)';
+                            }
+                          }}
+                        >
+                          {isActive && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 16, borderRadius: 2, background: 'linear-gradient(180deg, #6366f1, #8b5cf6)' }} />}
+                          <span className="material-symbols-outlined" style={{ width: 20, textAlign: 'center', fontSize: 16, flexShrink: 0, opacity: isActive ? 1 : 0.6, color: isActive ? '#a5b4fc' : 'inherit' }}>
+                            {doc.icon}
+                          </span>
+                          <span>{doc.name}</span>
+                        </div>
+                      );
+                    })}
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -574,7 +600,7 @@ function App() {
 
             {/* 地图容器 */}
             <div style={{ position: 'absolute', top: 44, left: 0, right: 0, bottom: 0 }}>
-              {demo.file.startsWith('mobile/') ? (
+              {demo.device === 'mobile' ? (
                 /* 移动端 Demo：居中手机模拟器 */
                 <div
                   style={{
@@ -591,29 +617,14 @@ function App() {
                       width: 390,
                       height: 844,
                       maxHeight: 'calc(100% - 40px)',
-                      borderRadius: 44,
+                      borderRadius: 20,
                       overflow: 'hidden',
-                      border: '8px solid #1f1f33',
-                      boxShadow: '0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99, 102, 241, 0.1), inset 0 0 0 1px rgba(255,255,255,0.05)',
+                      border: '2px solid #2a2a44',
+                      boxShadow: '0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99, 102, 241, 0.1)',
                       position: 'relative',
                       background: '#f8f9ff',
                     }}
                   >
-                    {/* 模拟刘海 */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: 126,
-                        height: 30,
-                        background: '#1f1f33',
-                        borderBottomLeftRadius: 18,
-                        borderBottomRightRadius: 18,
-                        zIndex: 9999,
-                      }}
-                    />
                     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
                       <DemoComponent />
                     </div>

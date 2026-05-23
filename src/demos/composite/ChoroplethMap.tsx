@@ -75,7 +75,10 @@ export default function Demo32ChoroplethMap() {
             showStroke
             showLabel
             labelField="name"
-              minLabelZoom={10.2}
+            minLabelZoom={10.2}
+            hoverEffect
+            tooltipEffect
+            tooltipFields={['name', 'value', 'ratio']}
             onDrilldown={(feature) => {
               setActiveRegion(String(feature.name ?? feature.id ?? '未知区域'));
             }}

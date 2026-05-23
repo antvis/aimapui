@@ -67,7 +67,7 @@ export default function ImmersiveTravelMap() {
         {/* 卫星影像图层 — 仅卫星模式下显示 */}
         <SatelliteLayer provider={satelliteProvider} visible={mapMode === 'satellite'} />
 
-        <ZoomControl position="bottomright" showZoom />
+        <ZoomControl position="rightcenter" showZoom />
         <MapThemeControl position="topright" defaultValue={mapMode === 'satellite' ? 'light' : mapMode} onThemeChange={(style) => setMapMode(style as MapMode)} />
 
         {/* 照片足迹标记 */}

@@ -9,6 +9,7 @@ import { adaptRasterLayer } from './adapters/raster';
 import { adaptImageLayer } from './adapters/image';
 import { useEventBus } from '../../context/EventBusContext';
 import { Popup } from '../Interaction/Popup';
+import { Tooltip } from '../Interaction/Tooltip';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type L7Layer = any;
@@ -221,17 +222,19 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
   eventHandlersRef.current = eventHandlers;
   const schemaSignature = useMemo(() => stableStringify(schema), [schema]);
 
-  // Popup 状态管理（使用 React 状态）
+  // Popup/Tooltip 状态管理（使用 React 状态）
   const [popupState, setPopupState] = useState<{
     visible: boolean;
     lng: number;
     lat: number;
     content: string;
+    trigger: 'click' | 'hover';
   }>({
     visible: false,
     lng: 0,
     lat: 0,
     content: '',
+    trigger: 'click',
   });
 
   useEffect(() => {
@@ -248,7 +251,7 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
       const popupEnabled = Boolean(layerEvents?.enablePopup);
       const popupTrigger = layerEvents?.popupTrigger ?? 'click';
 
-      // 使用统一的 Popup 组件，简化逻辑
+      // 使用统一的 Popup/Tooltip 组件，简化逻辑
       const showPopup = (payload: LayerEventPayload) => {
         if (!popupEnabled) return;
         const feature = payload.feature;
@@ -260,6 +263,7 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
           lng: payload.lng,
           lat: payload.lat,
           content,
+          trigger: popupTrigger,
         });
       };
 
@@ -381,10 +385,22 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
     }
   }, [schema.visible, schema.zIndex]);
 
-  // 渲染统一的 Popup 组件
-  // 注意：hover trigger 下，由于 Popup 设置了 pointerEvents: 'auto'，鼠标移到 Popup 上会触发图层的 mouseleave
-  // 这是预期的交互行为，与大多数地图库一致（如 Mapbox GL JS、Leaflet 等）
-  return popupState.visible ? (
+  if (!popupState.visible) return null;
+
+  if (popupState.trigger === 'hover') {
+    return (
+      <Tooltip
+        longitude={popupState.lng}
+        latitude={popupState.lat}
+        content={popupState.content}
+        variant="dark"
+        placement="top"
+        visible={true}
+      />
+    );
+  }
+
+  return (
     <Popup
       longitude={popupState.lng}
       latitude={popupState.lat}
@@ -393,7 +409,7 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
       size="compact"
       onClose={() => setPopupState((prev) => ({ ...prev, visible: false }))}
     />
-  ) : null;
+  );
 }
 
 function stableStringify(value: unknown): string {

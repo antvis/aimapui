@@ -1164,6 +1164,22 @@
 .l7-control-anchor.l7-column.l7-right {
   align-items: flex-end;
 }
+/* 垂直居中 — 右侧中间 */
+.l7-control-anchor.l7-rightcenter {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+  align-items: flex-end;
+}
+/* 垂直居中 — 左侧中间 */
+.l7-control-anchor.l7-leftcenter {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-direction: column;
+  align-items: flex-start;
+}
 
 /* 控件基类 */
 .l7-control {
@@ -1261,6 +1277,29 @@
 .l7-control-container .l7-column.l7-right {
   align-items: flex-end;
 }
+/* 容器内垂直居中 */
+.l7-control-container .l7-rightcenter {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  position: absolute;
+  z-index: 999;
+  pointer-events: none;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.l7-control-container .l7-leftcenter {
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  position: absolute;
+  z-index: 999;
+  pointer-events: none;
+  flex-direction: column;
+  align-items: flex-start;
+}
 
 /* ============================================================
    Material Design 3 玻璃态控件样式
@@ -1275,7 +1314,6 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   border-radius: 8px;
-  /* overflow: hidden 会裁剪 popper 下拉菜单，改为仅 Zoom 分组使用 */
 }
 
 /* 按钮控件基类 */

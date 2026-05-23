@@ -460,8 +460,8 @@ export default function PcApp() {
           }}
         >
           {/* 地图控件组 — 缩放+定位右下角，主题切换右上角 */}
-          <ZoomControl position="topright" showZoom />
-          <GeoLocateControl position="bottomright" />
+          <ZoomControl position="rightcenter" showZoom />
+          <GeoLocateControl position="rightcenter" />
           <MapThemeControl position="topright" defaultValue={mapStyle} onThemeChange={setMapStyle} />
 
           {/* 要素标记 */}

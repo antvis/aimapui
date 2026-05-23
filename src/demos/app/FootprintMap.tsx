@@ -125,8 +125,8 @@ export default function FootprintMap() {
             style: 'light',
           }}
         >
-        <ZoomControl position="bottomright" />
-        <GeoLocateControl position="bottomright" />
+        <ZoomControl position="rightcenter" />
+        <GeoLocateControl position="rightcenter" />
 
         {/* 照片足迹标记 */}
         {filteredFootprints.map((spot) => (
@@ -220,7 +220,7 @@ export default function FootprintMap() {
       {/* ═══════ 顶部搜索栏 ═══════ */}
       <div style={{
         position: 'absolute', top: 0, left: 0, right: 0,
-        zIndex: 50, padding: '48px 16px 0',
+        zIndex: 1000, padding: '48px 16px 0',
       }}>
         {/* 搜索条 */}
         <div style={{
@@ -407,7 +407,7 @@ export default function FootprintMap() {
 
       {/* ═══════ FAB 创建足迹按钮 ═══════ */}
       <button style={{
-        position: 'absolute', bottom: 98, right: 16, zIndex: 50,
+        position: 'absolute', bottom: 98, right: 16, zIndex: 1000,
         width: 56, height: 56, borderRadius: '50%',
         background: 'linear-gradient(135deg, #630ed4, #b4136d)',
         border: 'none',
@@ -424,7 +424,7 @@ export default function FootprintMap() {
 
       {/* ═══════ 底部导航栏 ═══════ */}
       <nav style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 50,
+        position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 1000,
         background: 'rgba(250, 248, 255, 0.8)',
         backdropFilter: 'blur(40px)',
         WebkitBackdropFilter: 'blur(40px)',

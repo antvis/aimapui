@@ -7,8 +7,159 @@ import { PointLayer } from '../Layer/PointLayer';
 export type LabelAnchor = 'right' | 'bottom' | 'top' | 'left' | 'center';
 
 /**
- * 内置天气 iconfont 图标映射（默认内置）
- * key 为语义化名称，value 为 iconfont unicode 字符
+ * Material Symbols Outlined 图标名称 → Unicode 映射
+ *
+ * 数据来源：Google material-design-icons 官方 codepoints 文件
+ * https://github.com/google/material-design-icons/blob/master/variablefont/MaterialSymbolsOutlined%5BFILL%2CGRAD%2Copsz%2Cwght%5D.codepoints
+ *
+ * ⚠️ 重要：L7 的 FontService.generateFontAtlas 在 iconfont 模式下，
+ * 使用 `char.replace('&#x','').replace(';','')` 来解析 Unicode，
+ * 因此映射值必须使用 HTML 实体格式 &#xHEX; ，而不能使用 JS Unicode 转义 \uXXXX。
+ * 参考：node_modules/@antv/l7-core/es/services/asset/FontService.js:222-228
+ */
+export const MATERIAL_SYMBOLS_ICONS: Array<[string, string]> = [
+  // ── 天气 ──
+  ['sunny', '&#xe81a;'],
+  ['cloud', '&#xf15c;'],
+  ['cloudy', '&#xf15c;'],
+  ['partly_cloudy_day', '&#xf172;'],
+  ['partly_cloudy_night', '&#xf174;'],
+  ['rainy', '&#xf176;'],
+  ['rainy_heavy', '&#xf61f;'],
+  ['rainy_light', '&#xf61e;'],
+  ['rainy_snow', '&#xf61d;'],
+  ['thunderstorm', '&#xebdb;'],
+  ['foggy', '&#xe818;'],
+  ['air', '&#xefd8;'],
+  ['water_drop', '&#xe798;'],
+  ['ac_unit', '&#xeb3b;'],
+  ['filter_drama', '&#xe3dd;'],
+  ['cloudy_snowing', '&#xe810;'],
+  ['snowing', '&#xe80f;'],
+  ['snowflake', '&#xed5b;'],
+  ['severe_cold', '&#xebd3;'],
+  ['umbrella', '&#xf1ad;'],
+  ['storm', '&#xf070;'],
+  ['tornado', '&#xe199;'],
+  ['thermostat', '&#xf076;'],
+  ['heat', '&#xf537;'],
+  ['hot', '&#xef23;'],
+  // ── 出行 / 交通 ──
+  ['flight', '&#xe539;'],
+  ['flight_takeoff', '&#xe905;'],
+  ['flight_land', '&#xe904;'],
+  ['train', '&#xe570;'],
+  ['directions_transit', '&#xeffa;'],
+  ['directions_railway', '&#xeff8;'],
+  ['directions_bus', '&#xeff6;'],
+  ['directions_car', '&#xeff7;'],
+  ['directions_boat', '&#xeff5;'],
+  ['directions_bike', '&#xe52f;'],
+  ['directions_walk', '&#xe536;'],
+  ['directions_run', '&#xe566;'],
+  ['taxi', '&#xe559;'],
+  ['local_taxi', '&#xe559;'],
+  ['local_airport', '&#xe53d;'],
+  ['connecting_airports', '&#xe7c9;'],
+  ['two_wheeler', '&#xe9f9;'],
+  ['tram', '&#xe571;'],
+  ['subway', '&#xe56f;'],
+  ['ferry', '&#xe572;'],
+  ['cable_car', '&#xf479;'],
+  ['ev_station', '&#xe56d;'],
+  ['local_gas_station', '&#xe546;'],
+  // ── 地点 / 设施 ──
+  ['location_on', '&#xf1db;'],
+  ['place', '&#xf1db;'],
+  ['room', '&#xf1db;'],
+  ['pin', '&#xf045;'],
+  ['pin_drop', '&#xe55e;'],
+  ['near_me', '&#xe569;'],
+  ['my_location', '&#xe55c;'],
+  ['gps_fixed', '&#xe55c;'],
+  ['navigation', '&#xe55d;'],
+  ['explore', '&#xe87a;'],
+  ['map', '&#xe55b;'],
+  // ── 城市 / 生活 ──
+  ['restaurant', '&#xe56c;'],
+  ['local_cafe', '&#xeb44;'],
+  ['coffee', '&#xefef;'],
+  ['local_bar', '&#xe540;'],
+  ['hotel', '&#xe549;'],
+  ['local_hospital', '&#xe548;'],
+  ['local_pharmacy', '&#xe550;'],
+  ['local_atm', '&#xe53e;'],
+  ['local_police', '&#xef56;'],
+  ['local_fire_department', '&#xef55;'],
+  ['local_post_office', '&#xe554;'],
+  ['local_library', '&#xe54b;'],
+  ['local_mall', '&#xe54c;'],
+  ['local_grocery_store', '&#xe8cc;'],
+  ['store', '&#xe8d1;'],
+  ['school', '&#xe80c;'],
+  ['church', '&#xeaae;'],
+  ['mosque', '&#xeab2;'],
+  ['synagogue', '&#xeab0;'],
+  ['temple_buddhist', '&#xeab3;'],
+  ['temple_hindu', '&#xeaaf;'],
+  ['museum', '&#xea36;'],
+  ['castle', '&#xeab1;'],
+  ['stadium', '&#xeb90;'],
+  ['theater_comedy', '&#xea66;'],
+  ['pool', '&#xeb48;'],
+  ['fitness_center', '&#xeb43;'],
+  ['spa', '&#xeb4c;'],
+  ['park', '&#xea63;'],
+  ['forest', '&#xea99;'],
+  // ── 活动 ──
+  ['attractions', '&#xea52;'],
+  ['celebration', '&#xea65;'],
+  ['festival', '&#xea68;'],
+  ['nightlife', '&#xea62;'],
+  ['sports', '&#xea30;'],
+  ['sports_soccer', '&#xea2f;'],
+  ['sports_basketball', '&#xea26;'],
+  ['sports_football', '&#xea29;'],
+  ['sports_tennis', '&#xea32;'],
+  ['sports_golf', '&#xea2a;'],
+  // ── 地图功能 ──
+  ['layers', '&#xe53b;'],
+  ['layers_clear', '&#xe53c;'],
+  ['terrain', '&#xe564;'],
+  ['landscape', '&#xe564;'],
+  ['share', '&#xe80d;'],
+  ['favorite', '&#xe87e;'],
+  ['star', '&#xf09a;'],
+  ['home', '&#xe9b2;'],
+  ['work', '&#xe943;'],
+  ['person', '&#xf0d3;'],
+  ['people', '&#xea21;'],
+  ['trip', '&#xe6fb;'],
+  ['warning', '&#xf083;'],
+  ['emergency', '&#xe1eb;'],
+  ['photo_camera', '&#xe412;'],
+  ['shopping_bag', '&#xf1cc;'],
+  // ── 通用 ──
+  ['search', '&#xe8b6;'],
+  ['settings', '&#xe8b8;'],
+  ['info', '&#xe88e;'],
+  ['help', '&#xe8fd;'],
+  ['close', '&#xe5cd;'],
+  ['check', '&#xe876;'],
+  ['add', '&#xe145;'],
+  ['remove', '&#xe15b;'],
+  ['edit', '&#xe254;'],
+  ['delete', '&#xe872;'],
+  ['refresh', '&#xe5d5;'],
+  ['download', '&#xe2c4;'],
+  ['upload', '&#xe2c3;'],
+  ['visibility', '&#xe8f4;'],
+  ['visibility_off', '&#xe8f6;'],
+];
+
+/**
+ * 内置天气 iconfont 图标映射（at.alicdn.com 字体）
+ * key 为语义化名称，value 为 HTML 实体格式的 iconfont unicode（&#xHEX;）
  */
 export const BUILTIN_ICON_FONTS: Array<[string, string]> = [
   ['smallRain', '&#xe6f7;'],
@@ -18,9 +169,12 @@ export const BUILTIN_ICON_FONTS: Array<[string, string]> = [
   ['cloud', '&#xe8da;'],
 ];
 
-/** 默认内置 iconfont 字体路径 */
-const DEFAULT_FONT_FAMILY = 'iconfont';
-const DEFAULT_FONT_PATH = '//at.alicdn.com/t/font_2534097_ao9soua2obv.woff2?t=1622021146076';
+/** Material Symbols Outlined CSS 字体族名 */
+const MATERIAL_SYMBOLS_FONT_FAMILY = 'Material Symbols Outlined';
+
+/** 默认 iconfont 字体（at.alicdn.com） */
+const ALICDN_FONT_FAMILY = 'iconfont';
+const ALICDN_FONT_PATH = '//at.alicdn.com/t/font_2534097_ao9soua2obv.woff2?t=1622021146076';
 
 export interface IconFontLayerProps extends Omit<LayerSchema, 'type' | 'source' | 'sourceType' | 'sourceConfig'> {
   source: LayerSchema['source'];
@@ -31,11 +185,23 @@ export interface IconFontLayerProps extends Omit<LayerSchema, 'type' | 'source' 
   /** 图标内容字段（数据中每个要素的该字段值将作为图标文本渲染） */
   iconField: string;
   /**
-   * 字体族名称
-   * - 'material-symbols' 或 undefined: 使用内置 iconfont 字体（默认）
-   * - 其他值：自定义 iconfont 字体族（需自行通过 scene.addFontFace 注册）
+   * 字体族模式
+   * - 'material-symbols'（默认）：使用 Material Symbols Outlined 字体，图标名需使用官方名称（如 sunny / flight / restaurant）
+   * - 'iconfont'：使用 at.alicdn.com 内置 iconfont 字体，图标名需使用 BUILTIN_ICON_FONTS 中的名称
+   * - 自定义字符串：自行通过 scene.addFontFace / addIconFonts 注册的字体族名
    */
   iconFontFamily?: string;
+  /**
+   * 自定义字体文件 URL，仅在 iconFontFamily 为自定义字符串时需要
+   * Material Symbols 自动从页面已加载的字体中获取；iconfont 使用内置 URL
+   */
+  iconFontPath?: string;
+  /**
+   * 自定义图标映射表，仅在 iconFontFamily 为自定义字符串时需要
+   * 格式同 addIconFonts：[['iconName', '&#xHEX;'], ...]
+   * 注意：Unicode 值必须使用 HTML 实体格式 &#xHEX; ，而非 JS \uXXXX 转义
+   */
+  iconFontMap?: Array<[string, string]>;
   /** 图标颜色，支持单色或数据驱动映射 */
   iconColor?: LayerSchema['color'];
   /** 图标尺寸 (16-24px)，默认 20 */
@@ -88,8 +254,12 @@ export interface IconFontLayerProps extends Omit<LayerSchema, 'type' | 'source' 
 /**
  * 字体图标标注图层（IconFontLayer）
  *
- * 按照 WebGL 设计规范实现的字体图标+文字标签组合图层：
- * - 内置 Google Material Symbols 字体，开箱即用
+ * 支持 Material Symbols Outlined 及自定义 iconfont 字体：
+ * - Material Symbols: 页面已加载 Google 字体，组件自动注册映射表，开箱即用
+ * - 内置 iconfont: at.alicdn.com 天气字体，内置 5 个图标
+ * - 自定义: 传入 iconFontFamily + iconFontPath + iconFontMap
+ *
+ * 特性：
  * - SDF 渲染确保任意缩放下边缘锐利
  * - 图标 1-2px 光晕增强复杂底图辨识度
  * - 文字 2px 光晕确保可读性
@@ -102,6 +272,8 @@ export function IconFontLayer({
   sourceConfig,
   iconField,
   iconFontFamily = 'material-symbols',
+  iconFontPath,
+  iconFontMap,
   iconColor = '#3b82f6',
   iconSize = 20,
   iconHaloColor = '#fff',
@@ -126,31 +298,137 @@ export function IconFontLayer({
   ...rest
 }: IconFontLayerProps) {
   const scene = useScene();
-  const [ready, setReady] = useState(false);
+  const [fontReady, setFontReady] = useState(false);
+  const [sceneReady, setSceneReady] = useState(false);
   const [currentZoom, setCurrentZoom] = useState<number>(14);
-  const fontLoadedRef = useRef(false);
+  const fontRegisteredRef = useRef(false);
 
-  // 通过 L7 Scene 注册字体和图标
+  // 确定最终字体族和图标映射
+  const { fontFamily, fontPath, iconMappings } = useMemo(() => {
+    switch (iconFontFamily) {
+      case 'material-symbols':
+        return {
+          fontFamily: MATERIAL_SYMBOLS_FONT_FAMILY,
+          fontPath: null, // Material Symbols 已通过 index.html <link> 加载，无需 addFontFace
+          iconMappings: MATERIAL_SYMBOLS_ICONS,
+        };
+      case 'iconfont':
+        return {
+          fontFamily: ALICDN_FONT_FAMILY,
+          fontPath: ALICDN_FONT_PATH,
+          iconMappings: BUILTIN_ICON_FONTS,
+        };
+      default:
+        return {
+          fontFamily: iconFontFamily,
+          fontPath: iconFontPath ?? null,
+          iconMappings: iconFontMap ?? [],
+        };
+    }
+  }, [iconFontFamily, iconFontPath, iconFontMap]);
+
+  // 注册字体和图标映射，等待字体加载完成
   useEffect(() => {
     if (!scene) return;
-    if (fontLoadedRef.current) return;
+    if (fontRegisteredRef.current) return;
+    fontRegisteredRef.current = true;
 
-    const fontFamily = iconFontFamily === 'material-symbols' ? DEFAULT_FONT_FAMILY : (iconFontFamily ?? DEFAULT_FONT_FAMILY);
-    const fontPath = DEFAULT_FONT_PATH;
+    let cancelled = false;
 
-    // 注册字体
-    scene.addFontFace(fontFamily, fontPath);
-    // 注册内置图标映射
-    scene.addIconFonts(BUILTIN_ICON_FONTS);
+    const registerFont = async () => {
+      // 1. 如果有字体文件路径，通过 L7 addFontFace 注册
+      if (fontPath) {
+        scene.addFontFace(fontFamily, fontPath);
+      }
 
-    fontLoadedRef.current = true;
-  }, [scene, iconFontFamily]);
+      // 2. 注册图标名称 → Unicode 映射
+      //    注意：L7 要求 &#xHEX; 格式的 HTML 实体字符串，而非 JS Unicode 转义
+      if (iconMappings.length > 0) {
+        scene.addIconFonts(iconMappings);
+      }
+
+      // 3. 等待字体实际加载完成
+      try {
+        if (fontFamily === MATERIAL_SYMBOLS_FONT_FAMILY) {
+          // Material Symbols: 通过 CSS <link> 已加载，用 document.fonts API 确保就绪
+          // 传入 PUA 字符作为测试文本，确保包含图标字形的子集被下载
+          const testChars = iconMappings
+            .slice(0, 10)
+            .map(([, v]) => String.fromCharCode(parseInt(v.replace('&#x', '').replace(';', ''), 16)))
+            .join('');
+          await document.fonts.load(`${iconSize}px "${fontFamily}"`, testChars);
+        } else if (fontPath) {
+          // 自定义字体: 等待 L7 的 fontloaded 事件，带超时
+          await new Promise<void>((resolve) => {
+            const timeout = setTimeout(() => {
+              resolve();
+            }, 3000); // 3 秒超时
+
+            const onFontLoaded = () => {
+              clearTimeout(timeout);
+              scene.off('fontloaded', onFontLoaded);
+              resolve();
+            };
+
+            scene.on('fontloaded', onFontLoaded);
+
+            // 如果字体已经加载完成（document.fonts），也立即 resolve
+            document.fonts.load(`${iconSize}px "${fontFamily}"`).then(() => {
+              clearTimeout(timeout);
+              scene.off('fontloaded', onFontLoaded);
+              resolve();
+            }).catch(() => {
+              // 加载失败也继续，至少尝试渲染
+              clearTimeout(timeout);
+              scene.off('fontloaded', onFontLoaded);
+              resolve();
+            });
+          });
+        }
+      } catch {
+        // 字体加载失败，仍然尝试渲染
+        console.warn(`[IconFontLayer] 字体 "${fontFamily}" 加载超时，尝试继续渲染`);
+      }
+
+      // 4. 验证字体确实可用
+      try {
+        const checkStr = 'X';
+        const fontStr = `${iconSize}px "${fontFamily}"`;
+        if (document.fonts.check(fontStr, checkStr)) {
+          // 字体就绪
+        } else {
+          // 等待 fonts.ready
+          await document.fonts.ready;
+        }
+      } catch {
+        // 忽略
+      }
+
+      if (!cancelled) {
+        setFontReady(true);
+      }
+    };
+
+    registerFont();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [scene, fontFamily, fontPath, iconMappings, iconSize]);
 
   // Scene 就绪检测
   useEffect(() => {
     if (!scene) return;
-    const timer = setTimeout(() => setReady(true), 150);
-    return () => clearTimeout(timer);
+    const onLoaded = () => setSceneReady(true);
+    // 如果 scene 已经 loaded
+    if ((scene as any).loaded) {
+      onLoaded();
+    } else {
+      scene.on('loaded', onLoaded);
+    }
+    return () => {
+      scene.off('loaded', onLoaded);
+    };
   }, [scene]);
 
   // 计算标签偏移（必须在条件返回之前）
@@ -180,12 +458,10 @@ export function IconFontLayer({
   }, [scene, zoomAdaption]);
 
   // 所有 hooks 已在此之上调用完毕
-  if (!ready) return null;
+  // 等待字体就绪 + 场景就绪
+  if (!fontReady || !sceneReady) return null;
 
   const resolvedLabelField = labelField ?? iconField;
-  const resolvedFontFamily = iconFontFamily === 'material-symbols'
-    ? DEFAULT_FONT_FAMILY
-    : (iconFontFamily ?? DEFAULT_FONT_FAMILY);
 
   // 缩放适配：判断当前显示级别
   const shouldShowLabel = !zoomAdaption || currentZoom >= zoomShowLabel;
@@ -219,7 +495,8 @@ export function IconFontLayer({
         color={iconColor}
         size={iconSize}
         style={{
-          fontFamily: resolvedFontFamily,
+          fontFamily: fontFamily,
+          iconfont: true,
           textAllowOverlap: iconAllowOverlap,
           stroke: iconHaloColor,
           strokeWidth: iconHaloWidth,
