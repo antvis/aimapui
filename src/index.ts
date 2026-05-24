@@ -127,6 +127,12 @@ export { IconImageLayer } from './components/CompositeLayer/IconImageLayer';
 export type { IconImageLayerProps } from './components/CompositeLayer/IconImageLayer';
 export { SatelliteLayer, SATELLITE_PROVIDER_NAMES } from './components/CompositeLayer/SatelliteLayer';
 export type { SatelliteLayerProps, SatelliteProvider } from './components/CompositeLayer/SatelliteLayer';
+export { ArcFlowLayer } from './components/CompositeLayer/ArcFlowLayer';
+export type { ArcFlowLayerProps, ArcFlowDataItem, ArcShape, ArcColorMode } from './components/CompositeLayer/ArcFlowLayer';
+export { RouteLayer } from './components/CompositeLayer/RouteLayer';
+export type { RouteLayerProps, RouteStop, RouteSegment } from './components/CompositeLayer/RouteLayer';
+export { TiffRasterLayer } from './components/CompositeLayer/TiffRasterLayer';
+export type { TiffRasterLayerProps, RampColors, RasterRenderMode } from './components/CompositeLayer/TiffRasterLayer';
 
 // Control 组件
 export { ZoomControl } from './components/Control/ZoomControl';

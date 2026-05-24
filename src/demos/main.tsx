@@ -47,8 +47,12 @@ import SatelliteLayerDemo from './composite/SatelliteLayer';
 import MarkerCluster from './composite/MarkerCluster';
 import PathLayer from './composite/PathLayer';
 import ArcLayer from './composite/ArcLayer';
+import ArcFlowLayer from './composite/ArcFlowLayer';
+import RouteLayerDemo from './composite/RouteLayer';
+import TiffRasterLayerDemo from './composite/TiffRasterLayer';
 // ── 基础图层 ──
 import PointLayer from './layer/PointLayer';
+import GeometricPoint from './layer/GeometricPoint';
 import ColumnLayer from './layer/ColumnLayer';
 import ColorMapping from './layer/ColorMapping';
 import SizeMapping from './layer/SizeMapping';
@@ -232,6 +236,9 @@ const demos = [
   { name: '蜂窝热力图', icon: 'hexagon', component: HexagonHeatmap, group: '复合图层', file: 'composite/HexagonHeatmap' },
   { name: '卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '复合图层', file: 'composite/SatelliteLayer' },
   { name: 'Marker 聚合', icon: 'scatter_plot', component: MarkerCluster, group: '复合图层', file: 'composite/MarkerCluster' },
+  { name: '弧线流向图', icon: 'south_east', component: ArcFlowLayer, group: '复合图层', file: 'composite/ArcFlowLayer' },
+  { name: '路径地图', icon: 'route', component: RouteLayerDemo, group: '复合图层', file: 'composite/RouteLayer' },
+  { name: '栅格影像', icon: 'satellite_alt', component: TiffRasterLayerDemo, group: '复合图层', file: 'composite/TiffRasterLayer' },
 
   // ── Marker 标注 ───────────────────────────
   { name: 'Marker 标注', icon: 'location_on', component: Marker, group: 'Marker 标注', file: 'marker/Marker' },
@@ -259,6 +266,7 @@ const demos = [
   // ── 基础图层 ──────────────────────────────
   // 点
   { name: '点图层', icon: 'circle', component: PointLayer, group: '基础图层', file: 'layer/PointLayer' },
+  { name: '几何点位', icon: 'hexagon', component: GeometricPoint, group: '基础图层', file: 'layer/GeometricPoint' },
   { name: '3D 柱图', icon: 'bar_chart', component: ColumnLayer, group: '基础图层', file: 'layer/ColumnLayer' },
   { name: '颜色映射', icon: 'gradient', component: ColorMapping, group: '基础图层', file: 'layer/ColorMapping' },
   { name: '大小映射', icon: 'resize', component: SizeMapping, group: '基础图层', file: 'layer/SizeMapping' },
@@ -965,7 +973,5 @@ function App() {
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <App />,
 );

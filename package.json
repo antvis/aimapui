@@ -36,6 +36,7 @@
     "@antv/l7-maps": "2.28.10",
     "ahooks": "^3.8.4",
     "clsx": "^2.1.1",
+    "geotiff": "^3.0.5",
     "supercluster": "^8.0.1"
   },
   "peerDependencies": {

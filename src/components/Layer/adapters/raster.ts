@@ -33,9 +33,8 @@ function buildRasterSourceConfig(schema: LayerSchema) {
 }
 
 function buildRasterVisual(schema: LayerSchema) {
-  const color = buildColorConfig(schema);
-  const size = buildSizeConfig(schema);
   const style = schema.style ? { ...schema.style } : undefined;
 
-  return { color, size, shape: undefined, style };
+  // 栅格图层不使用 color/size 视觉通道，全部通过 style 配置
+  return { color: undefined, size: undefined, shape: undefined, style };
 }

@@ -220,7 +220,28 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
   const eventBus = useEventBus();
   const eventHandlersRef = useRef(eventHandlers);
   eventHandlersRef.current = eventHandlers;
-  const schemaSignature = useMemo(() => stableStringify(schema), [schema]);
+  // 计算字符串签名 — 跳过 source 字段（栅格数据可能是巨大的 TypedArray）
+  const schemaSignature = useMemo(() => {
+    const { source, ...rest } = schema;
+    // 对 source 只取引用标识：TypedArray 用长度，其他用 JSON
+    let sourceKey: string;
+    if (ArrayBuffer.isView(source)) {
+      sourceKey = `TypedArray:${(source as unknown as { length: number }).length}`;
+    } else if (source && typeof source === 'object' && 'width' in (source as object)) {
+      // geotiff readRasters 返回值（带 width/height 的类数组）
+      const rasters = source as { width?: number; height?: number; length?: number };
+      sourceKey = `Rasters:${rasters.width}x${rasters.height}:${rasters.length}`;
+    } else if (typeof source === 'string') {
+      sourceKey = source;
+    } else {
+      try {
+        sourceKey = JSON.stringify(source);
+      } catch {
+        sourceKey = String(source);
+      }
+    }
+    return sourceKey + '|' + stableStringify(rest);
+  }, [schema]);
 
   // Popup/Tooltip 状态管理（使用 React 状态）
   const [popupState, setPopupState] = useState<{
@@ -239,7 +260,6 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
 
   useEffect(() => {
     let destroyed = false;
-
     createL7Layer(schema, scene)?.then((layer: L7Layer) => {
       if (destroyed) return;
       layerRef.current = layer;
@@ -417,7 +437,19 @@ function stableStringify(value: unknown): string {
 }
 
 function sortValue(value: unknown): unknown {
+  // TypedArray / ArrayBuffer 不递归，用长度做签名
+  if (ArrayBuffer.isView(value)) {
+    return `[TypedArray:${(value as unknown as { length: number }).length}]`;
+  }
+  if (value instanceof ArrayBuffer) {
+    return `[ArrayBuffer:${value.byteLength}]`;
+  }
+
   if (Array.isArray(value)) {
+    // 对于超大数组（栅格数据），只取长度作为签名
+    if (value.length > 1000) {
+      return `[Array:${value.length}]`;
+    }
     return value.map(sortValue);
   }
 
