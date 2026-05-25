@@ -1,0 +1,89 @@
+# Tooltip 轻提示
+
+Tooltip 是鼠标悬停时展示的轻量级信息提示，适合快速预览数据。
+
+## 视觉变体
+
+| 变体 | 值 | 适用场景 |
+|------|------|---------|
+| Dark | `dark` | 亮色底图上的默认选择 |
+| Glass | `glass` | 所有底图通用，玻璃拟态风格 |
+| Light | `light` | 暗色底图上的选择 |
+
+## Schema 用法
+
+```tsx
+// 在图层事件中启用 Tooltip
+const schema = {
+  layers: [{
+    type: 'point',
+    source: data,
+    sourceType: 'json',
+    color: '#1890ff',
+    size: 10,
+    events: {
+      enableTooltip: true,
+      tooltipTrigger: 'hover',
+      tooltipVariant: 'glass',
+      tooltipFields: ['name', 'value']
+    }
+  }]
+}
+```
+
+## 组件用法
+
+```tsx
+import { Aimap, Tooltip } from '@antv/aimapkit'
+
+function App() {
+  return (
+    <Aimap map={{ basemap: 'gaode', center: [116.397, 39.909], zoom: 10 }}>
+      <Tooltip
+        longitude={116.397}
+        latitude={39.909}
+        variant="glass"
+        placement="top"
+        items={[
+          { label: '名称', value: '天安门' },
+          { label: '类型', value: '景点' }
+        ]}
+      />
+    </Aimap>
+  )
+}
+```
+
+## 结构化键值对
+
+Tooltip 支持结构化的键值对展示，自动对齐标签和数值：
+
+```tsx
+<Tooltip
+  variant="dark"
+  items={[
+    { label: '城市', value: '北京' },
+    { label: '人口', value: '2,189万' },
+    { label: 'GDP', value: '43,760亿' }
+  ]}
+/>
+```
+
+## 方向控制
+
+| placement | 说明 |
+|-----------|------|
+| `top` | 上方显示（默认） |
+| `bottom` | 下方显示 |
+| `left` | 左侧显示 |
+| `right` | 右侧显示 |
+
+## 触发方式
+
+- **hover**：鼠标悬停时自动显示（默认）
+- **click**：点击时显示
+
+## 下一步
+
+- [Marker 标注](/docs/interaction/marker-guide) - 地图标注
+- [事件系统](/docs/interaction/events) - 交互事件

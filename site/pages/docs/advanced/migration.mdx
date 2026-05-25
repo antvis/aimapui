@@ -1,0 +1,132 @@
+# 迁移指南
+
+从 @antv/l7 或其他地图库迁移到 aimapkit 的完整指南。
+
+## 从 @antv/l7 迁移
+
+aimapkit 基于 @antv/l7 封装，底层能力完全兼容，主要变更在上层 API 设计。
+
+### 安装变更
+
+```bash
+# 旧
+npm install @antv/l7 @antv/l7-maps
+
+# 新
+npm install @antv/aimapkit
+# 底图引擎按需安装
+npm install @anthropic/aimapkit-map-gaode  # 高德
+```
+
+### 初始化
+
+```tsx
+// 旧：@antv/l7
+import { Scene } from '@antv/l7'
+import { GaodeMap } from '@antv/l7-maps'
+const scene = new Scene({
+  id: 'map',
+  map: new GaodeMap({ style: 'dark', center: [116.397, 39.909], zoom: 10 })
+})
+
+// 新：aimapkit Schema 模式
+import { Aimap } from '@antv/aimapkit'
+<Aimap schema={{
+  map: { basemap: 'gaode', style: 'dark', center: [116.397, 39.909], zoom: 10 }
+}} />
+
+// 新：aimapkit 组件模式
+<Aimap map={{ basemap: 'gaode', style: 'dark', center: [116.397, 39.909], zoom: 10 }}>
+  <PointLayer ... />
+</Aimap>
+```
+
+### 图层迁移
+
+```tsx
+// 旧：@antv/l7
+const layer = new PointLayer()
+  .source(data, { parser: { type: 'json', x: 'lng', y: 'lat' } })
+  .color('category', ['#3B82F6', '#10B981'])
+  .size('value', [6, 20])
+  .shape('circle')
+  .active(true)
+scene.addLayer(layer)
+
+// 新：aimapkit Schema
+{
+  type: 'point',
+  source: data,
+  sourceType: 'json',
+  sourceConfig: { x: 'lng', y: 'lat' },
+  colorField: 'category',
+  colorValues: ['#3B82F6', '#10B981'],
+  sizeField: 'value',
+  sizeValues: [6, 20],
+  shape: 'circle',
+  active: { color: '#F59E0B' }
+}
+
+// 新：aimapkit 组件
+<PointLayer
+  source={data}
+  sourceType="json"
+  sourceConfig={{ x: 'lng', y: 'lat' }}
+  colorField="category"
+  colorValues={['#3B82F6', '#10B981']}
+  sizeField="value"
+  sizeValues={[6, 20]}
+  shape="circle"
+  active={{ color: '#F59E0B' }}
+/>
+```
+
+### 事件迁移
+
+```tsx
+// 旧
+layer.on('click', (e) => { ... })
+layer.on('mousemove', (e) => { ... })
+
+// 新：组件模式
+<PointLayer onClick={(e) => { ... }} onMouseEnter={(e) => { ... }} />
+
+// 新：Schema 模式
+const schema = { ... }
+// 通过 Aimap 的事件回调
+<Aimap schema={schema} onLayerClick={(e) => { ... }} />
+```
+
+### 控件迁移
+
+```tsx
+// 旧
+scene.addControl(new Zoom({ position: 'bottom-right' }))
+
+// 新：Schema
+controls: [{ type: 'zoom', position: 'bottom-right' }]
+
+// 新：组件
+<ZoomControl position="bottom-right" />
+```
+
+## API 对照表
+
+| l7 概念 | aimapkit Schema | aimapkit 组件 |
+|---------|----------------|--------------|
+| `Scene` | `map` 配置 | `<Aimap map={...}>` |
+| `PointLayer()` | `type: 'point'` | `<PointLayer>` |
+| `.source(data, parser)` | `source` + `sourceType` + `sourceConfig` | `source` + `sourceType` prop |
+| `.color(field, values)` | `colorField` + `colorValues` | `colorField` + `colorValues` prop |
+| `.size(field, values)` | `sizeField` + `sizeValues` | `sizeField` + `sizeValues` prop |
+| `.shape(name)` | `shape` | `shape` prop |
+| `.active(true)` | `active: { color: '...' }` | `active={{ color: '...' }}` |
+| `.animate(opts)` | `animate: { ... }` | `animate={{ ... }}` |
+| `.style(opts)` | `style: { ... }` | `style={{ ... }}` |
+| `scene.addControl(ctrl)` | `controls: [...]` | `<ZoomControl>` |
+| `layer.on('click', fn)` | 事件回调 | `onClick` prop |
+
+## 下一步
+
+- [快速开始](/docs/getting-started/installation) - aimapkit 上手
+- [Schema 基础](/docs/core-concepts/schema-basics) - Schema 模式详解

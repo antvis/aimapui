@@ -1,0 +1,25 @@
+# IconImageLayer
+
+图片图标图层，使用图片 URL 作为地图标记图标。
+
+```tsx
+import { IconImageLayer } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `source` | `any` | **必填** | 数据源 |
+| `sourceType` | `string` | `'json'` | 数据源类型 |
+| `iconField` | `string` | **必填** | 图标字段名 |
+| `iconValues` | `Record<string, string>` | **必填** | 字段值到图片 URL 映射 |
+| `size` | `number` | `24` | 图标大小（px） |
+| `style` | `object` | - | `{ opacity }` |
+| `visible` | `boolean` | `true` | 可见性 |
+
+## 示例
+
+```tsx
+<IconImageLayer source={pois} sourceType="json" iconField="category" iconValues={{ restaurant: '/icons/food.png', hotel: '/icons/hotel.png' }} size={24} />
+```

@@ -1,0 +1,88 @@
+# 聚合标记 (MarkerClusterLayer)
+
+聚合标记图层在大量点位密集时自动聚合为簇，避免标记重叠，提升可读性和性能。
+
+## Schema 用法
+
+```tsx
+const schema = {
+  map: { basemap: 'gaode', center: [116.397, 39.909], zoom: 5 },
+  layers: [{
+    type: 'markerCluster',
+    source: poisData,
+    sourceType: 'json',
+    color: '#3B82F6',
+    customClusterStyle: true,
+    style: {
+      clusterRadius: 80,
+      clusterColor: '#3B82F6',
+      clusterTextColor: '#ffffff'
+    }
+  }]
+}
+```
+
+## 组件用法
+
+```tsx
+import { Aimap, MarkerClusterLayer } from '@antv/aimapkit'
+
+function App() {
+  return (
+    <Aimap map={{ basemap: 'gaode', center: [116.397, 39.909], zoom: 5 }}>
+      <MarkerClusterLayer
+        source={poisData}
+        sourceType="json"
+        color="#3B82F6"
+        customClusterStyle
+        style={{
+          clusterRadius: 80,
+          clusterColor: '#3B82F6',
+          clusterTextColor: '#ffffff'
+        }}
+        onClusterClick={(e) => console.log('聚合点击:', e)}
+      />
+    </Aimap>
+  )
+}
+```
+
+## 聚合配置
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `style.clusterRadius` | `number` | `80` | 聚合半径（像素） |
+| `style.clusterColor` | `string` | `'#3B82F6'` | 聚合圆背景色 |
+| `style.clusterTextColor` | `string` | `'#ffffff'` | 聚合数字颜色 |
+| `style.clusterFontSize` | `number` | `14` | 聚合数字大小 |
+| `customClusterStyle` | `boolean` | `false` | 是否自定义聚合样式 |
+
+## 聚合与展开
+
+缩放地图时，聚合会自动：
+- **缩小** — 合并为更大的聚合簇
+- **放大** — 展开为独立标记
+
+## 自定义标记样式
+
+```tsx
+{
+  type: 'markerCluster',
+  source: data,
+  sourceType: 'json',
+  customClusterStyle: true,
+  style: {
+    clusterRadius: 60,
+    clusterColor: [
+      { count: 10, color: '#10B981' },
+      { count: 50, color: '#F59E0B' },
+      { count: 100, color: '#EF4444' }
+    ]
+  }
+}
+```
+
+## 下一步
+
+- [图标图层](/docs/composite-layers/icon-layer) - 图标标记
+- [交互 - Marker](/docs/interaction/marker-guide) - DOM 标记

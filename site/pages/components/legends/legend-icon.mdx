@@ -1,0 +1,34 @@
+# IconLegend
+
+图标图例，展示图标与类别名称的对应关系。
+
+```tsx
+import { IconLegend } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `field` | `string` | - | 关联字段名 |
+| `position` | `string` | `'bottom-left'` | 图例位置 |
+| `title` | `string` | - | 图例标题 |
+| `className` | `string` | - | 自定义样式 |
+| `items` | `IconLegendItem[]` | **必填** | 图标项列表 `{ label, icon, color }` |
+
+## Schema 用法
+
+```tsx
+legends: [{
+  type: 'icon',
+  field: 'category',
+  position: 'bottom-left',
+  // ... 类型特有属性
+}]
+```
+
+## 示例
+
+```tsx
+<IconLegend field="value" position="bottom-left" title="图例" />
+```

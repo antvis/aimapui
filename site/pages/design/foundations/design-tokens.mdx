@@ -1,0 +1,79 @@
+# 设计 Token
+
+aimapkit 基于 Material Design 3 体系，定义一套完整的 Design Token，确保跨组件和跨主题的视觉一致性。
+
+## 核心 Token
+
+### 颜色
+
+| Token | Light | Dark | 用途 |
+|-------|-------|------|------|
+| `--amap-primary` | `#3B82F6` | `#60A5FA` | 主色 |
+| `--amap-on-primary` | `#FFFFFF` | `#0F172A` | 主色上的文字 |
+| `--amap-primary-container` | `#DBEAFE` | `#1E3A8A` | 主色容器 |
+| `--amap-secondary` | `#10B981` | `#34D399` | 辅色 |
+| `--amap-tertiary` | `#F59E0B` | `#FBBF24` | 三级色 |
+| `--amap-error` | `#EF4444` | `#F87171` | 错误/危险 |
+| `--amap-surface` | `#FFFFFF` | `#0F172A` | 表面/底色 |
+| `--amap-on-surface` | `#0F172A` | `#F8FAFC` | 表面文字 |
+| `--amap-surface-variant` | `#F1F5F9` | `#1E293B` | 变体表面 |
+
+### 间距
+
+| Token | 值 | 用途 |
+|-------|-----|------|
+| `--amap-space-xs` | `4px` | 内联元素间距 |
+| `--amap-space-sm` | `8px` | 紧凑间距 |
+| `--amap-space-md` | `16px` | 标准间距 |
+| `--amap-space-lg` | `24px` | 宽松间距 |
+| `--amap-space-xl` | `32px` | 区块间距 |
+
+### 圆角
+
+| Token | 值 | 用途 |
+|-------|-----|------|
+| `--amap-radius-sm` | `4px` | 小控件 |
+| `--amap-radius-md` | `8px` | 卡片、面板 |
+| `--amap-radius-lg` | `16px` | 大面板 |
+| `--amap-radius-full` | `9999px` | 圆形 |
+
+### 阴影
+
+| Token | 值 | 用途 |
+|-------|-----|------|
+| `--amap-shadow-sm` | `0 1px 2px rgba(0,0,0,0.05)` | 轻阴影 |
+| `--amap-shadow-md` | `0 4px 6px rgba(0,0,0,0.1)` | 中阴影 |
+| `--amap-shadow-lg` | `0 10px 15px rgba(0,0,0,0.15)` | 重阴影 |
+
+### 字体
+
+| Token | 值 | 用途 |
+|-------|-----|------|
+| `--amap-font-family` | `'Inter', 'PingFang SC', sans-serif` | 全局字体 |
+| `--amap-font-size-xs` | `10px` | 辅助文字 |
+| `--amap-font-size-sm` | `12px` | 小文字 |
+| `--amap-font-size-md` | `14px` | 正文 |
+| `--amap-font-size-lg` | `16px` | 标题4 |
+| `--amap-font-size-xl` | `20px` | 标题3 |
+| `--amap-font-size-2xl` | `24px` | 标题2 |
+
+## 使用方式
+
+```tsx
+// CSS 变量
+.map-control {
+  padding: var(--amap-space-sm);
+  background: var(--amap-surface);
+  border-radius: var(--amap-radius-md);
+  box-shadow: var(--amap-shadow-md);
+  color: var(--amap-on-surface);
+}
+
+// Tailwind (配合 tailwind.config)
+<div className="bg-[var(--amap-surface)] text-[var(--amap-on-surface)] rounded-[var(--amap-radius-md)]" />
+```
+
+## 下一步
+
+- [颜色系统](/design/foundations/color-system) - 地图专用色板
+- [层级与布局](/design/foundations/hierarchy-layout) - 控件布局规范

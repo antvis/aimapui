@@ -1,0 +1,36 @@
+# EventBusContext
+
+事件总线上下文，提供跨组件事件通信机制。
+
+```tsx
+import { useEventBus } from '@antv/aimapkit'
+```
+
+## 用法
+
+```tsx
+function LayerToggle() {
+  const { emit, on } = useEventBus()
+
+  // 发送事件
+  const toggleHeatmap = () => emit('layer:toggle', { id: 'heatmap', visible: true })
+
+  // 监听事件
+  useEffect(() => {
+    const off = on('layer:toggle', (payload) => {
+      console.log('图层切换:', payload)
+    })
+    return off
+  }, [on])
+
+  return <button onClick={toggleHeatmap}>显示热力图</button>
+}
+```
+
+## 返回值
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `emit` | `(event: string, payload?: any) => void` | 发送事件 |
+| `on` | `(event: string, handler: Function) => () => void` | 监听事件（返回取消函数） |
+| `off` | `(event: string, handler: Function) => void` | 取消监听 |

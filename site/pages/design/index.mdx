@@ -1,0 +1,41 @@
+# 设计规范
+
+aimapkit 遵循 **Material Design 3** 设计体系，并在此基础上建立了 **Cartographic Precision System**（地图精准视觉系统），为地图可视化提供统一、专业的视觉规范。
+
+## 设计体系架构
+
+```
+设计令牌 (Design Tokens)
+   ↓
+组件视觉规范 (Component Specs)
+   ↓
+应用场景规范 (Scenario Specs)
+```
+
+- **设计令牌**：原子级的颜色、间距、圆角、阴影、字体等基础变量
+- **组件视觉规范**：每个图的层数据映射规则、交互状态、颜色语义
+- **应用场景规范**：PC 端、移动端、大屏等场景的布局与交互范式
+
+## 设计原则
+
+1. **清晰优先**：地图可视化的首要目标是数据准确传达，装饰服务于信息
+2. **一致性**：所有控件遵循 MD3 玻璃拟态风格，亮暗主题自动适配
+3. **响应式**：内置断点系统，控件/图例/标注在移动端自动调整
+4. **可访问性**：足够的颜色对比度、清晰的状态反馈、键盘可操作
+
+## 规范内容
+
+### [设计基础](/design/foundations/design-tokens)
+设计令牌、色彩体系、层级布局系统等基础设施
+
+### [图层视觉规范](/design/layer-visual-specs/bubble-map-spec)
+气泡图、分级统计图、蜂窝热力图等各图层类型的视觉规则
+
+### [标注与弹窗规范](/design/marker-overlay-specs/marker-spec)
+Marker、Popup、Tooltip 的形态、颜色、状态、交互规则
+
+### [控件规范](/design/control-specs/map-controls-spec)
+8 种地图控件和 8 种图例的视觉与交互规范
+
+### [应用场景规范](/design/app-scenario-specs/pc-app-spec)
+PC 端、移动端、大屏等场景的完整布局方案

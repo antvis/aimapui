@@ -1,0 +1,29 @@
+# SchemaContext
+
+Schema 上下文，在组件模式中访问当前 Schema 配置。
+
+```tsx
+import { useSchema } from '@antv/aimapkit'
+```
+
+## 用法
+
+```tsx
+function SchemaDebugger() {
+  const { schema, updateSchema, updateLayer } = useSchema()
+
+  const toggleLayer = (index: number) => {
+    updateLayer(index, { visible: !schema.layers[index].visible })
+  }
+
+  return <pre>{JSON.stringify(schema, null, 2)}</pre>
+}
+```
+
+## 返回值
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `schema` | `AimapSchema` | 当前 Schema |
+| `updateSchema` | `(schema: Partial<AimapSchema>) => void` | 更新 Schema |
+| `updateLayer` | `(index: number, patch: Partial<LayerConfig>) => void` | 更新指定图层 |

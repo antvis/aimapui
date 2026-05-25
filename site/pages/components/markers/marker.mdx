@@ -1,0 +1,42 @@
+# Marker
+
+DOM 标记组件，在地图上定位自定义 HTML 内容。
+
+```tsx
+import { Marker } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `lngLat` | `[number, number]` | **必填** | 经纬度 |
+| `children` | `ReactNode` | - | 自定义内容 |
+| `offset` | `[number, number]` | `[0, 0]` | 偏移量 |
+| `anchor` | `string` | `'center'` | 锚点位置 |
+| `draggable` | `boolean` | `false` | 是否可拖拽 |
+| `onClick` | `() => void` | - | 点击回调 |
+| `onDragEnd` | `(lngLat) => void` | - | 拖拽结束回调 |
+| `zIndex` | `number` | `0` | 层级 |
+
+## Schema 形状
+
+Marker 支持 4 种内置形状：`circle` `square` `diamond` `pin`，4 种语义色：`primary` `success` `warning` `danger`。
+
+## 示例
+
+### 基础
+
+```tsx
+<Marker lngLat={[116.397, 39.909]}>
+  <div className="custom-marker">北京</div>
+</Marker>
+```
+
+### 可拖拽
+
+```tsx
+<Marker lngLat={position} draggable onDragEnd={(lngLat) => setPosition(lngLat)}>
+  <div className="drag-marker">📍</div>
+</Marker>
+```

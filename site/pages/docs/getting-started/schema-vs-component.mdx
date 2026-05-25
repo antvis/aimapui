@@ -1,0 +1,149 @@
+# Schema 模式 vs 组件模式
+
+aimapkit 提供两种使用模式：**Schema 模式** 和 **组件模式**。根据场景和个人偏好选择合适的模式。
+
+## Schema 模式
+
+Schema 模式通过 JSON 配置描述地图，核心优势是**可序列化**和**AI 友好**。
+
+### 适用场景
+
+- AI 生成地图配置
+- 配置存储与恢复（数据库、URL 参数）
+- 低代码/无代码平台
+- 快速原型验证
+
+### 示例
+
+```tsx
+import { Aimap } from '@antv/aimapkit'
+import '@antv/aimapkit/style.css'
+
+const schema = {
+  map: {
+    basemap: 'gaode',
+    center: [116.397, 39.909],
+    zoom: 10
+  },
+  layers: [{
+    type: 'point',
+    source: [
+      { lng: 116.397, lat: 39.909, value: 100 },
+      { lng: 116.398, lat: 39.910, value: 200 }
+    ],
+    sourceType: 'json',
+    color: '#1890ff',
+    size: 10
+  }],
+  controls: [
+    { type: 'zoom', position: 'topright' }
+  ]
+}
+
+function App() {
+  return <Aimap schema={schema} />
+}
+```
+
+### 核心优势
+
+| 特性 | 说明 |
+|------|------|
+| 可序列化 | Schema 是纯 JSON，可保存/传输/恢复 |
+| AI 友好 | 大模型可直接生成 JSON Schema |
+| 声明式 | 只描述"是什么"，不关心"怎么做" |
+| 差异化更新 | 内置 `diffSchema` 算法，高效增量更新 |
+| 类型安全 | 完整的 TypeScript 类型定义 |
+
+## 组件模式
+
+组件模式使用 React JSX 组件自由组合，核心优势是**灵活性**和**TypeScript 支持**。
+
+### 适用场景
+
+- 复杂交互逻辑（拖拽、自定义事件、状态管理）
+- 条件渲染（根据状态动态显示/隐藏图层）
+- 与其他 React 组件深度集成
+- 需要直接访问 L7 Scene 实例
+
+### 示例
+
+```tsx
+import { Aimap, PointLayer, ZoomControl } from '@antv/aimapkit'
+import '@antv/aimapkit/style.css'
+
+function App() {
+  const [visible, setVisible] = useState(true)
+
+  return (
+    <Aimap map={{ basemap: 'gaode', center: [116.397, 39.909], zoom: 10 }}>
+      {visible && (
+        <PointLayer
+          source={data}
+          sourceType="json"
+          color="#1890ff"
+          size={10}
+          onClick={(e) => console.log('点击:', e.feature)}
+        />
+      )}
+      <ZoomControl position="topright" />
+      <button onClick={() => setVisible(!visible)}>
+        切换图层
+      </button>
+    </Aimap>
+  )
+}
+```
+
+### 核心优势
+
+| 特性 | 说明 |
+|------|------|
+| 灵活性 | React 条件渲染、循环、状态管理 |
+| TypeScript | 完整的 Props 类型检查和自动补全 |
+| 事件回调 | 直接使用 React 回调函数 |
+| 混合使用 | 可与 Schema 模式混合使用 |
+
+## 模式对照
+
+| 功能 | Schema 模式 | 组件模式 |
+|------|-----------|---------|
+| 基础地图 | `<Aimap schema={schema} />` | `<Aimap map={mapConfig}>子组件</Aimap>` |
+| 图层 | `layers: [{ type: 'point', ... }]` | `<PointLayer ... />` |
+| 控件 | `controls: [{ type: 'zoom', ... }]` | `<ZoomControl ... />` |
+| 标注 | `interactions: [{ type: 'marker', ... }]` | `<Marker ... />` |
+| 图例 | `legends: [{ type: 'ramp', ... }]` | `<LegendRamp ... />` |
+| 事件 | `events: { 'layer:click': fn }` | `onClick={fn}` |
+| AI 生成 | 原生支持 | 不支持 |
+| 动态更新 | `setSchema(newSchema)` | React 状态驱动 |
+
+## 选择建议
+
+```
+需要 AI 生成？ ── 是 ──→ Schema 模式
+     │
+     否
+     │
+需要存储/恢复配置？ ── 是 ──→ Schema 模式
+     │
+     否
+     │
+需要复杂交互逻辑？ ── 是 ──→ 组件模式
+     │
+     否
+     │
+快速原型验证？ ── 是 ──→ Schema 模式
+     │
+     否
+     │
+自定义组件集成？ ── 是 ──→ 组件模式
+     │
+     否
+     ↓
+  两种模式均可，按喜好选择
+```
+
+## 下一步
+
+- [Schema 基础](/docs/core-concepts/schema-basics) - 深入了解 Schema 结构
+- [快速开始](/docs/getting-started/quick-start) - 动手实践

@@ -1,0 +1,87 @@
+# 地图填充图 (Choropleth Map) 设计规范
+
+本规范定义了地图上区域填充（分级统计图）要素的视觉表现与色彩映射逻辑，旨在通过区域颜色深浅反映地理区域的数据分布差异。
+
+## 1. 色彩映射规范
+
+填充图的核心在于将数据值映射为色阶。`FillLayer` 默认支持以下三种映射模式：
+
+### 单色渐变 (Sequential)
+- 适用场景: 单一指标的高低对比（人口密度、降雨量）。
+- 视觉表现: `primary` 色阶由浅至深。
+  - 低值: `bg-primary/10` 或 `bg-surface-container-high`
+  - 中值: `bg-primary/40`
+  - 高值: `bg-primary`
+- 描边建议: `0.5px border-white/30`
+
+### 发散渐变 (Diverging)
+- 适用场景: 围绕中性参考点的偏离（增速、温差正负偏差）。
+- 视觉表现: 红-灰-绿发散色阶。
+  - 负向极值: `text-error`
+  - 中心点: `bg-surface-container`
+  - 正向极值: `text-success`
+
+### 分类映射 (Categorical)
+- 适用场景: 定性分类数据（行政类型、土地用途）。
+- 视觉表现: 高识别度互补色，不表达数值量级。
+
+## 2. 视觉细节规范
+
+### 区域样式
+- 填充不透明度: 默认 `opacity-80`
+- 边界线:
+  - 默认: 0.5px 细线
+  - 高亮: 2px `border-primary` 或白色
+
+## 3. 交互行为
+
+### 悬停 (Hover)
+- 视觉反馈:
+  - 填充不透明度提升至 100%
+  - 边界线加粗并伴随弱外发光
+- Tooltip: 显示区域名称、核心指标值、占比百分比
+
+### 点击 (Click)
+- 行为:
+  - 自动缩放并定位至区域中心（优先按区域边界 fitBounds）
+  - 触发下钻回调，加载下级区域数据
+
+## 4. 标注与可读性
+
+### 文本中心化
+- 标注放置: 区域地理中心（Centroid）
+- 字体: `font-mono-data` 风格（等宽数据字体）
+- 对比增强: 2px 反色 Halo
+
+### 过滤策略
+- 面积阈值: 过小区域默认隐藏文本标注
+
+## AimapKit 默认实现
+
+`FillLayer` 内置默认实现：
+- `colorMapping` 三模式切换: `sequential | diverging | categorical`
+- 默认区域样式: `opacity: 0.8` + `strokeWidth: 0.5`
+- 默认 hover/click 效果: `hoverEffect` / `clickEffect`
+- 默认 hover tooltip: `tooltipEffect`，并支持 `tooltipFields` / `tooltipTemplate`
+- 点击自动缩放: `zoomToRegionOnClick`
+- 下钻回调: `onDrilldown`
+- 标注面积阈值: `labelAreaThreshold`
+- 标注最小缩放: `minLabelZoom`
+
+```tsx
+<FillLayer
+  source={geojson}
+  sourceType="geojson"
+  colorField="value"
+  colorMapping="sequential"
+  showLabel
+  labelField="name"
+  percentageField="ratio"
+  onDrilldown={(feature) => {
+    console.log('drilldown', feature)
+  }}
+/>
+```
+
+---
+Derived from Design System: `{{DATA:DESIGN_SYSTEM:DESIGN_SYSTEM_1}}`

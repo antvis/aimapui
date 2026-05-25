@@ -1,0 +1,165 @@
+# 事件系统
+
+aimapkit 提供了三种事件处理方式：EventBus、Schema 声明式事件、React 回调函数。
+
+## 1. EventBus 事件总线
+
+EventBus 是组件内部通信的核心机制，支持跨组件事件传递：
+
+```tsx
+import { Aimap } from '@antv/aimapkit'
+
+const schema = {
+  map: { basemap: 'gaode', center: [116.397, 39.909], zoom: 10 },
+  layers: [{ type: 'point', source: data, sourceType: 'json' }],
+  events: {
+    mapMove: 'onMapMove',
+    mapZoom: 'onMapZoom'
+  }
+}
+
+function App() {
+  const events = {
+    onMapMove: (data) => {
+      console.log('地图移动:', data.center)
+    },
+    onMapZoom: (data) => {
+      console.log('缩放级别:', data.zoom)
+    }
+  }
+
+  return <Aimap schema={schema} events={events} />
+}
+```
+
+## 2. Schema 声明式事件
+
+在 Schema 中通过 `events` 字段声明图层交互行为：
+
+```tsx
+const schema = {
+  layers: [{
+    type: 'point',
+    source: data,
+    sourceType: 'json',
+    color: '#1890ff',
+    events: {
+      enablePopup: true,       // 点击时显示 Popup
+      popupTrigger: 'hover',   // 触发方式: 'hover' | 'click'
+      popupFields: ['name', 'value', 'category'],
+      popupTemplate: '<div>{name}: {value}</div>',
+      enableTooltip: true,     // 悬停时显示 Tooltip
+      tooltipVariant: 'glass'
+    }
+  }]
+}
+```
+
+## 3. React 回调函数
+
+组件模式下使用 React 回调函数处理事件：
+
+### 地图事件
+
+```tsx
+import { Aimap } from '@antv/aimapkit'
+import type { Scene } from '@antv/l7'
+
+function App() {
+  const handleSceneReady = (scene: Scene) => {
+    // 监听地图点击
+    scene.on('click', (e) => {
+      console.log('点击位置:', e.lnglat)
+    })
+
+    // 监听地图移动
+    scene.on('moveend', () => {
+      console.log('地图中心:', scene.getCenter())
+    })
+
+    // 监听缩放
+    scene.on('zoomend', () => {
+      console.log('缩放级别:', scene.getZoom())
+    })
+  }
+
+  return <Aimap schema={schema} onSceneReady={handleSceneReady} />
+}
+```
+
+### 图层事件
+
+```tsx
+import { Aimap, PointLayer } from '@antv/aimapkit'
+
+function App() {
+  return (
+    <Aimap map={{ basemap: 'gaode', center: [116.397, 39.909], zoom: 10 }}>
+      <PointLayer
+        source={data}
+        sourceType="json"
+        color="#1890ff"
+        size={10}
+        onClick={(e) => console.log('点击:', e.feature)}
+        onMouseEnter={(e) => console.log('悬停进入')}
+        onMouseLeave={(e) => console.log('悬停离开')}
+        onDblClick={(e) => console.log('双击:', e.feature)}
+      />
+    </Aimap>
+  )
+}
+```
+
+### Marker 拖拽事件
+
+```tsx
+import { Aimap, Marker } from '@antv/aimapkit'
+
+function App() {
+  return (
+    <Aimap map={{ basemap: 'gaode', center: [116.397, 39.909], zoom: 10 }}>
+      <Marker
+        longitude={116.397}
+        latitude={39.909}
+        draggable
+        onDragStart={() => console.log('开始拖拽')}
+        onDragging={(lnglat) => console.log('拖拽中:', lnglat)}
+        onDragEnd={(lnglat) => {
+          console.log('最终位置:', lnglat)
+          // 更新状态或发送到服务器
+        }}
+      />
+    </Aimap>
+  )
+}
+```
+
+## 事件列表
+
+### 地图事件
+
+| 事件名 | 说明 | 回调参数 |
+|--------|------|---------|
+| `click` | 地图点击 | `{ lnglat, point }` |
+| `dblclick` | 地图双击 | `{ lnglat, point }` |
+| `mousemove` | 鼠标移动 | `{ lnglat, point }` |
+| `movestart` | 地图开始移动 | - |
+| `moveend` | 地图移动结束 | - |
+| `zoomstart` | 缩放开始 | - |
+| `zoomend` | 缩放结束 | - |
+| `resize` | 地图尺寸变化 | - |
+
+### 图层事件
+
+| 事件名 | 说明 | 回调参数 |
+|--------|------|---------|
+| `onClick` | 图层点击 | `{ feature, lnglat }` |
+| `onMouseMove` | 鼠标在图层上移动 | `{ feature, lnglat }` |
+| `onMouseEnter` | 鼠标进入图层 | `{ feature }` |
+| `onMouseLeave` | 鼠标离开图层 | - |
+| `onDblClick` | 图层双击 | `{ feature, lnglat }` |
+
+## 下一步
+
+- [控件配置](/docs/controls-legends/controls-guide) - 添加地图控件
+- [图例配置](/docs/controls-legends/legend-guide) - 配置图例

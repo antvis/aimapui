@@ -1,0 +1,67 @@
+# Marker 标注规范
+
+Marker 是地图上的 DOM 标记点，用于标注 POI、位置等信息。aimapkit Marker 提供 4 种形状、4 种语义色和缩放自适应。
+
+## 形状
+
+| 形状 | 样式 | 适用场景 |
+|------|------|---------|
+| `circle` | 圆形 | 通用标注 |
+| `square` | 方形 | 分类标注 |
+| `diamond` | 菱形 | 特殊标记 |
+| `pin` | 图钉 | 精确定位 |
+
+## 语义色
+
+| 语义 | 色值 | 适用场景 |
+|------|------|---------|
+| `primary` | `#3B82F6` | 默认 |
+| `success` | `#10B981` | 完成、在线 |
+| `warning` | `#F59E0B` | 提醒、注意 |
+| `danger` | `#EF4444` | 错误、离线 |
+
+## 状态
+
+| 状态 | 视觉变化 |
+|------|---------|
+| Default | 正常显示 |
+| Hover | 放大 110% + 阴影加深 |
+| Active | 缩放 95% + 描边加粗 |
+| Disabled | opacity: 0.4 |
+
+## 缩放自适应
+
+| 缩放级别 | 显示模式 |
+|---------|---------|
+| z3-z7 | 仅显示小圆点 (6px) |
+| z8-z12 | 显示 pin 形状 (24px) |
+| z13+ | 显示 pin + 标签 (24px + 文字) |
+
+## 尺寸
+
+| 元素 | 尺寸 | 说明 |
+|------|------|------|
+| 小标记 | 16px | 低优先级 |
+| 中标记 | 24px | 标准 |
+| 大标记 | 32px | 重要 POI |
+| 描边 | 2px | white |
+
+## Schema 示例
+
+```tsx
+layers: [{
+  type: 'point',
+  source: pois, sourceType: 'json',
+  shape: 'circle', size: 24,
+  color: '#3B82F6',
+  style: { stroke: '#FFFFFF', strokeWidth: 2 }
+}]
+```
+
+## 组件示例
+
+```tsx
+<Marker lngLat={[116.397, 39.909]} shape="pin" color="primary">
+  <span className="text-xs">北京站</span>
+</Marker>
+```

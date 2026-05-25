@@ -1,0 +1,69 @@
+# 层级与布局
+
+aimapkit 控件在地图上的布局遵循层级系统，确保信息密度合理且不遮挡关键地图内容。
+
+## 控件布局层级
+
+```
+┌──────────────────────────────────┐
+│ [搜索栏]              [地图主题] │  ← Layer 3: 浮层
+│                                  │
+│  [图表面板]                      │  ← Layer 2: 面板
+│                                  │
+│                                  │
+│                                  │
+│ [Zoom + -]        [图例]        │  ← Layer 1: 控件
+│ [比例尺]                         │
+└──────────────────────────────────┘
+```
+
+## 四角定位
+
+| 位置 | 推荐控件 |
+|------|---------|
+| `top-left` | 搜索栏、图层切换 |
+| `top-right` | 主题切换、全屏、导出 |
+| `bottom-left` | 比例尺、鼠标坐标 |
+| `bottom-right` | 缩放控件、图例 |
+
+## 间距规范
+
+| 场景 | 间距 | 说明 |
+|------|------|------|
+| 控件与边缘 | `16px` | 安全边距 |
+| 控件之间 | `8px` | 同角控件间距 |
+| 控件与图例 | `16px` | 图例独立区域 |
+| 移动端安全区 | `env(safe-area-inset-*)` | 适配刘海屏 |
+
+## 玻璃拟态 (Glassmorphism)
+
+控件采用半透明毛玻璃效果：
+
+```css
+.glass-panel {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--amap-radius-md);
+  box-shadow: var(--amap-shadow-sm);
+}
+
+/* 暗色 */
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+```
+
+## 响应式断点
+
+| 断点 | 宽度 | 控件布局调整 |
+|------|------|-------------|
+| Mobile | &lt;768px | 精简控件、BottomSheet 图例 |
+| Tablet | 768-1024px | 控件适中间距 |
+| Desktop | >1024px | 完整控件、侧边面板 |
+
+## 下一步
+
+- [控件规范](/design/control-specs/map-controls-spec) - 具体控件设计规范
+- [移动端应用规范](/design/app-scenario-specs/mobile-app-spec) - 移动端布局

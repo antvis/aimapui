@@ -1,0 +1,93 @@
+# Schema 类型定义
+
+aimapkit Schema 的 TypeScript 类型定义参考。
+
+## AimapSchema
+
+```tsx
+interface AimapSchema {
+  map: MapConfig
+  layers: LayerConfig[]
+  controls?: ControlConfig[]
+  legends?: LegendConfig[]
+  interactions?: InteractionConfig[]
+}
+```
+
+## MapConfig
+
+```tsx
+interface MapConfig {
+  basemap?: 'gaode' | 'mapbox' | 'maplibre' | 'tianditu' | 'tencent' | 'baidu' | 'l7'
+  style?: string
+  center?: [number, number]
+  zoom?: number
+  pitch?: number
+  rotation?: number
+  minZoom?: number
+  maxZoom?: number
+  token?: string
+  autoFit?: boolean
+  resizeEnable?: boolean
+  rotateEnable?: boolean
+  pitchEnable?: boolean
+  animateEnable?: boolean
+}
+```
+
+## LayerConfig
+
+```tsx
+interface LayerConfig {
+  id?: string
+  type: 'point' | 'line' | 'polygon' | 'heatmap' | 'raster' | 'image'
+      | 'iconFont' | 'iconImage' | 'hexagon' | 'markerCluster' | 'satellite'
+      | 'arcFlow' | 'chinaDistrict' | 'bubble' | 'fill'
+  source: any
+  sourceType?: 'json' | 'geojson' | 'csv' | 'raster' | 'image'
+  sourceConfig?: { x?: string; y?: string; x1?: string; y1?: string }
+  color?: string | string[]
+  colorField?: string
+  colorValues?: string[]
+  size?: number | [number, number]
+  sizeField?: string
+  sizeValues?: [number, number]
+  shape?: string
+  shapeField?: string
+  shapeValues?: string | string[]
+  style?: Record<string, any>
+  animate?: { enable?: boolean; duration?: number; trailLength?: number }
+  active?: { color: string } | boolean
+  select?: { color: string } | boolean
+  visible?: boolean
+  zIndex?: number
+  minZoom?: number
+  maxZoom?: number
+  autoFit?: boolean
+  scale?: Record<string, { type?: string; domain?: number[] }>
+}
+```
+
+## ControlConfig
+
+```tsx
+interface ControlConfig {
+  type: 'zoom' | 'scale' | 'fullscreen' | 'geoLocate' | 'mapTheme' | 'mouseLocation' | 'exportImage' | 'layerSwitch'
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+  [key: string]: any
+}
+```
+
+## LegendConfig
+
+```tsx
+interface LegendConfig {
+  type: 'categories' | 'ramp' | 'diverging' | 'threshold' | 'size' | 'lineWidth' | 'proportion' | 'icon'
+  field?: string
+  position?: string
+  title?: string
+  interactive?: boolean
+  draggable?: boolean
+  [key: string]: any
+}
+```

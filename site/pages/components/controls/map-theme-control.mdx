@@ -1,0 +1,22 @@
+# MapThemeControl
+
+底图主题切换控件，在浅色/深色/卫星主题间切换。
+
+```tsx
+import { MapThemeControl } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `position` | `string` | `'top-right'` | 控件位置 |
+| `themes` | `string[]` | `['light', 'dark']` | 可选主题列表 |
+| `onThemeChange` | `(theme) => void` | - | 主题切换回调 |
+| `className` | `string` | - | 自定义样式类名 |
+
+## 示例
+
+```tsx
+<MapThemeControl themes={['light', 'dark', 'satellite']} onThemeChange={(t) => console.log('切换:', t)} />
+```

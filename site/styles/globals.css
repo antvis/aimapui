@@ -1,0 +1,529 @@
+/* ──────────────────────────────────────────────
+   Base Reset (replaces @tailwind base)
+   ────────────────────────────────────────────── */
+
+/* ──────────────────────────────────────────────
+   OKLCH Color System (mapcn-inspired)
+   ────────────────────────────────────────────── */
+
+:root {
+  /* Core semantic colors */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --code-number: oklch(0.708 0 0);
+
+  /* Chart colors */
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  /* Radius */
+  --radius: 0.625rem;
+
+  /* Brand accent — blue for aimapkit */
+  --brand: oklch(0.55 0.2 260);
+  --brand-foreground: oklch(0.985 0 0);
+  --brand-light: oklch(0.95 0.03 260);
+
+  /* Fonts — Inter-like system stack */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);
+
+  /* Nextra overrides — make Nextra use our OKLCH palette */
+  --nextra-primary-hue: 260deg;
+  --nextra-primary-saturation: 80%;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --code-number: oklch(0.556 0 0);
+
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+
+  --brand: oklch(0.65 0.2 260);
+  --brand-foreground: oklch(0.985 0 0);
+  --brand-light: oklch(0.25 0.04 260);
+
+  --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.2);
+  --shadow: 0 1px 3px 0 oklch(0 0 0 / 0.3), 0 1px 2px -1px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.3), 0 2px 4px -2px oklch(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.3), 0 4px 6px -4px oklch(0 0 0 / 0.3);
+}
+
+/* ──────────────────────────────────────────────
+   Base Styles
+   ────────────────────────────────────────────── */
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  background: var(--background);
+  color: var(--foreground);
+}
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+/* ──────────────────────────────────────────────
+   Container Utilities
+   ────────────────────────────────────────────── */
+
+.container {
+  max-width: 100%;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.container-wide {
+  max-width: 100%;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* ──────────────────────────────────────────────
+   Animations (mapcn-style)
+   ────────────────────────────────────────────── */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.5s ease-out both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out both;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out both;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.4s ease-out both;
+}
+
+.animate-stagger {
+  --stagger: 0;
+  --delay: 100ms;
+  animation-delay: calc(var(--stagger) * var(--delay));
+}
+
+/* ──────────────────────────────────────────────
+   Nextra Theme Customization
+   ────────────────────────────────────────────── */
+
+/* Navbar — glass morphism style */
+.nextra-nav-container {
+  border-bottom: 1px solid var(--border) !important;
+  background: color-mix(in oklch, var(--background) 85%, transparent) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.dark .nextra-nav-container {
+  background: color-mix(in oklch, var(--background) 80%, transparent) !important;
+}
+
+.nextra-nav-container nav {
+  max-width: 1640px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.nextra-sidebar-container {
+  border-right: 1px solid var(--border) !important;
+}
+
+.nextra-sidebar-container li.active > a,
+.nextra-sidebar-container a[data-active="true"] {
+  font-weight: 600 !important;
+  background: var(--accent) !important;
+}
+
+/* Code blocks */
+pre {
+  border-radius: 0.75rem !important;
+  border: 1px solid var(--border) !important;
+}
+
+code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+/* Inline code */
+:not(pre) > code {
+  background: var(--muted);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.375rem;
+  font-size: 0.875em;
+}
+
+/* Content area — docs pages keep readable width, landing page is full width */
+.nextra-content {
+  max-width: 80ch;
+}
+
+/* Full-width override for pages with layout="full" (e.g. landing page) */
+.nextra-content:has(> section) {
+  max-width: 100%;
+}
+
+/* Tables */
+.nextra-content table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.nextra-content th {
+  font-weight: 600;
+  text-align: left;
+  padding: 0.625rem 0.875rem;
+  border-bottom: 2px solid var(--border);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+}
+
+.nextra-content td {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.nextra-content tr:hover td {
+  background: var(--muted);
+}
+
+/* Card hover effects */
+.nextra-card {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* ──────────────────────────────────────────────
+   Homepage Styles
+   ────────────────────────────────────────────── */
+
+/* Dot grid background */
+.dot-grid {
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Page header gradient text */
+.gradient-text {
+  background: linear-gradient(to bottom, var(--foreground), color-mix(in oklch, var(--foreground) 65%, transparent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glass card */
+.glass-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--ring);
+}
+
+/* Demo Player */
+.demo-player {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.demo-header {
+  padding: 0.75rem 1rem;
+  background: var(--muted);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.demo-content {
+  display: flex;
+}
+
+.demo-canvas {
+  flex: 1;
+  min-height: 360px;
+}
+
+.demo-code {
+  width: 50%;
+  border-left: 1px solid var(--border);
+}
+
+/* Code Preview */
+.code-preview {
+  background: oklch(0.145 0 0);
+  color: oklch(0.922 0 0);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: oklch(0.205 0 0);
+}
+
+.copy-btn {
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: background 0.15s;
+  color: var(--muted-foreground);
+}
+
+.copy-btn:hover {
+  background: oklch(0.269 0 0);
+  color: var(--foreground);
+}
+
+.code-content {
+  padding: 1rem;
+  font-size: 0.82rem;
+  overflow: auto;
+  max-height: 400px;
+}
+
+/* Example cards */
+.example-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.example-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--ring);
+}
+
+.example-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.example-card h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 1rem 1rem 0.5rem;
+}
+
+.example-card p {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  padding: 0 1rem 1rem;
+}
+
+/* Feature cards */
+.feature-card {
+  padding: 1.75rem;
+  border-radius: 0.75rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.feature-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Badge styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-blue {
+  background: var(--brand-light);
+  color: var(--brand);
+  border: 1px solid color-mix(in oklch, var(--brand) 30%, transparent);
+}
+
+.badge-green {
+  background: oklch(0.96 0.03 150);
+  color: oklch(0.45 0.15 150);
+  border: 1px solid oklch(0.85 0.08 150);
+}
+
+.badge-yellow {
+  background: oklch(0.97 0.03 90);
+  color: oklch(0.55 0.15 80);
+  border: 1px solid oklch(0.9 0.08 90);
+}
+
+.badge-purple {
+  background: oklch(0.96 0.03 300);
+  color: oklch(0.5 0.15 300);
+  border: 1px solid oklch(0.88 0.08 300);
+}
+
+/* ──────────────────────────────────────────────
+   Shiki dual theme support for code blocks
+   ────────────────────────────────────────────── */
+
+html .shiki,
+html .shiki span {
+  color: var(--shiki-light) !important;
+  background-color: transparent !important;
+}
+
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: transparent !important;
+}
+
+/* Line numbers in code */
+code {
+  counter-reset: step;
+  counter-increment: step 0;
+}
+
+code .line::before {
+  content: counter(step);
+  counter-increment: step;
+  width: 1rem;
+  margin-right: 1.5rem;
+  display: inline-block;
+  text-align: right;
+  color: var(--code-number);
+}

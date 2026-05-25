@@ -1,0 +1,24 @@
+# RasterLayer
+
+加载和渲染栅格瓦片数据。
+
+```tsx
+import { RasterLayer } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `source` | `string` | **必填** | 瓦片 URL 模板 |
+| `sourceType` | `'raster'` | `'raster'` | 固定为 raster |
+| `minZoom` | `number` | `0` | 最小缩放 |
+| `maxZoom` | `number` | `18` | 最大缩放 |
+| `style` | `object` | - | `{ opacity }` |
+| `visible` | `boolean` | `true` | 可见性 |
+
+## 示例
+
+```tsx
+<RasterLayer source="https://tiles.example.com/{z}/{x}/{y}.png" sourceType="raster" opacity={0.8} />
+```

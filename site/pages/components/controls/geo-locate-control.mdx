@@ -1,0 +1,23 @@
+# GeoLocateControl
+
+定位控件，获取用户当前位置并定位。
+
+```tsx
+import { GeoLocateControl } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `position` | `string` | `'top-right'` | 控件位置 |
+| `showMarker` | `boolean` | `true` | 是否在定位点显示标记 |
+| `zoomToAccuracy` | `boolean` | `true` | 是否缩放到定位精度范围 |
+| `onLocate` | `(position) => void` | - | 定位成功回调 |
+| `className` | `string` | - | 自定义样式类名 |
+
+## 示例
+
+```tsx
+<GeoLocateControl position="top-right" showMarker zoomToAccuracy onLocate={(pos) => console.log('定位:', pos)} />
+```

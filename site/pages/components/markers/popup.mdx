@@ -1,0 +1,30 @@
+# Popup
+
+弹窗组件，在地图点位上弹出信息卡片。
+
+```tsx
+import { Popup } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `lngLat` | `[number, number]` | **必填** | 经纬度 |
+| `children` | `ReactNode` | - | 弹窗内容 |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 弹窗尺寸 |
+| `placement` | `'top' \| 'bottom' \| 'left' \| 'right'` | `'top'` | 弹出方向 |
+| `closable` | `boolean` | `true` | 显示关闭按钮 |
+| `singleton` | `boolean` | `false` | 单例模式（同时只显示一个） |
+| `visible` | `boolean` | `true` | 受控显隐 |
+| `onClose` | `() => void` | - | 关闭回调 |
+| `className` | `string` | - | 自定义样式 |
+
+## 示例
+
+```tsx
+<Popup lngLat={[116.397, 39.909]} size="sm" placement="top">
+  <h3>北京</h3>
+  <p>人口: 2189万</p>
+</Popup>
+```

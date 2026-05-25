@@ -1,0 +1,35 @@
+# useMapPosition
+
+地图位置 Hook，获取和设置地图中心、缩放等。
+
+```tsx
+import { useMapPosition } from '@antv/aimapkit'
+```
+
+## 用法
+
+```tsx
+function PositionInfo() {
+  const { center, zoom, pitch, rotation, setCenter, setZoom, flyTo } = useMapPosition()
+
+  return (
+    <div>
+      <p>中心: {center?.join(', ')}</p>
+      <p>缩放: {zoom}</p>
+      <button onClick={() => flyTo({ center: [121.473, 31.230], zoom: 12 })}>飞到上海</button>
+    </div>
+  )
+}
+```
+
+## 返回值
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `center` | `[number, number] \| null` | 当前中心点 |
+| `zoom` | `number \| null` | 当前缩放级别 |
+| `pitch` | `number \| null` | 当前倾斜角 |
+| `rotation` | `number \| null` | 当前旋转角 |
+| `setCenter` | `(center) => void` | 设置中心点 |
+| `setZoom` | `(zoom) => void` | 设置缩放级别 |
+| `flyTo` | `(options) => void` | 飞行动画移动 |

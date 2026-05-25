@@ -1,0 +1,97 @@
+# 地图控件规范
+
+aimapkit 内置 8 种地图控件，均采用玻璃拟态设计，遵循统一的视觉和交互规范。
+
+## 通用规范
+
+### 玻璃拟态样式
+
+```css
+.control {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: #0F172A;
+}
+
+/* 暗色 */
+.dark .control {
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #F8FAFC;
+}
+```
+
+### 尺寸
+
+| 控件 | 宽度 | 高度 | 图标 |
+|------|------|------|------|
+| Zoom | 36px | 72px (2 buttons) | 18px |
+| Scale | auto | 24px | - |
+| Fullscreen | 36px | 36px | 18px |
+| GeoLocate | 36px | 36px | 18px |
+| MapTheme | 36px | 36px | 18px |
+| MouseLocation | auto | 24px | - |
+| ExportImage | 36px | 36px | 18px |
+| LayerSwitch | 180px | auto | - |
+
+## 各控件规范
+
+### ZoomControl
+
+- 两个按钮：`+` / `-`
+- 按钮间距 1px 分隔线
+- 中间可选显示缩放级别文字
+- 缩放到边界时对应按钮 disabled
+
+### ScaleControl
+
+- 线段 + 文字（如 "500m"）
+- 随缩放自适应更新
+- 公制/英制切换
+
+### FullscreenControl
+
+- 全屏图标 ↔ 退出全屏图标
+- 切换时 200ms 过渡
+
+### GeoLocateControl
+
+- 定位图标
+- 定位中显示旋转动画
+- 定位成功：蓝点 + 精度圈
+- 定位失败：红色图标
+
+### MapThemeControl
+
+- 图标按钮切换 light/dark/satellite
+- 切换时地图和控件同步更新主题
+
+### MouseLocationControl
+
+- 显示 `经度, 纬度` 格式
+- 字号 11px，等宽字体
+- 实时跟踪鼠标位置
+
+### ExportImageControl
+
+- 相机图标
+- 点击导出 PNG
+- 导出中显示 loading 状态
+
+### LayerSwitchControl
+
+- 下拉面板，复选框列表
+- 图层名称 + 可见性开关
+- 支持拖拽排序
+
+## 间距与布局
+
+控件组内间距 `8px`，与地图边缘间距 `16px`。同一角的多个控件垂直排列，间距 `8px`。
+
+## 下一步
+
+- [图例规范](/design/control-specs/legend-spec) - 图例设计规范
+- [层级与布局](/design/foundations/hierarchy-layout) - 控件布局层级

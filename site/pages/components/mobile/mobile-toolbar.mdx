@@ -1,0 +1,33 @@
+# MobileToolbar
+
+移动端底部工具栏，集成常用操作按钮。
+
+```tsx
+import { MobileToolbar } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `items` | `ToolbarItem[]` | - | 工具栏按钮列表 |
+| `onItemClick` | `(key) => void` | - | 按钮点击回调 |
+| `className` | `string` | - | 自定义样式 |
+
+### ToolbarItem
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `key` | `string` | 唯一标识 |
+| `icon` | `ReactNode` | 图标 |
+| `label` | `string` | 文字 |
+
+## 示例
+
+```tsx
+<MobileToolbar items={[
+  { key: 'locate', icon: <LocateIcon />, label: '定位' },
+  { key: 'layer', icon: <LayerIcon />, label: '图层' },
+  { key: 'search', icon: <SearchIcon />, label: '搜索' }
+]} onItemClick={(key) => console.log(key)} />
+```

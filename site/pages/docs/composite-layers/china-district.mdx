@@ -1,0 +1,84 @@
+# 中国行政区划 (ChinaDistrictLayer / FillLayer)
+
+行政区划图层封装了中国省市区三级行政数据，支持下钻和分级填充。
+
+## Schema 用法
+
+```tsx
+const schema = {
+  map: { basemap: 'gaode', center: [108.0, 34.0], zoom: 4 },
+  layers: [{
+    type: 'chinaDistrict',
+    source: provinceData,
+    sourceType: 'json',
+    adCode: '100000',
+    depth: 1,
+    colorField: 'value',
+    colorValues: ['#DBEAFE', '#93C5FD', '#3B82F6', '#1D4ED8', '#1E3A8A'],
+    style: { opacity: 0.8 },
+    active: { color: '#F59E0B' }
+  }]
+}
+```
+
+## 组件用法
+
+```tsx
+import { Aimap, ChinaDistrictLayer } from '@antv/aimapkit'
+
+function App() {
+  const [adCode, setAdCode] = useState('100000')
+  return (
+    <Aimap map={{ basemap: 'gaode', center: [108.0, 34.0], zoom: 4 }}>
+      <ChinaDistrictLayer
+        source={provinceData}
+        sourceType="json"
+        adCode={adCode}
+        depth={1}
+        colorField="value"
+        colorValues={['#DBEAFE', '#93C5FD', '#3B82F6', '#1D4ED8', '#1E3A8A']}
+        style={{ opacity: 0.8 }}
+        active={{ color: '#F59E0B' }}
+        onClick={(e) => setAdCode(e.feature.properties.adcode)}
+      />
+    </Aimap>
+  )
+}
+```
+
+## 下钻交互
+
+```tsx
+function DrillDownMap() {
+  const [adCode, setAdCode] = useState('100000')
+
+  return (
+    <Aimap map={{ basemap: 'gaode', center: [108.0, 34.0], zoom: 4 }}>
+      <ChinaDistrictLayer
+        source={data}
+        sourceType="json"
+        adCode={adCode}
+        depth={1}
+        colorField="value"
+        colorValues={['#DBEAFE', '#1E3A8A']}
+        onClick={(e) => {
+          const code = e.feature.properties.adcode
+          setAdCode(code)
+        }}
+      />
+    </Aimap>
+  )
+}
+```
+
+## 关键属性
+
+| 属性 | 类型 | 说明 |
+|------|------|------|
+| `adCode` | `string` | 行政区划代码，`'100000'` 为全国 |
+| `depth` | `0 \| 1 \| 2` | 展示深度：0=省级, 1=市级, 2=区县级 |
+
+## 下一步
+
+- [面图层](/docs/layers/polygon-layer) - 基础面图层
+- [控件与图例](/docs/controls-legends/controls-guide) - 添加图例

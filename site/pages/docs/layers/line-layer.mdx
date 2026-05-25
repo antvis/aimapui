@@ -1,0 +1,90 @@
+# 线图层 (LineLayer)
+
+线图层用于展示路径、流向、弧线等线状数据，支持飞线动画和多种线型。
+
+## Schema 用法
+
+```tsx
+const schema = {
+  map: { basemap: 'gaode', style: 'dark', center: [116.397, 39.909], zoom: 5 },
+  layers: [{
+    type: 'line',
+    source: flowData,
+    sourceType: 'json',
+    sourceConfig: { x: 'fromLng', y: 'fromLat', x1: 'toLng', y1: 'toLat' },
+    color: '#3B82F6',
+    size: 2,
+    animate: { enable: true, duration: 4, trailLength: 2 }
+  }]
+}
+```
+
+## Shape 类型
+
+| shape 值 | 说明 | 适用场景 |
+|----------|------|---------|
+| `line` | 直线（默认） | 简单连线 |
+| `arc` | 2D 弧线 | OD 流向可视化 |
+| `greatcircle` | 大圆弧线 | 全球航线 |
+| `flowline` | 流向线 | 带方向的流动 |
+| `path` | 路径轨迹 | 公交线路、行驶轨迹 |
+| `isoline` | 等值线 | 等高线、气象等值线 |
+
+## 飞线动画
+
+```tsx
+{
+  type: 'line',
+  source: data,
+  sourceType: 'json',
+  sourceConfig: { x: 'fromLng', y: 'fromLat', x1: 'toLng', y1: 'toLat' },
+  shape: 'greatcircle',
+  color: '#3B82F6',
+  size: 2,
+  animate: {
+    enable: true,
+    duration: 4,       // 动画周期（秒）
+    trailLength: 2     // 拖尾长度
+  }
+}
+```
+
+## 路径轨迹
+
+```tsx
+{
+  type: 'line',
+  source: routeData,
+  sourceType: 'json',
+  shape: 'path',
+  colorField: 'level',
+  colorValues: ['#3B82F6', '#10B981', '#F59E0B'],
+  size: 3
+}
+```
+
+## 组件用法
+
+```tsx
+import { Aimap, LineLayer } from '@antv/aimapkit'
+
+function App() {
+  return (
+    <Aimap map={{ basemap: 'gaode', style: 'dark', center: [116.397, 39.909], zoom: 5 }}>
+      <LineLayer
+        source={flowData}
+        sourceType="json"
+        sourceConfig={{ x: 'fromLng', y: 'fromLat', x1: 'toLng', y1: 'toLat' }}
+        color="#3B82F6"
+        size={2}
+        animate={{ enable: true, duration: 4, trailLength: 2 }}
+      />
+    </Aimap>
+  )
+}
+```
+
+## 下一步
+
+- [面图层](/docs/layers/polygon-layer) - 区域填充
+- [复合图层 - 弧线路径](/docs/composite-layers/arc-path) - 高级弧线用法

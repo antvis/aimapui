@@ -1,0 +1,84 @@
+# 图层可视化总览
+
+图层是 aimapkit 地图可视化的核心，支持 6 种基础图层类型，满足从简单标注到复杂分析的全部需求。
+
+## 基础图层类型
+
+| 类型 | type 值 | 组件 | 说明 | 适用场景 |
+|------|---------|------|------|---------|
+| 点图层 | `point` | `PointLayer` | 离散点位可视化 | 标记位置、散点图、3D柱状图 |
+| 线图层 | `line` | `LineLayer` | 线段和路径 | 路径轨迹、飞线动画、OD流向 |
+| 面图层 | `polygon` | `PolygonLayer` | 区域填充 | 行政区划、3D建筑、热力区域 |
+| 热力图层 | `heatmap` | `HeatmapLayer` | 密度分布 | 经典热力、蜂窝聚合 |
+| 栅格图层 | `raster` | `RasterLayer` | 栅格瓦片 | 影像数据、瓦片服务 |
+| 图片图层 | `image` | `ImageLayer` | 图片叠加 | 地图叠加图片 |
+
+## 数据源配置
+
+### JSON 数据
+
+```tsx
+source: [
+  { lng: 116.397, lat: 39.909, value: 100, name: '北京' },
+  { lng: 121.473, lat: 31.230, value: 200, name: '上海' }
+],
+sourceType: 'json'
+```
+
+### GeoJSON 数据
+
+```tsx
+source: {
+  type: 'FeatureCollection',
+  features: [{
+    type: 'Feature',
+    geometry: { type: 'Polygon', coordinates: [...] },
+    properties: { name: '区域A', value: 80 }
+  }]
+},
+sourceType: 'geojson'
+```
+
+### CSV 数据
+
+```tsx
+source: 'lng,lat,value\n116.397,39.909,100\n121.473,31.230,200',
+sourceType: 'csv'
+```
+
+## 视觉映射
+
+每种图层都支持三种视觉映射方式：
+
+| 映射 | Schema 字段 | 说明 |
+|------|------------|------|
+| 颜色 | `color` / `colorField` + `colorValues` | 固定颜色 或 数据驱动颜色 |
+| 大小 | `size` / `sizeField` + `sizeValues` | 固定大小 或 数据驱动大小 |
+| 形状 | `shape` / `shapeField` + `shapeValues` | 固定形状 或 数据驱动形状 |
+
+详见 [视觉映射](/docs/layers/visual-mapping)。
+
+## 通用图层配置
+
+```tsx
+interface LayerCommonConfig {
+  id?: string              // 图层ID
+  name?: string            // 图层名称
+  visible?: boolean        // 是否可见，默认 true
+  zIndex?: number          // 图层层级
+  minZoom?: number         // 最小可见缩放级别
+  maxZoom?: number         // 最大可见缩放级别
+  autoFit?: boolean        // 是否自动缩放到数据范围
+  animate?: AnimateConfig  // 动画配置
+  active?: { color: string }   // 悬停高亮样式
+  select?: { color: string }   // 点击选中样式
+}
+```
+
+## 下一步
+
+- [点图层](/docs/layers/point-layer) - 散点、柱状、文本标注
+- [线图层](/docs/layers/line-layer) - 路径、弧线、飞线动画
+- [面图层](/docs/layers/polygon-layer) - 区域填充、3D建筑
+- [热力图层](/docs/layers/heatmap-layer) - 经典热力、蜂窝热力
+- [视觉映射](/docs/layers/visual-mapping) - 颜色/大小/形状映射

@@ -1,0 +1,21 @@
+# TouchGesturePanel
+
+移动端触摸手势说明面板。
+
+```tsx
+import { TouchGesturePanel } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `visible` | `boolean` | `false` | 是否可见 |
+| `onClose` | `() => void` | - | 关闭回调 |
+| `gestures` | `GestureItem[]` | 默认手势列表 | 自定义手势列表 |
+
+## 示例
+
+```tsx
+<TouchGesturePanel visible={showHelp} onClose={() => setShowHelp(false)} />
+```

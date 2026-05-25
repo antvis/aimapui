@@ -1,0 +1,25 @@
+# MarkerClusterLayer
+
+聚合标记图层，大量点位自动聚合为簇。
+
+```tsx
+import { MarkerClusterLayer } from '@antv/aimapkit'
+```
+
+## Props
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|-------|------|
+| `source` | `any` | **必填** | 数据源 |
+| `sourceType` | `string` | `'json'` | 数据源类型 |
+| `color` | `string` | `'#3B82F6'` | 标记颜色 |
+| `customClusterStyle` | `boolean` | `false` | 自定义聚合样式 |
+| `style` | `object` | - | `{ clusterRadius, clusterColor, clusterTextColor, clusterFontSize }` |
+| `visible` | `boolean` | `true` | 可见性 |
+| `onClusterClick` | `(e) => void` | - | 聚合簇点击 |
+
+## 示例
+
+```tsx
+<MarkerClusterLayer source={pois} sourceType="json" color="#3B82F6" customClusterStyle style={{ clusterRadius: 80, clusterColor: '#3B82F6', clusterTextColor: '#fff' }} />
+```
