@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useScene } from '../../context/SceneContext';
 import { useMapPosition } from '../../hooks/useMapPosition';
 import { cx } from '../../utils/style';
+import { useTheme } from '../../context/ThemeContext';
 import type { TooltipSchema } from '../../schema/types';
 
 // ============================================================
@@ -30,7 +31,7 @@ export interface TooltipItem {
   value: string | number;
 }
 
-export interface TooltipProps extends Omit<TooltipSchema, 'type'> {
+export interface TooltipProps {
   /** 内容：纯文本 / ReactNode。优先级高于 title/items */
   content?: string | React.ReactNode;
   /** 视觉变体，默认 dark */
@@ -99,6 +100,7 @@ export function Tooltip({
   overlayContainer,
   className,
 }: TooltipProps) {
+  const { resolvedTheme } = useTheme();
   const scene = useScene();
   const isControlled = visibleProp !== undefined;
   const [internalVisible, setInternalVisible] = useState(false);
@@ -297,13 +299,13 @@ export function Tooltip({
     if (hasStructuredContent) {
       return (
         <>
-          {title && <p className="aimapkit-tooltip-title">{title}</p>}
+          {title && <p className="aimapui-tooltip-title">{title}</p>}
           {items && items.length > 0 && (
-            <div className="aimapkit-tooltip-items">
+            <div className="aimapui-tooltip-items">
               {items.map((item, i) => (
-                <div key={i} className="aimapkit-tooltip-item">
-                  <span className="aimapkit-tooltip-item-label">{item.label}</span>
-                  <span className="aimapkit-tooltip-item-value">{item.value}</span>
+                <div key={i} className="aimapui-tooltip-item">
+                  <span className="aimapui-tooltip-item-label">{item.label}</span>
+                  <span className="aimapui-tooltip-item-value">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -317,7 +319,8 @@ export function Tooltip({
   const tooltipElement = (
     <div
       ref={tooltipRef}
-      className={cx('aimapkit-tooltip', variant !== 'dark' && `aimapkit-tooltip--${variant}`)}
+      data-theme={resolvedTheme}
+      className={cx('aimapui-tooltip', variant !== 'dark' && `aimapui-tooltip--${variant}`)}
       style={{
         position: 'fixed',
         left: 0,
@@ -328,10 +331,10 @@ export function Tooltip({
         pointerEvents: 'none',
       }}
     >
-      <div className={cx('aimapkit-tooltip-content', className)}>
+      <div className={cx('aimapui-tooltip-content', className)}>
         {renderContent()}
       </div>
-      <div className={`aimapkit-tooltip-arrow aimapkit-tooltip-arrow--${arrowDirection}`} />
+      <div className={`aimapui-tooltip-arrow aimapui-tooltip-arrow--${arrowDirection}`} />
     </div>
   );
 

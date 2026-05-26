@@ -56,7 +56,7 @@
 ### 过滤策略
 - 面积阈值: 屏幕显示面积过小的区域（如极小岛屿或极远缩放级）应隐藏文本标注。
 
-## AimapKit 默认实现
+## aimapui 默认实现
 
 `FillLayer` 默认封装中已实现：
 - 三种配色模式：`sequential | diverging | categorical`，可通过 `colorMapping` 切换。

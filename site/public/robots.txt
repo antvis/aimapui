@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://aimapkit.antv.vision/sitemap.xml
+Sitemap: https://aimapui.antv.vision/sitemap.xml

@@ -54,10 +54,10 @@ export function LegendThreshold({
   };
 
   return (
-    <div className={cx('aimapkit-legend-section', className)}>
-      {title && <div className="aimapkit-legend-title">{title}</div>}
+    <div className={cx('aimapui-legend-section', className)}>
+      {title && <div className="aimapui-legend-title">{title}</div>}
 
-      <div className="aimapkit-legend-threshold">
+      <div className="aimapui-legend-threshold">
         {ranges.map(([min, max], i) => {
           const isDimmed =
             hoveredIndex >= 0
@@ -68,18 +68,18 @@ export function LegendThreshold({
             <div
               key={i}
               className={cx(
-                'aimapkit-legend-threshold-item',
-                isDimmed && 'aimapkit-legend-threshold-item--dimmed',
+                'aimapui-legend-threshold-item',
+                isDimmed && 'aimapui-legend-threshold-item--dimmed',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
               onClick={() => handleClick(i)}
             >
               <span
-                className="aimapkit-legend-threshold-swatch"
+                className="aimapui-legend-threshold-swatch"
                 style={{ backgroundColor: colors[i] ?? '#ccc' }}
               />
-              <span className="aimapkit-legend-threshold-range">
+              <span className="aimapui-legend-threshold-range">
                 [{min}, {max})
               </span>
             </div>

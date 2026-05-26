@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raster Layer — CPS Design Spec</title>
+  <style>
+    :root {
+      --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+    [data-theme="dark"] {
+      --bg-primary: #0f172a;
+      --bg-surface: #1e293b;
+      --bg-surface-hover: #334155;
+      --bg-card: rgba(30,41,59,0.85);
+      --border-color: rgba(148,163,184,0.12);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #06b6d4;
+      --accent-glow: rgba(6,182,212,0.15);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+    }
+    [data-theme="light"] {
+      --bg-primary: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-hover: #f1f5f9;
+      --bg-card: rgba(255,255,255,0.9);
+      --border-color: rgba(0,0,0,0.08);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent: #0891b2;
+      --accent-glow: rgba(8,145,178,0.1);
+      --success: #059669;
+      --warning: #d97706;
+      --error: #dc2626;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: var(--font-display);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
+    .theme-toggle {
+      position: fixed; top: 16px; right: 16px; z-index: 9999;
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 18px; transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .theme-toggle:hover { background: var(--bg-surface-hover); transform: scale(1.05); }
+
+    /* Header */
+    .header { margin-bottom: 48px; }
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 20px; font-size: 11px;
+      font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--accent); background: var(--accent-glow);
+      border: 1px solid rgba(6,182,212,0.2); margin-bottom: 16px;
+    }
+    .header h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .header p { font-size: 15px; color: var(--text-secondary); max-width: 600px; }
+
+    /* Sections */
+    .section { margin-bottom: 48px; }
+    .section-title {
+      font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--accent); margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after {
+      content: ''; flex: 1; height: 1px; background: var(--border-color);
+    }
+
+    /* Cards */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px; padding: 20px;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      transition: all 0.2s;
+    }
+    .card:hover { border-color: var(--accent); box-shadow: 0 4px 24px var(--accent-glow); }
+    .card-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; }
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+    .card-code { font-family: var(--font-mono); font-size: 11px; color: var(--accent); background: var(--accent-glow); padding: 2px 6px; border-radius: 4px; }
+
+    /* Raster Preview */
+    .raster-preview {
+      width: 100%; height: 200px; border-radius: 12px; overflow: hidden;
+      position: relative; margin-bottom: 16px;
+    }
+    .raster-grayscale {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #1a1a2e 75%, #0f0f0f 100%);
+    }
+    .raster-pseudo {
+      background: linear-gradient(135deg, #1e3a5f 0%, #0d9488 20%, #84cc16 40%, #eab308 60%, #ea580c 80%, #7f1d1d 100%);
+    }
+    .raster-rgb {
+      background: linear-gradient(135deg, #065f46 0%, #166534 20%, #4d7c0f 40%, #15803d 60%, #0f766e 80%, #0e4429 100%);
+    }
+    .raster-thermal {
+      background: linear-gradient(90deg, #1e40af 0%, #6366f1 20%, #a855f7 40%, #ec4899 60%, #ef4444 80%, #fbbf24 100%);
+    }
+    .raster-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s;
+    }
+    .raster-preview:hover .raster-overlay { opacity: 1; }
+    .raster-overlay-text { font-size: 12px; font-weight: 600; color: #fff; padding: 6px 12px; border-radius: 6px; background: rgba(0,0,0,0.5); }
+
+    /* Color Ramp Strips */
+    .color-ramp { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
+    .ramp-row { display: flex; align-items: center; gap: 12px; }
+    .ramp-label { font-size: 11px; font-weight: 600; color: var(--text-muted); min-width: 60px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .ramp-strip { flex: 1; height: 24px; border-radius: 6px; overflow: hidden; display: flex; box-shadow: 0 0 0 1px var(--border-color); }
+    .ramp-strip div { flex: 1; }
+
+    /* Spec Table */
+    .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+    .spec-table th {
+      text-align: left; padding: 10px 12px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--text-muted); border-bottom: 1px solid var(--border-color);
+    }
+    .spec-table td {
+      padding: 10px 12px; border-bottom: 1px solid var(--border-color);
+      color: var(--text-secondary);
+    }
+    .spec-table tr:last-child td { border-bottom: none; }
+    .spec-table code { font-family: var(--font-mono); font-size: 11px; color: var(--accent); }
+
+    /* Pixel Inspector Demo */
+    .pixel-inspector {
+      background: var(--bg-surface); border: 1px solid var(--border-color);
+      border-radius: 12px; padding: 16px; font-family: var(--font-mono);
+      font-size: 12px; color: var(--text-secondary);
+    }
+    .pixel-inspector .coords { color: var(--accent); font-weight: 600; }
+    .pixel-inspector .band-values { margin-top: 8px; display: flex; gap: 16px; }
+    .pixel-inspector .band { display: flex; flex-direction: column; gap: 2px; }
+    .pixel-inspector .band-name { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+    .pixel-inspector .band-val { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+
+    /* Slider */
+    .threshold-demo {
+      background: var(--bg-surface); border: 1px solid var(--border-color);
+      border-radius: 12px; padding: 20px; margin: 16px 0;
+    }
+    .threshold-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+    .threshold-bar { position: relative; height: 8px; background: var(--bg-surface-hover); border-radius: 4px; margin: 12px 0; }
+    .threshold-fill { position: absolute; left: 25%; right: 30%; top: 0; bottom: 0; background: var(--accent); border-radius: 4px; }
+    .threshold-handles { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); font-family: var(--font-mono); }
+
+    /* Footer */
+    .footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border-color); text-align: center; }
+    .footer p { font-size: 11px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-badge">
+        <span>◆</span> CPS Raster Module v1.0.0
+      </div>
+      <h1>栅格数据可视化</h1>
+      <p>GeoTIFF / Cloud Optimized GeoTIFF 的视觉表现、波段映射与数据交互标准，为遥感分析、气象监测提供精确的地理影像表达。</p>
+    </div>
+
+    <!-- Section 1: Rendering Modes -->
+    <div class="section">
+      <div class="section-title">01 · 栅格渲染模式</div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-label">Single Band</div>
+          <div class="raster-preview raster-grayscale">
+            <div class="raster-overlay"><span class="raster-overlay-text">灰度图 · DEM 高程</span></div>
+          </div>
+          <div class="card-title">灰度图 (Grayscale)</div>
+          <div class="card-desc">单一连续变量，surface-container → on-surface 明度映射。默认 <span class="card-code">Bilinear</span> 插值。</div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Pseudo Color</div>
+          <div class="raster-preview raster-pseudo">
+            <div class="raster-overlay"><span class="raster-overlay-text">伪彩色 · 地形着色</span></div>
+          </div>
+          <div class="card-title">伪彩色映射</div>
+          <div class="card-desc">单波段数值通过 Scale 映射至预设色带，支持 Terrain / Thermal / NDVI 等。</div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Multi-band</div>
+          <div class="raster-preview raster-rgb">
+            <div class="raster-overlay"><span class="raster-overlay-text">真彩色 · 卫星影像</span></div>
+          </div>
+          <div class="card-title">真彩色/多波段合成</div>
+          <div class="card-desc">RGB 通道指定波段索引。假彩色使用 NIR/SWIR 突出特定地物。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Color Ramps -->
+    <div class="section">
+      <div class="section-title">02 · 色带定义</div>
+
+      <div class="color-ramp">
+        <div class="ramp-row">
+          <span class="ramp-label">Terrain</span>
+          <div class="ramp-strip">
+            <div style="background:#1e3a5f"></div>
+            <div style="background:#0d9488"></div>
+            <div style="background:#4ade80"></div>
+            <div style="background:#84cc16"></div>
+            <div style="background:#eab308"></div>
+            <div style="background:#a16207"></div>
+            <div style="background:#78350f"></div>
+            <div style="background:#fafaf9"></div>
+          </div>
+        </div>
+        <div class="ramp-row">
+          <span class="ramp-label">Thermal</span>
+          <div class="ramp-strip raster-thermal">
+            <div style="background:#1e40af"></div>
+            <div style="background:#6366f1"></div>
+            <div style="background:#a855f7"></div>
+            <div style="background:#ec4899"></div>
+            <div style="background:#ef4444"></div>
+            <div style="background:#f97316"></div>
+            <div style="background:#fbbf24"></div>
+            <div style="background:#fef9c3"></div>
+          </div>
+        </div>
+        <div class="ramp-row">
+          <span class="ramp-label">NDVI</span>
+          <div class="ramp-strip">
+            <div style="background:#78350f"></div>
+            <div style="background:#92400e"></div>
+            <div style="background:#a16207"></div>
+            <div style="background:#ca8a04"></div>
+            <div style="background:#65a30d"></div>
+            <div style="background:#16a34a"></div>
+            <div style="background:#059669"></div>
+            <div style="background:#064e3b"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Visual Enhancements -->
+    <div class="section">
+      <div class="section-title">03 · 视觉增强策略</div>
+
+      <table class="spec-table">
+        <thead>
+          <tr><th>参数</th><th>默认值</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>拉伸模式</td><td><code>min-max</code></td><td>线性映射视口/全局 min~max 值</td></tr>
+          <tr><td>标准差</td><td><code>2σ</code></td><td>排除极端值，增强对比度</td></tr>
+          <tr><td>不透明度</td><td><code>opacity: 0.8</code></td><td>确保底图纹理可见</td></tr>
+          <tr><td>混合模式</td><td><code>normal</code></td><td>地形晕渲建议 multiply / overlay</td></tr>
+          <tr><td>插值</td><td><code>bilinear</code></td><td>分析模式可切换 nearest</td></tr>
+          <tr><td>NoData</td><td><code>transparent</code></td><td>无效像素自动透明化</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 4: Interaction -->
+    <div class="section">
+      <div class="section-title">04 · 交互分析工具</div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-label">Pixel Inspector</div>
+          <div class="card-title">像素拾取</div>
+          <div class="pixel-inspector" style="margin-top: 12px;">
+            <div class="coords">120.1532°E, 30.2674°N</div>
+            <div class="band-values">
+              <div class="band">
+                <span class="band-name">Band 1 (R)</span>
+                <span class="band-val">142</span>
+              </div>
+              <div class="band">
+                <span class="band-name">Band 2 (G)</span>
+                <span class="band-val">187</span>
+              </div>
+              <div class="band">
+                <span class="band-name">Band 3 (B)</span>
+                <span class="band-val">93</span>
+              </div>
+              <div class="band">
+                <span class="band-name">NDVI</span>
+                <span class="band-val" style="color: var(--success)">0.68</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Threshold Filter</div>
+          <div class="card-title">动态阈值过滤</div>
+          <div class="threshold-demo" style="margin-top: 12px;">
+            <div class="threshold-label">海拔范围 (m)</div>
+            <div class="threshold-bar">
+              <div class="threshold-fill"></div>
+            </div>
+            <div class="threshold-handles">
+              <span>1200</span>
+              <span style="color: var(--accent); font-weight: 700;">2000 — 3500</span>
+              <span>5000</span>
+            </div>
+          </div>
+          <div class="card-desc">双向滑块选定区间，被过滤区域透明化，聚焦目标海拔带。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: Performance -->
+    <div class="section">
+      <div class="section-title">05 · 性能与 LOD</div>
+
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-label">Tiled Loading</div>
+          <div class="card-title">瓦片化加载</div>
+          <div class="card-desc">大规模 TIFF 必须转换为栅格瓦片或 <span class="card-code">COG</span> 格式，支持渐进式解码与范围请求（HTTP Range）。</div>
+        </div>
+        <div class="card">
+          <div class="card-label">GPU Pipeline</div>
+          <div class="card-title">WebGL 加速</div>
+          <div class="card-desc">拉伸、重分类、色带映射均在片元着色器完成，确保毫秒级响应。支持 <span class="card-code">Float32</span> 纹理精度。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Cartographic Precision System v1.2.0 · CPS Raster Module v1.0.0</p>
+    </div>
+  </div>
+
+  <script>
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      document.getElementById('themeBtn').textContent = next === 'dark' ? '🌙' : '☀️';
+      localStorage.setItem('cps-theme', next);
+    }
+    (function() {
+      const saved = localStorage.getItem('cps-theme');
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+        document.getElementById('themeBtn').textContent = saved === 'dark' ? '🌙' : '☀️';
+      }
+    })();
+  </script>
+</body>
+</html>

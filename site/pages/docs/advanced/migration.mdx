@@ -1,10 +1,10 @@
 # 迁移指南
 
-从 @antv/l7 或其他地图库迁移到 aimapkit 的完整指南。
+从 @antv/l7 或其他地图库迁移到 aimapui 的完整指南。
 
 ## 从 @antv/l7 迁移
 
-aimapkit 基于 @antv/l7 封装，底层能力完全兼容，主要变更在上层 API 设计。
+aimapui 基于 @antv/l7 封装，底层能力完全兼容，主要变更在上层 API 设计。
 
 ### 安装变更
 
@@ -13,9 +13,9 @@ aimapkit 基于 @antv/l7 封装，底层能力完全兼容，主要变更在上�
 npm install @antv/l7 @antv/l7-maps
 
 # 新
-npm install @antv/aimapkit
+npm install @antv/aimapui
 # 底图引擎按需安装
-npm install @anthropic/aimapkit-map-gaode  # 高德
+npm install @anthropic/aimapui-map-gaode  # 高德
 ```
 
 ### 初始化
@@ -29,13 +29,13 @@ const scene = new Scene({
   map: new GaodeMap({ style: 'dark', center: [116.397, 39.909], zoom: 10 })
 })
 
-// 新：aimapkit Schema 模式
-import { Aimap } from '@antv/aimapkit'
+// 新：aimapui Schema 模式
+import { Aimap } from '@antv/aimapui'
 <Aimap schema={{
   map: { basemap: 'gaode', style: 'dark', center: [116.397, 39.909], zoom: 10 }
 }} />
 
-// 新：aimapkit 组件模式
+// 新：aimapui 组件模式
 <Aimap map={{ basemap: 'gaode', style: 'dark', center: [116.397, 39.909], zoom: 10 }}>
   <PointLayer ... />
 </Aimap>
@@ -53,7 +53,7 @@ const layer = new PointLayer()
   .active(true)
 scene.addLayer(layer)
 
-// 新：aimapkit Schema
+// 新：aimapui Schema
 {
   type: 'point',
   source: data,
@@ -67,7 +67,7 @@ scene.addLayer(layer)
   active: { color: '#F59E0B' }
 }
 
-// 新：aimapkit 组件
+// 新：aimapui 组件
 <PointLayer
   source={data}
   sourceType="json"
@@ -112,7 +112,7 @@ controls: [{ type: 'zoom', position: 'bottom-right' }]
 
 ## API 对照表
 
-| l7 概念 | aimapkit Schema | aimapkit 组件 |
+| l7 概念 | aimapui Schema | aimapui 组件 |
 |---------|----------------|--------------|
 | `Scene` | `map` 配置 | `<Aimap map={...}>` |
 | `PointLayer()` | `type: 'point'` | `<PointLayer>` |
@@ -128,5 +128,5 @@ controls: [{ type: 'zoom', position: 'bottom-right' }]
 
 ## 下一步
 
-- [快速开始](/docs/getting-started/installation) - aimapkit 上手
+- [快速开始](/docs/getting-started/installation) - aimapui 上手
 - [Schema 基础](/docs/core-concepts/schema-basics) - Schema 模式详解

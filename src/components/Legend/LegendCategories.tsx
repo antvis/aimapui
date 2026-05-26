@@ -55,12 +55,12 @@ export function LegendCategories({
   };
 
   return (
-    <div className={cx('aimapkit-legend-section', className)}>
-      {title && <div className="aimapkit-legend-title">{title}</div>}
+    <div className={cx('aimapui-legend-section', className)}>
+      {title && <div className="aimapui-legend-title">{title}</div>}
       <div
         className={cx(
-          'aimapkit-legend-categories',
-          grid && 'aimapkit-legend-categories--grid',
+          'aimapui-legend-categories',
+          grid && 'aimapui-legend-categories--grid',
         )}
       >
         {labels.map((label, i) => {
@@ -73,8 +73,8 @@ export function LegendCategories({
             <div
               key={i}
               className={cx(
-                'aimapkit-legend-cat-item',
-                isDimmed && 'aimapkit-legend-cat-item--dimmed',
+                'aimapui-legend-cat-item',
+                isDimmed && 'aimapui-legend-cat-item--dimmed',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
@@ -82,12 +82,12 @@ export function LegendCategories({
             >
               <span
                 className={cx(
-                  'aimapkit-legend-cat-swatch',
-                  swatchShape === 'circle' && 'aimapkit-legend-cat-swatch--circle',
+                  'aimapui-legend-cat-swatch',
+                  swatchShape === 'circle' && 'aimapui-legend-cat-swatch--circle',
                 )}
                 style={{ backgroundColor: colors[i] ?? '#ccc' }}
               />
-              <span className="aimapkit-legend-cat-label">{label}</span>
+              <span className="aimapui-legend-cat-label">{label}</span>
             </div>
           );
         })}

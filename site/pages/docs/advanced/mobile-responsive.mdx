@@ -1,6 +1,6 @@
 # 移动端适配
 
-aimapkit 针对移动端场景进行了深度优化，提供触摸手势、响应式布局和性能节流策略。
+aimapui 针对移动端场景进行了深度优化，提供触摸手势、响应式布局和性能节流策略。
 
 ## 触摸手势
 
@@ -15,7 +15,7 @@ aimapkit 针对移动端场景进行了深度优化，提供触摸手势、响�
 ## 响应式地图容器
 
 ```tsx
-import { Aimap } from '@antv/aimapkit'
+import { Aimap } from '@antv/aimapui'
 
 function App() {
   return (
@@ -56,7 +56,7 @@ const schema = {
 移动端控件应精简且不遮挡地图：
 
 ```tsx
-import { Aimap, PointLayer, ZoomControl, ScaleControl } from '@antv/aimapkit'
+import { Aimap, PointLayer, ZoomControl, ScaleControl } from '@antv/aimapui'
 
 function MobileMap() {
   return (
@@ -90,7 +90,7 @@ layers: [{
 ## 移动端适配 Hooks
 
 ```tsx
-import { useMap, useMobileAdapt } from '@antv/aimapkit'
+import { useMap, useMobileAdapt } from '@antv/aimapui'
 
 function Map() {
   const { map } = useMap()

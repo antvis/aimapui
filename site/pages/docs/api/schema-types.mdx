@@ -1,13 +1,13 @@
 # Schema 类型定义
 
-aimapkit 提供完整的 TypeScript 类型定义,帮助你编写类型安全的代码。
+aimapui 提供完整的 TypeScript 类型定义,帮助你编写类型安全的代码。
 
 ## AimapSchema
 
 完整的 Schema 类型:
 
 ```tsx
-import type { AimapSchema } from '@antv/aimapkit'
+import type { AimapSchema } from '@antv/aimapui'
 
 const schema: AimapSchema = {
   map: MapSchema
@@ -25,7 +25,7 @@ const schema: AimapSchema = {
 地图底图配置:
 
 ```tsx
-import type { MapSchema } from '@antv/aimapkit'
+import type { MapSchema } from '@antv/aimapui'
 
 const mapSchema: MapSchema = {
   basemap: 'gaode' | 'mapbox' | 'tianditu' | 'tencent' | 'baidu' | 'map'
@@ -55,7 +55,7 @@ interface GestureConfig {
 图层配置:
 
 ```tsx
-import type { LayerSchema, LayerType, SourceType } from '@antv/aimapkit'
+import type { LayerSchema, LayerType, SourceType } from '@antv/aimapui'
 
 type LayerType = 'point' | 'line' | 'polygon' | 'heatmap' | 'raster' | 'image'
 type SourceType = 'geojson' | 'json' | 'csv'
@@ -112,7 +112,7 @@ const layerSchema: LayerSchema = {
 控件配置:
 
 ```tsx
-import type { ControlSchema, ControlType, ControlPosition } from '@antv/aimapkit'
+import type { ControlSchema, ControlType, ControlPosition } from '@antv/aimapui'
 
 type ControlType = 
   | 'zoom'
@@ -144,7 +144,7 @@ const controlSchema: ControlSchema = {
 交互元素配置:
 
 ```tsx
-import type { InteractionSchema, MarkerSchema, PopupSchema, TooltipSchema } from '@antv/aimapkit'
+import type { InteractionSchema, MarkerSchema, PopupSchema, TooltipSchema } from '@antv/aimapui'
 
 const marker: MarkerSchema = {
   type: 'marker'
@@ -180,7 +180,7 @@ import type {
   LegendRampSchema,
   LegendProportionSchema,
   LegendIconSchema
-} from '@antv/aimapkit'
+} from '@antv/aimapui'
 
 const categories: LegendCategoriesSchema = {
   type: 'categories'
@@ -248,7 +248,7 @@ import type {
   LegendProportionSchema,
   LegendIconSchema,
   LegendIconItem
-} from '@antv/aimapkit'
+} from '@antv/aimapui'
 ```
 
 ## 相关 API

@@ -200,7 +200,7 @@ function CloseButton({ onClick }: { onClick: () => void }) {
         e.stopPropagation();
         onClick();
       }}
-      className="aimapkit-popup-close-btn"
+      className="aimapui-popup-close-btn"
       aria-label="关闭"
     >
       <span className="material-symbols-outlined">close</span>
@@ -220,7 +220,7 @@ const ARROW_PATHS = {
   right: 'M8 0L0 8L8 16',
 } as const;
 
-/** 指向箭头 — 放置在 .aimapkit-popup-content 外部，不受 overflow:hidden 裁剪 */
+/** 指向箭头 — 放置在 .aimapui-popup-content 外部，不受 overflow:hidden 裁剪 */
 function PopupTip({ placement }: { placement: 'top' | 'bottom' | 'left' | 'right' }) {
   const isVertical = placement === 'top' || placement === 'bottom';
   const svgWidth = isVertical ? 16 : 8;
@@ -233,7 +233,7 @@ function PopupTip({ placement }: { placement: 'top' | 'bottom' | 'left' | 'right
   const strokeColor = 'rgba(195, 198, 215, 0.3)';
 
   return (
-    <div className={`aimapkit-popup-tip-arrow aimapkit-popup-tip-arrow--${placement === 'top' ? 'bottom' : placement === 'bottom' ? 'top' : placement}`}>
+    <div className={`aimapui-popup-tip-arrow aimapui-popup-tip-arrow--${placement === 'top' ? 'bottom' : placement === 'bottom' ? 'top' : placement}`}>
       <svg width={svgWidth} height={svgHeight} viewBox={viewBox} fill="none">
         <path d={path} fill={fillColor} />
         <path d={path} stroke={strokeColor} strokeWidth="0.5" fill="none" />
@@ -246,10 +246,10 @@ function PopupTip({ placement }: { placement: 'top' | 'bottom' | 'left' | 'right
 function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => void }) {
   if (!header.coverUrl) return null;
   return (
-    <div className="aimapkit-popup-cover">
-      <img src={header.coverUrl} alt={header.title} className="aimapkit-popup-cover-img" />
+    <div className="aimapui-popup-cover">
+      <img src={header.coverUrl} alt={header.title} className="aimapui-popup-cover-img" />
       <button
-        className="aimapkit-popup-close-btn aimapkit-popup-close-btn--cover"
+        className="aimapui-popup-close-btn aimapui-popup-close-btn--cover"
         aria-label="关闭"
         onClick={(e) => {
           e.stopPropagation();
@@ -259,9 +259,9 @@ function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => v
         <span className="material-symbols-outlined">close</span>
       </button>
       {header.statusLabel && (
-        <div className="aimapkit-popup-status-badge">
+        <div className="aimapui-popup-status-badge">
           <div
-            className="aimapkit-popup-status-dot"
+            className="aimapui-popup-status-dot"
             style={{ background: header.statusColor || '#10b981' }}
           />
           <span>{header.statusLabel}</span>
@@ -284,14 +284,14 @@ function HeaderSection({
   showStatusDot?: boolean;
 }) {
   return (
-    <div className={cx('aimapkit-popup-header', !hasCover && 'aimapkit-popup-header--with-close')}>
+    <div className={cx('aimapui-popup-header', !hasCover && 'aimapui-popup-header--with-close')}>
       {showStatusDot && header.statusDot && (
         <div
-          className="aimapkit-popup-header-dot"
+          className="aimapui-popup-header-dot"
           style={{ background: header.statusDot }}
         />
       )}
-      <h3 className="aimapkit-popup-title">{header.title}</h3>
+      <h3 className="aimapui-popup-title">{header.title}</h3>
       {!hasCover && <CloseButton onClick={onClose} />}
     </div>
   );
@@ -311,20 +311,20 @@ function AttributeList({
 
   return (
     <div
-      className="aimapkit-popup-attrs"
+      className="aimapui-popup-attrs"
       style={!isCompact ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : undefined}
     >
       {attributes.map((attr, i) => {
         // Detailed 模式且属性有 icon：渲染图标容器 + 大号值
         if (isDetailed && attr.icon) {
           return (
-            <div key={i} className="aimapkit-popup-attr aimapkit-popup-attr--detailed">
-              <div className="aimapkit-popup-attr-icon">
+            <div key={i} className="aimapui-popup-attr aimapui-popup-attr--detailed">
+              <div className="aimapui-popup-attr-icon">
                 <span className="material-symbols-outlined">{attr.icon}</span>
               </div>
-              <div className="aimapkit-popup-attr-text">
-                <p className="aimapkit-popup-attr-label">{attr.label}</p>
-                <p className="aimapkit-popup-attr-value" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
+              <div className="aimapui-popup-attr-text">
+                <p className="aimapui-popup-attr-label">{attr.label}</p>
+                <p className="aimapui-popup-attr-value" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
                   {attr.value}
                 </p>
               </div>
@@ -334,9 +334,9 @@ function AttributeList({
 
         // Compact/Standard 模式 — 标签-值左右对齐
         return (
-          <div key={i} className="aimapkit-popup-attr">
-            <p className="aimapkit-popup-attr-label">{attr.label}</p>
-            <p className="aimapkit-popup-attr-value" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
+          <div key={i} className="aimapui-popup-attr">
+            <p className="aimapui-popup-attr-label">{attr.label}</p>
+            <p className="aimapui-popup-attr-value" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
               {attr.value}
             </p>
           </div>
@@ -349,15 +349,15 @@ function AttributeList({
 /** 底部操作栏 */
 function ActionBar({ actions }: { actions: PopupAction[] }) {
   return (
-    <div className="aimapkit-popup-actions">
+    <div className="aimapui-popup-actions">
       {actions.map((action, i) => (
         <button
           key={i}
           className={cx(
-            'aimapkit-popup-action-btn',
+            'aimapui-popup-action-btn',
             action.variant === 'secondary'
-              ? 'aimapkit-popup-action-btn--secondary'
-              : 'aimapkit-popup-action-btn--primary',
+              ? 'aimapui-popup-action-btn--secondary'
+              : 'aimapui-popup-action-btn--primary',
           )}
           onClick={action.onClick}
         >
@@ -458,7 +458,7 @@ export function Popup({
       if (!isControlled) setInternalVisible(false);
       onClose?.();
       setExiting(false);
-    }, 150); // 与 CSS aimapkit-popup-exit 动画时长一致
+    }, 150); // 与 CSS aimapui-popup-exit 动画时长一致
   }, [isControlled, onClose, exiting]);
 
   // ── 互斥管理 ──
@@ -515,7 +515,7 @@ export function Popup({
         } catch { /* 降级 */ }
 
         // 计算最佳方向
-        const contentEl = el.querySelector('.aimapkit-popup-content') as HTMLElement;
+        const contentEl = el.querySelector('.aimapui-popup-content') as HTMLElement;
         const pw = contentEl?.offsetWidth || 320;
         const ph = contentEl?.offsetHeight || 200;
 
@@ -571,7 +571,7 @@ export function Popup({
       if (el.contains(e.target as Node)) return;
       // 如果点击目标是 Marker 相关元素，不关闭（由 Marker 的 onClick 处理）
       const target = e.target as HTMLElement;
-      if (target.closest('.aimapkit-marker') || target.closest('[data-marker]')) return;
+      if (target.closest('.aimapui-marker') || target.closest('[data-marker]')) return;
       // 点击地图空白区域，关闭 Popup
       handleClose();
     };
@@ -611,7 +611,7 @@ export function Popup({
     } catch { /* 降级 */ }
 
     // 重新计算位置
-    const contentEl = el.querySelector('.aimapkit-popup-content') as HTMLElement;
+    const contentEl = el.querySelector('.aimapui-popup-content') as HTMLElement;
     const pw = contentEl?.offsetWidth || 320;
     const ph = contentEl?.offsetHeight || 200;
 
@@ -651,14 +651,14 @@ export function Popup({
     if (!hasStructuredContent) {
       if (isHtmlString(content)) {
         return (
-          <div className="aimapkit-popup-body">
+          <div className="aimapui-popup-body">
             {closeButton && <CloseButton onClick={handleClose} />}
             <div dangerouslySetInnerHTML={{ __html: content }} />
           </div>
         );
       }
       return (
-        <div className="aimapkit-popup-body">
+        <div className="aimapui-popup-body">
           {closeButton && <CloseButton onClick={handleClose} />}
           <div>{content ?? ''}</div>
         </div>
@@ -687,7 +687,7 @@ export function Popup({
         )}
 
         {/* 内容区 */}
-        <div className="aimapkit-popup-body">
+        <div className="aimapui-popup-body">
           {/* 非结构化内容传入时作为 body 补充 */}
           {content && !isHtmlString(content) && typeof content !== 'string' && <div>{content}</div>}
           {content && isHtmlString(content) && (
@@ -721,7 +721,7 @@ export function Popup({
   return createPortal(
     <div
       ref={popupRef}
-      className={cx('aimapkit-popup', `aimapkit-popup--${size}`)}
+      className={cx('aimapui-popup', `aimapui-popup--${size}`)}
       style={{
         position: 'absolute',
         left: 0,
@@ -740,7 +740,7 @@ export function Popup({
       {currentPlacement === 'right' && <PopupTip placement={currentPlacement} />}
 
       {/* Popup 内容容器 - MD3 玻璃拟态 */}
-      <div className={cx('aimapkit-popup-content', exiting && 'aimapkit-popup-content--exit', className)}>
+      <div className={cx('aimapui-popup-content', exiting && 'aimapui-popup-content--exit', className)}>
         {renderContent()}
       </div>
 

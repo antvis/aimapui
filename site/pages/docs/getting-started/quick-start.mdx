@@ -6,7 +6,7 @@
 
 ### 1. 获取高德地图 Key
 
-aimapkit 使用高德地图作为底图,你需要先申请高德地图 Key:
+aimapui 使用高德地图作为底图,你需要先申请高德地图 Key:
 
 1. 访问 [高德开放平台](https://lbs.amap.com/)
 2. 注册账号并登录
@@ -29,7 +29,7 @@ cd my-map-app
 ### 3. 安装依赖
 
 ```bash
-npm install @antv/aimapkit @antv/l7 @antv/l7-maps
+npm install @antv/aimapui @antv/l7 @antv/l7-maps
 ```
 
 ## 第一个地图
@@ -38,8 +38,8 @@ npm install @antv/aimapkit @antv/l7 @antv/l7-maps
 
 ```tsx
 // src/App.tsx
-import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -133,7 +133,7 @@ const schema = {
 监听地图事件:
 
 ```tsx
-import { Aimap } from '@antv/aimapkit'
+import { Aimap } from '@antv/aimapui'
 import type { Scene } from '@antv/l7'
 
 function App() {

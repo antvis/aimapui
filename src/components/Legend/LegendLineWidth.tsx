@@ -54,10 +54,10 @@ export function LegendLineWidth({
   };
 
   return (
-    <div className={cx('aimapkit-legend-section', className)}>
-      {title && <div className="aimapkit-legend-title">{title}</div>}
+    <div className={cx('aimapui-legend-section', className)}>
+      {title && <div className="aimapui-legend-title">{title}</div>}
 
-      <div className="aimapkit-legend-linewidth">
+      <div className="aimapui-legend-linewidth">
         {items.map((item, i) => {
           const isDimmed =
             hoveredIndex >= 0
@@ -68,22 +68,22 @@ export function LegendLineWidth({
             <div
               key={i}
               className={cx(
-                'aimapkit-legend-linewidth-item',
-                isDimmed && 'aimapkit-legend-linewidth-item--dimmed',
+                'aimapui-legend-linewidth-item',
+                isDimmed && 'aimapui-legend-linewidth-item--dimmed',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
               onClick={() => handleClick(i)}
             >
               <div
-                className="aimapkit-legend-linewidth-line"
+                className="aimapui-legend-linewidth-line"
                 style={{
                   height: item.width,
                   backgroundColor: color,
                   opacity: 0.85,
                 }}
               />
-              <span className="aimapkit-legend-linewidth-label">
+              <span className="aimapui-legend-linewidth-label">
                 {item.label}
               </span>
             </div>

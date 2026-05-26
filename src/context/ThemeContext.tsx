@@ -23,7 +23,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 export interface ThemeProviderProps {
   /** 默认主题，默认 'light' */
   defaultTheme?: MapTheme;
-  /** 挂载 data-theme 属性的目标元素选择器，默认挂载到最近的 .aimapkit-container 或 :root */
+  /** 挂载 data-theme 属性的目标元素选择器，默认挂载到最近的 .aimapui-container 或 :root */
   target?: 'root' | 'container';
   children: React.ReactNode;
 }

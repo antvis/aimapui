@@ -1,6 +1,6 @@
 # JSON Schema
 
-aimapkit Schema 的 JSON Schema 定义，可用于 IDE 自动补全和 AI 工具验证。
+aimapui Schema 的 JSON Schema 定义，可用于 IDE 自动补全和 AI 工具验证。
 
 ## 用途
 
@@ -14,7 +14,7 @@ aimapkit Schema 的 JSON Schema 定义，可用于 IDE 自动补全和 AI 工具
 
 ```json
 {
-  "$schema": "https://aimapkit.antv.antgroup.com/schema/aimap-schema.json",
+  "$schema": "https://aimapui.antv.antgroup.com/schema/aimap-schema.json",
   "map": { ... },
   "layers": [ ... ]
 }
@@ -23,7 +23,7 @@ aimapkit Schema 的 JSON Schema 定义，可用于 IDE 自动补全和 AI 工具
 ## 获取 JSON Schema
 
 ```tsx
-import { aimapJsonSchema } from '@antv/aimapkit'
+import { aimapJsonSchema } from '@antv/aimapui'
 
 // 获取完整 JSON Schema 对象
 console.log(JSON.stringify(aimapJsonSchema, null, 2))
@@ -33,5 +33,5 @@ console.log(JSON.stringify(aimapJsonSchema, null, 2))
 
 ```bash
 # 从 JSON Schema 生成 TypeScript 类型
-npx json2ts https://aimapkit.antv.antgroup.com/schema/aimap-schema.json -o src/types/aimap.ts
+npx json2ts https://aimapui.antv.antgroup.com/schema/aimap-schema.json -o src/types/aimap.ts
 ```

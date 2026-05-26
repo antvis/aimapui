@@ -69,7 +69,7 @@
 
 ### 6.1 容器样式（深色变体）
 ```css
-.aimapkit-tooltip-content {
+.aimapui-tooltip-content {
   background: rgba(39, 49, 63, 0.95);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -88,7 +88,7 @@
 
 ### 6.2 入场动画
 ```css
-@keyframes aimapkit-tooltip-enter {
+@keyframes aimapui-tooltip-enter {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -99,14 +99,14 @@
   }
 }
 
-.aimapkit-tooltip-content {
-  animation: aimapkit-tooltip-enter 150ms cubic-bezier(0, 0, 0.2, 1) forwards;
+.aimapui-tooltip-content {
+  animation: aimapui-tooltip-enter 150ms cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 ```
 
 ### 6.3 箭头样式（下方箭头 — Tooltip 在上方时）
 ```css
-.aimapkit-tooltip-arrow--bottom {
+.aimapui-tooltip-arrow--bottom {
   position: absolute;
   bottom: -6px;
   left: 50%;

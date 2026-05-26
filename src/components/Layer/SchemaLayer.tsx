@@ -59,7 +59,7 @@ export function createL7Layer(schema: LayerSchema, scene: Scene): L7Layer | null
       adapter = adaptImageLayer(schema) as LayerAdapter;
       break;
     default:
-      console.warn(`[AimapKit] Unknown layer type: ${schema.type}`);
+      console.warn(`[aimapui] Unknown layer type: ${schema.type}`);
       return null;
   }
 
@@ -72,7 +72,7 @@ async function buildLayer(adapter: LayerAdapter, _scene: Scene): Promise<L7Layer
   const LayerClass = (l7 as Record<string, any>)[adapter.type] as new (...args: any[]) => any;
 
   if (!LayerClass) {
-    throw new Error(`[AimapKit] L7 layer class "${adapter.type}" not found`);
+    throw new Error(`[aimapui] L7 layer class "${adapter.type}" not found`);
   }
 
   const layer = new LayerClass({
@@ -370,7 +370,7 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
       });
     }).catch((error: unknown) => {
       if (!destroyed) {
-        console.error(`[AimapKit] Failed to create layer "${schema.id ?? schema.name ?? schema.type}":`, error);
+        console.error(`[aimapui] Failed to create layer "${schema.id ?? schema.name ?? schema.type}":`, error);
       }
     });
 

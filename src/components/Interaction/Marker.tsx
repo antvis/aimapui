@@ -57,7 +57,7 @@ function PinSvg({ color = 'primary' }: { color?: MarkerColor }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       style={{ width: 32, height: 40, display: 'block' }}
-      className="aimapkit-marker-pin"
+      className="aimapui-marker-pin"
     >
       <path
         d="M16 0C7.16344 0 0 7.16344 0 16C0 24.8366 16 40 16 40C16 40 32 24.8366 32 16C32 7.16344 24.8366 0 16 0Z"
@@ -76,7 +76,7 @@ function PinSvg({ color = 'primary' }: { color?: MarkerColor }) {
 function IconPin({ icon, color = 'primary' }: { icon: string; color?: MarkerColor }) {
   const { fill } = MARKER_COLOR_MAP[color];
   return (
-    <div className="aimapkit-marker-pin aimapkit-marker-pin--icon" style={{ position: 'relative', width: 32, height: 40 }}>
+    <div className="aimapui-marker-pin aimapui-marker-pin--icon" style={{ position: 'relative', width: 32, height: 40 }}>
       <svg
         viewBox="0 0 32 40"
         fill="none"
@@ -118,8 +118,8 @@ function IconPin({ icon, color = 'primary' }: { icon: string; color?: MarkerColo
 function CircleMarker({ color = 'primary' }: { color?: MarkerColor }) {
   const { fill, bg } = MARKER_COLOR_MAP[color];
   return (
-    <div className="aimapkit-marker-circle" style={{ background: bg, borderColor: fill }}>
-      <div className="aimapkit-marker-circle__inner" style={{ background: fill }} />
+    <div className="aimapui-marker-circle" style={{ background: bg, borderColor: fill }}>
+      <div className="aimapui-marker-circle__inner" style={{ background: fill }} />
     </div>
   );
 }
@@ -130,7 +130,7 @@ function CircleMarker({ color = 'primary' }: { color?: MarkerColor }) {
 function DotMarker({ color = 'primary' }: { color?: MarkerColor }) {
   const { fill } = MARKER_COLOR_MAP[color];
   return (
-    <div className="aimapkit-marker-dot" style={{ background: fill }} />
+    <div className="aimapui-marker-dot" style={{ background: fill }} />
   );
 }
 
@@ -138,7 +138,7 @@ function DotMarker({ color = 'primary' }: { color?: MarkerColor }) {
  * Marker 文本标注 — 置于 Marker 下方 4px，带白色光晕
  */
 function MarkerLabel({ text }: { text: string }) {
-  return <div className="aimapkit-marker-label">{text}</div>;
+  return <div className="aimapui-marker-label">{text}</div>;
 }
 
 // ============================================================
@@ -269,10 +269,10 @@ export function Marker({
 
   // 计算 className：合并 variant、color、state 类名
   const computedClassName = React.useMemo(() => {
-    const parts: string[] = ['aimapkit-marker'];
-    if (selected) parts.push('aimapkit-marker--selected');
-    if (inactive) parts.push('aimapkit-marker--inactive');
-    parts.push(`aimapkit-marker--${color}`);
+    const parts: string[] = ['aimapui-marker'];
+    if (selected) parts.push('aimapui-marker--selected');
+    if (inactive) parts.push('aimapui-marker--inactive');
+    parts.push(`aimapui-marker--${color}`);
     if (className) parts.push(className);
     return parts.join(' ');
   }, [selected, inactive, color, className]);

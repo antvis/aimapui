@@ -30,13 +30,13 @@ export function LegendDiverging({
   const gradient = colors.join(', ');
 
   return (
-    <div className={cx('aimapkit-legend-section', className)}>
-      {title && <div className="aimapkit-legend-title">{title}</div>}
+    <div className={cx('aimapui-legend-section', className)}>
+      {title && <div className="aimapui-legend-title">{title}</div>}
 
-      <div className="aimapkit-legend-diverging">
+      <div className="aimapui-legend-diverging">
         <div style={{ position: 'relative' }}>
           <div
-            className="aimapkit-legend-diverging-bar"
+            className="aimapui-legend-diverging-bar"
             style={{
               background: `linear-gradient(to right, ${gradient})`,
             }}
@@ -54,7 +54,7 @@ export function LegendDiverging({
             }}
           />
           {middleLabel && (
-            <div className="aimapkit-legend-diverging-middle-label">
+            <div className="aimapui-legend-diverging-middle-label">
               {middleLabel}
             </div>
           )}
@@ -62,7 +62,7 @@ export function LegendDiverging({
 
         {/* 标签行：间距留出中间标签空间 */}
         <div
-          className="aimapkit-legend-diverging-labels"
+          className="aimapui-legend-diverging-labels"
           style={middleLabel ? { marginBottom: 12 } : undefined}
         >
           <span>{labels[0]}</span>

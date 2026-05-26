@@ -103,8 +103,8 @@ export const examples: ExampleConfig[] = [
         size: 12
       }]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -146,8 +146,8 @@ export default function App() {
       },
       layers: []
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -195,8 +195,8 @@ export default function App() {
         { type: 'layerSwitch', position: 'topright' }
       ]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -250,8 +250,8 @@ export default function App() {
         }
       }]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -332,8 +332,8 @@ export default function App() {
         colors: ['#dbeafe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb']
       }]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const regions = {
   type: 'FeatureCollection',
@@ -422,8 +422,8 @@ export default function App() {
         animate: { enable: true, duration: 4, trailLength: 2 }
       }]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -475,8 +475,8 @@ export default function App() {
         isContinuous: true
       }]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -535,8 +535,8 @@ export default function App() {
         fillColor: '#5B8FF9'
       }]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -600,8 +600,8 @@ export default function App() {
         { type: 'categories', title: '图层说明', labels: ['流向线', '关键节点'], colors: ['#5B8FF9', '#F6BD16'] }
       ]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -678,8 +678,8 @@ export default function App() {
         }
       ]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -759,8 +759,8 @@ export default function App() {
         }
       ]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -821,8 +821,8 @@ export default function App() {
         select: { color: '#E8684A' }
       }]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -898,8 +898,8 @@ export default function App() {
         }
       }
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -963,8 +963,8 @@ export default function App() {
         }
       }
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -1019,8 +1019,8 @@ export default function App() {
         size: 14
       }]
     },
-    code: `import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+    code: `import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 // 无需 Token，使用 L7 内置底图
 const schema = {

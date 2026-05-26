@@ -1,13 +1,13 @@
 # 事件系统
 
-aimapkit 提供了三种事件处理方式：EventBus、Schema 声明式事件、React 回调函数。
+aimapui 提供了三种事件处理方式：EventBus、Schema 声明式事件、React 回调函数。
 
 ## 1. EventBus 事件总线
 
 EventBus 是组件内部通信的核心机制，支持跨组件事件传递：
 
 ```tsx
-import { Aimap } from '@antv/aimapkit'
+import { Aimap } from '@antv/aimapui'
 
 const schema = {
   map: { basemap: 'gaode', center: [116.397, 39.909], zoom: 10 },
@@ -62,7 +62,7 @@ const schema = {
 ### 地图事件
 
 ```tsx
-import { Aimap } from '@antv/aimapkit'
+import { Aimap } from '@antv/aimapui'
 import type { Scene } from '@antv/l7'
 
 function App() {
@@ -90,7 +90,7 @@ function App() {
 ### 图层事件
 
 ```tsx
-import { Aimap, PointLayer } from '@antv/aimapkit'
+import { Aimap, PointLayer } from '@antv/aimapui'
 
 function App() {
   return (
@@ -113,7 +113,7 @@ function App() {
 ### Marker 拖拽事件
 
 ```tsx
-import { Aimap, Marker } from '@antv/aimapkit'
+import { Aimap, Marker } from '@antv/aimapui'
 
 function App() {
   return (

@@ -43,7 +43,7 @@ export class EventBus {
         try {
           cb(...args);
         } catch (err) {
-          console.error(`[AimapKit EventBus] Error in event "${event}":`, err);
+          console.error(`[aimapui EventBus] Error in event "${event}":`, err);
         }
       });
     }

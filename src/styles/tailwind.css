@@ -289,8 +289,8 @@
   background-size: 20px 20px;
 }
 
-/* AimapKit 现代化样式 */
-.aimapkit-container {
+/* aimapui 现代化样式 */
+.aimapui-container {
   @apply relative w-full h-full overflow-hidden;
 }
 
@@ -349,7 +349,7 @@
    定位通过 inline style 控制(left/top/transform)，不在 CSS 中设置 transform 避免优先级冲突
    ============================================================ */
 
-.aimapkit-marker {
+.aimapui-marker {
   position: absolute;
   cursor: pointer;
   transform-origin: bottom center;
@@ -368,18 +368,18 @@
    用途: POI、物流站点、静态设施
    SVG 路径实现，避免 CSS transform 伪元素变形
    ============================================================ */
-.aimapkit-marker-pin {
+.aimapui-marker-pin {
   display: block;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
 }
 
-.aimapkit-marker-pin svg {
+.aimapui-marker-pin svg {
   display: block;
   overflow: visible;
 }
 
 /* 图标型 Pin — 图标定位在头部圆形区域 */
-.aimapkit-marker-pin--icon {
+.aimapui-marker-pin--icon {
   position: relative;
   display: inline-flex;
   align-items: flex-start;
@@ -392,7 +392,7 @@
    尺寸: 24x24px, 半透明背景 + 实心内圆
    用途: 实时车辆、传感器节点、背景要素
    ============================================================ */
-.aimapkit-marker-circle {
+.aimapui-marker-circle {
   width: 24px;
   height: 24px;
   border: 1.5px solid white;
@@ -404,7 +404,7 @@
   position: relative;
 }
 
-.aimapkit-marker-circle__inner {
+.aimapui-marker-circle__inner {
   width: 6px;
   height: 6px;
   border-radius: 50%;
@@ -415,7 +415,7 @@
    使用 CSS ::before 伪元素实现的 Pin 形态
    推荐使用 variant="icon" + 新 SVG Pin
    ============================================================ */
-.aimapkit-marker-icon {
+.aimapui-marker-icon {
   width: 32px;
   height: 40px;
   position: relative;
@@ -424,7 +424,7 @@
   justify-content: center;
 }
 
-.aimapkit-marker-icon::before {
+.aimapui-marker-icon::before {
   content: '';
   position: absolute;
   width: 100%;
@@ -436,7 +436,7 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.aimapkit-marker-icon .material-symbols-outlined {
+.aimapui-marker-icon .material-symbols-outlined {
   position: relative;
   z-index: 1;
   font-size: 16px;
@@ -448,7 +448,7 @@
    低缩放级简化点 (Zoom < 10)
    在缩放级别较低时降级显示
    ============================================================ */
-.aimapkit-marker-dot {
+.aimapui-marker-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -461,7 +461,7 @@
    位置: Marker 下方 4px
    样式: font-mono-data, 2px 白色光晕确保对比度
    ============================================================ */
-.aimapkit-marker-label {
+.aimapui-marker-label {
   position: absolute;
   top: calc(100% + 4px);
   left: 50%;
@@ -482,39 +482,39 @@
    ============================================================ */
 
 /* Marker 子元素 hover 过渡 — 只对视觉属性添加 transition，不包含定位 transform */
-.aimapkit-marker-pin,
-.aimapkit-marker-circle,
-.aimapkit-marker-icon {
+.aimapui-marker-pin,
+.aimapui-marker-circle,
+.aimapui-marker-icon {
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
               filter 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* 悬停状态 (Hover): 尺寸放大 110%, 位移 -2px, 阴影加深 */
-.aimapkit-marker:hover .aimapkit-marker-pin,
-.aimapkit-marker:hover .aimapkit-marker-circle,
-.aimapkit-marker:hover .aimapkit-marker-icon {
+.aimapui-marker:hover .aimapui-marker-pin,
+.aimapui-marker:hover .aimapui-marker-circle,
+.aimapui-marker:hover .aimapui-marker-icon {
   transform: scale(1.1) translateY(-2px);
   filter: drop-shadow(0 20px 25px -5px rgba(0, 0, 0, 0.1)) drop-shadow(0 8px 10px -6px rgba(0, 0, 0, 0.1));
 }
 
 /* 选中状态 (Selected): 呼吸脉冲动画 + 边框颜色切换 */
-.aimapkit-marker--selected .aimapkit-marker-pin::after,
-.aimapkit-marker--selected .aimapkit-marker-circle::after {
+.aimapui-marker--selected .aimapui-marker-pin::after,
+.aimapui-marker--selected .aimapui-marker-circle::after {
   content: '';
   position: absolute;
   inset: -6px;
   border-radius: 50%;
   background: rgba(37, 99, 235, 0.2);
-  animation: aimapkit-marker-pulse 1.6s ease-out infinite;
+  animation: aimapui-marker-pulse 1.6s ease-out infinite;
   z-index: -1;
 }
 
 /* 选中 Pin 也可有脉冲，使用 SVG 外层包装 */
-.aimapkit-marker--selected .aimapkit-marker-pin {
+.aimapui-marker--selected .aimapui-marker-pin {
   position: relative;
 }
 
-@keyframes aimapkit-marker-pulse {
+@keyframes aimapui-marker-pulse {
   0%, 100% {
     transform: scale(1);
     opacity: 0.6;
@@ -526,14 +526,14 @@
 }
 
 /* 禁用/离线状态 (Inactive): 灰度, 透明度 50% */
-.aimapkit-marker--inactive {
+.aimapui-marker--inactive {
   pointer-events: none;
 }
 
-.aimapkit-marker--inactive .aimapkit-marker-pin,
-.aimapkit-marker--inactive .aimapkit-marker-circle,
-.aimapkit-marker--inactive .aimapkit-marker-icon,
-.aimapkit-marker--inactive .aimapkit-marker-dot {
+.aimapui-marker--inactive .aimapui-marker-pin,
+.aimapui-marker--inactive .aimapui-marker-circle,
+.aimapui-marker--inactive .aimapui-marker-icon,
+.aimapui-marker--inactive .aimapui-marker-dot {
   filter: grayscale(100%);
   opacity: 0.5;
 }
@@ -546,72 +546,72 @@
 /* Primary (默认蓝) — 由组件内联样式或 SVG fill 控制，无需额外 CSS 覆盖 */
 
 /* Success (绿) */
-.aimapkit-marker--success .aimapkit-marker-pin svg path {
+.aimapui-marker--success .aimapui-marker-pin svg path {
   fill: #00854d;
 }
-.aimapkit-marker--success .aimapkit-marker-icon::before {
+.aimapui-marker--success .aimapui-marker-icon::before {
   background: #00854d;
 }
-.aimapkit-marker--success .aimapkit-marker-dot {
+.aimapui-marker--success .aimapui-marker-dot {
   background: #00854d;
 }
-.aimapkit-marker--success .aimapkit-marker-circle {
+.aimapui-marker--success .aimapui-marker-circle {
   background: rgba(0, 133, 77, 0.2);
 }
-.aimapkit-marker--success .aimapkit-marker-circle__inner {
+.aimapui-marker--success .aimapui-marker-circle__inner {
   background: #00854d;
 }
-.aimapkit-marker--selected.aimapkit-marker--success .aimapkit-marker-pin::after,
-.aimapkit-marker--selected.aimapkit-marker--success .aimapkit-marker-circle::after {
+.aimapui-marker--selected.aimapui-marker--success .aimapui-marker-pin::after,
+.aimapui-marker--selected.aimapui-marker--success .aimapui-marker-circle::after {
   background: rgba(0, 133, 77, 0.2);
 }
 
 /* Warning (橙) */
-.aimapkit-marker--warning .aimapkit-marker-pin svg path {
+.aimapui-marker--warning .aimapui-marker-pin svg path {
   fill: #943700;
 }
-.aimapkit-marker--warning .aimapkit-marker-icon::before {
+.aimapui-marker--warning .aimapui-marker-icon::before {
   background: #943700;
 }
-.aimapkit-marker--warning .aimapkit-marker-dot {
+.aimapui-marker--warning .aimapui-marker-dot {
   background: #943700;
 }
-.aimapkit-marker--warning .aimapkit-marker-circle {
+.aimapui-marker--warning .aimapui-marker-circle {
   background: rgba(148, 55, 0, 0.2);
 }
-.aimapkit-marker--warning .aimapkit-marker-circle__inner {
+.aimapui-marker--warning .aimapui-marker-circle__inner {
   background: #943700;
 }
-.aimapkit-marker--selected.aimapkit-marker--warning .aimapkit-marker-pin::after,
-.aimapkit-marker--selected.aimapkit-marker--warning .aimapkit-marker-circle::after {
+.aimapui-marker--selected.aimapui-marker--warning .aimapui-marker-pin::after,
+.aimapui-marker--selected.aimapui-marker--warning .aimapui-marker-circle::after {
   background: rgba(148, 55, 0, 0.2);
 }
 
 /* Error (红) */
-.aimapkit-marker--error .aimapkit-marker-pin svg path {
+.aimapui-marker--error .aimapui-marker-pin svg path {
   fill: #ba1a1a;
 }
-.aimapkit-marker--error .aimapkit-marker-icon::before {
+.aimapui-marker--error .aimapui-marker-icon::before {
   background: #ba1a1a;
 }
-.aimapkit-marker--error .aimapkit-marker-dot {
+.aimapui-marker--error .aimapui-marker-dot {
   background: #ba1a1a;
 }
-.aimapkit-marker--error .aimapkit-marker-circle {
+.aimapui-marker--error .aimapui-marker-circle {
   background: rgba(186, 26, 26, 0.2);
 }
-.aimapkit-marker--error .aimapkit-marker-circle__inner {
+.aimapui-marker--error .aimapui-marker-circle__inner {
   background: #ba1a1a;
 }
-.aimapkit-marker--selected.aimapkit-marker--error .aimapkit-marker-pin::after,
-.aimapkit-marker--selected.aimapkit-marker--error .aimapkit-marker-circle::after {
+.aimapui-marker--selected.aimapui-marker--error .aimapui-marker-pin::after,
+.aimapui-marker--selected.aimapui-marker--error .aimapui-marker-circle::after {
   background: rgba(186, 26, 26, 0.2);
 }
 
 /* ============================================================
    聚合标记脉冲动画（大规模聚合 1000+）
    ============================================================ */
-@keyframes aimapkit-cluster-pulse {
+@keyframes aimapui-cluster-pulse {
   0%, 100% {
     transform: scale(1);
     opacity: 0.6;
@@ -629,14 +629,14 @@
    ============================================================ */
 
   /* Popup 外层容器 — 定位通过 inline style transform 控制 */
-  .aimapkit-popup {
+  .aimapui-popup {
     position: absolute;
     z-index: 10;
     pointer-events: auto;
   }
 
   /* Popup 内容容器 — MD3 玻璃拟态 */
-  .aimapkit-popup-content {
+  .aimapui-popup-content {
     position: relative;
     background: rgba(248, 249, 255, 0.95);
     backdrop-filter: blur(12px);
@@ -644,40 +644,40 @@
     border: 1px solid rgba(195, 198, 215, 0.3);
     border-radius: 12px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    animation: aimapkit-popup-enter 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
+    animation: aimapui-popup-enter 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
     overflow: hidden;
   }
 
   /* ── 尺寸变体 ── */
-  .aimapkit-popup--compact .aimapkit-popup-content {
+  .aimapui-popup--compact .aimapui-popup-content {
     width: 280px;
     min-width: min-content;
   }
-  .aimapkit-popup--standard .aimapkit-popup-content {
+  .aimapui-popup--standard .aimapui-popup-content {
     width: 320px;
   }
-  .aimapkit-popup--detailed .aimapkit-popup-content {
+  .aimapui-popup--detailed .aimapui-popup-content {
     width: 400px;
   }
 
   /* ── 封面图 ── */
-  .aimapkit-popup-cover {
+  .aimapui-popup-cover {
     position: relative;
     aspect-ratio: 16 / 9;
     overflow: hidden;
   }
   /* Detailed 封面图更紧凑，避免 Popup 整体过高 */
-  .aimapkit-popup--detailed .aimapkit-popup-cover {
+  .aimapui-popup--detailed .aimapui-popup-cover {
     aspect-ratio: 2 / 1;
   }
-  .aimapkit-popup-cover-img {
+  .aimapui-popup-cover-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 
   /* 封面图上的关闭按钮 — 半透明黑底 */
-  .aimapkit-popup-close-btn--cover {
+  .aimapui-popup-close-btn--cover {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -696,16 +696,16 @@
     transition: background 0.2s ease;
     z-index: 10;
   }
-  .aimapkit-popup-close-btn--cover:hover {
+  .aimapui-popup-close-btn--cover:hover {
     background: rgba(0, 0, 0, 0.5);
   }
-  .aimapkit-popup-close-btn--cover .material-symbols-outlined {
+  .aimapui-popup-close-btn--cover .material-symbols-outlined {
     font-size: 18px;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
 
   /* 状态标签 — 封面图左下角 */
-  .aimapkit-popup-status-badge {
+  .aimapui-popup-status-badge {
     position: absolute;
     bottom: 8px;
     left: 8px;
@@ -724,26 +724,26 @@
     text-transform: uppercase;
     color: var(--color-on-surface, #121c2a);
   }
-  .aimapkit-popup-status-dot {
+  .aimapui-popup-status-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
   }
 
   /* ── 标题区 ── */
-  .aimapkit-popup-header {
+  .aimapui-popup-header {
     display: flex;
     align-items: center;
     padding: 16px;
   }
-  .aimapkit-popup-header--with-close {
+  .aimapui-popup-header--with-close {
     justify-content: space-between;
   }
   /* 有封面图时紧跟封面 */
-  .aimapkit-popup-cover + .aimapkit-popup-header {
+  .aimapui-popup-cover + .aimapui-popup-header {
     padding-top: 12px;
   }
-  .aimapkit-popup-title {
+  .aimapui-popup-title {
     font-size: 20px;
     line-height: 28px;
     font-weight: 600;
@@ -757,17 +757,17 @@
   }
 
   /* 标题区状态指示灯 (Compact 标题前脉冲点) */
-  .aimapkit-popup-header-dot {
+  .aimapui-popup-header-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     flex-shrink: 0;
     margin-right: 8px;
-    animation: aimapkit-dot-pulse 2s ease-in-out infinite;
+    animation: aimapui-dot-pulse 2s ease-in-out infinite;
   }
 
   /* ── 关闭按钮 — Header 内作为 flex 子项 ── */
-  .aimapkit-popup-close-btn {
+  .aimapui-popup-close-btn {
     width: 32px;
     height: 32px;
     display: flex;
@@ -783,16 +783,16 @@
     padding: 0;
     margin-left: 8px;
   }
-  .aimapkit-popup-close-btn:hover {
+  .aimapui-popup-close-btn:hover {
     color: var(--color-on-surface, #121c2a);
     background: var(--color-surface-container-high, #dee9fc);
   }
-  .aimapkit-popup-close-btn .material-symbols-outlined {
+  .aimapui-popup-close-btn .material-symbols-outlined {
     font-size: 20px;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
   /* 简单内容模式 — body 内的关闭按钮（绝对定位右上角） */
-  .aimapkit-popup-body > .aimapkit-popup-close-btn {
+  .aimapui-popup-body > .aimapui-popup-close-btn {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -802,7 +802,7 @@
   }
 
   /* ── 内容区 (Body) ── */
-  .aimapkit-popup-body {
+  .aimapui-popup-body {
     padding: 16px;
     font-size: 14px;
     line-height: 20px;
@@ -812,38 +812,38 @@
     position: relative;
   }
   /* 简单内容模式 — body 作为首且唯一子元素时，预留右上角关闭按钮空间 */
-  .aimapkit-popup-content > .aimapkit-popup-body:first-child:last-child {
+  .aimapui-popup-content > .aimapui-popup-body:first-child:last-child {
     padding: 16px;
     padding-top: 8px;
     padding-right: 40px;
   }
   /* Compact 模式下简单内容：关闭按钮在右上角，body 需预留右侧空间 */
-  .aimapkit-popup--compact .aimapkit-popup-content > .aimapkit-popup-body:first-child:last-child {
+  .aimapui-popup--compact .aimapui-popup-content > .aimapui-popup-body:first-child:last-child {
     padding: 12px;
     padding-top: 4px;
     padding-right: 36px;
   }
 
   /* ── 属性列表 — Standard/Detailed: 标签-值左右对齐 ── */
-  .aimapkit-popup-attrs {
+  .aimapui-popup-attrs {
     display: grid;
     gap: 8px;
   }
-  .aimapkit-popup-attr {
+  .aimapui-popup-attr {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: baseline;
     gap: 8px;
   }
-  .aimapkit-popup-attr-label {
+  .aimapui-popup-attr-label {
     font-size: 14px;
     line-height: 20px;
     font-weight: 400;
     color: var(--color-on-surface-variant, #434655);
     margin: 0;
   }
-  .aimapkit-popup-attr-value {
+  .aimapui-popup-attr-value {
     font-size: 14px;
     line-height: 20px;
     font-weight: 500;
@@ -853,31 +853,31 @@
   }
 
   /* ── 属性列表 — Compact: 水平 flex + border 分隔线 ── */
-  .aimapkit-popup--compact .aimapkit-popup-attrs {
+  .aimapui-popup--compact .aimapui-popup-attrs {
     display: flex;
     flex-direction: column;
     gap: 0;
   }
-  .aimapkit-popup--compact .aimapkit-popup-attr {
+  .aimapui-popup--compact .aimapui-popup-attr {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid rgba(195, 198, 215, 0.3);
   }
-  .aimapkit-popup--compact .aimapkit-popup-attr:last-child {
+  .aimapui-popup--compact .aimapui-popup-attr:last-child {
     border-bottom: none;
     padding-bottom: 0;
   }
-  .aimapkit-popup--compact .aimapkit-popup-attr:first-child {
+  .aimapui-popup--compact .aimapui-popup-attr:first-child {
     padding-top: 0;
   }
-  .aimapkit-popup--compact .aimapkit-popup-attr-value {
+  .aimapui-popup--compact .aimapui-popup-attr-value {
     color: var(--color-on-surface, #121c2a);
   }
 
   /* ── 属性图标容器 — Detailed 模式专属 ── */
-  .aimapkit-popup-attr-icon {
+  .aimapui-popup-attr-icon {
     width: 48px;
     height: 48px;
     border-radius: 8px;
@@ -888,25 +888,25 @@
     color: var(--color-primary, #004ac6);
     flex-shrink: 0;
   }
-  .aimapkit-popup-attr-icon .material-symbols-outlined {
+  .aimapui-popup-attr-icon .material-symbols-outlined {
     font-size: 28px;
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
 
   /* Detailed 模式 — 带 icon 的属性行：水平排列 icon + label/value */
-  .aimapkit-popup-attr.aimapkit-popup-attr--detailed {
+  .aimapui-popup-attr.aimapui-popup-attr--detailed {
     display: flex;
     flex-direction: row;
     align-items: center;
     gap: 16px;
   }
-  .aimapkit-popup-attr.aimapkit-popup-attr--detailed .aimapkit-popup-attr-text {
+  .aimapui-popup-attr.aimapui-popup-attr--detailed .aimapui-popup-attr-text {
     display: flex;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
   }
-  .aimapkit-popup-attr.aimapkit-popup-attr--detailed .aimapkit-popup-attr-value {
+  .aimapui-popup-attr.aimapui-popup-attr--detailed .aimapui-popup-attr-value {
     font-size: 20px;
     font-weight: 700;
     line-height: 1;
@@ -914,12 +914,12 @@
   }
 
   /* ── 底部操作栏 ── */
-  .aimapkit-popup-actions {
+  .aimapui-popup-actions {
     display: flex;
     gap: 12px;
     padding: 0 16px 16px;
   }
-  .aimapkit-popup-action-btn {
+  .aimapui-popup-action-btn {
     flex: 1;
     padding: 10px 0;
     border-radius: 8px;
@@ -930,59 +930,59 @@
     border: none;
     transition: all 0.15s ease;
   }
-  .aimapkit-popup-action-btn:active {
+  .aimapui-popup-action-btn:active {
     transform: scale(0.98);
   }
   /* 主按钮 */
-  .aimapkit-popup-action-btn--primary {
+  .aimapui-popup-action-btn--primary {
     background: var(--color-primary, #004ac6);
     color: var(--color-on-primary, #ffffff);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   }
-  .aimapkit-popup-action-btn--primary:hover {
+  .aimapui-popup-action-btn--primary:hover {
     box-shadow: 0 4px 12px rgba(0, 74, 198, 0.3);
   }
   /* 次按钮 */
-  .aimapkit-popup-action-btn--secondary {
+  .aimapui-popup-action-btn--secondary {
     background: transparent;
     color: var(--color-on-surface, #121c2a);
     border: 2px solid var(--color-outline-variant, #c3c6d7);
   }
-  .aimapkit-popup-action-btn--secondary:hover {
+  .aimapui-popup-action-btn--secondary:hover {
     background: var(--color-surface-container-low, #eff4ff);
   }
 
-  /* ── 指向箭头 (Tip Arrow) — SVG 放置在 .aimapkit-popup-content 外部 ── */
-  .aimapkit-popup-tip-arrow {
+  /* ── 指向箭头 (Tip Arrow) — SVG 放置在 .aimapui-popup-content 外部 ── */
+  .aimapui-popup-tip-arrow {
     display: flex;
     justify-content: center;
     position: relative;
     z-index: 1;
   }
   /* 箭头默认朝下 (Popup 在锚点上方) */
-  .aimapkit-popup-tip-arrow--bottom {
+  .aimapui-popup-tip-arrow--bottom {
     margin-top: -1px;
   }
   /* 箭头朝上 (Popup 在锚点下方) */
-  .aimapkit-popup-tip-arrow--top {
+  .aimapui-popup-tip-arrow--top {
     margin-bottom: -1px;
     order: -1;
   }
   /* 箭头朝左/右 — 水平模式 */
-  .aimapkit-popup-tip-arrow--left,
-  .aimapkit-popup-tip-arrow--right {
+  .aimapui-popup-tip-arrow--left,
+  .aimapui-popup-tip-arrow--right {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
     margin: 0;
   }
-  .aimapkit-popup-tip-arrow--left {
+  .aimapui-popup-tip-arrow--left {
     left: -8px;
   }
-  .aimapkit-popup-tip-arrow--right {
+  .aimapui-popup-tip-arrow--right {
     right: -8px;
   }
-  .aimapkit-popup-tip-arrow svg {
+  .aimapui-popup-tip-arrow svg {
     display: block;
     filter: drop-shadow(0 4px 2px rgba(0, 0, 0, 0.04));
   }
@@ -992,50 +992,50 @@
      ================================================================ */
 
   /* ── Detailed 尺寸 ── */
-  .aimapkit-popup--detailed .aimapkit-popup-header {
+  .aimapui-popup--detailed .aimapui-popup-header {
     padding: 20px;
     background: rgba(239, 244, 255, 0.5);
     border-bottom: 1px solid rgba(195, 198, 215, 0.3);
     justify-content: space-between;
   }
   /* Detailed 关闭按钮图标加大 24px */
-  .aimapkit-popup--detailed .aimapkit-popup-close-btn .material-symbols-outlined {
+  .aimapui-popup--detailed .aimapui-popup-close-btn .material-symbols-outlined {
     font-size: 24px;
   }
-  .aimapkit-popup--detailed .aimapkit-popup-body {
+  .aimapui-popup--detailed .aimapui-popup-body {
     padding: 20px;
   }
-  .aimapkit-popup--detailed .aimapkit-popup-attrs {
+  .aimapui-popup--detailed .aimapui-popup-attrs {
     gap: 32px;
   }
-  .aimapkit-popup--detailed .aimapkit-popup-actions {
+  .aimapui-popup--detailed .aimapui-popup-actions {
     padding: 0 20px 20px;
     gap: 12px;
   }
-  .aimapkit-popup--detailed .aimapkit-popup-action-btn {
+  .aimapui-popup--detailed .aimapui-popup-action-btn {
     padding: 12px 0;
   }
 
   /* ── Compact 尺寸 ── */
-  .aimapkit-popup--compact .aimapkit-popup-content {
+  .aimapui-popup--compact .aimapui-popup-content {
     padding: 16px;
   }
-  .aimapkit-popup--compact .aimapkit-popup-header {
+  .aimapui-popup--compact .aimapui-popup-header {
     padding: 0 0 12px;
     background: none;
     border: none;
   }
-  .aimapkit-popup--compact .aimapkit-popup-body {
+  .aimapui-popup--compact .aimapui-popup-body {
     padding: 0;
   }
-  .aimapkit-popup--compact .aimapkit-popup-actions {
+  .aimapui-popup--compact .aimapui-popup-actions {
     padding: 12px 0 0;
   }
-  .aimapkit-popup--compact .aimapkit-popup-title {
+  .aimapui-popup--compact .aimapui-popup-title {
     font-size: 16px;
     line-height: 24px;
   }
-  .aimapkit-popup--compact .aimapkit-popup-action-btn {
+  .aimapui-popup--compact .aimapui-popup-action-btn {
     padding: 8px 0;
     font-size: 13px;
   }
@@ -1043,7 +1043,7 @@
 /* Popup 入场动画 - scale-95 -> scale-100 + opacity
    注意：动画只改变 opacity 和 scale，不改变 transform
    因为 Popup 的定位通过父元素的 transform: translate(-50%, -100%) 控制 */
-@keyframes aimapkit-popup-enter {
+@keyframes aimapui-popup-enter {
   from {
     opacity: 0;
     transform: scale(0.95);
@@ -1055,10 +1055,10 @@
 }
 
 /* Popup 退场动画 — scale + opacity 反向过渡 */
-.aimapkit-popup-content--exit {
-  animation: aimapkit-popup-exit 150ms cubic-bezier(0.4, 0, 1, 1) forwards;
+.aimapui-popup-content--exit {
+  animation: aimapui-popup-exit 150ms cubic-bezier(0.4, 0, 1, 1) forwards;
 }
-@keyframes aimapkit-popup-exit {
+@keyframes aimapui-popup-exit {
   from {
     opacity: 1;
     transform: scale(1);
@@ -1070,7 +1070,7 @@
 }
 
 /* 标题区状态点脉冲动画 */
-@keyframes aimapkit-dot-pulse {
+@keyframes aimapui-dot-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
@@ -1082,14 +1082,14 @@
    ============================================================ */
 
   /* Tooltip 外层容器 — 定位通过 inline style transform 控制 */
-  .aimapkit-tooltip {
+  .aimapui-tooltip {
     position: absolute;
     z-index: 50;
     pointer-events: none;
   }
 
   /* Tooltip 内容容器 — 默认深色变体 */
-  .aimapkit-tooltip-content {
+  .aimapui-tooltip-content {
     position: relative;
     background: rgba(39, 49, 63, 0.95);
     backdrop-filter: blur(4px);
@@ -1107,11 +1107,11 @@
     font-weight: 450;
     font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     white-space: nowrap;
-    animation: aimapkit-tooltip-enter 150ms cubic-bezier(0, 0, 0.2, 1) forwards;
+    animation: aimapui-tooltip-enter 150ms cubic-bezier(0, 0, 0.2, 1) forwards;
   }
 
   /* ── 玻璃变体 (Glass) ── */
-  .aimapkit-tooltip--glass .aimapkit-tooltip-content {
+  .aimapui-tooltip--glass .aimapui-tooltip-content {
     background: rgba(248, 249, 255, 0.7);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -1120,7 +1120,7 @@
   }
 
   /* ── 浅色变体 (Light) ── */
-  .aimapkit-tooltip--light .aimapkit-tooltip-content {
+  .aimapui-tooltip--light .aimapui-tooltip-content {
     background: rgba(248, 249, 255, 0.95);
     backdrop-filter: none;
     border: 0.5px solid rgba(195, 198, 215, 0.3);
@@ -1128,7 +1128,7 @@
   }
 
   /* ── Tooltip 标题 ── */
-  .aimapkit-tooltip-title {
+  .aimapui-tooltip-title {
     font-family: "Inter", system-ui, -apple-system, sans-serif;
     font-size: 12px;
     line-height: 16px;
@@ -1137,7 +1137,7 @@
   }
 
   /* ── Tooltip 数值 ── */
-  .aimapkit-tooltip-value {
+  .aimapui-tooltip-value {
     font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 12px;
     line-height: 16px;
@@ -1147,25 +1147,25 @@
   }
 
   /* ── Tooltip 键值对列表 ── */
-  .aimapkit-tooltip-items {
+  .aimapui-tooltip-items {
     display: flex;
     flex-direction: column;
     gap: 2px;
   }
-  .aimapkit-tooltip-item {
+  .aimapui-tooltip-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
   }
-  .aimapkit-tooltip-item-label {
+  .aimapui-tooltip-item-label {
     font-size: 12px;
     line-height: 16px;
     font-weight: 400;
     opacity: 0.7;
     margin: 0;
   }
-  .aimapkit-tooltip-item-value {
+  .aimapui-tooltip-item-value {
     font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     font-size: 12px;
     line-height: 16px;
@@ -1175,13 +1175,13 @@
   }
 
   /* ── 箭头 — 深色变体默认 ── */
-  .aimapkit-tooltip-arrow {
+  .aimapui-tooltip-arrow {
     position: absolute;
     width: 0;
     height: 0;
   }
   /* 下方箭头（Tooltip 在上方） */
-  .aimapkit-tooltip-arrow--bottom {
+  .aimapui-tooltip-arrow--bottom {
     bottom: -6px;
     left: 50%;
     transform: translateX(-50%);
@@ -1190,7 +1190,7 @@
     border-top: 6px solid rgba(39, 49, 63, 0.95);
   }
   /* 上方箭头（Tooltip 在下方） */
-  .aimapkit-tooltip-arrow--top {
+  .aimapui-tooltip-arrow--top {
     top: -6px;
     left: 50%;
     transform: translateX(-50%);
@@ -1199,7 +1199,7 @@
     border-bottom: 6px solid rgba(39, 49, 63, 0.95);
   }
   /* 左方箭头（Tooltip 在右方） */
-  .aimapkit-tooltip-arrow--left {
+  .aimapui-tooltip-arrow--left {
     left: -6px;
     top: 50%;
     transform: translateY(-50%);
@@ -1208,7 +1208,7 @@
     border-right: 6px solid rgba(39, 49, 63, 0.95);
   }
   /* 右方箭头（Tooltip 在左方） */
-  .aimapkit-tooltip-arrow--right {
+  .aimapui-tooltip-arrow--right {
     right: -6px;
     top: 50%;
     transform: translateY(-50%);
@@ -1218,35 +1218,35 @@
   }
 
   /* ── 玻璃变体箭头颜色覆盖 ── */
-  .aimapkit-tooltip--glass .aimapkit-tooltip-arrow--bottom {
+  .aimapui-tooltip--glass .aimapui-tooltip-arrow--bottom {
     border-top-color: rgba(248, 249, 255, 0.7);
   }
-  .aimapkit-tooltip--glass .aimapkit-tooltip-arrow--top {
+  .aimapui-tooltip--glass .aimapui-tooltip-arrow--top {
     border-bottom-color: rgba(248, 249, 255, 0.7);
   }
-  .aimapkit-tooltip--glass .aimapkit-tooltip-arrow--left {
+  .aimapui-tooltip--glass .aimapui-tooltip-arrow--left {
     border-right-color: rgba(248, 249, 255, 0.7);
   }
-  .aimapkit-tooltip--glass .aimapkit-tooltip-arrow--right {
+  .aimapui-tooltip--glass .aimapui-tooltip-arrow--right {
     border-left-color: rgba(248, 249, 255, 0.7);
   }
 
   /* ── 浅色变体箭头颜色覆盖 ── */
-  .aimapkit-tooltip--light .aimapkit-tooltip-arrow--bottom {
+  .aimapui-tooltip--light .aimapui-tooltip-arrow--bottom {
     border-top-color: rgba(248, 249, 255, 0.95);
   }
-  .aimapkit-tooltip--light .aimapkit-tooltip-arrow--top {
+  .aimapui-tooltip--light .aimapui-tooltip-arrow--top {
     border-bottom-color: rgba(248, 249, 255, 0.95);
   }
-  .aimapkit-tooltip--light .aimapkit-tooltip-arrow--left {
+  .aimapui-tooltip--light .aimapui-tooltip-arrow--left {
     border-right-color: rgba(248, 249, 255, 0.95);
   }
-  .aimapkit-tooltip--light .aimapkit-tooltip-arrow--right {
+  .aimapui-tooltip--light .aimapui-tooltip-arrow--right {
     border-left-color: rgba(248, 249, 255, 0.95);
   }
 
 /* Tooltip 入场动画 — translateY + opacity */
-@keyframes aimapkit-tooltip-enter {
+@keyframes aimapui-tooltip-enter {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -2036,7 +2036,7 @@
    ============================================================ */
 
 /* ── 图例面板容器 — 玻璃拟态 ── */
-.aimapkit-legend {
+.aimapui-legend {
   position: absolute;
   z-index: 20;
   background: rgba(248, 249, 255, 0.8);
@@ -2051,19 +2051,19 @@
   overflow-y: auto;
   color: var(--color-on-surface, #121c2a);
 }
-.aimapkit-legend::-webkit-scrollbar {
+.aimapui-legend::-webkit-scrollbar {
   width: 4px;
 }
-.aimapkit-legend::-webkit-scrollbar-track {
+.aimapui-legend::-webkit-scrollbar-track {
   background: transparent;
 }
-.aimapkit-legend::-webkit-scrollbar-thumb {
+.aimapui-legend::-webkit-scrollbar-thumb {
   background: var(--color-outline-variant, #c3c6d7);
   border-radius: 10px;
 }
 
 /* ── 图例标题 ── */
-.aimapkit-legend-title {
+.aimapui-legend-title {
   font-size: 12px;
   line-height: 16px;
   font-weight: 600;
@@ -2074,28 +2074,28 @@
 }
 
 /* 多图例间距 */
-.aimapkit-legend-group {
+.aimapui-legend-group {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-.aimapkit-legend-group > .aimapkit-legend-section + .aimapkit-legend-section {
+.aimapui-legend-group > .aimapui-legend-section + .aimapui-legend-section {
   padding-top: 16px;
   border-top: 1px solid rgba(195, 198, 215, 0.2);
 }
 
 /* ── 分类图例 (Categorical) ── */
-.aimapkit-legend-categories {
+.aimapui-legend-categories {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.aimapkit-legend-categories--grid {
+.aimapui-legend-categories--grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px 12px;
 }
-.aimapkit-legend-cat-item {
+.aimapui-legend-cat-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2105,13 +2105,13 @@
   transition: background 0.15s ease, opacity 0.15s ease;
   user-select: none;
 }
-.aimapkit-legend-cat-item:hover {
+.aimapui-legend-cat-item:hover {
   background: rgba(0, 74, 198, 0.06);
 }
-.aimapkit-legend-cat-item--dimmed {
+.aimapui-legend-cat-item--dimmed {
   opacity: 0.35;
 }
-.aimapkit-legend-cat-swatch {
+.aimapui-legend-cat-swatch {
   width: 12px;
   height: 12px;
   border-radius: 3px;
@@ -2119,10 +2119,10 @@
   transition: opacity 0.15s ease;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
-.aimapkit-legend-cat-swatch--circle {
+.aimapui-legend-cat-swatch--circle {
   border-radius: 50%;
 }
-.aimapkit-legend-cat-label {
+.aimapui-legend-cat-label {
   font-size: 12px;
   line-height: 16px;
   color: var(--color-on-surface, #121c2a);
@@ -2132,36 +2132,36 @@
 }
 
 /* ── 连续色带图例 (Ramp / Sequential / Classed) ── */
-.aimapkit-legend-ramp {
+.aimapui-legend-ramp {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.aimapkit-legend-ramp-bar {
+.aimapui-legend-ramp-bar {
   display: flex;
   height: 12px;
   border-radius: 4px;
   overflow: hidden;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
-.aimapkit-legend-ramp-segment {
+.aimapui-legend-ramp-segment {
   flex: 1;
   position: relative;
 }
 /* 分段色块之间不需要间隙，紧密拼接 */
-.aimapkit-legend-ramp-segment + .aimapkit-legend-ramp-segment {
+.aimapui-legend-ramp-segment + .aimapui-legend-ramp-segment {
   margin-left: 0;
 }
 /* 连续渐变：整个 bar 作为渐变背景 */
-.aimapkit-legend-ramp-bar--continuous {
+.aimapui-legend-ramp-bar--continuous {
   background-size: 100% 100%;
 }
-.aimapkit-legend-ramp-bar--continuous .aimapkit-legend-ramp-segment {
+.aimapui-legend-ramp-bar--continuous .aimapui-legend-ramp-segment {
   flex: none;
   width: 0;
   height: 0;
 }
-.aimapkit-legend-ramp-labels {
+.aimapui-legend-ramp-labels {
   display: flex;
   justify-content: space-between;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -2171,25 +2171,25 @@
   color: var(--color-on-surface-variant, #434655);
 }
 /* 刻度线 (Tick marks) */
-.aimapkit-legend-ramp-ticks {
+.aimapui-legend-ramp-ticks {
   display: flex;
   justify-content: space-between;
   height: 6px;
   margin-top: 2px;
 }
-.aimapkit-legend-ramp-tick {
+.aimapui-legend-ramp-tick {
   width: 1px;
   height: 100%;
   background: var(--color-outline-variant, #c3c6d7);
 }
 /* 范围刷选手柄 (Range Brush) */
-.aimapkit-legend-ramp-brush {
+.aimapui-legend-ramp-brush {
   position: relative;
   height: 12px;
   margin-top: 4px;
   cursor: ew-resize;
 }
-.aimapkit-legend-ramp-brush-range {
+.aimapui-legend-ramp-brush-range {
   position: absolute;
   top: 0;
   height: 100%;
@@ -2198,7 +2198,7 @@
   background: rgba(0, 74, 198, 0.1);
   pointer-events: none;
 }
-.aimapkit-legend-ramp-brush-handle {
+.aimapui-legend-ramp-brush-handle {
   position: absolute;
   top: 50%;
   width: 8px;
@@ -2210,27 +2210,27 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: box-shadow 0.15s ease;
 }
-.aimapkit-legend-ramp-brush-handle:hover {
+.aimapui-legend-ramp-brush-handle:hover {
   box-shadow: 0 2px 6px rgba(0, 74, 198, 0.3);
 }
 
 /* ── 发散图例 (Diverging) ── */
-.aimapkit-legend-diverging {
+.aimapui-legend-diverging {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.aimapkit-legend-diverging-bar {
+.aimapui-legend-diverging-bar {
   display: flex;
   height: 12px;
   border-radius: 4px;
   overflow: hidden;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
-.aimapkit-legend-diverging-middle {
+.aimapui-legend-diverging-middle {
   position: relative;
 }
-.aimapkit-legend-diverging-middle::after {
+.aimapui-legend-diverging-middle::after {
   content: '';
   position: absolute;
   top: -4px;
@@ -2240,7 +2240,7 @@
   height: 20px;
   background: var(--color-outline-variant, #c3c6d7);
 }
-.aimapkit-legend-diverging-labels {
+.aimapui-legend-diverging-labels {
   display: flex;
   justify-content: space-between;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -2249,7 +2249,7 @@
   font-weight: 450;
   color: var(--color-on-surface-variant, #434655);
 }
-.aimapkit-legend-diverging-middle-label {
+.aimapui-legend-diverging-middle-label {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
@@ -2261,12 +2261,12 @@
 }
 
 /* ── 阈值图例 (Threshold) ── */
-.aimapkit-legend-threshold {
+.aimapui-legend-threshold {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.aimapkit-legend-threshold-item {
+.aimapui-legend-threshold-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2274,20 +2274,20 @@
   transition: opacity 0.15s ease;
   user-select: none;
 }
-.aimapkit-legend-threshold-item:hover {
+.aimapui-legend-threshold-item:hover {
   opacity: 0.8;
 }
-.aimapkit-legend-threshold-item--dimmed {
+.aimapui-legend-threshold-item--dimmed {
   opacity: 0.35;
 }
-.aimapkit-legend-threshold-swatch {
+.aimapui-legend-threshold-swatch {
   width: 24px;
   height: 12px;
   border-radius: 2px;
   flex-shrink: 0;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
-.aimapkit-legend-threshold-range {
+.aimapui-legend-threshold-range {
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
   line-height: 14px;
@@ -2295,29 +2295,29 @@
 }
 
 /* ── 比例大小图例 (Size / Proportion) ── */
-.aimapkit-legend-size {
+.aimapui-legend-size {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-.aimapkit-legend-size-row {
+.aimapui-legend-size-row {
   display: flex;
   align-items: flex-end;
   gap: 8px;
   padding: 0 4px;
 }
-.aimapkit-legend-size-circle {
+.aimapui-legend-size-circle {
   border-radius: 50%;
   flex-shrink: 0;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
-.aimapkit-legend-size-labels {
+.aimapui-legend-size-labels {
   display: flex;
   align-items: flex-end;
   gap: 8px;
   margin-top: 4px;
 }
-.aimapkit-legend-size-label {
+.aimapui-legend-size-label {
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
   line-height: 14px;
@@ -2326,12 +2326,12 @@
 }
 
 /* ── 线宽图例 (Line Width) ── */
-.aimapkit-legend-linewidth {
+.aimapui-legend-linewidth {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.aimapkit-legend-linewidth-item {
+.aimapui-legend-linewidth-item {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -2340,19 +2340,19 @@
   transition: opacity 0.15s ease;
   user-select: none;
 }
-.aimapkit-legend-linewidth-item:hover {
+.aimapui-legend-linewidth-item:hover {
   opacity: 0.8;
 }
-.aimapkit-legend-linewidth-item--dimmed {
+.aimapui-legend-linewidth-item--dimmed {
   opacity: 0.35;
 }
-.aimapkit-legend-linewidth-line {
+.aimapui-legend-linewidth-line {
   width: 28px;
   flex-shrink: 0;
   border-radius: 9999px;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
 }
-.aimapkit-legend-linewidth-label {
+.aimapui-legend-linewidth-label {
   font-size: 12px;
   line-height: 16px;
   color: var(--color-on-surface, #121c2a);
@@ -2360,12 +2360,12 @@
 }
 
 /* ── 图标图例 (Icon) ── */
-.aimapkit-legend-icon {
+.aimapui-legend-icon {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.aimapkit-legend-icon-item {
+.aimapui-legend-icon-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2375,19 +2375,19 @@
   transition: background 0.15s ease, opacity 0.15s ease;
   user-select: none;
 }
-.aimapkit-legend-icon-item:hover {
+.aimapui-legend-icon-item:hover {
   background: rgba(0, 74, 198, 0.06);
 }
-.aimapkit-legend-icon-item--dimmed {
+.aimapui-legend-icon-item--dimmed {
   opacity: 0.35;
 }
-.aimapkit-legend-icon-img {
+.aimapui-legend-icon-img {
   width: 20px;
   height: 20px;
   object-fit: contain;
   flex-shrink: 0;
 }
-.aimapkit-legend-icon-fallback {
+.aimapui-legend-icon-fallback {
   width: 20px;
   height: 20px;
   display: flex;
@@ -2398,7 +2398,7 @@
   line-height: 1;
   color: var(--color-on-surface-variant, #434655);
 }
-.aimapkit-legend-icon-label {
+.aimapui-legend-icon-label {
   font-size: 12px;
   line-height: 16px;
   color: var(--color-on-surface, #121c2a);
@@ -2409,7 +2409,7 @@
 /* ============================================================
    暗色主题 — Tooltip 适配
    ============================================================ */
-[data-theme="dark"] .aimapkit-tooltip--glass .aimapkit-tooltip-content {
+[data-theme="dark"] .aimapui-tooltip--glass .aimapui-tooltip-content {
   background: rgba(22, 32, 48, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -2417,7 +2417,7 @@
   color: var(--color-primary);
 }
 
-[data-theme="dark"] .aimapkit-tooltip--light .aimapkit-tooltip-content {
+[data-theme="dark"] .aimapui-tooltip--light .aimapui-tooltip-content {
   background: rgba(22, 32, 48, 0.92);
   border: 0.5px solid rgba(180, 197, 255, 0.1);
   color: var(--color-on-surface);
@@ -2426,7 +2426,7 @@
 /* ============================================================
    暗色主题 — Popup 适配
    ============================================================ */
-[data-theme="dark"] .aimapkit-popup-content {
+[data-theme="dark"] .aimapui-popup-content {
   background: rgba(22, 32, 48, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -2435,22 +2435,22 @@
   color: var(--color-on-surface);
 }
 
-[data-theme="dark"] .aimapkit-popup-status-badge {
+[data-theme="dark"] .aimapui-popup-status-badge {
   background: rgba(30, 44, 62, 0.9);
   color: var(--color-on-surface);
 }
 
-[data-theme="dark"] .aimapkit-popup-close-btn--cover {
+[data-theme="dark"] .aimapui-popup-close-btn--cover {
   background: rgba(0, 0, 0, 0.5);
 }
-[data-theme="dark"] .aimapkit-popup-close-btn--cover:hover {
+[data-theme="dark"] .aimapui-popup-close-btn--cover:hover {
   background: rgba(0, 0, 0, 0.7);
 }
 
 /* ============================================================
    暗色主题 — Legend 适配
    ============================================================ */
-[data-theme="dark"] .aimapkit-legend {
+[data-theme="dark"] .aimapui-legend {
   background: rgba(22, 32, 48, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -2460,36 +2460,35 @@
   color: var(--color-on-surface);
 }
 
-[data-theme="dark"] .aimapkit-legend::-webkit-scrollbar-thumb {
+[data-theme="dark"] .aimapui-legend::-webkit-scrollbar-thumb {
   background: var(--color-outline-variant);
 }
 
-[data-theme="dark"] .aimapkit-legend-title {
+[data-theme="dark"] .aimapui-legend-title {
   color: var(--color-on-surface-variant);
 }
 
-[data-theme="dark"] .aimapkit-legend-cat-item:hover {
+[data-theme="dark"] .aimapui-legend-cat-item:hover {
   background: rgba(180, 197, 255, 0.08);
 }
 
-[data-theme="dark"] .aimapkit-legend-cat-label {
+[data-theme="dark"] .aimapui-legend-cat-label {
   color: var(--color-on-surface);
 }
 
-[data-theme="dark"] .aimapkit-legend-ramp-labels {
+[data-theme="dark"] .aimapui-legend-ramp-labels {
   color: var(--color-on-surface-variant);
 }
 
-[data-theme="dark"] .aimapkit-legend-ramp-tick {
+[data-theme="dark"] .aimapui-legend-ramp-tick {
   background: var(--color-outline-variant);
 }
 
-[data-theme="dark"] .aimapkit-legend-ramp-brush-range {
+[data-theme="dark"] .aimapui-legend-ramp-brush-range {
   border-color: var(--color-primary);
   background: rgba(180, 197, 255, 0.1);
 }
 
-[data-theme="dark"] .aimapkit-legend-group > .aimapkit-legend-section + .aimapkit-legend-section {
+[data-theme="dark"] .aimapui-legend-group > .aimapui-legend-section + .aimapui-legend-section {
   border-top-color: rgba(180, 197, 255, 0.1);
 }
-EOF; __aone_exit=$?; pwd -P > '/var/folders/94/kysz739j6m10xq2dwb7jyklc0000gp/T/aone-copilot-cwd-1779554426564-e88poaax2t7.txt' 2>/dev/null; exit $__aone_exit

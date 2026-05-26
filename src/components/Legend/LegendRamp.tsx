@@ -74,15 +74,15 @@ export function LegendRamp({
   );
 
   return (
-    <div className={cx('aimapkit-legend-section', className)}>
-      {title && <div className="aimapkit-legend-title">{title}</div>}
+    <div className={cx('aimapui-legend-section', className)}>
+      {title && <div className="aimapui-legend-title">{title}</div>}
 
       {/* 色条 */}
-      <div className="aimapkit-legend-ramp" ref={barRef}>
+      <div className="aimapui-legend-ramp" ref={barRef}>
         <div
           className={cx(
-            'aimapkit-legend-ramp-bar',
-            isContinuous && 'aimapkit-legend-ramp-bar--continuous',
+            'aimapui-legend-ramp-bar',
+            isContinuous && 'aimapui-legend-ramp-bar--continuous',
           )}
           style={
             isContinuous
@@ -94,7 +94,7 @@ export function LegendRamp({
             colors.map((color, i) => (
               <div
                 key={i}
-                className="aimapkit-legend-ramp-segment"
+                className="aimapui-legend-ramp-segment"
                 style={{ backgroundColor: color }}
               />
             ))}
@@ -102,12 +102,12 @@ export function LegendRamp({
 
         {/* 刻度线 */}
         {showTicks && (
-          <div className="aimapkit-legend-ramp-ticks">
+          <div className="aimapui-legend-ramp-ticks">
             {colors.map((_, i) =>
               i === 0 ? null : (
                 <div
                   key={i}
-                  className="aimapkit-legend-ramp-tick"
+                  className="aimapui-legend-ramp-tick"
                   style={{
                     position: 'absolute',
                     left: `${(i / (colors.length - 1)) * 100}%`,
@@ -119,7 +119,7 @@ export function LegendRamp({
         )}
 
         {/* 标签 */}
-        <div className="aimapkit-legend-ramp-labels">
+        <div className="aimapui-legend-ramp-labels">
           <span>{labels[0]}</span>
           {labels.length > 2 && (
             <span>{labels[Math.floor(labels.length / 2)]}</span>
@@ -129,21 +129,21 @@ export function LegendRamp({
 
         {/* 范围刷选 */}
         {brushable && (
-          <div className="aimapkit-legend-ramp-brush">
+          <div className="aimapui-legend-ramp-brush">
             <div
-              className="aimapkit-legend-ramp-brush-range"
+              className="aimapui-legend-ramp-brush-range"
               style={{
                 left: `${brushRange[0]}%`,
                 width: `${brushRange[1] - brushRange[0]}%`,
               }}
             />
             <div
-              className="aimapkit-legend-ramp-brush-handle"
+              className="aimapui-legend-ramp-brush-handle"
               style={{ left: `${brushRange[0]}%` }}
               onMouseDown={handleBrushMouseDown('left')}
             />
             <div
-              className="aimapkit-legend-ramp-brush-handle"
+              className="aimapui-legend-ramp-brush-handle"
               style={{ left: `${brushRange[1]}%` }}
               onMouseDown={handleBrushMouseDown('right')}
             />

@@ -390,7 +390,7 @@ export function MarkerClusterLayer({
                       inset: -6,
                       borderRadius: 9999,
                       background: 'rgba(37,99,235,0.25)',
-                      animation: 'aimapkit-cluster-pulse 1.6s ease-out infinite',
+                      animation: 'aimapui-cluster-pulse 1.6s ease-out infinite',
                     }}
                   />
                 )}

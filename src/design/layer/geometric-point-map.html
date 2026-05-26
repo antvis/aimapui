@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图几何点位 (Geometric Point Map) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #2563eb;
+    --color-primary-container: #dbeafe;
+    --color-success: #10b981;
+    --color-error: #ef4444;
+    --color-warning: #f59e0b;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-surface: #f8f9ff;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container-low: #eff4ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+
+  /* 形状展示网格 */
+  .shape-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 16px 0;
+  }
+  .shape-card {
+    background: var(--color-surface-container-low); border-radius: 12px; padding: 24px; text-align: center;
+    border: 1px solid var(--color-outline-variant); transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .shape-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.1); }
+  .shape-card svg { display: block; margin: 0 auto 12px; }
+  .shape-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .shape-semantic { font-size: 12px; color: var(--color-on-surface-variant); }
+  .shape-tag { display: inline-block; font-size: 10px; font-weight: 600; background: var(--color-primary-container); color: var(--color-primary); padding: 2px 8px; border-radius: 10px; margin-top: 8px; }
+
+  /* 地图模拟 */
+  .map-bg {
+    position: relative; width: 100%; height: 360px;
+    background: linear-gradient(135deg, #e8edf5 0%, #d5dce8 50%, #eef1f7 100%);
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--color-outline-variant);
+  }
+  .map-bg::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23b0b8c9' stroke-width='0.3' fill='none'/%3E%3C/svg%3E");
+    opacity: 0.3;
+  }
+  .map-bg svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* 尺寸演示 */
+  .size-demo { display: flex; align-items: flex-end; gap: 24px; justify-content: center; padding: 24px 0; }
+  .size-item { text-align: center; }
+  .size-label { font-size: 11px; color: var(--color-on-surface-variant); margin-top: 8px; }
+
+  /* 交互演示 */
+  .interaction-demo {
+    display: flex; gap: 32px; justify-content: center; align-items: center; padding: 24px 0; flex-wrap: wrap;
+  }
+  .state-box { text-align: center; }
+  .state-label { font-size: 12px; font-weight: 600; margin-top: 8px; color: var(--color-on-surface-variant); }
+
+  /* 脉冲动画 */
+  @keyframes pulse-ring {
+    0% { r: 16; opacity: 0.6; }
+    100% { r: 28; opacity: 0; }
+  }
+  @keyframes glow-breathe {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(37,99,235,0.4)); }
+    50% { filter: drop-shadow(0 0 12px rgba(37,99,235,0.8)); }
+  }
+
+  /* 性能卡片 */
+  .perf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+  .perf-item { background: var(--color-surface-container-low); border-radius: 8px; padding: 16px; text-align: center; border: 1px solid var(--color-outline-variant); }
+  .perf-icon { font-size: 24px; margin-bottom: 8px; }
+  .perf-title { font-size: 13px; font-weight: 600; }
+  .perf-desc { font-size: 11px; color: var(--color-on-surface-variant); margin-top: 4px; }
+
+  /* ========== Dark Theme ========== */
+  [data-theme="dark"] {
+    --color-primary: #93c5fd;
+    --color-primary-container: #1e3a5f;
+    --color-success: #6ee7b7;
+    --color-error: #fca5a5;
+    --color-warning: #fcd34d;
+    --color-on-surface: #e2e8f0;
+    --color-on-surface-variant: #94a3b8;
+    --color-surface: #0f172a;
+    --color-outline-variant: #334155;
+    --color-surface-container-low: #1e293b;
+    --color-on-primary: #1e3a5f;
+    --color-surface-container: #1e293b;
+  }
+  [data-theme="dark"] body { background: var(--color-surface); color: var(--color-on-surface); }
+  [data-theme="dark"] .card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] code { background: #1e3a5f; color: #93c5fd; }
+  [data-theme="dark"] .spec-table th { background: rgba(30,58,95,0.5); }
+  [data-theme="dark"] .spec-table td { border-color: rgba(51,65,85,0.4); }
+  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); border-color: #334155; }
+  [data-theme="dark"] .map-bg::before { opacity: 0.1; }
+  [data-theme="dark"] h2 { border-color: #334155; }
+  /* 手机框架暗色适配 */
+  [data-theme="dark"] .phone-frame { border-color: #475569; background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); }
+  [data-theme="dark"] .search-bar { background: rgba(30,41,59,0.92); }
+  [data-theme="dark"] .search-placeholder { color: #64748b; }
+  [data-theme="dark"] .ctrl-btn { background: rgba(30,41,59,0.95); }
+  [data-theme="dark"] .ctrl-btn .material-symbols-outlined { color: #e2e8f0; }
+  [data-theme="dark"] .ctrl-group { background: rgba(30,41,59,0.95); }
+  [data-theme="dark"] .bottom-sheet { background: rgba(30,41,59,0.96); }
+  [data-theme="dark"] .bottom-nav { background: rgba(30,41,59,0.92); border-color: #334155; }
+  /* 形状卡片 */
+  [data-theme="dark"] .shape-card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] .shape-card:hover { box-shadow: 0 8px 24px rgba(147,197,253,0.08); }
+  /* 性能/手势卡片 */
+  [data-theme="dark"] .perf-item,
+  [data-theme="dark"] .gesture-card,
+  [data-theme="dark"] .collision-box,
+  [data-theme="dark"] .zoom-card { background: #1e293b; border-color: #334155; }
+  /* 侧边栏 (PC) */
+  [data-theme="dark"] .sidebar { background: rgba(15,23,42,0.92); border-color: #334155; }
+  [data-theme="dark"] .sidebar-item:hover { background: rgba(147,197,253,0.08); }
+  /* 底部面板状态 */
+  [data-theme="dark"] .sheet-state-box { border-color: #334155; }
+  [data-theme="dark"] .sheet-state-map { background: linear-gradient(135deg, #1e293b, #0f172a); }
+  [data-theme="dark"] .sheet-state-panel { background: rgba(30,41,59,0.95); }
+  /* SVG 文字 */
+  [data-theme="dark"] svg text[fill="#434655"],
+  [data-theme="dark"] svg text[fill="#1e293b"] { fill: #e2e8f0; }
+  [data-theme="dark"] svg text[fill="#64748b"] { fill: #94a3b8; }
+
+  /* 主题切换按钮 */
+  .theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 9999;
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--color-outline-variant);
+    background: var(--color-surface-container-low); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: background 0.2s, border-color 0.2s;
+    font-size: 18px; line-height: 1;
+  }
+  .theme-toggle:hover { background: var(--color-primary-container); }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图几何点位 (Geometric Point Map) 设计规范</h1>
+  <p class="subtitle">CPS Geometric Module v1.0.0 — 多维数据可视化的形状编码系统</p>
+
+  <!-- 1. 核心几何形态 -->
+  <h2>1. 核心几何形态</h2>
+
+  <div class="card">
+    <div class="card-title">Shape Definitions</div>
+    <div class="shape-grid">
+      <!-- Circle -->
+      <div class="shape-card">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="22" fill="rgba(37,99,235,0.3)" stroke="#2563eb" stroke-width="2"/>
+          <circle cx="32" cy="32" r="8" fill="#2563eb"/>
+        </svg>
+        <div class="shape-name">圆形 Circle</div>
+        <div class="shape-semantic">连续 · 平衡 · 中性</div>
+        <div class="shape-tag">DEFAULT</div>
+      </div>
+      <!-- Triangle -->
+      <div class="shape-card">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <polygon points="32,8 56,52 8,52" fill="rgba(239,68,68,0.3)" stroke="#ef4444" stroke-width="2" stroke-linejoin="round"/>
+          <polygon points="32,24 42,44 22,44" fill="#ef4444"/>
+        </svg>
+        <div class="shape-name">三角形 Triangle</div>
+        <div class="shape-semantic">警告 · 方向 · 不稳定</div>
+        <div class="shape-tag">DIRECTIONAL</div>
+      </div>
+      <!-- Hexagon -->
+      <div class="shape-card">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <polygon points="32,6 54,17 54,39 32,50 10,39 10,17" fill="rgba(16,185,129,0.3)" stroke="#10b981" stroke-width="2" stroke-linejoin="round" transform="translate(0,4)"/>
+          <polygon points="32,18 42,24 42,34 32,40 22,34 22,24" fill="#10b981" transform="translate(0,4)"/>
+        </svg>
+        <div class="shape-name">六边形 Hexagon</div>
+        <div class="shape-semantic">技术 · 结构化 · 单元</div>
+        <div class="shape-tag">TESSELLATE</div>
+      </div>
+      <!-- Square -->
+      <div class="shape-card">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <rect x="12" y="12" width="40" height="40" fill="rgba(245,158,11,0.3)" stroke="#f59e0b" stroke-width="2" rx="3"/>
+          <rect x="24" y="24" width="16" height="16" fill="#f59e0b" rx="2"/>
+        </svg>
+        <div class="shape-name">方形 Square</div>
+        <div class="shape-semantic">稳固 · 静态 · 人工设施</div>
+        <div class="shape-tag">STATIC</div>
+      </div>
+    </div>
+    <p style="margin-top:12px">不同形状代表不同的业务类型（分类编码），利用 SDF 渲染保证任意缩放下边缘锐利。</p>
+  </div>
+
+  <!-- 综合地图示例 -->
+  <h3>1.5 综合示意</h3>
+  <div class="map-bg">
+    <svg viewBox="0 0 600 360">
+      <!-- 模拟城市散点 -->
+      <!-- 圆形 — 仓库 -->
+      <circle cx="380" cy="120" r="18" fill="rgba(37,99,235,0.25)" stroke="#2563eb" stroke-width="1.5"/>
+      <circle cx="380" cy="120" r="7" fill="#2563eb"/>
+      <text x="380" y="148" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">北京仓库</text>
+
+      <circle cx="440" cy="195" r="14" fill="rgba(37,99,235,0.25)" stroke="#2563eb" stroke-width="1.5"/>
+      <circle cx="440" cy="195" r="5" fill="#2563eb"/>
+      <text x="440" y="218" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">上海仓库</text>
+
+      <!-- 三角形 — 风险点 -->
+      <polygon points="220,180 238,212 202,212" fill="rgba(239,68,68,0.3)" stroke="#ef4444" stroke-width="1.5" stroke-linejoin="round"/>
+      <text x="220" y="228" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">济南监控</text>
+
+      <polygon points="310,250 324,274 296,274" fill="rgba(239,68,68,0.3)" stroke="#ef4444" stroke-width="1.5" stroke-linejoin="round"/>
+      <text x="310" y="290" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">长沙监控</text>
+
+      <!-- 六边形 — 基站 -->
+      <polygon points="490,270 504,278 504,294 490,302 476,294 476,278" fill="rgba(16,185,129,0.3)" stroke="#10b981" stroke-width="1.5" stroke-linejoin="round"/>
+      <text x="490" y="318" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">深圳基站</text>
+
+      <polygon points="340,150 354,158 354,174 340,182 326,174 326,158" fill="rgba(16,185,129,0.3)" stroke="#10b981" stroke-width="1.5" stroke-linejoin="round"/>
+      <text x="340" y="198" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">武汉基站</text>
+
+      <!-- 方形 — 行政 -->
+      <rect x="140" y="130" width="22" height="22" fill="rgba(245,158,11,0.3)" stroke="#f59e0b" stroke-width="1.5" rx="2"/>
+      <text x="151" y="168" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">延庆行政</text>
+
+      <rect x="170" y="260" width="18" height="18" fill="rgba(245,158,11,0.3)" stroke="#f59e0b" stroke-width="1.5" rx="2"/>
+      <text x="179" y="292" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">海口行政</text>
+
+      <!-- 图例 -->
+      <rect x="20" y="300" width="160" height="52" rx="6" fill="rgba(255,255,255,0.85)" stroke="#c3c6d7"/>
+      <circle cx="36" cy="318" r="5" fill="#2563eb"/>
+      <text x="48" y="322" font-size="10" fill="#434655" font-family="Inter">仓库</text>
+      <polygon points="100,313 108,323 92,323" fill="#ef4444"/>
+      <text x="116" y="322" font-size="10" fill="#434655" font-family="Inter">风险</text>
+      <polygon points="36,335 42,338 42,344 36,347 30,344 30,338" fill="#10b981"/>
+      <text x="48" y="344" font-size="10" fill="#434655" font-family="Inter">基站</text>
+      <rect x="94" y="334" width="10" height="10" fill="#f59e0b" rx="1"/>
+      <text x="110" y="344" font-size="10" fill="#434655" font-family="Inter">行政</text>
+    </svg>
+  </div>
+
+  <!-- 2. 视觉编码 -->
+  <h2>2. 视觉编码规范</h2>
+
+  <h3>2.1 尺寸映射</h3>
+  <div class="card">
+    <div class="card-title">Size Scale (8px → 48px)</div>
+    <div class="size-demo">
+      <div class="size-item">
+        <svg width="16" height="16"><circle cx="8" cy="8" r="4" fill="#2563eb" stroke="#fff" stroke-width="1"/></svg>
+        <div class="size-label"><code>8px</code><br>MIN</div>
+      </div>
+      <div class="size-item">
+        <svg width="24" height="24"><circle cx="12" cy="12" r="8" fill="#2563eb" stroke="#fff" stroke-width="1"/></svg>
+        <div class="size-label"><code>16px</code></div>
+      </div>
+      <div class="size-item">
+        <svg width="40" height="40"><circle cx="20" cy="20" r="16" fill="rgba(37,99,235,0.7)" stroke="#fff" stroke-width="1.5"/></svg>
+        <div class="size-label"><code>32px</code></div>
+      </div>
+      <div class="size-item">
+        <svg width="56" height="56"><circle cx="28" cy="28" r="24" fill="rgba(37,99,235,0.5)" stroke="#2563eb" stroke-width="2"/></svg>
+        <div class="size-label"><code>48px</code><br>MAX</div>
+      </div>
+    </div>
+    <p>几何体的外接圆直径随权重值变化。尺寸与指标关联，确保视觉可比性。</p>
+  </div>
+
+  <h3>2.2 样式处理</h3>
+  <div class="card">
+    <div class="card-title">Fill / Stroke / Glow</div>
+    <div style="display:flex;gap:32px;justify-content:center;align-items:center;padding:24px 0;flex-wrap:wrap">
+      <!-- 填充 -->
+      <div style="text-align:center">
+        <svg width="60" height="60">
+          <circle cx="30" cy="30" r="22" fill="rgba(37,99,235,0.3)"/>
+          <circle cx="30" cy="30" r="12" fill="#2563eb"/>
+        </svg>
+        <div style="font-size:12px;margin-top:4px"><strong>填充</strong><br><code>primary/30 → primary</code></div>
+      </div>
+      <!-- 描边 -->
+      <div style="text-align:center">
+        <svg width="60" height="60">
+          <circle cx="30" cy="30" r="20" fill="rgba(37,99,235,0.6)" stroke="#ffffff" stroke-width="2"/>
+        </svg>
+        <div style="font-size:12px;margin-top:4px"><strong>描边</strong><br><code>1px white stroke</code></div>
+      </div>
+      <!-- 发光 -->
+      <div style="text-align:center">
+        <svg width="60" height="60" style="animation: glow-breathe 2s ease-in-out infinite;">
+          <circle cx="30" cy="30" r="18" fill="#2563eb" filter="url(#glow)"/>
+          <defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+        </svg>
+        <div style="font-size:12px;margin-top:4px"><strong>发光</strong><br><code>drop-shadow glow</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 交互与状态 -->
+  <h2>3. 交互与状态</h2>
+
+  <div class="card">
+    <div class="card-title">Hover & Selected States</div>
+    <div class="interaction-demo">
+      <!-- 默认态 -->
+      <div class="state-box">
+        <svg width="64" height="64">
+          <circle cx="32" cy="32" r="16" fill="rgba(37,99,235,0.6)" stroke="#fff" stroke-width="1.5"/>
+        </svg>
+        <div class="state-label">Default</div>
+      </div>
+      <!-- Hover 态 -->
+      <div class="state-box">
+        <svg width="64" height="64">
+          <circle cx="32" cy="32" r="19" fill="rgba(37,99,235,0.8)" stroke="#2563eb" stroke-width="2.5"/>
+        </svg>
+        <div class="state-label">Hover (1.2×)</div>
+      </div>
+      <!-- 选中态 -->
+      <div class="state-box">
+        <svg width="64" height="64">
+          <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(37,99,235,0.3)" stroke-width="1.5" style="animation: pulse-ring 1.5s ease-out infinite;"/>
+          <circle cx="32" cy="32" r="16" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        </svg>
+        <div class="state-label">Selected (Pulse)</div>
+      </div>
+      <!-- 三角 Hover -->
+      <div class="state-box">
+        <svg width="64" height="64">
+          <polygon points="32,10 56,52 8,52" fill="rgba(239,68,68,0.8)" stroke="#ef4444" stroke-width="2.5" stroke-linejoin="round" transform="scale(1.1) translate(-3,-3)"/>
+        </svg>
+        <div class="state-label">Triangle Hover</div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>状态</th><th>视觉变化</th><th>说明</th></tr>
+      <tr><td><strong>Hover</strong></td><td>等比放大 1.2×，不透明度提升</td><td>边缘出现 <code>2px</code> 品牌色高亮环</td></tr>
+      <tr><td><strong>Selected</strong></td><td>呼吸脉冲 <code>animate-pulse</code></td><td>形状内部填充色彩反转</td></tr>
+    </table>
+  </div>
+
+  <!-- 4. 性能 -->
+  <h2>4. WebGL 渲染性能</h2>
+
+  <div class="card">
+    <div class="card-title">SDF Rendering Pipeline</div>
+    <div class="perf-grid">
+      <div class="perf-item">
+        <div class="perf-icon">⚡</div>
+        <div class="perf-title">SDF 渲染</div>
+        <div class="perf-desc">Signed Distance Fields<br>缩放无锯齿</div>
+      </div>
+      <div class="perf-item">
+        <div class="perf-icon">🔄</div>
+        <div class="perf-title">瞬间切换</div>
+        <div class="perf-desc">毫秒级形状/色彩<br>动态变换</div>
+      </div>
+      <div class="perf-item">
+        <div class="perf-icon">🌐</div>
+        <div class="perf-title">碰撞避让</div>
+        <div class="perf-desc">R-Tree 包围盒<br>实时避让逻辑</div>
+      </div>
+      <div class="perf-item">
+        <div class="perf-icon">📐</div>
+        <div class="perf-title">Bounding Box</div>
+        <div class="perf-desc">不同形状精确<br>包围盒计算</div>
+      </div>
+    </div>
+    <p style="margin-top:16px">所有几何形状通过 WebGL SDF 技术绘制，边缘在任意缩放级别下保持锐利。碰撞避让基于 R-Tree 空间索引，对每种形状计算精确的包围盒。</p>
+  </div>
+
+</div>
+<button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
+<script>
+(function() {
+  var toggle = document.getElementById('themeToggle');
+  var html = document.documentElement;
+  var stored = localStorage.getItem('design-spec-theme');
+  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var initial = stored || (prefersDark ? 'dark' : 'light');
+  html.setAttribute('data-theme', initial);
+  toggle.textContent = initial === 'dark' ? '☀️' : '🌙';
+  toggle.addEventListener('click', function() {
+    var current = html.getAttribute('data-theme');
+    var next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    toggle.textContent = next === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('design-spec-theme', next);
+  });
+})();
+</script>
+</body>
+</html>

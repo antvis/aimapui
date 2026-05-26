@@ -1,12 +1,12 @@
-# aimapkit 官网
+# aimapui 官网
 
-基于 Nextra (Next.js) 构建的 aimapkit 官网文档站点。
+基于 Nextra (Next.js) 构建的 aimapui 官网文档站点。
 
 ## 技术栈
 
 - **框架**: Next.js 15+ (App Router)
 - **文档引擎**: Nextra 4.x (Docs Theme)
-- **地图组件**: @antv/aimapkit + @antv/l7
+- **地图组件**: @antv/aimapui + @antv/l7
 - **地图服务**: 高德地图
 - **样式方案**: Tailwind CSS 4.x
 - **部署平台**: Vercel

@@ -42,7 +42,7 @@ export function EventBusProvider({ events, children }: EventBusProviderProps) {
 export function useEventBus(): EventBus {
   const bus = useContext(EventBusContext);
   if (!bus) {
-    throw new Error('[AimapKit] useEventBus must be used within an EventBusProvider');
+    throw new Error('[aimapui] useEventBus must be used within an EventBusProvider');
   }
   return bus;
 }

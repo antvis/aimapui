@@ -11,14 +11,13 @@ module.exports = withNextra({
   images: {
     unoptimized: true,
   },
-  transpilePackages: ['@antv/aimapkit', '@antv/l7', '@antv/l7-maps'],
+  transpilePackages: ['@antv/aimapui', '@antv/l7', '@antv/l7-maps'],
   webpack: (config) => {
-    // Ensure @antv/aimapkit dist uses the same React instance as site
     config.resolve.alias = {
       ...config.resolve.alias,
       react: path.resolve(__dirname, 'node_modules/react'),
       'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-      'aimapkit-css': path.resolve(__dirname, '..', 'dist', 'aimapkit.css'),
+      'aimapui-css': path.resolve(__dirname, '..', 'dist', 'aimapui.css'),
     }
     return config
   },

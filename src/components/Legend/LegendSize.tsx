@@ -29,11 +29,11 @@ export function LegendSize({
   const maxSize = Math.max(...items.map((it) => it.size), 1);
 
   return (
-    <div className={cx('aimapkit-legend-section', className)}>
-      {title && <div className="aimapkit-legend-title">{title}</div>}
+    <div className={cx('aimapui-legend-section', className)}>
+      {title && <div className="aimapui-legend-title">{title}</div>}
 
-      <div className="aimapkit-legend-size">
-        <div className="aimapkit-legend-size-row">
+      <div className="aimapui-legend-size">
+        <div className="aimapui-legend-size-row">
           {items.map((item, i) => (
             <div
               key={i}
@@ -46,7 +46,7 @@ export function LegendSize({
               }}
             >
               <div
-                className="aimapkit-legend-size-circle"
+                className="aimapui-legend-size-circle"
                 style={{
                   width: item.size,
                   height: item.size,
@@ -57,9 +57,9 @@ export function LegendSize({
             </div>
           ))}
         </div>
-        <div className="aimapkit-legend-size-labels">
+        <div className="aimapui-legend-size-labels">
           {items.map((item, i) => (
-            <span key={i} className="aimapkit-legend-size-label">
+            <span key={i} className="aimapui-legend-size-label">
               {item.label}
             </span>
           ))}

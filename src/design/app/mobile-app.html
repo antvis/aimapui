@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>移动端应用 (Mobile App) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #2563eb;
+    --color-primary-container: #dbeafe;
+    --color-on-primary: #fff;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-surface: #f8f9ff;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container-low: #eff4ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+
+  /* 手机外框 */
+  .phone-frame {
+    width: 320px; height: 640px; margin: 0 auto;
+    border-radius: 36px; border: 8px solid #1e293b;
+    background: linear-gradient(180deg, #e8edf5 0%, #d5dce8 50%, #eef1f7 100%);
+    position: relative; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), inset 0 0 0 2px #334155;
+  }
+  .phone-frame::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23b0b8c9' stroke-width='0.3' fill='none'/%3E%3C/svg%3E");
+    opacity: 0.2; pointer-events: none;
+  }
+  /* 状态栏 */
+  .status-bar {
+    height: 44px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; font-size: 12px; font-weight: 600; color: #1e293b;
+    position: relative; z-index: 10;
+  }
+  .status-bar-notch {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 28px; background: #1e293b; border-radius: 0 0 16px 16px;
+  }
+  /* 搜索栏 */
+  .search-bar {
+    margin: 4px 16px 0; height: 48px; border-radius: 24px;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+    display: flex; align-items: center; padding: 0 16px; gap: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    position: relative; z-index: 10;
+  }
+  .search-bar .material-symbols-outlined { font-size: 20px; color: var(--color-on-surface-variant); }
+  .search-placeholder { flex: 1; font-size: 14px; color: #94a3b8; }
+  .search-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--color-primary-container); display: flex; align-items: center; justify-content: center; }
+  .search-avatar .material-symbols-outlined { font-size: 16px; color: var(--color-primary); }
+
+  /* 地图控件 */
+  .map-controls {
+    position: absolute; right: 16px; bottom: 180px; z-index: 10;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .ctrl-btn {
+    width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.95);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12); display: flex; align-items: center; justify-content: center;
+  }
+  .ctrl-btn .material-symbols-outlined { font-size: 20px; color: var(--color-on-surface); }
+  .ctrl-group {
+    border-radius: 22px; background: rgba(255,255,255,0.95);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12); overflow: hidden;
+  }
+  .ctrl-group .ctrl-btn { border-radius: 0; box-shadow: none; }
+  .ctrl-group .ctrl-btn + .ctrl-btn { border-top: 1px solid rgba(195,198,215,0.3); }
+
+  /* 底部面板 */
+  .bottom-sheet {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+    background: rgba(255,255,255,0.96); backdrop-filter: blur(16px);
+    border-radius: 24px 24px 0 0; padding: 12px 16px 24px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.08);
+  }
+  .sheet-handle { width: 32px; height: 4px; border-radius: 2px; background: #cbd5e1; margin: 0 auto 12px; }
+  .sheet-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .sheet-subtitle { font-size: 12px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  .sheet-list { display: flex; flex-direction: column; gap: 0; }
+  .sheet-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 0;
+    border-bottom: 1px solid rgba(195,198,215,0.2);
+  }
+  .sheet-item-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--color-primary-container); display: flex; align-items: center; justify-content: center; }
+  .sheet-item-icon .material-symbols-outlined { font-size: 18px; color: var(--color-primary); }
+  .sheet-item-text { flex: 1; }
+  .sheet-item-name { font-size: 13px; font-weight: 600; }
+  .sheet-item-desc { font-size: 11px; color: var(--color-on-surface-variant); }
+  .sheet-item-value { font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--color-primary); }
+
+  /* 底部导航 */
+  .bottom-nav {
+    position: absolute; bottom: 0; left: 0; right: 0; z-index: 20;
+    height: 64px; background: rgba(255,255,255,0.92); backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(195,198,215,0.3);
+    display: flex; align-items: center; justify-content: space-around; padding: 0 8px;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
+  .nav-item .material-symbols-outlined { font-size: 22px; color: var(--color-on-surface-variant); }
+  .nav-item span { font-size: 10px; color: var(--color-on-surface-variant); }
+  .nav-item.active .material-symbols-outlined { color: var(--color-primary); }
+  .nav-item.active span { color: var(--color-primary); font-weight: 600; }
+  .nav-item.active::after { content: ''; position: absolute; bottom: -6px; width: 16px; height: 3px; border-radius: 2px; background: var(--color-primary); }
+
+  /* 手势演示 */
+  .gesture-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+  .gesture-card { background: var(--color-surface-container-low); border-radius: 8px; padding: 16px; text-align: center; border: 1px solid var(--color-outline-variant); }
+  .gesture-icon { font-size: 32px; margin-bottom: 8px; }
+  .gesture-name { font-size: 13px; font-weight: 600; }
+  .gesture-desc { font-size: 11px; color: var(--color-on-surface-variant); margin-top: 4px; }
+
+  /* 底部面板三段式演示 */
+  .sheet-states { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .sheet-state-box {
+    background: var(--color-surface-container-low); border-radius: 8px; border: 1px solid var(--color-outline-variant);
+    height: 200px; position: relative; overflow: hidden;
+  }
+  .sheet-state-map { position: absolute; inset: 0; background: linear-gradient(135deg, #e8edf5, #d5dce8); }
+  .sheet-state-panel {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.95); border-radius: 12px 12px 0 0;
+    padding: 8px 12px; box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+  }
+  .sheet-state-handle { width: 24px; height: 3px; border-radius: 2px; background: #cbd5e1; margin: 0 auto 6px; }
+  .sheet-state-label { position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 700; color: var(--color-primary); background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+
+  /* 涟漪动画 */
+  @keyframes ripple {
+    0% { transform: scale(0); opacity: 0.5; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+
+  /* ========== Dark Theme ========== */
+  [data-theme="dark"] {
+    --color-primary: #93c5fd;
+    --color-primary-container: #1e3a5f;
+    --color-success: #6ee7b7;
+    --color-error: #fca5a5;
+    --color-warning: #fcd34d;
+    --color-on-surface: #e2e8f0;
+    --color-on-surface-variant: #94a3b8;
+    --color-surface: #0f172a;
+    --color-outline-variant: #334155;
+    --color-surface-container-low: #1e293b;
+    --color-on-primary: #1e3a5f;
+    --color-surface-container: #1e293b;
+  }
+  [data-theme="dark"] body { background: var(--color-surface); color: var(--color-on-surface); }
+  [data-theme="dark"] .card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] code { background: #1e3a5f; color: #93c5fd; }
+  [data-theme="dark"] .spec-table th { background: rgba(30,58,95,0.5); }
+  [data-theme="dark"] .spec-table td { border-color: rgba(51,65,85,0.4); }
+  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); border-color: #334155; }
+  [data-theme="dark"] .map-bg::before { opacity: 0.1; }
+  [data-theme="dark"] h2 { border-color: #334155; }
+  /* 手机框架暗色适配 */
+  [data-theme="dark"] .phone-frame { border-color: #475569; background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); }
+  [data-theme="dark"] .search-bar { background: rgba(30,41,59,0.92); }
+  [data-theme="dark"] .search-placeholder { color: #64748b; }
+  [data-theme="dark"] .ctrl-btn { background: rgba(30,41,59,0.95); }
+  [data-theme="dark"] .ctrl-btn .material-symbols-outlined { color: #e2e8f0; }
+  [data-theme="dark"] .ctrl-group { background: rgba(30,41,59,0.95); }
+  [data-theme="dark"] .bottom-sheet { background: rgba(30,41,59,0.96); }
+  [data-theme="dark"] .bottom-nav { background: rgba(30,41,59,0.92); border-color: #334155; }
+  /* 形状卡片 */
+  [data-theme="dark"] .shape-card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] .shape-card:hover { box-shadow: 0 8px 24px rgba(147,197,253,0.08); }
+  /* 性能/手势卡片 */
+  [data-theme="dark"] .perf-item,
+  [data-theme="dark"] .gesture-card,
+  [data-theme="dark"] .collision-box,
+  [data-theme="dark"] .zoom-card { background: #1e293b; border-color: #334155; }
+  /* 侧边栏 (PC) */
+  [data-theme="dark"] .sidebar { background: rgba(15,23,42,0.92); border-color: #334155; }
+  [data-theme="dark"] .sidebar-item:hover { background: rgba(147,197,253,0.08); }
+  /* 底部面板状态 */
+  [data-theme="dark"] .sheet-state-box { border-color: #334155; }
+  [data-theme="dark"] .sheet-state-map { background: linear-gradient(135deg, #1e293b, #0f172a); }
+  [data-theme="dark"] .sheet-state-panel { background: rgba(30,41,59,0.95); }
+  /* SVG 文字 */
+  [data-theme="dark"] svg text[fill="#434655"],
+  [data-theme="dark"] svg text[fill="#1e293b"] { fill: #e2e8f0; }
+  [data-theme="dark"] svg text[fill="#64748b"] { fill: #94a3b8; }
+
+  /* 主题切换按钮 */
+  .theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 9999;
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--color-outline-variant);
+    background: var(--color-surface-container-low); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: background 0.2s, border-color 0.2s;
+    font-size: 18px; line-height: 1;
+  }
+  .theme-toggle:hover { background: var(--color-primary-container); }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>移动端应用 (Mobile App) 设计规范</h1>
+  <p class="subtitle">Cartographic Precision System v2.4.0 Mobile Module — 触控优先的地图交互体验</p>
+
+  <!-- 1. 基础视觉 -->
+  <h2>1. 基础视觉准则</h2>
+
+  <h3>1.1 触控优先</h3>
+  <div class="card">
+    <div class="card-title">Touch Target & Safe Area</div>
+    <div style="display:flex;gap:32px;align-items:center;justify-content:center;padding:16px 0;flex-wrap:wrap">
+      <!-- 44x44 示意 -->
+      <div style="text-align:center">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <rect x="28" y="28" width="44" height="44" rx="8" fill="rgba(37,99,235,0.1)" stroke="var(--color-primary)" stroke-width="1.5" stroke-dasharray="4 2"/>
+          <circle cx="50" cy="50" r="16" fill="var(--color-primary)"/>
+          <text x="50" y="54" text-anchor="middle" font-size="10" fill="#fff" font-family="Inter" font-weight="600">+</text>
+          <text x="50" y="86" text-anchor="middle" font-size="9" fill="var(--color-on-surface-variant)" font-family="JetBrains Mono">44×44px</text>
+        </svg>
+        <div style="font-size:12px;color:var(--color-on-surface-variant)">最小触控面积</div>
+      </div>
+      <!-- 安全边距 -->
+      <div style="text-align:center">
+        <svg width="120" height="100" viewBox="0 0 120 100">
+          <rect x="4" y="4" width="112" height="92" rx="12" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+          <rect x="20" y="20" width="80" height="60" rx="6" fill="rgba(37,99,235,0.08)" stroke="var(--color-primary)" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="12" y="52" font-size="8" fill="var(--color-primary)" font-family="JetBrains Mono" transform="rotate(-90,12,52)">16px</text>
+          <text x="60" y="16" text-anchor="middle" font-size="8" fill="var(--color-primary)" font-family="JetBrains Mono">16px</text>
+        </svg>
+        <div style="font-size:12px;color:var(--color-on-surface-variant)">安全边距 ≥16px</div>
+      </div>
+    </div>
+    <table class="spec-table">
+      <tr><th>属性</th><th>值</th><th>说明</th></tr>
+      <tr><td><strong>触控面积</strong></td><td><code>≥ 44×44px</code></td><td>所有核心交互控件</td></tr>
+      <tr><td><strong>安全边距</strong></td><td><code>≥ 16px</code></td><td>控件与屏幕边缘距离</td></tr>
+      <tr><td><strong>玻璃拟态</strong></td><td><code>bg-surface/90 + backdrop-blur-lg</code></td><td>浮动控件层级感</td></tr>
+    </table>
+  </div>
+
+  <!-- 2. 核心组件 — 手机模拟 -->
+  <h2>2. 核心组件规范</h2>
+
+  <h3>2.1 完整界面示意</h3>
+  <div style="display:flex;justify-content:center;padding:24px 0">
+    <div class="phone-frame">
+      <!-- 状态栏 -->
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="status-bar-notch"></div>
+        <span style="display:flex;gap:4px;align-items:center">
+          <span class="material-symbols-outlined" style="font-size:14px">signal_cellular_alt</span>
+          <span class="material-symbols-outlined" style="font-size:14px">battery_full</span>
+        </span>
+      </div>
+      <!-- 搜索栏 -->
+      <div class="search-bar">
+        <span class="material-symbols-outlined">menu</span>
+        <span class="search-placeholder">搜索地点、路线</span>
+        <div class="search-avatar"><span class="material-symbols-outlined">person</span></div>
+      </div>
+      <!-- 地图控件 -->
+      <div class="map-controls">
+        <div class="ctrl-group">
+          <div class="ctrl-btn"><span class="material-symbols-outlined">add</span></div>
+          <div class="ctrl-btn"><span class="material-symbols-outlined">remove</span></div>
+        </div>
+        <div class="ctrl-btn"><span class="material-symbols-outlined">my_location</span></div>
+      </div>
+      <!-- 底部面板 -->
+      <div class="bottom-sheet" style="height:180px">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">附近热门</div>
+        <div class="sheet-subtitle">基于当前位置推荐</div>
+        <div class="sheet-list">
+          <div class="sheet-item">
+            <div class="sheet-item-icon"><span class="material-symbols-outlined">restaurant</span></div>
+            <div class="sheet-item-text">
+              <div class="sheet-item-name">星巴克臻选</div>
+              <div class="sheet-item-desc">距离 320m · 营业中</div>
+            </div>
+            <div class="sheet-item-value">4.8</div>
+          </div>
+          <div class="sheet-item">
+            <div class="sheet-item-icon"><span class="material-symbols-outlined">local_mall</span></div>
+            <div class="sheet-item-text">
+              <div class="sheet-item-name">万象城</div>
+              <div class="sheet-item-desc">距离 1.2km · 营业中</div>
+            </div>
+            <div class="sheet-item-value">4.6</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>2.2 智能搜索栏</h3>
+  <div class="card">
+    <div class="card-title">Mobile Search Bar</div>
+    <div style="max-width:320px;margin:0 auto;padding:16px 0">
+      <div class="search-bar" style="margin:0">
+        <span class="material-symbols-outlined">menu</span>
+        <span class="search-placeholder">搜索地点、路线</span>
+        <div class="search-avatar"><span class="material-symbols-outlined">person</span></div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>元素</th><th>规格</th><th>说明</th></tr>
+      <tr><td><strong>布局</strong></td><td>悬浮岛式，距顶部 <code>16px</code></td><td>不遮挡地图核心区域</td></tr>
+      <tr><td><strong>构成</strong></td><td><code>Menu + Placeholder + Avatar</code></td><td>三段式布局</td></tr>
+      <tr><td><strong>材质</strong></td><td><code>bg-white/92 + blur(12px)</code></td><td>玻璃拟态浮动效果</td></tr>
+      <tr><td><strong>圆角</strong></td><td><code>rounded-full (24px)</code></td><td>药丸形搜索条</td></tr>
+    </table>
+  </div>
+
+  <h3>2.3 底部滑动面板 — 三段式状态</h3>
+  <div class="card">
+    <div class="card-title">Bottom Sheet States</div>
+    <div class="sheet-states">
+      <!-- Peek -->
+      <div class="sheet-state-box">
+        <div class="sheet-state-map"></div>
+        <div class="sheet-state-panel" style="height:50px">
+          <div class="sheet-state-handle"></div>
+          <div style="font-size:11px;font-weight:600">附近热门</div>
+        </div>
+        <div class="sheet-state-label">Peek · 80px</div>
+      </div>
+      <!-- Half -->
+      <div class="sheet-state-box">
+        <div class="sheet-state-map"></div>
+        <div class="sheet-state-panel" style="height:80px">
+          <div class="sheet-state-handle"></div>
+          <div style="font-size:11px;font-weight:600;margin-bottom:4px">附近热门</div>
+          <div style="font-size:9px;color:var(--color-on-surface-variant)">• 星巴克 320m</div>
+          <div style="font-size:9px;color:var(--color-on-surface-variant)">• 万象城 1.2km</div>
+        </div>
+        <div class="sheet-state-label">Half · 40%</div>
+      </div>
+      <!-- Full -->
+      <div class="sheet-state-box">
+        <div class="sheet-state-map"></div>
+        <div class="sheet-state-panel" style="height:160px">
+          <div class="sheet-state-handle"></div>
+          <div style="font-size:11px;font-weight:600;margin-bottom:4px">附近热门</div>
+          <div style="font-size:9px;color:var(--color-on-surface-variant)">• 星巴克臻选 · 4.8</div>
+          <div style="font-size:9px;color:var(--color-on-surface-variant)">• 万象城 · 4.6</div>
+          <div style="font-size:9px;color:var(--color-on-surface-variant)">• 西湖银泰 · 4.5</div>
+          <div style="font-size:9px;color:var(--color-on-surface-variant)">• 龙湖天街 · 4.4</div>
+          <div style="font-size:9px;color:var(--color-on-surface-variant)">• 大悦城 · 4.3</div>
+        </div>
+        <div class="sheet-state-label">Full · 沉浸</div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>状态</th><th>高度</th><th>内容</th></tr>
+      <tr><td><strong>Peek</strong></td><td><code>~80px</code></td><td>标题或搜索摘要</td></tr>
+      <tr><td><strong>Half</strong></td><td><code>~40% 屏幕</code></td><td>核心数据列表 / 预览</td></tr>
+      <tr><td><strong>Full</strong></td><td><code>~90% 屏幕</code></td><td>沉浸详情 + 图表</td></tr>
+    </table>
+  </div>
+
+  <h3>2.4 底部导航栏</h3>
+  <div class="card">
+    <div class="card-title">Bottom Navigation</div>
+    <div style="max-width:320px;margin:0 auto;padding:16px 0">
+      <div style="height:64px;background:rgba(255,255,255,0.92);border-radius:16px;border:1px solid var(--color-outline-variant);display:flex;align-items:center;justify-content:space-around;padding:0 8px;backdrop-filter:blur(16px)">
+        <div class="nav-item active">
+          <span class="material-symbols-outlined">explore</span>
+          <span>探索</span>
+        </div>
+        <div class="nav-item">
+          <span class="material-symbols-outlined">directions</span>
+          <span>路线</span>
+        </div>
+        <div class="nav-item">
+          <span class="material-symbols-outlined">bookmark</span>
+          <span>收藏</span>
+        </div>
+        <div class="nav-item">
+          <span class="material-symbols-outlined">person</span>
+          <span>我的</span>
+        </div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>属性</th><th>值</th><th>说明</th></tr>
+      <tr><td><strong>高度</strong></td><td><code>64px + safe-area</code></td><td>固定底部</td></tr>
+      <tr><td><strong>排版</strong></td><td><code>Icon + Label 垂直</code></td><td>图标 22px + 文字 10px</td></tr>
+      <tr><td><strong>高亮</strong></td><td><code>primary + 底部短横线</code></td><td>品牌色激活态</td></tr>
+      <tr><td><strong>背景</strong></td><td><code>bg-surface/92 + blur-xl</code></td><td>玻璃拟态模糊</td></tr>
+    </table>
+  </div>
+
+  <!-- 3. 交互手势 -->
+  <h2>3. 交互手势与反馈</h2>
+
+  <div class="card">
+    <div class="card-title">Gesture Feedback</div>
+    <div class="gesture-grid">
+      <div class="gesture-card">
+        <div class="gesture-icon">👆</div>
+        <div class="gesture-name">Tap 点击</div>
+        <div class="gesture-desc">放射状涟漪 Ripple 动效<br>轻量视觉确认</div>
+      </div>
+      <div class="gesture-card">
+        <div class="gesture-icon">☝️</div>
+        <div class="gesture-name">Drag 拖拽</div>
+        <div class="gesture-desc">面板随手指实时跟随<br>松手自动吸附最近状态</div>
+      </div>
+      <div class="gesture-card">
+        <div class="gesture-icon">🤏</div>
+        <div class="gesture-name">Pinch 缩放</div>
+        <div class="gesture-desc">双指捏合控制地图缩放<br>平滑惯性动画</div>
+      </div>
+      <div class="gesture-card">
+        <div class="gesture-icon">👋</div>
+        <div class="gesture-name">Swipe 轻扫</div>
+        <div class="gesture-desc">底部面板切换状态<br>阈值检测吸附</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Visual Cues</div>
+    <div style="display:flex;gap:32px;justify-content:center;align-items:center;padding:16px 0;flex-wrap:wrap">
+      <!-- Handle 示意 -->
+      <div style="text-align:center">
+        <svg width="100" height="50" viewBox="0 0 100 50">
+          <rect x="10" y="20" width="80" height="24" rx="12" fill="rgba(255,255,255,0.95)" stroke="var(--color-outline-variant)"/>
+          <rect x="38" y="26" width="24" height="3" rx="1.5" fill="#94a3b8"/>
+          <text x="50" y="40" text-anchor="middle" font-size="7" fill="var(--color-on-surface-variant)" font-family="JetBrains Mono">32×4px</text>
+        </svg>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">Handle 拖动手柄</div>
+      </div>
+      <!-- Halo 示意 -->
+      <div style="text-align:center">
+        <svg width="120" height="50" viewBox="0 0 120 50">
+          <rect width="120" height="50" fill="#3b82f6" rx="6"/>
+          <text x="60" y="32" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b" font-family="Inter" stroke="#fff" stroke-width="3" paint-order="stroke">地图标注</text>
+        </svg>
+        <div style="font-size:11px;color:var(--color-on-surface-variant)">2px 白色光晕 Halo</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
+<script>
+(function() {
+  var toggle = document.getElementById('themeToggle');
+  var html = document.documentElement;
+  var stored = localStorage.getItem('design-spec-theme');
+  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var initial = stored || (prefersDark ? 'dark' : 'light');
+  html.setAttribute('data-theme', initial);
+  toggle.textContent = initial === 'dark' ? '☀️' : '🌙';
+  toggle.addEventListener('click', function() {
+    var current = html.getAttribute('data-theme');
+    var next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    toggle.textContent = next === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('design-spec-theme', next);
+  });
+})();
+</script>
+</body>
+</html>

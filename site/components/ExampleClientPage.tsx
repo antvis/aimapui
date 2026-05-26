@@ -4,8 +4,8 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { injectAmapKey } from '@/lib/amap-key'
 
-// @antv/aimapkit 在 import 时访问 document，必须跳过 SSR
-const Aimap = dynamic(() => import('@antv/aimapkit').then((m) => m.Aimap), { ssr: false })
+// @antv/aimapui 在 import 时访问 document，必须跳过 SSR
+const Aimap = dynamic(() => import('@antv/aimapui').then((m) => m.Aimap), { ssr: false })
 
 interface ExampleClientPageProps {
   example: {

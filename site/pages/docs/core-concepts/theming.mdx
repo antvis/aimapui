@@ -1,6 +1,6 @@
 # 主题与样式
 
-aimapkit 采用 **Material Design 3** 设计体系，内置亮色/暗色主题切换，并提供完整的设计令牌系统。
+aimapui 采用 **Material Design 3** 设计体系，内置亮色/暗色主题切换，并提供完整的设计令牌系统。
 
 ## 主题切换
 
@@ -25,7 +25,7 @@ aimapkit 采用 **Material Design 3** 设计体系，内置亮色/暗色主题�
 使用 `useTheme` Hook 动态切换：
 
 ```tsx
-import { Aimap, ZoomControl, useTheme } from '@antv/aimapkit'
+import { Aimap, ZoomControl, useTheme } from '@antv/aimapui'
 
 function ThemeToggle() {
   const { theme, setTheme, toggleTheme } = useTheme()
@@ -43,7 +43,7 @@ function ThemeToggle() {
 切换 UI 主题时，底图样式可联动切换：
 
 ```tsx
-import { Aimap, MapThemeControl } from '@antv/aimapkit'
+import { Aimap, MapThemeControl } from '@antv/aimapui'
 
 // MapThemeControl 组件提供底图样式选择下拉框
 // 自动获取当前底图支持的样式列表
@@ -91,7 +91,7 @@ function App() {
 
 ## 玻璃拟态控件
 
-aimapkit 的控件采用 Material Design 3 玻璃拟态（Glassmorphism）风格：
+aimapui 的控件采用 Material Design 3 玻璃拟态（Glassmorphism）风格：
 
 - 半透明背景 + `backdrop-blur`
 - 细微边框 + 柔和阴影
@@ -116,7 +116,7 @@ aimapkit 的控件采用 Material Design 3 玻璃拟态（Glassmorphism）风格
 
 ## 地图色板
 
-aimapkit 内置多种地图可视化专用色板：
+aimapui 内置多种地图可视化专用色板：
 
 ### 顺序色板 (Sequential)
 
@@ -150,7 +150,7 @@ const categoricalColors = [
 
 ## 响应式设计
 
-aimapkit 内置响应式断点，自动适配移动端：
+aimapui 内置响应式断点，自动适配移动端：
 
 ```tsx
 const schema = {

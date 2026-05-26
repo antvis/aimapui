@@ -1,5 +1,5 @@
 /**
- * @antv/aimapkit Schema 类型定义
+ * @antv/aimapui Schema 类型定义
  * 纯可序列化 Schema，面向 AI 生成优化
  */
 

@@ -29,10 +29,10 @@ export function LegendProportion({
   const minSize = 6;
 
   return (
-    <div className={cx('aimapkit-legend-section', className)}>
-      {title && <div className="aimapkit-legend-title">{title}</div>}
-      <div className="aimapkit-legend-size">
-        <div className="aimapkit-legend-size-row">
+    <div className={cx('aimapui-legend-section', className)}>
+      {title && <div className="aimapui-legend-title">{title}</div>}
+      <div className="aimapui-legend-size">
+        <div className="aimapui-legend-size-row">
           {labels.map(([min, max], i) => {
             const ratio = i / Math.max(labels.length - 1, 1);
             const size = minSize + ratio * (maxSize - minSize);
@@ -48,7 +48,7 @@ export function LegendProportion({
                 }}
               >
                 <div
-                  className="aimapkit-legend-size-circle"
+                  className="aimapui-legend-size-circle"
                   style={{
                     width: size,
                     height: size,
@@ -60,9 +60,9 @@ export function LegendProportion({
             );
           })}
         </div>
-        <div className="aimapkit-legend-size-labels">
+        <div className="aimapui-legend-size-labels">
           {labels.map(([min, max], i) => (
-            <span key={i} className="aimapkit-legend-size-label">
+            <span key={i} className="aimapui-legend-size-label">
               {min}–{max}
             </span>
           ))}

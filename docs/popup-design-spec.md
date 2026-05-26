@@ -62,7 +62,7 @@
 
 ### 5.1 容器样式
 ```css
-.aimapkit-popup-content {
+.aimapui-popup-content {
   background: rgba(248, 249, 255, 0.95);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -85,14 +85,14 @@
   }
 }
 
-.aimapkit-popup-content {
+.aimapui-popup-content {
   animation: popupEnter 200ms cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 ```
 
 ### 5.3 箭头样式
 ```css
-.aimapkit-popup-tip {
+.aimapui-popup-tip {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);

@@ -32,7 +32,7 @@ export function GeoLocateControl({
 
   const handleClick = useCallback(async () => {
     if (!window.navigator.geolocation) {
-      console.warn('[AimapKit] Geolocation is not supported by this browser');
+      console.warn('[aimapui] Geolocation is not supported by this browser');
       return;
     }
     if (!mapsService) return;
@@ -56,7 +56,7 @@ export function GeoLocateControl({
         finalPos,
       );
     } catch (e) {
-      console.warn('[AimapKit] Geolocation error:', e);
+      console.warn('[aimapui] Geolocation error:', e);
     }
   }, [mapsService, transform]);
 

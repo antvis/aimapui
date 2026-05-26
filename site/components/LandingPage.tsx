@@ -125,8 +125,7 @@ export default function HomePage() {
               } as CSSProperties
             }
           >
-            <span style={{ color: 'var(--muted-foreground)' }}>$</span>
-            npm install @antv/aimapkit
+            npm install @antv/aimapui
           </div>
 
           {/* CTAs */}
@@ -183,7 +182,7 @@ export default function HomePage() {
               组件文档
             </Link>
             <a
-              href="https://github.com/antvis/aimapkit"
+              href="https://github.com/antvis/aimapui"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -321,7 +320,7 @@ export default function HomePage() {
                   <pre style={{ color: 'oklch(0.922 0 0)', margin: 0, whiteSpace: 'pre' }}>
 {`import { Aimap, PointLayer,
   ZoomControl, ScaleControl,
-  CategoriesLegend } from '@antv/aimapkit'
+  CategoriesLegend } from '@antv/aimapui'
 
 export default function App() {
   return (
@@ -616,7 +615,7 @@ export default function App() {
           几分钟内创建你的第一个地图应用
         </h2>
         <p style={{ color: 'oklch(0.985 0 0 / 60%)', marginBottom: 36, fontSize: '1.05rem' }}>
-          npm install @antv/aimapkit
+          npm install @antv/aimapui
         </p>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
           <Link
@@ -665,7 +664,7 @@ export default function App() {
           }}
         >
           <p style={{ opacity: 0.4, fontSize: '0.8rem' }}>
-            © 2026 AntV · aimapkit ·{' '}
+            © 2026 AntV · AiMapUI ·{' '}
             <a
               href="https://antv.antgroup.com"
               target="_blank"
@@ -685,7 +684,7 @@ export default function App() {
             </a>
             {' · '}
             <a
-              href="https://github.com/antvis/aimapkit"
+              href="https://github.com/antvis/aimapui"
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: 'oklch(0.985 0 0 / 50%)', textDecoration: 'none' }}

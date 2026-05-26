@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Aimap, LineLayer, PointLayer, ZoomControl, MapThemeControl } from '../../index';
-import { Legend } from '../components/Legend';
+import { Aimap, ArcFlowLayer, ZoomControl, MapThemeControl } from '../../index';
+import type { ArcFlowDataItem } from '../../index';
 
 /* ================================================================
    最炫航线图 — 应用模板 Demo
@@ -71,6 +71,7 @@ const NAV_HEIGHT = 72;
 export default function FlightRouteMap() {
   const [activeTab, setActiveTab] = useState<'all' | 'flight' | 'train'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [categoryCollapsed, setCategoryCollapsed] = useState(false);
 
   const totalFlights = useMemo(() =>
     ROUTES.filter(r => r.type === 'flight').reduce((s, r) => s + r.count, 0), []);
@@ -83,34 +84,19 @@ export default function FlightRouteMap() {
     return ROUTES;
   }, [activeTab]);
 
-  // 生成弧线 CSV 数据
-  const arcCSV = useMemo(() => {
-    const header = 'from_lng,from_lat,to_lng,to_lat,count,type';
-    const rows = filteredRoutes.map(r =>
-      `${r.fromLng},${r.fromLat},${r.toLng},${r.toLat},${r.count},${r.type}`
-    );
-    return [header, ...rows].join('\n');
+  // 转换为 ArcFlowDataItem 格式
+  const arcFlowData: ArcFlowDataItem[] = useMemo(() => {
+    return filteredRoutes.map(r => ({
+      fromLng: r.fromLng,
+      fromLat: r.fromLat,
+      toLng: r.toLng,
+      toLat: r.toLat,
+      weight: r.count,
+      fromName: r.from,
+      toName: r.to,
+      type: r.type,
+    }));
   }, [filteredRoutes]);
-
-  // 城市节点数据
-  const cityPoints = useMemo(() => {
-    const cityMap = new Map<string, { lng: number; lat: number; total: number }>();
-    filteredRoutes.forEach(r => {
-      const fromKey = r.from;
-      const toKey = r.to;
-      if (!cityMap.has(fromKey)) cityMap.set(fromKey, { lng: r.fromLng, lat: r.fromLat, total: 0 });
-      if (!cityMap.has(toKey)) cityMap.set(toKey, { lng: r.toLng, lat: r.toLat, total: 0 });
-      cityMap.get(fromKey)!.total += r.count;
-      cityMap.get(toKey)!.total += r.count;
-    });
-    const header = 'lng,lat,name,total';
-    const rows = Array.from(cityMap.entries()).map(
-      ([name, d]) => `${d.lng},${d.lat},${name},${d.total}`
-    );
-    return [header, ...rows].join('\n');
-  }, [filteredRoutes]);
-
-  const maxCount = Math.max(...filteredRoutes.map(r => r.count));
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", background: '#0f172a' }}>
@@ -125,47 +111,21 @@ export default function FlightRouteMap() {
             pitch: 20,
           }}
         >
-          {/* 弧线图层 */}
-          <LineLayer
-            source={arcCSV}
-            sourceType="csv"
-            sourceConfig={{
-              x: 'from_lng',
-              y: 'from_lat',
-              x1: 'to_lng',
-              y1: 'to_lat',
-            }}
+          {/* 使用 ArcFlowLayer 复合图层 */}
+          <ArcFlowLayer
+            source={arcFlowData}
             shape="arc"
-            size={1.5}
-            sizeField="count"
-            sizeValues={[0.5, 3]}
-            color="#06B6D4"
+            colorMode="field"
             colorField="type"
             colorValues={['#06B6D4', '#8B5CF6']}
-            style={{
-              opacity: 0.7,
-            }}
-            
-          />
-
-          {/* 城市节点 */}
-          <PointLayer
-            source={cityPoints}
-            sourceType="csv"
-            sourceConfig={{
-              x: 'lng',
-              y: 'lat',
-            }}
-            size={3}
-            sizeField="total"
-            sizeValues={[2, 5]}
-            color="#06B6D4"
-            shape="circle"
-            style={{
-              opacity: 1,
-              stroke: '#fff',
-              strokeWidth: 1,
-            }}
+            lineWidthRange={[0.5, 3]}
+            weightField="weight"
+            opacity={0.7}
+            animate={false}
+            showNodes
+            nodeColor="#06B6D4"
+            nodeSizeRange={[3, 8]}
+            activeColor="#FFD93D"
           />
 
           <ZoomControl position="bottomright" showZoom />
@@ -257,7 +217,7 @@ export default function FlightRouteMap() {
         </div>
       </div>
 
-      {/* ═══════ 右侧出行分类面板 ═══════ */}
+      {/* ═══════ 右侧出行分类面板（可折叠） ═══════ */}
       <div style={{
         position: 'absolute', top: 60, right: 12, zIndex: 1000,
         padding: '12px 14px',
@@ -268,10 +228,25 @@ export default function FlightRouteMap() {
         boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
         width: 120,
       }}>
-        <div style={{ fontSize: 10, color: 'rgba(148,163,184,0.7)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 8 }}>
-          出行分类
-        </div>
-        {TRIP_CATEGORIES.map(cat => (
+        <button
+          onClick={() => setCategoryCollapsed(!categoryCollapsed)}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
+            padding: 0, border: 'none', background: 'none', cursor: 'pointer', marginBottom: categoryCollapsed ? 0 : 8,
+          }}
+        >
+          <span style={{ fontSize: 10, color: 'rgba(148,163,184,0.7)', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+            出行分类
+          </span>
+          <span className="material-symbols-outlined" style={{
+            fontSize: 14, color: 'rgba(148,163,184,0.5)',
+            transform: categoryCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s',
+          }}>
+            expand_more
+          </span>
+        </button>
+        {!categoryCollapsed && TRIP_CATEGORIES.map(cat => (
           <button
             key={cat.label}
             onClick={() => setSelectedCategory(selectedCategory === cat.label ? null : cat.label)}
@@ -292,16 +267,38 @@ export default function FlightRouteMap() {
         ))}
       </div>
 
-      {/* ═══════ 左下图例 ═══════ */}
+      {/* ═══════ 左下图例（暗色主题） ═══════ */}
       <div style={{ position: 'absolute', bottom: NAV_HEIGHT + 12, left: 12, zIndex: 1000 }}>
-        <Legend
-          type="categories"
-          title="航线类型"
-          items={[
-            { label: '航班', color: '#06B6D4' },
-            { label: '高铁', color: '#8B5CF6' },
-          ]}
-        />
+        <div style={{
+          background: 'rgba(15,23,42,0.85)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          border: '1px solid rgba(6,182,212,0.12)',
+          borderRadius: 10,
+          padding: '10px 14px',
+          fontSize: 12,
+          lineHeight: '16px',
+          color: '#e2e8f0',
+          minWidth: 100,
+        }}>
+          <div style={{
+            fontWeight: 600, fontSize: 10, letterSpacing: '0.06em',
+            textTransform: 'uppercase' as const, color: 'rgba(148,163,184,0.7)', marginBottom: 8,
+          }}>
+            航线类型
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {[
+              { label: '航班', color: '#06B6D4' },
+              { label: '高铁', color: '#8B5CF6' },
+            ].map((item) => (
+              <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 10, height: 10, borderRadius: '50%', background: item.color, boxShadow: `0 0 6px ${item.color}60` }} />
+                <span style={{ fontSize: 11, color: '#cbd5e1' }}>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* ═══════ 底部导航栏 ═══════ */}

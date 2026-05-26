@@ -62,23 +62,23 @@
 
 | 类名 | 说明 |
 |------|------|
-| `.aimapkit-popup` | 外层容器 |
-| `.aimapkit-popup--compact` | 紧凑型变体 |
-| `.aimapkit-popup--standard` | 标准型变体 |
-| `.aimapkit-popup--detailed` | 宽幅型变体 |
-| `.aimapkit-popup-content` | 内容容器（玻璃拟态） |
-| `.aimapkit-popup-cover` | 封面图容器 |
-| `.aimapkit-popup-header` | 标题区 |
-| `.aimapkit-popup-title` | 标题文字 |
-| `.aimapkit-popup-body` | 内容区 |
-| `.aimapkit-popup-close-btn` | 关闭按钮 |
-| `.aimapkit-popup-attrs` | 属性列表容器 |
-| `.aimapkit-popup-attr` | 单行属性 |
-| `.aimapkit-popup-attr-label` | 属性标签 |
-| `.aimapkit-popup-attr-value` | 属性值 |
-| `.aimapkit-popup-actions` | 底部操作栏 |
-| `.aimapkit-popup-action-btn` | 操作按钮 |
-| `.aimapkit-popup-tip-arrow` | 指向箭头 |
+| `.aimapui-popup` | 外层容器 |
+| `.aimapui-popup--compact` | 紧凑型变体 |
+| `.aimapui-popup--standard` | 标准型变体 |
+| `.aimapui-popup--detailed` | 宽幅型变体 |
+| `.aimapui-popup-content` | 内容容器（玻璃拟态） |
+| `.aimapui-popup-cover` | 封面图容器 |
+| `.aimapui-popup-header` | 标题区 |
+| `.aimapui-popup-title` | 标题文字 |
+| `.aimapui-popup-body` | 内容区 |
+| `.aimapui-popup-close-btn` | 关闭按钮 |
+| `.aimapui-popup-attrs` | 属性列表容器 |
+| `.aimapui-popup-attr` | 单行属性 |
+| `.aimapui-popup-attr-label` | 属性标签 |
+| `.aimapui-popup-attr-value` | 属性值 |
+| `.aimapui-popup-actions` | 底部操作栏 |
+| `.aimapui-popup-action-btn` | 操作按钮 |
+| `.aimapui-popup-tip-arrow` | 指向箭头 |
 
 ---
 

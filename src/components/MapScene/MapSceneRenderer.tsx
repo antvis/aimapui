@@ -151,6 +151,9 @@ export function MapSceneRenderer({
   }, [mapSchema.basemap, applyGestureConfig]);
 
   // 同步地图属性变化（不重建场景）
+  // 使用 JSON.stringify 稳定化数组/对象类型的依赖，避免对象字面量每次 render 产生新引用导致 effect 重复执行
+  const centerKey = JSON.stringify(mapSchema.center);
+  const gestureKey = JSON.stringify(mapSchema.gestureConfig);
   useEffect(() => {
     if (!scene) return;
     const config = applyMapDefaults(mapSchema);
@@ -160,7 +163,8 @@ export function MapSceneRenderer({
     try { scene.setPitch(config.pitch); } catch { /* ignore */ }
     try { scene.setRotation(config.rotation); } catch { /* ignore */ }
     applyGestureConfig(scene, config);
-  }, [scene, mapSchema.center, mapSchema.zoom, mapSchema.pitch, mapSchema.rotation, mapSchema.gestureConfig, applyGestureConfig]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scene, centerKey, mapSchema.zoom, mapSchema.pitch, mapSchema.rotation, gestureKey, applyGestureConfig]);
 
   // 窗口 resize 处理
   const handleResize = useCallback(() => {
@@ -184,7 +188,7 @@ export function MapSceneRenderer({
   return (
     <div
       ref={containerRef}
-      className={className ?? 'aimapkit-container'}
+      className={className ?? 'aimapui-container'}
       style={style ?? { width: '100%', height: '100%' }}
     >
       {scene && (

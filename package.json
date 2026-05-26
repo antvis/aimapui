@@ -1,5 +1,5 @@
 {
-  "name": "@antv/aimapkit",
+  "name": "@antv/aimapui",
   "version": "0.1.0",
   "type": "module",
   "description": "Schema/DSL-driven React map visualization component library powered by L7",
@@ -62,7 +62,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/antvis/aimapkit"
+    "url": "https://github.com/antvis/aimapui"
   },
   "keywords": [
     "antv",

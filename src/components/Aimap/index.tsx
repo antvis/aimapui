@@ -216,7 +216,7 @@ function AimapCore({
   return (
     <div
       ref={containerRef as React.Ref<HTMLDivElement>}
-      className={className ?? 'aimapkit-container'}
+      className={className ?? 'aimapui-container'}
       style={style ?? { width: '100%', height: '100%' }}
     >
       <MapSceneRenderer

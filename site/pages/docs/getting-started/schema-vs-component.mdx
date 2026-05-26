@@ -1,6 +1,6 @@
 # Schema 模式 vs 组件模式
 
-aimapkit 提供两种使用模式：**Schema 模式** 和 **组件模式**。根据场景和个人偏好选择合适的模式。
+aimapui 提供两种使用模式：**Schema 模式** 和 **组件模式**。根据场景和个人偏好选择合适的模式。
 
 ## Schema 模式
 
@@ -16,8 +16,8 @@ Schema 模式通过 JSON 配置描述地图，核心优势是**可序列化**和
 ### 示例
 
 ```tsx
-import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -69,8 +69,8 @@ function App() {
 ### 示例
 
 ```tsx
-import { Aimap, PointLayer, ZoomControl } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+import { Aimap, PointLayer, ZoomControl } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 function App() {
   const [visible, setVisible] = useState(true)

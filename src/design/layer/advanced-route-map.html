@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地图高级路径与多路线 (Advanced Route & Multi-path) 设计规范</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+<style>
+  :root {
+    --color-primary: #2563eb;
+    --color-primary-container: #dbeafe;
+    --color-on-primary: #fff;
+    --color-success: #10b981;
+    --color-error: #ef4444;
+    --color-warning: #f59e0b;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-surface: #f8f9ff;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container-low: #eff4ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+
+  /* 地图模拟 */
+  .map-bg {
+    position: relative; width: 100%; height: 380px;
+    background: linear-gradient(135deg, #e8edf5 0%, #d5dce8 50%, #eef1f7 100%);
+    border-radius: 12px; overflow: hidden; border: 1px solid var(--color-outline-variant);
+  }
+  .map-bg::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23b0b8c9' stroke-width='0.3' fill='none'/%3E%3C/svg%3E");
+    opacity: 0.3;
+  }
+  .map-bg svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* 途经点编号 */
+  .stop-marker { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; }
+
+  /* 路线面板 */
+  .route-panel { display: flex; flex-direction: column; gap: 12px; max-width: 320px; margin: 0 auto; padding: 16px 0; }
+  .route-card {
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(12px);
+    border: 1px solid var(--color-outline-variant); border-radius: 12px;
+    padding: 14px 16px; cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .route-card:hover { border-color: var(--color-primary); box-shadow: 0 4px 16px rgba(37,99,235,0.1); }
+  .route-card.active { border-color: var(--color-primary); }
+  .route-card.active::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--color-primary); border-radius: 0 2px 2px 0;
+  }
+  .route-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .route-card-title { font-size: 13px; font-weight: 700; }
+  .route-card-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--color-primary-container); color: var(--color-primary); }
+  .route-card-metrics { display: flex; gap: 16px; font-size: 12px; color: var(--color-on-surface-variant); }
+  .route-card-metrics strong { color: var(--color-on-surface); font-family: 'JetBrains Mono', monospace; }
+
+  /* 分段路况 */
+  .segment-legend { display: flex; gap: 16px; align-items: center; justify-content: center; padding: 16px 0; flex-wrap: wrap; }
+  .segment-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .segment-line { width: 32px; height: 4px; border-radius: 2px; }
+
+  /* 动画演示 */
+  @keyframes flow-particle {
+    0% { stroke-dashoffset: 24; }
+    100% { stroke-dashoffset: 0; }
+  }
+  .route-flow {
+    stroke-dasharray: 8 16;
+    animation: flow-particle 1.5s linear infinite;
+  }
+
+  /* ========== Dark Theme ========== */
+  [data-theme="dark"] {
+    --color-primary: #93c5fd;
+    --color-primary-container: #1e3a5f;
+    --color-success: #6ee7b7;
+    --color-error: #fca5a5;
+    --color-warning: #fcd34d;
+    --color-on-surface: #e2e8f0;
+    --color-on-surface-variant: #94a3b8;
+    --color-surface: #0f172a;
+    --color-outline-variant: #334155;
+    --color-surface-container-low: #1e293b;
+    --color-on-primary: #1e3a5f;
+  }
+  [data-theme="dark"] body { background: var(--color-surface); color: var(--color-on-surface); }
+  [data-theme="dark"] .card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] code { background: #1e3a5f; color: #93c5fd; }
+  [data-theme="dark"] .spec-table th { background: rgba(30,58,95,0.5); }
+  [data-theme="dark"] .spec-table td { border-color: rgba(51,65,85,0.4); }
+  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); border-color: #334155; }
+  [data-theme="dark"] .map-bg::before { opacity: 0.1; }
+  [data-theme="dark"] h2 { border-color: #334155; }
+  [data-theme="dark"] .route-card { background: rgba(30,41,59,0.92); border-color: #334155; }
+  [data-theme="dark"] .route-card:hover { border-color: #93c5fd; box-shadow: 0 4px 16px rgba(147,197,253,0.08); }
+  [data-theme="dark"] .route-card.active { border-color: #93c5fd; }
+  [data-theme="dark"] .route-card.active::before { background: #93c5fd; }
+  [data-theme="dark"] .route-card-metrics strong { color: #e2e8f0; }
+  [data-theme="dark"] svg text[fill="#434655"],
+  [data-theme="dark"] svg text[fill="#1e293b"] { fill: #e2e8f0; }
+  [data-theme="dark"] svg text[fill="#64748b"] { fill: #94a3b8; }
+
+  /* 主题切换按钮 */
+  .theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 9999;
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--color-outline-variant);
+    background: var(--color-surface-container-low); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: background 0.2s, border-color 0.2s;
+    font-size: 18px; line-height: 1;
+  }
+  .theme-toggle:hover { background: var(--color-primary-container); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>地图高级路径与多路线 (Advanced Route) 设计规范</h1>
+  <p class="subtitle">CPS Advanced Mapping Module v1.0.0 — 复杂行程规划、多方案对比与序列化途经点</p>
+
+  <!-- 1. 序列化途经点 -->
+  <h2>1. 序列化途经点</h2>
+
+  <h3>1.1 标注形态</h3>
+  <div class="card">
+    <div class="card-title">Numbered Stop Markers</div>
+    <div class="map-bg" style="height:240px">
+      <svg viewBox="0 0 600 240">
+        <!-- 路径线 -->
+        <path d="M 80 180 C 150 60, 250 60, 300 120 S 450 200, 520 100" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+        <!-- 路径发光 -->
+        <path d="M 80 180 C 150 60, 250 60, 300 120 S 450 200, 520 100" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" opacity="0.15"/>
+
+        <!-- Stop 1 (起点) -->
+        <circle cx="80" cy="180" r="14" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <text x="80" y="185" text-anchor="middle" class="stop-marker" fill="#fff">1</text>
+        <text x="80" y="205" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">起点·仓库</text>
+
+        <!-- Stop 2 -->
+        <circle cx="200" cy="85" r="12" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <text x="200" y="90" text-anchor="middle" class="stop-marker" fill="#fff">2</text>
+        <text x="200" y="108" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">客户A</text>
+
+        <!-- Stop 3 -->
+        <circle cx="300" cy="120" r="12" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <text x="300" y="125" text-anchor="middle" class="stop-marker" fill="#fff">3</text>
+        <text x="300" y="143" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">客户B</text>
+
+        <!-- Stop 4 -->
+        <circle cx="420" cy="165" r="12" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <text x="420" y="170" text-anchor="middle" class="stop-marker" fill="#fff">4</text>
+        <text x="420" y="188" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">客户C</text>
+
+        <!-- Stop 5 (终点) -->
+        <circle cx="520" cy="100" r="14" fill="#10b981" stroke="#fff" stroke-width="2"/>
+        <text x="520" y="105" text-anchor="middle" class="stop-marker" fill="#fff">5</text>
+        <text x="520" y="123" text-anchor="middle" font-size="10" fill="#434655" font-family="Inter">终点·配送站</text>
+      </svg>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>属性</th><th>值</th><th>说明</th></tr>
+      <tr><td><strong>尺寸</strong></td><td><code>24px - 32px</code></td><td>正圆形，起终点稍大</td></tr>
+      <tr><td><strong>填充</strong></td><td><code>bg-primary</code></td><td>品牌色实心填充</td></tr>
+      <tr><td><strong>描边</strong></td><td><code>1.5px white</code></td><td>确保底图上轮廓清晰</td></tr>
+      <tr><td><strong>字体</strong></td><td><code>font-mono-data Bold</code></td><td>居中白色数字</td></tr>
+    </table>
+  </div>
+
+  <!-- 2. 多路线对比 -->
+  <h2>2. 多路线对比与选择</h2>
+
+  <h3>2.1 视觉差异化</h3>
+  <div class="card">
+    <div class="card-title">Multi-Route Visual Coding</div>
+    <div class="map-bg" style="height:280px">
+      <svg viewBox="0 0 600 280">
+        <!-- 备选路线 2 (虚线/不推荐) -->
+        <path d="M 60 200 C 120 220, 200 240, 300 220 S 480 240, 540 180" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 4" opacity="0.6"/>
+        <text x="300" y="248" text-anchor="middle" font-size="10" fill="#94a3b8" font-family="Inter">备选 · 避开拥堵 (虚线)</text>
+
+        <!-- 备选路线 1 (实线/备选) -->
+        <path d="M 60 200 C 150 80, 300 40, 400 80 S 520 140, 540 180" fill="none" stroke="#93c5fd" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+        <text x="320" y="52" text-anchor="middle" font-size="10" fill="#64748b" font-family="Inter">备选 · 最短距离</text>
+
+        <!-- 主选路线 (高亮 + 发光) -->
+        <path d="M 60 200 C 160 130, 280 100, 360 140 S 490 180, 540 180" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" opacity="0.15"/>
+        <path d="M 60 200 C 160 130, 280 100, 360 140 S 490 180, 540 180" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+        <!-- 流动粒子 -->
+        <path d="M 60 200 C 160 130, 280 100, 360 140 S 490 180, 540 180" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" class="route-flow" opacity="0.6"/>
+        <text x="280" y="118" text-anchor="middle" font-size="10" fill="#2563eb" font-family="Inter" font-weight="600">推荐 · 最快路线 ★</text>
+
+        <!-- 起终点 -->
+        <circle cx="60" cy="200" r="10" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <text x="60" y="204" text-anchor="middle" font-size="9" fill="#fff" font-family="JetBrains Mono" font-weight="700">A</text>
+        <circle cx="540" cy="180" r="10" fill="#10b981" stroke="#fff" stroke-width="2"/>
+        <text x="540" y="184" text-anchor="middle" font-size="9" fill="#fff" font-family="JetBrains Mono" font-weight="700">B</text>
+      </svg>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>路线类型</th><th>宽度</th><th>样式</th></tr>
+      <tr><td><strong>主选 (Active)</strong></td><td><code>3-5px</code></td><td><code>primary</code> 实线 + shadow-lg 外发光</td></tr>
+      <tr><td><strong>备选 (Inactive)</strong></td><td><code>2-3px</code></td><td>浅蓝/灰色，无发光，<code>opacity 0.6</code></td></tr>
+      <tr><td><strong>不推荐</strong></td><td><code>2px</code></td><td>虚线 <code>dasharray: 6 4</code>，半透明</td></tr>
+    </table>
+  </div>
+
+  <!-- 3. 路线信息面板 -->
+  <h2>3. 路线信息面板</h2>
+
+  <div class="card">
+    <div class="card-title">Route Selector Panel</div>
+    <div class="route-panel">
+      <!-- 主选 -->
+      <div class="route-card active">
+        <div class="route-card-header">
+          <div class="route-card-title">🚗 推荐方案</div>
+          <div class="route-card-badge">最快</div>
+        </div>
+        <div class="route-card-metrics">
+          <span>耗时 <strong>32min</strong></span>
+          <span>里程 <strong>18.5km</strong></span>
+          <span>红绿灯 <strong>6</strong></span>
+        </div>
+      </div>
+      <!-- 备选 1 -->
+      <div class="route-card">
+        <div class="route-card-header">
+          <div class="route-card-title">🛣️ 最短距离</div>
+          <div class="route-card-badge" style="background:rgba(16,185,129,0.15);color:#10b981">最短</div>
+        </div>
+        <div class="route-card-metrics">
+          <span>耗时 <strong>38min</strong></span>
+          <span>里程 <strong>15.2km</strong></span>
+          <span>红绿灯 <strong>11</strong></span>
+        </div>
+      </div>
+      <!-- 备选 2 -->
+      <div class="route-card">
+        <div class="route-card-header">
+          <div class="route-card-title">🏞️ 避开拥堵</div>
+          <div class="route-card-badge" style="background:rgba(245,158,11,0.15);color:#f59e0b">绕行</div>
+        </div>
+        <div class="route-card-metrics">
+          <span>耗时 <strong>41min</strong></span>
+          <span>里程 <strong>22.8km</strong></span>
+          <span>红绿灯 <strong>3</strong></span>
+        </div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:8px">
+      <tr><th>元素</th><th>规格</th><th>说明</th></tr>
+      <tr><td><strong>选中态</strong></td><td><code>border-primary + 4px 左侧指示条</code></td><td>明确当前激活方案</td></tr>
+      <tr><td><strong>指标</strong></td><td><code>font-mono-data</code></td><td>耗时 / 里程 / 红绿灯 / ETA</td></tr>
+      <tr><td><strong>联动</strong></td><td><code>fitBounds 动画</code></td><td>切换后地图自适应路径范围</td></tr>
+    </table>
+  </div>
+
+  <!-- 4. 路径分段交互 -->
+  <h2>4. 路径分段交互</h2>
+
+  <div class="card">
+    <div class="card-title">Segmented Path — Traffic Status</div>
+    <div class="map-bg" style="height:200px">
+      <svg viewBox="0 0 600 200">
+        <!-- 分段路径 -->
+        <!-- 畅通段 (绿) -->
+        <path d="M 50 150 C 100 130, 130 100, 160 100" fill="none" stroke="#10b981" stroke-width="5" stroke-linecap="round"/>
+        <!-- 缓行段 (黄) -->
+        <path d="M 160 100 C 200 100, 240 110, 280 120" fill="none" stroke="#f59e0b" stroke-width="5" stroke-linecap="round"/>
+        <!-- 拥堵段 (红) -->
+        <path d="M 280 120 C 330 135, 370 140, 400 130" fill="none" stroke="#ef4444" stroke-width="5" stroke-linecap="round"/>
+        <!-- 畅通段 (绿) -->
+        <path d="M 400 130 C 440 115, 490 90, 550 80" fill="none" stroke="#10b981" stroke-width="5" stroke-linecap="round"/>
+
+        <!-- Hover Tooltip 示意 -->
+        <rect x="290" y="60" width="120" height="48" rx="8" fill="rgba(255,255,255,0.95)" stroke="#c3c6d7"/>
+        <text x="310" y="78" font-size="10" fill="#1e293b" font-family="Inter" font-weight="600">拥堵路段</text>
+        <text x="310" y="94" font-size="10" fill="#ef4444" font-family="JetBrains Mono">速度: 20km/h</text>
+        <text x="310" y="104" font-size="9" fill="#64748b" font-family="Inter">预计通行 8min</text>
+        <!-- 箭头 -->
+        <polygon points="340,108 346,115 334,115" fill="rgba(255,255,255,0.95)"/>
+
+        <!-- 起终点 -->
+        <circle cx="50" cy="150" r="8" fill="#2563eb" stroke="#fff" stroke-width="2"/>
+        <circle cx="550" cy="80" r="8" fill="#10b981" stroke="#fff" stroke-width="2"/>
+      </svg>
+    </div>
+    <div class="segment-legend">
+      <div class="segment-item">
+        <div class="segment-line" style="background:#10b981"></div>
+        <span><strong>畅通</strong> &gt;60km/h</span>
+      </div>
+      <div class="segment-item">
+        <div class="segment-line" style="background:#f59e0b"></div>
+        <span><strong>缓行</strong> 30-60km/h</span>
+      </div>
+      <div class="segment-item">
+        <div class="segment-line" style="background:#ef4444"></div>
+        <span><strong>拥堵</strong> &lt;30km/h</span>
+      </div>
+      <div class="segment-item">
+        <div class="segment-line" style="background:#94a3b8"></div>
+        <span><strong>未知</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 渲染与动效 -->
+  <h2>5. 渲染与动效</h2>
+
+  <div class="card">
+    <div class="card-title">Animation & Transition</div>
+    <div style="display:flex;gap:24px;justify-content:center;align-items:center;padding:24px 0;flex-wrap:wrap">
+      <!-- 流动动画 -->
+      <div style="text-align:center">
+        <svg width="200" height="60" viewBox="0 0 200 60">
+          <path d="M 10 40 Q 100 10 190 40" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 10 40 Q 100 10 190 40" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" class="route-flow" opacity="0.7"/>
+        </svg>
+        <div style="font-size:12px;color:var(--color-on-surface-variant)">粒子流动 · 行驶方向</div>
+      </div>
+      <!-- 转场过渡 -->
+      <div style="text-align:center">
+        <svg width="200" height="60" viewBox="0 0 200 60">
+          <!-- 旧路线淡出 -->
+          <path d="M 10 50 Q 100 20 190 50" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+          <!-- 新路线淡入 -->
+          <path d="M 10 40 Q 60 10 120 30 T 190 30" fill="none" stroke="#2563eb" stroke-width="4" stroke-linecap="round" opacity="0.9"/>
+          <text x="100" y="58" text-anchor="middle" font-size="9" fill="var(--color-on-surface-variant)" font-family="JetBrains Mono">transition: 300ms</text>
+        </svg>
+        <div style="font-size:12px;color:var(--color-on-surface-variant)">路线切换 · opacity + width 过渡</div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:8px">
+      <tr><th>动效</th><th>参数</th><th>说明</th></tr>
+      <tr><td><strong>粒子流动</strong></td><td><code>dasharray: 8 16, 1.5s linear</code></td><td>主选路线方向指示</td></tr>
+      <tr><td><strong>路线切换</strong></td><td><code>opacity + width, 300ms ease</code></td><td>平滑视觉过渡</td></tr>
+      <tr><td><strong>fitBounds</strong></td><td><code>padding: 64px, duration: 500ms</code></td><td>切换方案后自适应视口</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
+<script>
+(function() {
+  var toggle = document.getElementById('themeToggle');
+  var html = document.documentElement;
+  var stored = localStorage.getItem('design-spec-theme');
+  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  var initial = stored || (prefersDark ? 'dark' : 'light');
+  html.setAttribute('data-theme', initial);
+  toggle.textContent = initial === 'dark' ? '☀️' : '🌙';
+  toggle.addEventListener('click', function() {
+    var current = html.getAttribute('data-theme');
+    var next = current === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    toggle.textContent = next === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('design-spec-theme', next);
+  });
+})();
+</script>
+</body>
+</html>

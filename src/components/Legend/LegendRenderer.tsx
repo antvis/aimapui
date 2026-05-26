@@ -40,10 +40,10 @@ export function LegendRenderer({
 
   return (
     <div
-      className={cx('aimapkit-legend', className)}
+      className={cx('aimapui-legend', className)}
       style={style}
     >
-      <div className="aimapkit-legend-group">
+      <div className="aimapui-legend-group">
         {legends.map((legend, index) => (
           <LegendItem
             key={`legend-${index}`}

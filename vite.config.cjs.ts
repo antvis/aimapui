@@ -20,7 +20,7 @@ export default defineConfig({
     emptyOutDir: false, // 不清空输出目录
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
-      name: 'AimapKit',
+      name: 'aimapui',
       formats: ['cjs'],
       fileName: () => 'index.cjs.js',
     },

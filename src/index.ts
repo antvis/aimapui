@@ -1,5 +1,5 @@
 /**
- * @antv/aimapkit
+ * @antv/aimapui
  * Schema/DSL 驱动的 React 地图可视化组件库
  */
 

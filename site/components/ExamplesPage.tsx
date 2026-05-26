@@ -109,7 +109,7 @@ export default function ExamplesPage() {
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
         <h1 style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: 12 }}>示例库</h1>
         <p style={{ color: '#666', fontSize: '1.05rem' }}>
-          探索 aimapkit 的各种可视化能力，从基础示例到复合图层
+          探索 AiMapUI 的各种可视化能力，从基础示例到复合图层
         </p>
       </div>
 

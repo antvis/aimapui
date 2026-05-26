@@ -74,7 +74,7 @@ export function ExportImageControl({
           }
         }
       } catch (err) {
-        console.warn('[AimapKit] Export image failed:', err);
+        console.warn('[aimapui] Export image failed:', err);
       }
     }
   }, [getImage, onExport, imageType, mapsService]);

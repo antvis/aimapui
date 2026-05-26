@@ -1,13 +1,13 @@
 # Schema 工具函数
 
-aimapkit 提供的 Schema 相关工具函数。
+aimapui 提供的 Schema 相关工具函数。
 
 ## validateSchema
 
 验证 Schema 结构的正确性。
 
 ```tsx
-import { validateSchema } from '@antv/aimapkit'
+import { validateSchema } from '@antv/aimapui'
 
 const result = validateSchema(schema)
 if (!result.valid) {
@@ -21,7 +21,7 @@ if (!result.valid) {
 合并多个 Schema 片段。
 
 ```tsx
-import { mergeSchemas } from '@antv/aimapkit'
+import { mergeSchemas } from '@antv/aimapui'
 
 const full = mergeSchemas(baseSchema, dataSchema, legendSchema)
 ```
@@ -31,7 +31,7 @@ const full = mergeSchemas(baseSchema, dataSchema, legendSchema)
 创建一个带默认值的 Schema。
 
 ```tsx
-import { createDefaultSchema } from '@antv/aimapkit'
+import { createDefaultSchema } from '@antv/aimapui'
 
 const schema = createDefaultSchema({
   basemap: 'gaode',
@@ -46,7 +46,7 @@ const schema = createDefaultSchema({
 深拷贝 Schema（避免引用问题）。
 
 ```tsx
-import { cloneSchema } from '@antv/aimapkit'
+import { cloneSchema } from '@antv/aimapui'
 
 const copy = cloneSchema(originalSchema)
 ```
@@ -56,7 +56,7 @@ const copy = cloneSchema(originalSchema)
 比较两个 Schema 的差异。
 
 ```tsx
-import { diffSchemas } from '@antv/aimapkit'
+import { diffSchemas } from '@antv/aimapui'
 
 const changes = diffSchemas(oldSchema, newSchema)
 // [{ path: 'layers[0].color', oldValue: '#3B82F6', newValue: '#EF4444' }]

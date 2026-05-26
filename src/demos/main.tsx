@@ -415,7 +415,7 @@ function App() {
             </div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: t.logoTitle, letterSpacing: 0.3 }}>
-                AimapKit
+                aimapui
               </div>
               <div style={{ fontSize: 10, color: t.logoSub, marginTop: 1, letterSpacing: 0.2 }}>
                 Composable Map Components
@@ -602,7 +602,7 @@ function App() {
         <div style={{ padding: '12px 20px', borderTop: t.tabBorder, fontSize: 10, color: t.versionColor, letterSpacing: 0.3 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34, 197, 94, 0.4)' }} />
-            @antv/aimapkit v0.1.0
+            @antv/aimapui v0.1.0
           </div>
         </div>
       </div>

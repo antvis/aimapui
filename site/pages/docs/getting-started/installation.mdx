@@ -9,24 +9,24 @@
 ## 安装依赖
 
 ```bash
-npm install @antv/aimapkit @antv/l7 @antv/l7-maps
+npm install @antv/aimapui @antv/l7 @antv/l7-maps
 # 或
-pnpm add @antv/aimapkit @antv/l7 @antv/l7-maps
+pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
 # 或
-yarn add @antv/aimapkit @antv/l7 @antv/l7-maps
+yarn add @antv/aimapui @antv/l7 @antv/l7-maps
 ```
 
 ## 引入样式
 
 ```tsx
-import '@antv/aimapkit/style.css'
+import '@antv/aimapui/style.css'
 ```
 
 ## 基础示例
 
 ```tsx
-import { Aimap } from '@antv/aimapkit'
-import '@antv/aimapkit/style.css'
+import { Aimap } from '@antv/aimapui'
+import '@antv/aimapui/style.css'
 
 const schema = {
   map: {
@@ -53,10 +53,10 @@ function App() {
 
 ## TypeScript 支持
 
-aimapkit 使用 TypeScript 编写,提供完整的类型定义。你可以导入类型进行类型检查:
+aimapui 使用 TypeScript 编写,提供完整的类型定义。你可以导入类型进行类型检查:
 
 ```tsx
-import type { AimapSchema, LayerSchema, MapSchema } from '@antv/aimapkit'
+import type { AimapSchema, LayerSchema, MapSchema } from '@antv/aimapui'
 
 const mapSchema: MapSchema = {
   basemap: 'gaode',
@@ -74,5 +74,5 @@ const layerSchema: LayerSchema = {
 
 ## 下一步
 
-- [快速开始](/docs/getting-started/quick-start) - 5分钟上手 aimapkit
+- [快速开始](/docs/getting-started/quick-start) - 5分钟上手 aimapui
 - [Schema 基础](/docs/guides/schema-basics) - 了解 Schema 驱动的核心概念

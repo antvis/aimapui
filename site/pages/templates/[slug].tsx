@@ -155,7 +155,7 @@ export default function TemplateDetailPage({ template }: { template: any }) {
           overflow: 'auto',
           border: '1px solid #e2e8f0'
         }}>
-{`请使用 @antv/aimapkit 生成一个"${template.title}"的地图应用Schema配置。
+{`请使用 @antv/aimapui 生成一个"${template.title}"的地图应用Schema配置。
 
 要求：
 - 功能：${template.description}

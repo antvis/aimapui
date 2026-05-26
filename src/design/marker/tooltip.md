@@ -94,20 +94,20 @@
 
 | 类名 | 说明 |
 |------|------|
-| `.aimapkit-tooltip` | 外层容器 |
-| `.aimapkit-tooltip--glass` | 玻璃变体 |
-| `.aimapkit-tooltip--light` | 浅色变体 |
-| `.aimapkit-tooltip-content` | 内容容器（默认深色） |
-| `.aimapkit-tooltip-title` | 标题文字 |
-| `.aimapkit-tooltip-items` | 键值对列表容器 |
-| `.aimapkit-tooltip-item` | 单行键值对 |
-| `.aimapkit-tooltip-item-label` | 键标签 |
-| `.aimapkit-tooltip-item-value` | 值文字 |
-| `.aimapkit-tooltip-arrow` | 箭头基类 |
-| `.aimapkit-tooltip-arrow--top` | 上方箭头 |
-| `.aimapkit-tooltip-arrow--bottom` | 下方箭头 |
-| `.aimapkit-tooltip-arrow--left` | 左方箭头 |
-| `.aimapkit-tooltip-arrow--right` | 右方箭头 |
+| `.aimapui-tooltip` | 外层容器 |
+| `.aimapui-tooltip--glass` | 玻璃变体 |
+| `.aimapui-tooltip--light` | 浅色变体 |
+| `.aimapui-tooltip-content` | 内容容器（默认深色） |
+| `.aimapui-tooltip-title` | 标题文字 |
+| `.aimapui-tooltip-items` | 键值对列表容器 |
+| `.aimapui-tooltip-item` | 单行键值对 |
+| `.aimapui-tooltip-item-label` | 键标签 |
+| `.aimapui-tooltip-item-value` | 值文字 |
+| `.aimapui-tooltip-arrow` | 箭头基类 |
+| `.aimapui-tooltip-arrow--top` | 上方箭头 |
+| `.aimapui-tooltip-arrow--bottom` | 下方箭头 |
+| `.aimapui-tooltip-arrow--left` | 左方箭头 |
+| `.aimapui-tooltip-arrow--right` | 右方箭头 |
 
 ---
 

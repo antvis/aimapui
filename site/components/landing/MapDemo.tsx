@@ -8,9 +8,8 @@ import {
   Tooltip,
   LegendCategories,
   ThemeProvider,
-} from '@antv/aimapkit'
-import type { LayerEventPayload } from '@antv/aimapkit'
-
+} from '@antv/aimapui'
+import type { LayerEventPayload } from '@antv/aimapui'
 
 const DEMO_DATA = [
   { name: '北京', lng: 116.407, lat: 39.904, category: '一线', value: 2154 },
@@ -81,17 +80,19 @@ export default function MapDemo() {
           />
           <ZoomControl position="topright" />
           <ScaleControl position="bottomright" />
-          <LegendCategories
-            title="城市级别"
-            labels={CATEGORIES}
-            colors={COLORS}
-            position="bottom-left"
-          />
+          <div style={{ position: 'absolute', bottom: 24, left: 24, zIndex: 20, backdropFilter: 'blur(12px)', background: '#162030d9', border: '1px solid rgba(180,197,255,0.08)', borderRadius: 12, padding: '12px 14px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.3)' }}>
+            <LegendCategories
+              title="城市级别"
+              labels={CATEGORIES}
+              colors={COLORS}
+            />
+          </div>
           {tooltipInfo && (
             <Tooltip
               longitude={tooltipInfo.lng}
               latitude={tooltipInfo.lat}
               variant="dark"
+              visible={true}
               title={tooltipInfo.data.name}
               items={[
                 { label: '级别', value: tooltipInfo.data.category },

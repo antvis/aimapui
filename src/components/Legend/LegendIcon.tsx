@@ -47,9 +47,9 @@ export function LegendIcon({ title, items, className, interaction }: LegendIconP
   };
 
   return (
-    <div className={cx('aimapkit-legend-section', className)}>
-      {title && <div className="aimapkit-legend-title">{title}</div>}
-      <div className="aimapkit-legend-icon">
+    <div className={cx('aimapui-legend-section', className)}>
+      {title && <div className="aimapui-legend-title">{title}</div>}
+      <div className="aimapui-legend-icon">
         {items.map((item, i) => {
           const isDimmed =
             hoveredIndex >= 0
@@ -60,8 +60,8 @@ export function LegendIcon({ title, items, className, interaction }: LegendIconP
             <div
               key={i}
               className={cx(
-                'aimapkit-legend-icon-item',
-                isDimmed && 'aimapkit-legend-icon-item--dimmed',
+                'aimapui-legend-icon-item',
+                isDimmed && 'aimapui-legend-icon-item--dimmed',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
@@ -70,7 +70,7 @@ export function LegendIcon({ title, items, className, interaction }: LegendIconP
               <img
                 src={item.icon}
                 alt={item.label}
-                className="aimapkit-legend-icon-img"
+                className="aimapui-legend-icon-img"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
@@ -78,10 +78,10 @@ export function LegendIcon({ title, items, className, interaction }: LegendIconP
                   if (fallback) fallback.style.display = 'flex';
                 }}
               />
-              <span className="aimapkit-legend-icon-fallback" style={{ display: 'none' }}>
+              <span className="aimapui-legend-icon-fallback" style={{ display: 'none' }}>
                 □
               </span>
-              <span className="aimapkit-legend-icon-label">{item.label}</span>
+              <span className="aimapui-legend-icon-label">{item.label}</span>
             </div>
           );
         })}
