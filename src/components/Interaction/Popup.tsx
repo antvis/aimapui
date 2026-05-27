@@ -192,7 +192,7 @@ function buildTransform(
 // Popup 子组件
 // ============================================================
 
-/** 关闭按钮 */
+/** 关闭按钮 — 绝对定位在右上角 */
 function CloseButton({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -200,7 +200,7 @@ function CloseButton({ onClick }: { onClick: () => void }) {
         e.stopPropagation();
         onClick();
       }}
-      className="aimapui-popup-close-btn size-8 flex items-center justify-center text-on-surface-variant rounded-lg transition-[color,background] duration-200 cursor-pointer bg-transparent border-none shrink-0 p-0 ml-2 hover:text-on-surface hover:bg-surface-container-high [&_.material-symbols-outlined]:text-xl"
+      className="aimapui-popup-close-btn absolute top-2 right-2 size-8 flex items-center justify-center text-on-surface-variant rounded-lg transition-[color,background] duration-200 cursor-pointer bg-transparent border-none p-0 hover:text-on-surface hover:bg-surface-container-high [&_.material-symbols-outlined]:text-xl"
       aria-label="关闭"
     >
       <span className="material-symbols-outlined">close</span>
@@ -271,7 +271,7 @@ function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => v
   );
 }
 
-/** 标题区 — 关闭按钮作为 flex 子项 */
+/** 标题区 — 关闭按钮绝对定位在右上角 */
 function HeaderSection({
   header,
   onClose,
@@ -284,7 +284,7 @@ function HeaderSection({
   showStatusDot?: boolean;
 }) {
   return (
-    <div className={cx('flex items-center p-4', !hasCover && 'justify-between')}>
+    <div className={cx('relative flex items-center p-4', !hasCover && 'pr-10')}>
       {showStatusDot && header.statusDot && (
         <div
           className="size-2 rounded-full shrink-0 mr-2 animate-pulse"
@@ -686,13 +686,10 @@ export function Popup({
           />
         )}
 
-        {/* 结构化模式下无 header 时的关闭按钮（绝对定位在内容区右上角） */}
-        {!header && closeButton && (
-          <CloseButton onClick={handleClose} />
-        )}
-
         {/* 内容区 */}
-        <div className="aimapui-popup-body relative p-4 text-sm leading-5 text-on-surface break-words whitespace-normal">
+        <div className={cx('aimapui-popup-body relative p-4 text-sm leading-5 text-on-surface break-words whitespace-normal', !header && closeButton && 'pr-10')}>
+          {/* 结构化模式下无 header 时的关闭按钮（绝对定位在内容区右上角） */}
+          {!header && closeButton && <CloseButton onClick={handleClose} />}
           {/* 非结构化内容传入时作为 body 补充 */}
           {content && !isHtmlString(content) && typeof content !== 'string' && <div>{content}</div>}
           {content && isHtmlString(content) && (
