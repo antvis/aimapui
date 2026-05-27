@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Aimap, LineLayer, ZoomControl } from '../../index';
+import { AiMap, LineLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 
@@ -33,7 +33,7 @@ export default function IsolineMap() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [104.117, 36.493],
@@ -65,7 +65,7 @@ export default function IsolineMap() {
           items={[{ label: '等值', value: tooltipInfo.value }]}
         />
         <ZoomControl position="bottomright" />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

@@ -54,10 +54,14 @@ export function LegendThreshold({
   };
 
   return (
-    <div className={cx('aimapui-legend-section', className)}>
-      {title && <div className="aimapui-legend-title">{title}</div>}
+    <div className={cx(className)}>
+      {title && (
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+          {title}
+        </div>
+      )}
 
-      <div className="aimapui-legend-threshold">
+      <div className="flex flex-col gap-1.5">
         {ranges.map(([min, max], i) => {
           const isDimmed =
             hoveredIndex >= 0
@@ -68,18 +72,18 @@ export function LegendThreshold({
             <div
               key={i}
               className={cx(
-                'aimapui-legend-threshold-item',
-                isDimmed && 'aimapui-legend-threshold-item--dimmed',
+                'flex items-center gap-2 cursor-pointer select-none transition-opacity duration-150 hover:opacity-80',
+                isDimmed && 'opacity-35',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
               onClick={() => handleClick(i)}
             >
               <span
-                className="aimapui-legend-threshold-swatch"
+                className="w-6 h-3 shrink-0 rounded-sm shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]"
                 style={{ backgroundColor: colors[i] ?? '#ccc' }}
               />
-              <span className="aimapui-legend-threshold-range">
+              <span className="font-mono text-[11px] leading-3.5 text-on-surface-variant">
                 [{min}, {max})
               </span>
             </div>

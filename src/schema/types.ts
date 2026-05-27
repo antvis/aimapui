@@ -402,7 +402,7 @@ export interface EventSchema {
 // 顶层 Schema
 // ============================================================
 
-export interface AimapSchema {
+export interface AiMapSchema {
   map: MapSchema;
   layers: LayerSchema[];
   controls?: ControlSchema[];

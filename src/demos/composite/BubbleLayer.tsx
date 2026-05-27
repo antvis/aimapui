@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Aimap, BubbleLayer, ZoomControl, Popup } from '../../index';
+import { AiMap, BubbleLayer, ZoomControl, Popup } from '../../index';
 import type { LayerEventPayload } from '../../index';
 import { Legend } from '../components/Legend';
 
@@ -59,7 +59,7 @@ export default function Demo20BubbleText() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap map={{ basemap: 'gaode', center: [60.268, 30.3628], zoom: 1.8, style: 'light' }}>
+      <AiMap map={{ basemap: 'gaode', center: [60.268, 30.3628], zoom: 1.8, style: 'light' }}>
         {data && (
           <BubbleLayer
             source={data}
@@ -105,7 +105,7 @@ export default function Demo20BubbleText() {
             onClose={() => setSelectedBubble(null)}
           />
         )}
-      </Aimap>
+      </AiMap>
 
       {/* 图例 — 气泡大小映射 */}
       <div style={{ position: 'absolute', bottom: 32, left: 16, zIndex: 10 }}>

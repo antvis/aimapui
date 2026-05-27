@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Aimap, Marker } from '../../index';
+import { AiMap, Marker } from '../../index';
 import type { MarkerVariant, MarkerColor } from '../../index';
 /**
  * Marker 设计规范展示 — Cartographic Precision System v1.2.0
@@ -25,7 +25,7 @@ export default function Demo05Marker() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [116.397, 39.909],
@@ -220,7 +220,7 @@ export default function Demo05Marker() {
           onClick={() => toggleSelected('terminal')}
           selected={selectedId === 'terminal'}
         />
-      </Aimap>
+      </AiMap>
 
       {/* 图例面板 */}
       <div style={{

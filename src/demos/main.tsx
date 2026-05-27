@@ -1,6 +1,21 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { marked } from 'marked';
 import '../styles/tailwind.css';
+import HomePage from './home/HomePage';
+import DesignPage from './home/DesignPage';
+import NavBar from './home/NavBar';
+import DocsPage from './docs/DocsPage';
+import BlockPage from './home/BlockPage';
+import { SourceCodePanel, SourceCodeToggle } from './components/SourceCodePanel';
+import BlockDemoPage from './home/BlockDemoPage';
+
+// 本地字体（替代 Google Fonts CDN）
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import '@fontsource/jetbrains-mono/400.css';
+import 'material-symbols/outlined.css';
 
 // ============================================================
 // Demo 入口 — 左侧菜单 + 中间地图 + 右侧代码预览
@@ -20,18 +35,15 @@ import GeoLocateControl from './control/GeoLocateControl';
 import MapThemeControl from './control/MapThemeControl';
 import MouseLocationControl from './control/MouseLocationControl';
 import ExportImageControl from './control/ExportImageControl';
-import ThemeToggle from './control/ThemeToggle';
 // ── Marker 标注 ──
 import Marker from './marker/Marker';
 import MarkerDrag from './marker/MarkerDrag';
-import MarkerTest from './marker/MarkerTest';
 import Popup from './marker/Popup';
 import TooltipDemo from './marker/Tooltip';
 // ── 应用模板 ──
 import MobileApp from './app/MobileApp';
 import CheckInMap from './app/CheckInMap';
 import FootprintMap from './app/FootprintMap';
-import TravelStatsMap from './app/TravelStatsMap';
 import PcApp from './app/PcApp';
 import ImmersiveTravelMap from './app/ImmersiveTravelMap';
 import InterestMap from './app/InterestMap';
@@ -65,11 +77,8 @@ import FlowMap from './layer/FlowMap';
 import IsolineMap from './layer/IsolineMap';
 import HeatmapLayer from './layer/HeatmapLayer';
 import MultiLayer from './layer/MultiLayer';
-import LayerEvents from './layer/LayerEvents';
-import MapEvents from './layer/MapEvents';
 import FillLayer from './layer/FillLayer';
 import Fill3DLayer from './layer/Fill3DLayer';
-import HeatmapClassic from './layer/HeatmapClassic';
 import ImageLayer from './layer/ImageLayer';
 import RasterTileLayer from './layer/RasterTileLayer';
 
@@ -80,14 +89,30 @@ const sourceModules = import.meta.glob(
 
 // 设计规范文档 — 从 src/design/ 子目录加载 (.md + .html)
 const designMdModules = import.meta.glob(
-  '../design/{app,composite,marker,control,engine,layer}/*.md',
+  '../design/{app,composite,marker,control,layer,block}/*.md',
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
 
 const designHtmlModules = import.meta.glob(
-  '../design/{app,composite,marker,control,engine,layer}/*.html',
+  '../design/{app,composite,marker,control,layer,block}/*.html',
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
+
+// 组件文档 — 从 src/demos/docs/content/ 加载 Markdown
+const docsContentModules = import.meta.glob(
+  './docs/content/**/*.md',
+  { query: '?raw', eager: true }
+) as Record<string, { default: string }>;
+
+// 解析文档内容为 id → content 映射
+const docsMap: Record<string, string> = {};
+for (const [path, mod] of Object.entries(docsContentModules)) {
+  // 路径格式: ./docs/content/getting-started.md 或 ./docs/content/layers/point-layer.md
+  const match = path.match(/\.\/docs\/content\/(.+)\.md$/);
+  if (match) {
+    docsMap[match[1]] = mod.default;
+  }
+}
 
 // 解析设计规范文件列表（按目录分组）
 const designNameMap: Record<string, string> = {
@@ -110,6 +135,10 @@ const designNameMap: Record<string, string> = {
   'administrative-layer': '行政区划',
   'hierarchy-layout': '控件层级布局',
   'text-layer': '文本图层',
+  'advanced-route-map': '路径地图',
+  'geometric-point-map': '点图层',
+  'raster-layer': '栅格图层',
+  'block-layout': 'Block 布局设计',
 };
 const designIconMap: Record<string, string> = {
   'bubble-map': 'bubble_chart',
@@ -131,6 +160,10 @@ const designIconMap: Record<string, string> = {
   'administrative-layer': 'public',
   'hierarchy-layout': 'layers',
   'text-layer': 'text_fields',
+  'advanced-route-map': 'route',
+  'geometric-point-map': 'location_on',
+  'raster-layer': 'grid_on',
+  'block-layout': 'view_comfy',
 };
 // 目录名 → 中文分组名（与 demo 分组一致）
 const designCategoryMap: Record<string, string> = {
@@ -140,6 +173,7 @@ const designCategoryMap: Record<string, string> = {
   control: '控件',
   engine: '地图引擎',
   layer: '基础图层',
+  block: '应用模板',
 };
 
 const designDocs = Object.entries(designMdModules).map(([path, mod]) => {
@@ -160,57 +194,18 @@ const designDocs = Object.entries(designMdModules).map(([path, mod]) => {
 
 const designGroups = [...new Set(designDocs.map((d) => d.group))];
 
-// ── 简易 Markdown → HTML 转换器 ──
+// ── Markdown → HTML 转换器（基于 marked，输出使用 CSS 类名以适配亮/暗主题） ──
 function markdownToHtml(md: string): string {
-  let html = md;
+  const renderer = new marked.Renderer();
 
-  // 代码块
-  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_m, lang, code) => {
-    const escaped = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return `<pre style="background:#161b22;padding:12px 16px;border-radius:6px;overflow-x:auto;border:1px solid #30363d;margin:12px 0"><code class="language-${lang}">${escaped}</code></pre>`;
-  });
+  renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
+    const escaped = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return `<pre class="md-code-block"><code class="language-${lang || ''}">${escaped}</code></pre>`;
+  };
 
-  // 表格
-  html = html.replace(/^\|(.+)\|\s*\n\|[\s:|-]+\|\s*\n((?:\|.+\|\s*\n)*)/gm, (_m, headerRow, bodyRows) => {
-    const headers = headerRow.split('|').map((h: string) => h.trim()).filter(Boolean);
-    const headerHtml = headers.map((h: string) => `<th style="padding:8px 12px;border-bottom:2px solid #30363d;text-align:left;font-weight:600;font-size:12px;color:#58a6ff">${h}</th>`).join('');
-    const rows = bodyRows.trim().split('\n').map((row: string) => {
-      const cells = row.split('|').map((c: string) => c.trim()).filter(Boolean);
-      return `<tr>${cells.map((c: string) => `<td style="padding:6px 12px;border-bottom:1px solid #21262d;font-size:12px">${c}</td>`).join('')}</tr>`;
-    }).join('');
-    return `<table style="width:100%;border-collapse:collapse;margin:12px 0"><thead><tr>${headerHtml}</tr></thead><tbody>${rows}</tbody></table>`;
-  });
+  renderer.codespan = ({ text }: { text: string }) => `<code class="md-inline-code">${text}</code>`;
 
-  // 标题
-  html = html.replace(/^### (.+)$/gm, '<h3 style="font-size:14px;font-weight:600;color:#e6edf3;margin:16px 0 8px;padding-left:0">$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2 style="font-size:16px;font-weight:600;color:#e6edf3;margin:20px 0 10px;border-bottom:1px solid #21262d;padding-bottom:6px">$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1 style="font-size:20px;font-weight:700;color:#e6edf3;margin:0 0 8px">$1</h1>');
-
-  // 水平线
-  html = html.replace(/^---+$/gm, '<hr style="border:none;border-top:1px solid #21262d;margin:16px 0"/>');
-
-  // 加粗
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="color:#e6edf3">$1</strong>');
-  // 行内代码
-  html = html.replace(/`([^`]+)`/g, '<code style="background:#161b22;padding:2px 5px;border-radius:3px;font-size:11px;color:#79c0ff;font-family:monospace">$1</code>');
-  // 斜体
-  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-  // 列表项
-  html = html.replace(/^\*\s+(.+)$/gm, '<li style="margin:3px 0;padding-left:4px;font-size:13px;line-height:1.7">$1</li>');
-  // 包裹连续 li 为 ul
-  html = html.replace(/((?:<li[^>]*>.*<\/li>\s*)+)/g, '<ul style="list-style:disc;padding-left:20px;margin:8px 0">$1</ul>');
-
-  // 段落（非空行且不是已标签化的内容）
-  html = html.replace(/^(?!<[a-zA-Z/])(.+)$/gm, (match) => {
-    if (match.trim() === '') return '';
-    return `<p style="margin:6px 0;font-size:13px;line-height:1.7;color:#8b949e">${match}</p>`;
-  });
-
-  // 空行清理
-  html = html.replace(/\n{3,}/g, '\n\n');
-
-  return html;
+  return marked(md, { renderer, async: false }) as string;
 }
 
 const demos = [
@@ -218,7 +213,6 @@ const demos = [
   { name: '移动端应用', icon: 'smartphone', component: MobileApp, group: '应用模板', file: 'app/MobileApp', device: 'mobile' },
   { name: '打卡地图', icon: 'location_on', component: CheckInMap, group: '应用模板', file: 'app/CheckInMap', device: 'mobile' },
   { name: '足迹地图', icon: 'explore', component: FootprintMap, group: '应用模板', file: 'app/FootprintMap', device: 'mobile' },
-  { name: '旅行足迹统计', icon: 'bar_chart', component: TravelStatsMap, group: '应用模板', file: 'app/TravelStatsMap', device: 'mobile' },
   { name: 'PC 端应用', icon: 'desktop_windows', component: PcApp, group: '应用模板', file: 'app/PcApp', device: 'desktop' },
   { name: '沉浸式旅游足迹', icon: 'photo_camera', component: ImmersiveTravelMap, group: '应用模板', file: 'app/ImmersiveTravelMap', device: 'desktop' },
   { name: '兴趣地图', icon: 'interests', component: InterestMap, group: '应用模板', file: 'app/InterestMap', device: 'mobile' },
@@ -242,7 +236,6 @@ const demos = [
 
   // ── Marker 标注 ───────────────────────────
   { name: 'Marker 标注', icon: 'location_on', component: Marker, group: 'Marker 标注', file: 'marker/Marker' },
-  { name: 'Marker 测试', icon: 'science', component: MarkerTest, group: 'Marker 标注', file: 'marker/MarkerTest' },
   { name: '可拖拽标注', icon: 'push_pin', component: MarkerDrag, group: 'Marker 标注', file: 'marker/MarkerDrag' },
   { name: 'Popup 弹窗', icon: 'chat_bubble', component: Popup, group: 'Marker 标注', file: 'marker/Popup' },
   { name: 'Tooltip 轻提示', icon: 'info', component: TooltipDemo, group: 'Marker 标注', file: 'marker/Tooltip' },
@@ -254,7 +247,6 @@ const demos = [
   { name: '底图主题', icon: 'palette', component: MapThemeControl, group: '控件', file: 'control/MapThemeControl' },
   { name: '鼠标坐标', icon: 'pin_drop', component: MouseLocationControl, group: '控件', file: 'control/MouseLocationControl' },
   { name: '导出图片', icon: 'photo_camera', component: ExportImageControl, group: '控件', file: 'control/ExportImageControl' },
-  { name: 'UI 主题切换', icon: 'dark_mode', component: ThemeToggle, group: '控件', file: 'control/ThemeToggle' },
 
   // ── 地图引擎 ──────────────────────────────
   { name: '高德地图', icon: 'public', component: GaodeMap, group: '地图引擎', file: 'engine/GaodeMap' },
@@ -283,104 +275,138 @@ const demos = [
   { name: '3D 填充图', icon: 'location_city', component: Fill3DLayer, group: '基础图层', file: 'layer/Fill3DLayer' },
   // 热力图
   { name: '热力图', icon: 'local_fire_department', component: HeatmapLayer, group: '基础图层', file: 'layer/HeatmapLayer' },
-  { name: '经典热力图', icon: 'thermostat', component: HeatmapClassic, group: '基础图层', file: 'layer/HeatmapClassic' },
   // 图片 & 栅格
   { name: '图片图层', icon: 'image', component: ImageLayer, group: '基础图层', file: 'layer/ImageLayer' },
   { name: '栅格瓦片', icon: 'grid_view', component: RasterTileLayer, group: '基础图层', file: 'layer/RasterTileLayer' },
   // 事件 & 组合
   { name: '多图层叠加', icon: 'layers', component: MultiLayer, group: '基础图层', file: 'layer/MultiLayer' },
-  { name: '图层事件', icon: 'touch_app', component: LayerEvents, group: '基础图层', file: 'layer/LayerEvents' },
-  { name: '地图事件', icon: 'explore', component: MapEvents, group: '基础图层', file: 'layer/MapEvents' },
 ];
 
-const groups = [...new Set(demos.map((d) => d.group))];
+const componentDemos = demos.filter(d => d.group !== '应用模板');
+const groups = [...new Set(componentDemos.map((d) => d.group))];
 
-// 从 URL hash 获取当前 demo 索引
-const getDemoIndexFromHash = (): number => {
-  const hash = window.location.hash.slice(1); // 移除 #
-  if (!hash) return 0;
+// 从 URL 获取当前页面状态（支持 path 和 hash 两种模式）
+const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design'; demoIndex: number } => {
+  // 优先读 pathname（预渲染 SEO 模式），fallback 到 hash（开发兼容）
+  const pathname = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  const hash = window.location.hash.slice(1);
+  const route = pathname || hash;
 
-  // 支持格式: #map/GaodeMap 或 #11 或 #demo-11
+  if (!route || route === 'home' || route === 'index.html') return { page: 'home', demoIndex: 0 };
+  if (route === 'block' || route === 'block/') return { page: 'block', demoIndex: 0 };
+  if (route === 'block-design' || route.startsWith('block-design/')) {
+    const designId = route.replace(/^block-design\/?/, '');
+    const designIndex = designId ? designDocs.findIndex((d) => d.id === designId) : 0;
+    return { page: 'block-design', demoIndex: designIndex >= 0 ? designIndex : 0 };
+  }
+  if (route === 'design' || route.startsWith('design/')) {
+    const designId = route.replace(/^design\/?/, '');
+    const designIndex = designId ? designDocs.findIndex((d) => d.id === designId) : 0;
+    return { page: 'design', demoIndex: designIndex >= 0 ? designIndex : 0 };
+  }
+  if (route === 'docs' || route.startsWith('docs/')) return { page: 'docs', demoIndex: 0 };
+
+  // 支持格式: block/app/MobileApp
+  const blockMatch = route.match(/^block\/(.+)$/);
+  if (blockMatch) {
+    const blockFile = blockMatch[1];
+    const blockIndex = demos.findIndex((d) => d.file === blockFile);
+    if (blockIndex >= 0) return { page: 'block', demoIndex: blockIndex };
+  }
+  // 支持格式: demo/app/MobileApp 或 app/MobileApp
+  const normalizedRoute = route.replace(/^demo\//, '');
   const index = demos.findIndex((d) =>
-    d.file === hash ||
-    d.file.replace('demo-', '') === hash ||
-    d.file === `demo-${hash.padStart(2, '0')}`
+    d.file === normalizedRoute ||
+    d.file.replace('demo-', '') === normalizedRoute ||
+    d.file === `demo-${normalizedRoute.padStart(2, '0')}`
   );
-  return index >= 0 ? index : 0;
+  return { page: 'demo', demoIndex: index >= 0 ? index : 0 };
 };
 
+// Block 页面的 demos（来自应用模板）
+const blockDemos = demos.filter(d => d.group === '应用模板');
+
 function App() {
-  const [current, setCurrent] = React.useState(() => getDemoIndexFromHash());
+  const [currentPage, setCurrentPage] = React.useState<'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design'>(() => getPageFromUrl().page);
+  const [current, setCurrent] = React.useState(() => getPageFromUrl().demoIndex);
   const [showPanel, setShowPanel] = React.useState(false);
-  // 左侧主 Tab：可视化 / 设计规范
-  const [sidebarMode, setSidebarMode] = React.useState<'demo' | 'design'>('demo');
-  // 当前选中的设计规范文档索引
-  const [currentDesignDoc, setCurrentDesignDoc] = React.useState(0);
-  // 设计规范展示模式：html 预览(markdown渲染) / html demo(加载.html文件)
   // 全局 UI 主题
   const [appTheme, setAppTheme] = React.useState<"light" | "dark">("light");
 
-  // Demo 站点主题色表
+  // Geist/Vercel 设计主题色表
   const isDark = appTheme === "dark";
   const t = {
-    bg: isDark ? "#0f0f1a" : "#f8fafb",
-    sidebar: isDark ? "linear-gradient(180deg, #13132b 0%, #0d0d1f 100%)" : "linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)",
-    sidebarBorder: isDark ? "1px solid rgba(99, 102, 241, 0.08)" : "1px solid #e2e8f0",
-    sidebarShadow: isDark ? "4px 0 24px rgba(0, 0, 0, 0.3)" : "4px 0 24px rgba(0, 0, 0, 0.04)",
-    logoBorder: isDark ? "1px solid rgba(99, 102, 241, 0.06)" : "1px solid #e2e8f0",
-    logoTitle: isDark ? "#f1f5f9" : "#1e293b",
-    logoSub: isDark ? "rgba(148, 163, 184, 0.7)" : "#64748b",
-    tabActive: isDark ? "#e0e7ff" : "#4338ca",
-    tabInactive: isDark ? "rgba(148, 163, 184, 0.6)" : "#94a3b8",
-    tabBg: isDark ? "rgba(99, 102, 241, 0.12)" : "rgba(99, 102, 241, 0.08)",
-    tabBorder: isDark ? "1px solid rgba(99, 102, 241, 0.06)" : "1px solid #e2e8f0",
-    groupLabel: isDark ? "rgba(99, 102, 241, 0.8)" : "#6366f1",
-    itemActive: isDark ? "#e0e7ff" : "#312e81",
-    itemInactive: isDark ? "rgba(148, 163, 184, 0.7)" : "#64748b",
-    itemBgActive: isDark ? "rgba(99, 102, 241, 0.1)" : "rgba(99, 102, 241, 0.06)",
-    itemHoverBg: isDark ? "rgba(99, 102, 241, 0.06)" : "rgba(99, 102, 241, 0.04)",
-    itemHoverColor: isDark ? "rgba(203, 213, 225, 0.9)" : "#334155",
-    iconActive: isDark ? "#a5b4fc" : "#6366f1",
-    versionColor: isDark ? "rgba(148, 163, 184, 0.4)" : "#94a3b8",
-    headerBg: isDark ? "rgba(15, 15, 26, 0.95)" : "rgba(255, 255, 255, 0.95)",
-    headerBorder: isDark ? "1px solid rgba(99, 102, 241, 0.06)" : "1px solid #e2e8f0",
-    headerText: isDark ? "rgba(148, 163, 184, 0.7)" : "#64748b",
-    headerTitle: isDark ? "#e2e8f0" : "#1e293b",
-    codeBg: isDark ? "#0a0a18" : "#fafbfc",
-    codeBorder: isDark ? "1px solid rgba(99, 102, 241, 0.06)" : "1px solid #e2e8f0",
-    codeText: isDark ? "#c9d1d9" : "#24292f",
-    codeLineNum: isDark ? "rgba(99, 102, 241, 0.25)" : "rgba(99, 102, 241, 0.4)",
-    btnBorder: isDark ? "1px solid rgba(99, 102, 241, 0.15)" : "1px solid #c7d2fe",
-    btnBg: isDark ? "rgba(99, 102, 241, 0.06)" : "rgba(99, 102, 241, 0.04)",
-    btnColor: isDark ? "rgba(165, 180, 252, 0.8)" : "#6366f1",
-    mobileFrame: isDark ? "#2a2a44" : "#d1d5db",
-    mobileFrameBg: isDark ? "#f8f9ff" : "#f8f9ff",
-    mobileShadow: isDark ? "0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99, 102, 241, 0.1)" : "0 25px 80px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05)",
-    mobileContainerBg: isDark ? "radial-gradient(ellipse at center, #1a1a35 0%, #0f0f1a 70%)" : "radial-gradient(ellipse at center, #f1f5f9 0%, #e2e8f0 70%)",
+    bg: isDark ? "#000000" : "#ffffff",
+    sidebar: isDark ? "#0a0a0a" : "#ffffff",
+    sidebarBorder: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+    sidebarShadow: isDark ? "1px 0 0 0 rgba(255,255,255,0.06)" : "1px 0 0 0 rgba(0,0,0,0.06)",
+    logoBorder: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+    logoTitle: isDark ? "#fafafa" : "#171717",
+    logoSub: isDark ? "#666666" : "#999999",
+    tabActive: isDark ? "#fafafa" : "#171717",
+    tabInactive: isDark ? "#666666" : "#999999",
+    tabBg: isDark ? "rgba(255,255,255,0.06)" : "#fafafa",
+    tabBorder: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+    groupLabel: isDark ? "#888888" : "#666666",
+    itemActive: isDark ? "#fafafa" : "#171717",
+    itemInactive: isDark ? "#888888" : "#666666",
+    itemBgActive: isDark ? "rgba(255,255,255,0.06)" : "#fafafa",
+    itemHoverBg: isDark ? "rgba(255,255,255,0.04)" : "#fafafa",
+    itemHoverColor: isDark ? "#eaeaea" : "#171717",
+    iconActive: isDark ? "#fafafa" : "#171717",
+    versionColor: isDark ? "#444444" : "#999999",
+    headerBg: isDark ? "rgba(0,0,0,0.85)" : "rgba(255,255,255,0.85)",
+    headerBorder: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+    headerText: isDark ? "#888888" : "#666666",
+    headerTitle: isDark ? "#fafafa" : "#171717",
+    codeBg: isDark ? "#0a0a0a" : "#fafafa",
+    codeBorder: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`,
+    codeText: isDark ? "#eaeaea" : "#171717",
+    codeLineNum: isDark ? "#333333" : "#999999",
+    btnBorder: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.08)"}`,
+    btnBg: isDark ? "rgba(255,255,255,0.06)" : "#ffffff",
+    btnColor: isDark ? "#fafafa" : "#171717",
+    mobileFrame: isDark ? "#333333" : "#eaeaea",
+    mobileFrameBg: isDark ? "#111111" : "#ffffff",
+    mobileShadow: isDark ? "0 0 0 1px rgba(255,255,255,0.08), 0 25px 60px rgba(0,0,0,0.5)" : "0 0 0 1px rgba(0,0,0,0.08), 0 25px 60px rgba(0,0,0,0.1)",
+    mobileContainerBg: isDark ? "#000000" : "#ffffff",
   };
-  const [designViewMode, setDesignViewMode] = React.useState<'html' | 'demo'>('demo');
 
   const demo = demos[current];
   const DemoComponent = demo.component;
 
-  // 监听 URL hash 变化
+  // 导航工具函数 — 仅更新 URL，状态由调用方设置
+  const navigateTo = (path: string) => {
+    window.history.pushState(null, '', `/${path}`);
+  };
+
+  // 监听浏览器前进/后退
   React.useEffect(() => {
-    const handleHashChange = () => {
-      const newIndex = getDemoIndexFromHash();
-      if (newIndex !== current) {
-        setCurrent(newIndex);
+    const handleRouteChange = () => {
+      const { page, demoIndex } = getPageFromUrl();
+      setCurrentPage(page);
+      if (page === 'demo') {
+        setCurrent(demoIndex);
       }
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [current]);
+    window.addEventListener('popstate', handleRouteChange);
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, []);
 
-  // 切换 demo 时更新 URL hash
+  // 从首页导航到 demo
+  const handleNavigateFromHome = (index: number) => {
+    setCurrent(index);
+    setCurrentPage('demo');
+    navigateTo(`demo/${demos[index].file}`);
+  };
+
+  // 切换 demo 时更新 URL
   const handleDemoChange = (index: number) => {
     setCurrent(index);
-    const demoFile = demos[index].file;
-    window.location.hash = demoFile; // 例如: #map/GaodeMap
+    navigateTo(`demo/${demos[index].file}`);
   };
 
   // 获取源码文本
@@ -388,98 +414,150 @@ function App() {
   const sourceCode = sourceModules[sourceKey]?.default ?? '// 源码加载失败';
 
   // 当前选中的设计规范文档
-  const selectedDesignDoc = designDocs[currentDesignDoc];
+
+  // 首页渲染
+  if (currentPage === 'home') {
+    return (
+      <div data-theme={appTheme} style={{ width: '100%', height: '100%', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <HomePage
+          onNavigate={handleNavigateFromHome}
+          onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
+          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
+          onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
+          demos={demos}
+          theme={appTheme}
+        />
+      </div>
+    );
+  }
+
+  // 设计规范页面渲染
+  if (currentPage === 'design') {
+    return (
+      <div data-theme={appTheme} style={{ width: '100%', height: '100%', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <DesignPage
+          docs={designDocs}
+          groups={designGroups}
+          theme={appTheme}
+          initialDocIndex={getPageFromUrl().demoIndex}
+          onDocChange={(docId: string) => navigateTo(`design/${docId}`)}
+          onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
+          onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
+          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          markdownToHtml={markdownToHtml}
+        />
+      </div>
+    );
+  }
+
+  // Block 页面渲染
+  if (currentPage === 'block') {
+    return (
+      <div data-theme={appTheme} style={{ width: '100%', height: '100%', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <BlockPage
+          demos={blockDemos}
+          theme={appTheme}
+          sourceModules={sourceModules}
+          onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
+          onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
+          onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
+          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+        />
+      </div>
+    );
+  }
+
+  // Block-design 页面渲染（带 HTML Demo 的设计规范风格）
+  if (currentPage === 'block-design') {
+    return (
+      <div data-theme={appTheme} style={{ width: '100%', height: '100%', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <BlockDemoPage
+          docs={designDocs}
+          groups={designGroups}
+          theme={appTheme}
+          initialDocIndex={current}
+          onDocChange={(docId: string) => navigateTo('block-design/' + docId)}
+          onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
+          onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
+          onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
+          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          markdownToHtml={markdownToHtml}
+        />
+      </div>
+    );
+  }
+
+  // 组件文档页面渲染
+  if (currentPage === 'docs') {
+    return (
+      <div data-theme={appTheme} style={{ width: '100%', height: '100%', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <DocsPage
+          theme={appTheme}
+          onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
+          onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
+          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          docsMap={docsMap}
+          demos={demos}
+          sourceModules={sourceModules}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div data-theme={appTheme} style={{ width: '100%', height: '100%', display: 'flex', background: t.bg, fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-      {/* ========== 左侧菜单 ========== */}
-      <div
-        style={{
-          width: 240,
-          minWidth: 240,
-          height: '100%',
-          background: t.sidebar,
-          borderRight: t.sidebarBorder,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          userSelect: 'none',
-          boxShadow: t.sidebarShadow,
-        }}
-      >
-        {/* Logo / 标题 */}
-        <div style={{ padding: '20px 20px 16px', borderBottom: t.logoBorder }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)' }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#fff' }}>map</span>
-            </div>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: t.logoTitle, letterSpacing: 0.3 }}>
-                aimapui
-              </div>
-              <div style={{ fontSize: 10, color: t.logoSub, marginTop: 1, letterSpacing: 0.2 }}>
-                Composable Map Components
-              </div>
-            </div>
-          </div>
-        </div>
+    <div data-theme={appTheme} style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: t.bg, fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+      {/* ══════ 顶部统一导航栏 ══════ */}
+      <NavBar
+        theme={appTheme}
+        activePage="demos"
+        onLogoClick={() => { setCurrentPage('home'); navigateTo(''); }}
+        onNavigateDemos={() => {}}
+        onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
+        onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
+          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+        onToggleTheme={() => setAppTheme((prev) => prev === 'light' ? 'dark' : 'light')}
+      />
 
-        {/* 左侧 Tab 切换：可视化 / 设计规范 */}
-        <div style={{ display: 'flex', gap: 2, padding: '8px 12px', borderBottom: t.logoBorder }}>
-          <button
-            onClick={() => setSidebarMode('demo')}
-            style={{
-              flex: 1,
-              padding: '7px 0',
-              fontSize: 11,
-              fontWeight: 600,
-              color: sidebarMode === 'demo' ? t.tabActive : t.tabInactive,
-              background: sidebarMode === 'demo' ? t.tabBg : 'transparent',
-              border: 'none',
-              borderRadius: 6,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              letterSpacing: 0.3,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 3 }}>layers</span>可视化
-          </button>
-          <button
-            onClick={() => setSidebarMode('design')}
-            style={{
-              flex: 1,
-              padding: '7px 0',
-              fontSize: 11,
-              fontWeight: 600,
-              color: sidebarMode === 'design' ? t.tabActive : t.tabInactive,
-              background: sidebarMode === 'design' ? t.tabBg : 'transparent',
-              border: 'none',
-              borderRadius: 6,
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              letterSpacing: 0.3,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: 'middle', marginRight: 3 }}>design_services</span>设计规范
-          </button>
-        </div>
-
-        {/* 菜单列表 */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '6px 0' }}>
-          {sidebarMode === 'demo' ? (
-            /* 可视化模式：展示 demos 列表 */
-            groups.map((group) => (
-              <div key={group}>
+      {/* ══════ Body: Sidebar + Content ══════ */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', maxWidth: 1440, margin: '0 auto', width: '100%', padding: '0 48px' }}>
+        {/* ========== 左侧 Demo 列表 ========== */}
+        <aside
+          style={{
+            width: 220,
+            minWidth: 220,
+            flexShrink: 0,
+            overflowY: 'auto',
+            padding: '24px 0',
+            userSelect: 'none',
+          }}
+        >
+          {groups.map((group) => {
+            const groupIcon: Record<string, string> = { '基础图层': 'layers', '复合图层': 'bubble_chart', 'Marker 标注': 'location_on', '控件': 'tune', '地图引擎': 'public' };
+            return (
+              <div key={group} style={{ marginBottom: group === groups[groups.length - 1] ? 0 : 8 }}>
                 <div
                   style={{
-                    padding: '14px 20px 6px',
+                    padding: '4px 16px 8px',
                     fontSize: 10,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     color: t.groupLabel,
-                    letterSpacing: 1.2,
+                    letterSpacing: '0.06em',
                     textTransform: 'uppercase',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
                   }}
                 >
+                  <span className="material-symbols-outlined" style={{ fontSize: 13, opacity: 0.5 }}>{groupIcon[group] || 'folder'}</span>
                   {group}
                 </div>
                 {demos
@@ -495,17 +573,15 @@ function App() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: 10,
-                          padding: '7px 12px',
-                          margin: '1px 8px',
+                          padding: '9px 16px',
+                          margin: '2px 6px',
                           cursor: 'pointer',
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: isActive ? 500 : 400,
                           color: isActive ? t.itemActive : t.itemInactive,
                           background: isActive ? t.itemBgActive : 'transparent',
-                          borderRadius: 8,
-                          borderLeft: 'none',
-                          transition: 'all 0.2s ease',
-                          position: 'relative',
+                          borderRadius: 6,
+                          transition: 'background 120ms, color 120ms',
                         }}
                         onMouseEnter={(e) => {
                           if (!isActive) {
@@ -520,8 +596,7 @@ function App() {
                           }
                         }}
                       >
-                        {isActive && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 16, borderRadius: 2, background: 'linear-gradient(180deg, #6366f1, #8b5cf6)' }} />}
-                        <span className="material-symbols-outlined" style={{ width: 20, textAlign: 'center', fontSize: 16, flexShrink: 0, opacity: isActive ? 1 : 0.6, color: isActive ? t.iconActive : 'inherit' }}>
+                        <span className="material-symbols-outlined" style={{ width: 18, textAlign: 'center', fontSize: 17, flexShrink: 0, opacity: isActive ? 1 : 0.4 }}>
                           {d.icon}
                         </span>
                         <span>{d.name}</span>
@@ -529,445 +604,53 @@ function App() {
                     );
                   })}
               </div>
-            ))
-          ) : (
-            /* 设计规范模式：展示 design docs 列表 */
-            <div>
-              {designGroups.map((group) => (
-                <div key={group}>
-                  <div
-                    style={{
-                      padding: '14px 20px 6px',
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: t.groupLabel,
-                      letterSpacing: 1.2,
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {group}
-                  </div>
-                  {designDocs
-                    .map((doc, index) => ({ ...doc, index }))
-                    .filter((doc) => doc.group === group)
-                    .map((doc) => {
-                      const isActive = doc.index === currentDesignDoc;
-                      return (
-                        <div
-                          key={doc.id}
-                          onClick={() => setCurrentDesignDoc(doc.index)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 10,
-                            padding: '7px 12px',
-                            margin: '1px 8px',
-                            cursor: 'pointer',
-                            fontSize: 12.5,
-                            fontWeight: isActive ? 500 : 400,
-                            color: isActive ? t.itemActive : t.itemInactive,
-                            background: isActive ? t.itemBgActive : 'transparent',
-                            borderRadius: 8,
-                            transition: 'all 0.2s ease',
-                            position: 'relative',
-                          }}
-                          onMouseEnter={(e) => {
-                            if (!isActive) {
-                              e.currentTarget.style.background = t.itemHoverBg;
-                              e.currentTarget.style.color = t.itemHoverColor;
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isActive) {
-                              e.currentTarget.style.background = 'transparent';
-                              e.currentTarget.style.color = t.itemInactive;
-                            }
-                          }}
-                        >
-                          {isActive && <div style={{ position: 'absolute', left: 0, top: '50%', transform: 'translateY(-50%)', width: 3, height: 16, borderRadius: 2, background: 'linear-gradient(180deg, #6366f1, #8b5cf6)' }} />}
-                          <span className="material-symbols-outlined" style={{ width: 20, textAlign: 'center', fontSize: 16, flexShrink: 0, opacity: isActive ? 1 : 0.6, color: isActive ? t.iconActive : 'inherit' }}>
-                            {doc.icon}
-                          </span>
-                          <span>{doc.name}</span>
-                        </div>
-                      );
-                    })}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+            );
+          })}
+        </aside>
 
-        {/* 底部信息 */}
-        <div style={{ padding: '12px 20px', borderTop: t.tabBorder, fontSize: 10, color: t.versionColor, letterSpacing: 0.3 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34, 197, 94, 0.4)' }} />
-            @antv/aimapui v0.1.0
-          </div>
-        </div>
-      </div>
-
-      {/* ========== 中间内容区 ========== */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-        {sidebarMode === 'demo' ? (
-          <>
-            {/* 顶部标题栏 */}
+        {/* ========== 中间内容区 ========== */}
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          {demo.device === 'mobile' ? (
             <div
               style={{
-                height: 44,
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 20px',
-                background: t.headerBg,
-                backdropFilter: 'blur(12px)',
-                borderBottom: t.tabBorder,
-                fontSize: 12,
-                color: t.headerText,
-                gap: 10,
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: t.iconActive }}>{demo.icon}</span>
-              <span style={{ color: t.headerTitle, fontWeight: 500, fontSize: 13 }}>{demo.name}</span>
-              <span style={{ color: 'rgba(99, 102, 241, 0.3)', fontSize: 10 }}>●</span>
-              <span style={{ fontSize: 11 }}>{demo.group}</span>
-              <div style={{ flex: 1 }} />
-              {/* 主题切换 */}
-              <div style={{ display: "flex", gap: 2, padding: 2, borderRadius: 6, background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.1)" }}>
-                <button
-                  onClick={() => setAppTheme("light")}
-                  style={{ padding: "4px 8px", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500, transition: "all 0.2s", background: appTheme === "light" ? "rgba(99,102,241,0.15)" : "transparent", color: appTheme === "light" ? "#a5b4fc" : "rgba(148,163,184,0.6)" }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: "middle" }}>light_mode</span>
-                </button>
-                <button
-                  onClick={() => setAppTheme("dark")}
-                  style={{ padding: "4px 8px", border: "none", borderRadius: 4, cursor: "pointer", fontSize: 11, fontWeight: 500, transition: "all 0.2s", background: appTheme === "dark" ? "rgba(99,102,241,0.15)" : "transparent", color: appTheme === "dark" ? "#a5b4fc" : "rgba(148,163,184,0.6)" }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14, verticalAlign: "middle" }}>dark_mode</span>
-                </button>
-              </div>
-              {/* 代码预览开关 */}
-              <button
-                onClick={() => setShowPanel((v) => !v)}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 6,
-                  border: '1px solid rgba(99, 102, 241, 0.15)',
-                  background: showPanel ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-                  color: showPanel ? t.iconActive : t.headerText,
-                  cursor: 'pointer',
-                  fontSize: 11,
-                  fontWeight: 500,
-                  transition: 'all 0.2s ease',
-                  letterSpacing: 0.2,
-                }}
-              >
-                {showPanel ? '</> 隐藏代码' : '</> 查看代码'}
-              </button>
-            </div>
-
-            {/* 地图容器 */}
-            <div style={{ position: 'absolute', top: 44, left: 0, right: 0, bottom: 0 }}>
-              {demo.device === 'mobile' ? (
-                /* 移动端 Demo：居中手机模拟器 */
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: t.mobileContainerBg,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 390,
-                      height: 844,
-                      maxHeight: 'calc(100% - 40px)',
-                      borderRadius: 20,
-                      overflow: 'hidden',
-                      border: `2px solid ${t.mobileFrame}`,
-                      boxShadow: t.mobileShadow,
-                      position: 'relative',
-                      background: '#f8f9ff',
-                    }}
-                  >
-                    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-                      <DemoComponent />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <DemoComponent />
-              )}
-            </div>
-          </>
-        ) : (
-          /* 设计规范模式：展示文档内容 */
-          <>
-            {/* 顶部标题栏 + 视图模式切换 */}
-            <div
-              style={{
-                height: 44,
-                display: 'flex',
-                alignItems: 'center',
-                padding: '0 20px',
-                background: t.headerBg,
-                backdropFilter: 'blur(12px)',
-                borderBottom: t.tabBorder,
-                fontSize: 12,
-                color: t.headerText,
-                gap: 10,
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18, color: t.iconActive }}>{selectedDesignDoc?.icon}</span>
-              <span style={{ color: t.headerTitle, fontWeight: 500, fontSize: 13 }}>{selectedDesignDoc?.name}</span>
-              <span style={{ color: 'rgba(99, 102, 241, 0.3)', fontSize: 10 }}>●</span>
-              <span style={{ fontSize: 11 }}>设计规范</span>
-              <div style={{ flex: 1 }} />
-              {/* HTML 预览 / HTML Demo 切换 */}
-              <div style={{ display: 'flex', gap: 2, padding: 2, borderRadius: 8, background: 'rgba(99, 102, 241, 0.05)', border: '1px solid rgba(99, 102, 241, 0.1)' }}>
-                <button
-                  onClick={() => setDesignViewMode('html')}
-                  style={{
-                    padding: '4px 10px',
-                    border: 'none',
-                    borderRadius: 6,
-                    background: designViewMode === 'html' ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                    color: designViewMode === 'html' ? t.iconActive : t.tabInactive,
-                    cursor: 'pointer',
-                    fontSize: 11,
-                    fontWeight: 500,
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 13, verticalAlign: 'middle', marginRight: 2 }}>article</span> Markdown
-                </button>
-                <button
-                  onClick={() => setDesignViewMode('demo')}
-                  style={{
-                    padding: '4px 10px',
-                    border: 'none',
-                    borderRadius: 6,
-                    background: designViewMode === 'demo' ? 'rgba(99, 102, 241, 0.15)' : 'transparent',
-                    color: designViewMode === 'demo' ? t.iconActive : t.tabInactive,
-                    cursor: 'pointer',
-                    fontSize: 11,
-                    fontWeight: 500,
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 13, verticalAlign: 'middle', marginRight: 2 }}>desktop_windows</span> HTML Demo
-                </button>
-              </div>
-            </div>
-
-            {/* 文档内容区 */}
-            <div style={{ position: 'absolute', top: 44, left: 0, right: 0, bottom: 0, overflow: 'hidden', background: t.codeBg }}>
-              {selectedDesignDoc ? (
-                designViewMode === 'html' ? (
-                  <div
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      overflow: 'auto',
-                      padding: '24px 32px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        maxWidth: 800,
-                        margin: '0 auto',
-                        color: t.codeText,
-                        lineHeight: 1.7,
-                        fontSize: 13,
-                      }}
-                      dangerouslySetInnerHTML={{ __html: markdownToHtml(selectedDesignDoc.content) }}
-                    />
-                  </div>
-                ) : selectedDesignDoc.htmlDemo ? (
-                  <iframe
-                    srcDoc={selectedDesignDoc.htmlDemo}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      border: 'none',
-                      background: '#fff',
-                    }}
-                    title={`${selectedDesignDoc.name} Demo`}
-                    sandbox="allow-scripts allow-same-origin"
-                  />
-                ) : (
-                  <div style={{ color: '#8b949e', textAlign: 'center', padding: '60px 20px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: 32, marginBottom: 12, display: 'block', color: '#8b949e' }}>construction</span>
-                    <div>暂无 HTML Demo</div>
-                    <div style={{ fontSize: 11, marginTop: 8, opacity: 0.7 }}>
-                      可在 src/design/ 目录添加 {selectedDesignDoc.id}.html 文件
-                    </div>
-                  </div>
-                )
-              ) : (
-                <div style={{ color: '#8b949e', textAlign: 'center', padding: '60px 20px' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 32, marginBottom: 12, display: 'block' }}>description</span>
-                  <div>暂无设计规范文档</div>
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* ========== 右侧代码预览面板（仅可视化模式） ========== */}
-      {sidebarMode === 'demo' && showPanel && (
-        <div
-          style={{
-            width: 440,
-            minWidth: 340,
-            height: '100%',
-            background: t.codeBg,
-            borderLeft: t.codeBorder,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}
-        >
-          {/* 顶部标题栏 */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '10px 16px',
-              background: t.headerBg,
-              borderBottom: t.tabBorder,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 14, color: t.iconActive }}>code</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: t.iconActive, letterSpacing: 0.3 }}>源代码</span>
-            <div style={{ flex: 1 }} />
-            <button
-              onClick={() => setShowPanel(false)}
-              style={{
+                width: '100%',
+                height: '100%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: 24,
-                height: 24,
-                borderRadius: 6,
-                border: 'none',
-                background: 'transparent',
-                color: t.headerText,
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)';
-                e.currentTarget.style.color = t.iconActive;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'rgba(148, 163, 184, 0.5)';
+                background: t.mobileContainerBg,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>close</span>
-            </button>
-          </div>
-
-          {/* 文件名 */}
-          <div
-            style={{
-              padding: '8px 16px',
-              fontSize: 11,
-              color: t.headerText,
-              background: t.headerBg,
-              borderBottom: '1px solid rgba(99, 102, 241, 0.04)',
-              fontFamily: "'JetBrains Mono', 'SF Mono', Menlo, monospace",
-              letterSpacing: 0.3,
-            }}
-          >
-            {demo.file}.tsx
-          </div>
-
-          {/* 代码内容区 */}
-          <div style={{ flex: 1, overflow: 'auto' }}>
-            <pre
-              style={{
-                margin: 0,
-                padding: '16px 0',
-                fontSize: 12,
-                lineHeight: 1.7,
-                fontFamily: "'JetBrains Mono', 'SF Mono', 'Fira Code', Menlo, Monaco, monospace",
-                color: t.codeText,
-                whiteSpace: 'pre',
-                tabSize: 2,
-              }}
-            >
-              {sourceCode.split('\n').map((line, i) => (
-                <div key={i} style={{ display: 'flex' }}>
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      minWidth: 48,
-                      paddingRight: 16,
-                      textAlign: 'right',
-                      color: t.codeLineNum,
-                      userSelect: 'none',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {i + 1}
-                  </span>
-                  <span style={{ flex: 1, paddingRight: 20 }}>
-                    {line}
-                  </span>
+              <div
+                style={{
+                  width: 390,
+                  height: 844,
+                  maxHeight: 'calc(100% - 40px)',
+                  borderRadius: 20,
+                  overflow: 'hidden',
+                  border: `2px solid ${t.mobileFrame}`,
+                  boxShadow: t.mobileShadow,
+                  position: 'relative',
+                  background: t.mobileFrameBg,
+                }}
+              >
+                <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+                  <DemoComponent />
                 </div>
-              ))}
-            </pre>
-          </div>
+              </div>
+            </div>
+          ) : (
+            <DemoComponent />
+          )}
 
-          {/* 底部按钮 */}
-          <div
-            style={{
-              padding: '10px 16px',
-              borderTop: t.tabBorder,
-              background: t.headerBg,
-              display: 'flex',
-              justifyContent: 'flex-end',
-            }}
-          >
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(sourceCode).catch(() => {});
-              }}
-              style={{
-                padding: '6px 14px',
-                borderRadius: 6,
-                border: '1px solid rgba(99, 102, 241, 0.15)',
-                background: 'rgba(99, 102, 241, 0.06)',
-                color: 'rgba(165, 180, 252, 0.8)',
-                cursor: 'pointer',
-                fontSize: 11,
-                fontWeight: 500,
-                transition: 'all 0.2s ease',
-                letterSpacing: 0.3,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = t.iconActive;
-                e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.4)';
-                e.currentTarget.style.background = 'rgba(99, 102, 241, 0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'rgba(165, 180, 252, 0.8)';
-                e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.15)';
-                e.currentTarget.style.background = t.itemHoverBg;
-              }}
-            >
-              复制代码
-            </button>
-          </div>
         </div>
-      )}
+
+        {/* ========== 右侧源码切换按钮 + 面板 ========== */}
+        <SourceCodeToggle showPanel={showPanel} isDark={isDark} onClick={() => setShowPanel(!showPanel)} />
+        {showPanel && (
+          <SourceCodePanel sourceCode={sourceCode} fileName={`${demo.file}.tsx`} isDark={isDark} onClose={() => setShowPanel(false)} />
+        )}
+      </div>
     </div>
   );
 }

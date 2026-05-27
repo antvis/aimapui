@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, PointLayer, LineLayer, ZoomControl } from '../../index';
+import { AiMap, PointLayer, LineLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 
@@ -45,7 +45,7 @@ export default function Demo11LineLayer() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [116.397, 39.909],
@@ -75,7 +75,7 @@ export default function Demo11LineLayer() {
           items={[{ label: '流量', value: tooltipInfo.value }]}
         />
         <ZoomControl />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

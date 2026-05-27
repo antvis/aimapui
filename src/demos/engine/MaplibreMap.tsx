@@ -1,5 +1,5 @@
 import React from 'react';
-import { Aimap, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl, OPENFREEMAP_THEME_PRESETS } from '../../index';
+import { AiMap, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl, OPENFREEMAP_THEME_PRESETS } from '../../index';
 
 /**
  * Maplibre 地图 — 完整地图控件展示
@@ -10,7 +10,7 @@ import { Aimap, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl, OP
 export default function MaplibreMap() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'maplibre',
           center: [116.397, 39.909],
@@ -22,7 +22,7 @@ export default function MaplibreMap() {
         <ScaleControl position="bottomleft" />
         <GeoLocateControl position="topright" />
         <MapThemeControl position="topleft" options={OPENFREEMAP_THEME_PRESETS} />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

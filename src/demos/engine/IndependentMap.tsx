@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, RasterLayer, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl } from '../../index';
+import { AiMap, RasterLayer, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl } from '../../index';
 import type { ThemeOption } from '../../index';
 
 const TDT_TOKEN = 'b88bfb160c81dab8d9d20aaa74846360';
@@ -54,7 +54,7 @@ export default function IndependentMap() {
   const labelKey = LABEL_LAYER_MAP[activeStyle] ?? 'cva';
 
   return (
-    <Aimap
+    <AiMap
       key={activeStyle}
       map={{
         basemap: 'map',
@@ -86,6 +86,6 @@ export default function IndependentMap() {
         defaultValue={activeStyle}
         onThemeChange={handleThemeChange}
       />
-    </Aimap>
+    </AiMap>
   );
 }

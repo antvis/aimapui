@@ -40,10 +40,13 @@ export function LegendRenderer({
 
   return (
     <div
-      className={cx('aimapui-legend', className)}
+      className={cx(
+        'absolute z-20 bottom-6 left-6 max-h-[40%] overflow-y-auto rounded-xl border border-outline-variant/30 bg-surface/80 backdrop-blur-md p-3 px-3.5 text-on-surface shadow-lg scrollbar-thin scrollbar-track-transparent scrollbar-thumb-outline-variant',
+        className,
+      )}
       style={style}
     >
-      <div className="aimapui-legend-group">
+      <div className="flex flex-col gap-4 [&>*+*]:border-t [&>*+*]:border-outline-variant/20 [&>*+*]:pt-4">
         {legends.map((legend, index) => (
           <LegendItem
             key={`legend-${index}`}

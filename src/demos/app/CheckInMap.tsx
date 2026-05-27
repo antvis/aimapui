@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import type { Scene } from '@antv/l7';
-import { Aimap } from '../../components/Aimap';
+import { AiMap } from '../../components/AiMap';
 import { ZoomControl } from '../../components/Control/ZoomControl';
 import { GeoLocateControl } from '../../components/Control/GeoLocateControl';
 import { Marker } from '../../components/Interaction/Marker';
@@ -177,7 +177,7 @@ export default function CheckInMap() {
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
       {/* ── 全屏地图 ── */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-        <Aimap
+        <AiMap
           map={{
             basemap: 'gaode',
             center: [116.397, 39.918],
@@ -203,7 +203,7 @@ export default function CheckInMap() {
               onClick={() => handleMarkerClick(spot)}
             />
           ))}
-        </Aimap>
+        </AiMap>
       </div>
 
       {/* ── UI 覆盖层 ── */}

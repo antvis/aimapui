@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Aimap } from '../../components/Aimap';
+import { AiMap } from '../../components/AiMap';
 import { ZoomControl } from '../../components/Control/ZoomControl';
 import { GeoLocateControl } from '../../components/Control/GeoLocateControl';
 import { MapThemeControl } from '../../components/Control/MapThemeControl';
@@ -451,7 +451,7 @@ export default function PcApp() {
           transition: 'left 0.3s ease-in-out',
         }}
       >
-        <Aimap
+        <AiMap
           map={{
             basemap: 'gaode',
             center: [121.47, 31.23],
@@ -484,7 +484,7 @@ export default function PcApp() {
               />
             );
           })}
-        </Aimap>
+        </AiMap>
       </div>
 
       {/* ── 图例面板（地图区域左下角，独立覆盖层） ── */}

@@ -1,12 +1,12 @@
 import React from 'react';
-import { Aimap, RasterLayer, ZoomControl } from '../../index';
+import { AiMap, RasterLayer, ZoomControl } from '../../index';
 /**
  * 栅格瓦片图层
  */
 export default function Demo29RasterTileLayer() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'map',
           center: [120.2, 30.25],
@@ -22,7 +22,7 @@ export default function Demo29RasterTileLayer() {
           zIndex={0}
         />
         <ZoomControl />
-      </Aimap>
+      </AiMap>
 </div>
   );
 }

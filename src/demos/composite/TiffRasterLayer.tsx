@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Aimap, ZoomControl } from '../../index';
+import { AiMap, ZoomControl } from '../../index';
 import { TiffRasterLayer } from '../../components/CompositeLayer/TiffRasterLayer';
 import { Legend } from '../components/Legend';
 
@@ -46,7 +46,7 @@ export default function TiffRasterLayerDemo() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: mapCfg.center,
@@ -92,7 +92,7 @@ export default function TiffRasterLayerDemo() {
         )}
 
         <ZoomControl position="bottomright" />
-      </Aimap>
+      </AiMap>
 
       {/* 模式切换 */}
       <div style={{

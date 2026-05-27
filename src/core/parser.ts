@@ -1,10 +1,10 @@
-import type { AimapSchema, LayerSchema, MapSchema } from '../schema/types';
+import type { AiMapSchema, LayerSchema, MapSchema } from '../schema/types';
 import { applySchemaDefaults } from '../schema/defaults';
 
 /**
  * 解析并规范化 Schema，填充默认值
  */
-export function parseSchema(schema: AimapSchema): AimapSchema {
+export function parseSchema(schema: AiMapSchema): AiMapSchema {
   return applySchemaDefaults(schema);
 }
 
@@ -119,7 +119,7 @@ export function validateLayerSchema(layer: LayerSchema, index: number): string[]
 /**
  * 验证整个 Schema
  */
-export function validateSchema(schema: AimapSchema): { valid: boolean; errors: string[] } {
+export function validateSchema(schema: AiMapSchema): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   errors.push(...validateMapSchema(schema.map));

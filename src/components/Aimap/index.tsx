@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import type { AimapProps } from './types';
-import type { AimapSchema, MapSchema, LayerSchema, LayerEventPayload, MapEventPayload } from '../../schema/types';
+import type { AiMapProps } from './types';
+import type { AiMapSchema, MapSchema, LayerSchema, LayerEventPayload, MapEventPayload } from '../../schema/types';
 import { parseSchema } from '../../core/parser';
 import { applySchemaDefaults } from '../../schema/defaults';
 import { SchemaProvider } from '../../context/SchemaContext';
@@ -19,26 +19,26 @@ import { MobileSheetLegend } from '../../components/Mobile/MobileSheetLegend';
 import type { Scene } from '@antv/l7';
 
 /**
- * Aimap 主入口组件
+ * AiMap 主入口组件
  *
  * 支持两种使用模式：
  *
  * 1. 组件化模式（推荐 — 开发者友好，自由组合）
  * ```tsx
- * <Aimap map={{ basemap: 'gaode', center: [116, 39], zoom: 10 }}>
+ * <AiMap map={{ basemap: 'gaode', center: [116, 39], zoom: 10 }}>
  *   <PointLayer source={data} color="#5B8FF9" size={12} onClick={handleClick} />
  *   <LineLayer source={flowData} color="#F6BD16" />
  *   <ZoomControl position="topright" />
  *   <Marker longitude={116.4} latitude={39.9} content="北京" />
- * </Aimap>
+ * </AiMap>
  * ```
  *
  * 2. Schema 模式（AI 生成、JSON 配置）
  * ```tsx
- * <Aimap schema={fullSchema} />
+ * <AiMap schema={fullSchema} />
  * ```
  */
-export function Aimap({
+export function AiMap({
   map,
   schema,
   theme = 'light',
@@ -53,7 +53,7 @@ export function Aimap({
   children,
   className,
   style,
-}: AimapProps) {
+}: AiMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   // 两种模式互斥：优先 schema，否则从 map prop 构建
@@ -69,7 +69,7 @@ export function Aimap({
       controls: [],
       interactions: [],
       legends: [],
-    } as AimapSchema;
+    } as AiMapSchema;
   }, [schema, map]);
 
   const isComposableMode = !schema && !!map;
@@ -93,7 +93,7 @@ export function Aimap({
       <SchemaProvider schema={resolvedSchema}>
         <EventBusProvider events={events}>
           <ResponsiveProvider responsive={resolvedSchema.responsive}>
-            <AimapCore
+            <AiMapCore
               schema={resolvedSchema}
               isComposableMode={isComposableMode}
               onSceneReady={onSceneReady}
@@ -104,7 +104,7 @@ export function Aimap({
               style={style}
             >
               {children}
-            </AimapCore>
+            </AiMapCore>
           </ResponsiveProvider>
         </EventBusProvider>
       </SchemaProvider>
@@ -149,8 +149,8 @@ interface MapEventHandlers {
   onZoom?: (payload: MapEventPayload) => void;
 }
 
-interface AimapCoreProps {
-  schema: AimapSchema;
+interface AiMapCoreProps {
+  schema: AiMapSchema;
   isComposableMode: boolean;
   onSceneReady?: (scene: Scene) => void;
   layerEventHandlers: LayerEventHandlers;
@@ -161,7 +161,7 @@ interface AimapCoreProps {
   children?: React.ReactNode;
 }
 
-function AimapCore({
+function AiMapCore({
   schema,
   isComposableMode,
   onSceneReady,
@@ -171,7 +171,7 @@ function AimapCore({
   className,
   style,
   children,
-}: AimapCoreProps) {
+}: AiMapCoreProps) {
   const { isMobile } = useResponsive();
   const [layers, setLayers] = useState<LayerSchema[]>(schema.layers ?? []);
 
@@ -305,4 +305,4 @@ function ControlContainerAutoWrap({ children }: { children?: React.ReactNode }) 
   );
 }
 
-export default Aimap;
+export default AiMap;

@@ -57,7 +57,7 @@ function PinSvg({ color = 'primary' }: { color?: MarkerColor }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       style={{ width: 32, height: 40, display: 'block' }}
-      className="aimapui-marker-pin"
+      className="aimapui-marker-pin block drop-shadow-md"
     >
       <path
         d="M16 0C7.16344 0 0 7.16344 0 16C0 24.8366 16 40 16 40C16 40 32 24.8366 32 16C32 7.16344 24.8366 0 16 0Z"
@@ -76,7 +76,7 @@ function PinSvg({ color = 'primary' }: { color?: MarkerColor }) {
 function IconPin({ icon, color = 'primary' }: { icon: string; color?: MarkerColor }) {
   const { fill } = MARKER_COLOR_MAP[color];
   return (
-    <div className="aimapui-marker-pin aimapui-marker-pin--icon" style={{ position: 'relative', width: 32, height: 40 }}>
+    <div className="aimapui-marker-pin aimapui-marker-pin--icon relative inline-flex items-start justify-center drop-shadow-md" style={{ width: 32, height: 40 }}>
       <svg
         viewBox="0 0 32 40"
         fill="none"
@@ -118,8 +118,8 @@ function IconPin({ icon, color = 'primary' }: { icon: string; color?: MarkerColo
 function CircleMarker({ color = 'primary' }: { color?: MarkerColor }) {
   const { fill, bg } = MARKER_COLOR_MAP[color];
   return (
-    <div className="aimapui-marker-circle" style={{ background: bg, borderColor: fill }}>
-      <div className="aimapui-marker-circle__inner" style={{ background: fill }} />
+    <div className="aimapui-marker-circle size-6 rounded-full border-[1.5px] border-white shadow-md flex items-center justify-center relative" style={{ background: bg, borderColor: fill }}>
+      <div className="aimapui-marker-circle__inner size-1.5 rounded-full" style={{ background: fill }} />
     </div>
   );
 }
@@ -130,7 +130,7 @@ function CircleMarker({ color = 'primary' }: { color?: MarkerColor }) {
 function DotMarker({ color = 'primary' }: { color?: MarkerColor }) {
   const { fill } = MARKER_COLOR_MAP[color];
   return (
-    <div className="aimapui-marker-dot" style={{ background: fill }} />
+    <div className="aimapui-marker-dot size-2 rounded-full border-[1.5px] border-white shadow-[0_1px_3px_rgba(0,0,0,0.3)]" style={{ background: fill }} />
   );
 }
 
@@ -138,7 +138,11 @@ function DotMarker({ color = 'primary' }: { color?: MarkerColor }) {
  * Marker 文本标注 — 置于 Marker 下方 4px，带白色光晕
  */
 function MarkerLabel({ text }: { text: string }) {
-  return <div className="aimapui-marker-label">{text}</div>;
+  return (
+    <div className="aimapui-marker-label absolute top-[calc(100%+4px)] left-1/2 -translate-x-1/2 font-mono text-xs leading-4 font-[450] text-on-surface whitespace-nowrap pointer-events-none [text-shadow:-1px_-1px_0_white,1px_-1px_0_white,-1px_1px_0_white,1px_1px_0_white,0_0_2px_white,0_0_4px_rgba(255,255,255,0.5)]">
+      {text}
+    </div>
+  );
 }
 
 // ============================================================
@@ -156,6 +160,8 @@ export interface MarkerProps extends Omit<MarkerSchema, 'type' | 'content'> {
   label?: string;
   /** 自定义内容，优先级高于 variant/color/icon/label */
   content?: React.ReactNode | string;
+  /** 子元素，作为自定义内容渲染 */
+  children?: React.ReactNode;
   className?: string;
   overlayContainer?: HTMLElement | null;
   onClick?: (e: React.MouseEvent) => void;
@@ -237,6 +243,7 @@ export function Marker({
   icon,
   label,
   content,
+  children,
   draggable = false,
   className,
   overlayContainer,
@@ -277,11 +284,12 @@ export function Marker({
     return parts.join(' ');
   }, [selected, inactive, color, className]);
 
-  // 决定渲染内容：content 优先，否则根据 variant 渲染
+  // 决定渲染内容：content > children > variant 渲染
   const markerContent = React.useMemo(() => {
     if (content) return content;
+    if (children) return children;
     return renderMarkerContent(variant, color, icon, label);
-  }, [content, variant, color, icon, label]);
+  }, [content, children, variant, color, icon, label]);
 
   // 更新 Marker 位置（同步，使用 transform 替代 left/top 避免重排）
   const updatePositionSync = (mapsService: any) => {

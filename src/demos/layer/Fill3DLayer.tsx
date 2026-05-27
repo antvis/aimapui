@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Aimap, PolygonLayer, ZoomControl } from '../../index';
+import { AiMap, PolygonLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 
@@ -41,7 +41,7 @@ export default function Demo25Fill3D() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap map={{ basemap: 'gaode', center: [116.368652, 39.93866], zoom: 10.2, pitch: 55, style: 'dark' }}>
+      <AiMap map={{ basemap: 'gaode', center: [116.368652, 39.93866], zoom: 10.2, pitch: 55, style: 'dark' }}>
         {data && (
           <PolygonLayer
             source={data}
@@ -68,7 +68,7 @@ export default function Demo25Fill3D() {
           ]}
         />
         <ZoomControl />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, PointLayer, LineLayer, HeatmapLayer, ZoomControl } from '../../index';
+import { AiMap, PointLayer, LineLayer, HeatmapLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 const cities = [
@@ -69,7 +69,7 @@ export default function Demo13MultiLayer() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{ basemap: 'gaode', center: [108, 32], zoom: 4, style: visible.heatmap ? 'dark' : 'light' }}
       >
         {visible.points && (
@@ -106,7 +106,7 @@ export default function Demo13MultiLayer() {
           items={tooltipInfo.items}
         />
         <ZoomControl />
-      </Aimap>
+      </AiMap>
 
       {/* 控制面板 */}
       </div>

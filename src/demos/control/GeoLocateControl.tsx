@@ -1,12 +1,12 @@
 import React from 'react';
-import { Aimap, GeoLocateControl } from '../../index';
+import { AiMap, GeoLocateControl } from '../../index';
 /**
  * 定位控件 — GeoLocateControl
  */
 export default function Demo05GeoLocate() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [116.397, 39.909],
@@ -15,7 +15,7 @@ export default function Demo05GeoLocate() {
         }}
       >
         <GeoLocateControl />
-      </Aimap>
+      </AiMap>
 </div>
   );
 }

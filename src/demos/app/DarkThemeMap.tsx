@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, PointLayer, ZoomControl, useTheme } from '../../index';
+import { AiMap, PointLayer, ZoomControl, useTheme } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import { GeoLocateControl } from '../../components/Control/GeoLocateControl';
 import { ScaleControl } from '../../components/Control/ScaleControl';
@@ -83,7 +83,7 @@ export default function DarkThemeMap() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [105, 35],
@@ -125,7 +125,7 @@ export default function DarkThemeMap() {
           labels={['一线', '新一线', '二线']}
           colors={['#FF6B6B', '#4ECDC4', '#45B7D1']}
         />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

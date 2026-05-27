@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Aimap, ZoomControl, ChinaDistrict } from '../../index';
+import { AiMap, ZoomControl, ChinaDistrict } from '../../index';
 import type { AdministrativeLevel, DrillPathNode, BusinessDataItem } from '../../components/CompositeLayer/ChinaDistrict';
 
 /**
@@ -162,7 +162,7 @@ export default function AdministrativeMap() {
         </div>
       </div>
 
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [104.5, 36.5],
@@ -185,7 +185,7 @@ export default function AdministrativeMap() {
           onRegionClick={handleRegionClick}
         />
         <ZoomControl position="bottomright" />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

@@ -30,13 +30,17 @@ export function LegendDiverging({
   const gradient = colors.join(', ');
 
   return (
-    <div className={cx('aimapui-legend-section', className)}>
-      {title && <div className="aimapui-legend-title">{title}</div>}
+    <div className={cx(className)}>
+      {title && (
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+          {title}
+        </div>
+      )}
 
-      <div className="aimapui-legend-diverging">
+      <div className="flex flex-col gap-1">
         <div style={{ position: 'relative' }}>
           <div
-            className="aimapui-legend-diverging-bar"
+            className="flex h-3 rounded overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]"
             style={{
               background: `linear-gradient(to right, ${gradient})`,
             }}
@@ -54,7 +58,7 @@ export function LegendDiverging({
             }}
           />
           {middleLabel && (
-            <div className="aimapui-legend-diverging-middle-label">
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-[18px] font-mono text-[11px] text-on-surface-variant whitespace-nowrap">
               {middleLabel}
             </div>
           )}
@@ -62,7 +66,7 @@ export function LegendDiverging({
 
         {/* 标签行：间距留出中间标签空间 */}
         <div
-          className="aimapui-legend-diverging-labels"
+          className="flex justify-between font-mono text-[11px] leading-3.5 font-[450] text-on-surface-variant"
           style={middleLabel ? { marginBottom: 12 } : undefined}
         >
           <span>{labels[0]}</span>

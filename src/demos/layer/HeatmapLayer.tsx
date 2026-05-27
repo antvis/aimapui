@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, HeatmapLayer, PointLayer, ZoomControl, ScaleControl } from '../../index';
+import { AiMap, HeatmapLayer, PointLayer, ZoomControl, ScaleControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 
@@ -32,7 +32,7 @@ export default function Demo12Heatmap() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           style: 'dark',
@@ -69,7 +69,7 @@ export default function Demo12Heatmap() {
         />
         <ZoomControl />
         <ScaleControl />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

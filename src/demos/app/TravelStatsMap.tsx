@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
-import { Aimap, FillLayer } from '../../index';
+import { AiMap, FillLayer } from '../../index';
 import { Marker } from '../../components/Interaction/Marker';
 
 /* ================================================================
@@ -146,7 +146,7 @@ export default function TravelStatsMap() {
 
       {/* ========== 地图区域 ========== */}
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <Aimap
+        <AiMap
           map={{
             basemap: 'gaode',
             center: [108, 34],
@@ -176,7 +176,7 @@ export default function TravelStatsMap() {
               content={<CheckinMarker name={city.name} count={city.count} />}
             />
           ))}
-        </Aimap>
+        </AiMap>
       </div>
     </div>
   );

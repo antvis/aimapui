@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Aimap, LineLayer, ZoomControl } from '../../index';
+import { AiMap, LineLayer, ZoomControl } from '../../index';
 /**
  * 弧线图
  */
@@ -15,7 +15,7 @@ export default function Demo23ArcLayer() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap map={{ basemap: 'gaode', center: [-74.06967, 40.720399], zoom: 12.46, pitch: 60, style: 'light' }}>
+      <AiMap map={{ basemap: 'gaode', center: [-74.06967, 40.720399], zoom: 12.46, pitch: 60, style: 'light' }}>
         {data && (
           <LineLayer
             source={data}
@@ -28,7 +28,7 @@ export default function Demo23ArcLayer() {
           />
         )}
         <ZoomControl />
-      </Aimap>
+      </AiMap>
 </div>
   );
 }

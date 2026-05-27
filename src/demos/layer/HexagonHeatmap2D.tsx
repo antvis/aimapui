@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Aimap, HeatmapLayer, ZoomControl } from '../../index';
+import { AiMap, HeatmapLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 
@@ -33,7 +33,7 @@ export default function HexagonHeatmap2D() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [104.995, 31.451],
@@ -69,7 +69,7 @@ export default function HexagonHeatmap2D() {
           items={[{ label: '容量总和', value: tooltipInfo.value }]}
         />
         <ZoomControl position="bottomright" />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

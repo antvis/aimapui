@@ -1,5 +1,5 @@
 import type {
-  AimapSchema,
+  AiMapSchema,
   MapSchema,
   LayerSchema,
   ControlSchema,
@@ -131,10 +131,10 @@ export function applyResponsiveDefaults(
 }
 
 // ============================================================
-// AimapSchema 默认值
+// AiMapSchema 默认值
 // ============================================================
 
-export function applySchemaDefaults(schema: AimapSchema): AimapSchema {
+export function applySchemaDefaults(schema: AiMapSchema): AiMapSchema {
   return {
     map: applyMapDefaults(schema.map) as MapSchema,
     layers: (schema.layers ?? []).map(applyLayerDefaults),

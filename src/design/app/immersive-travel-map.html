@@ -1,423 +1,688 @@
 <!DOCTYPE html>
-<html class="light" lang="zh-CN">
+<html lang="zh-CN">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Wanderlust | 沉浸式旅游足迹地图</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>沉浸式旅游足迹地图 设计规范 — Wanderlust System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
 <style>
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
-}
-@keyframes pulse-ring {
-  0% { transform: scale(0.5); opacity: 1; }
-  80%, 100% { transform: scale(2.2); opacity: 0; }
-}
-.pulse-dot::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: inherit;
-  animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-}
-.photo-stack::before, .photo-stack::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 10px;
-  border: 1.5px solid rgba(255,255,255,0.7);
-  background: rgba(255,255,255,0.3);
-  z-index: -1;
-}
-.photo-stack::before { transform: rotate(-6deg) translate(2px, 3px); }
-.photo-stack::after { transform: rotate(4deg) translate(-2px, 2px); }
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-}
-@keyframes marquee {
-  0% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
-}
+  :root {
+    --color-primary: #7C3AED;
+    --color-primary-container: #ede9fe;
+    --color-on-primary: #fff;
+    --color-on-surface: #1e293b;
+    --color-on-surface-variant: #434655;
+    --color-surface: #ffffff;
+    --color-outline-variant: #c3c6d7;
+    --color-surface-container-low: #fafafa;
+    --color-surface-container: #f5f5f5;
+    --color-accent-gold: #F59E0B;
+    --color-success: #10b981;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
+  h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
+  h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-primary-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
+  .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--color-outline-variant); }
+  .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
+  .spec-table code { font-size: 12px; }
+
+  /* ========== 沉浸式地图模拟器 ========== */
+  .map-shell {
+    width: 100%; height: 520px; position: relative; overflow: hidden;
+    border-radius: 12px; border: 1px solid var(--color-outline-variant);
+    background: linear-gradient(135deg, #e8edf5 0%, #d5dce8 40%, #eef1f7 100%);
+  }
+  .map-shell::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%23b0b8c9' stroke-width='0.3' fill='none'/%3E%3C/svg%3E");
+    opacity: 0.2; pointer-events: none; z-index: 0;
+  }
+  /* 脉冲动画 */
+  @keyframes pulse-ring {
+    0% { transform: scale(0.5); opacity: 1; }
+    80%, 100% { transform: scale(2.2); opacity: 0; }
+  }
+  .pulse-dot { position: relative; }
+  .pulse-dot::before {
+    content: ''; position: absolute; inset: 0; border-radius: 50%; background: inherit;
+    animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+  }
+  /* 照片叠放效果 */
+  .photo-stack { position: relative; }
+  .photo-stack::before, .photo-stack::after {
+    content: ''; position: absolute; inset: 0; border-radius: 8px;
+    border: 1.5px solid rgba(255,255,255,0.7); background: rgba(255,255,255,0.3); z-index: -1;
+  }
+  .photo-stack::before { transform: rotate(-5deg) translate(2px, 3px); }
+  .photo-stack::after { transform: rotate(3deg) translate(-1px, 2px); }
+
+  /* 悬浮顶栏 */
+  .float-topbar {
+    position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 20;
+    display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+    background: rgba(255,255,255,0.2); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.35); border-radius: 9999px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  }
+  /* 左侧搜索面板 */
+  .float-search {
+    position: absolute; top: 72px; left: 16px; z-index: 15; width: 240px;
+  }
+  .glass-panel {
+    background: rgba(255,255,255,0.22); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.35); border-radius: 16px;
+    padding: 14px; box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+  }
+  /* 右侧控件 */
+  .float-controls {
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%); z-index: 15;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .ctrl-circle {
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.3); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.4); border-radius: 10px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .ctrl-circle:hover { background: rgba(255,255,255,0.55); }
+  .ctrl-circle .material-symbols-outlined { font-size: 16px; color: var(--color-on-surface); }
+
+  /* 底部浮动栏 */
+  .float-bottom {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 20;
+    display: flex; align-items: center; gap: 6px; padding: 8px 14px;
+    background: rgba(255,255,255,0.22); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255,255,255,0.38); border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+  }
+  .bottom-chip {
+    display: flex; align-items: center; gap: 4px; padding: 4px 10px;
+    border-radius: 10px; font-size: 11px; font-weight: 600; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .bottom-chip--active { background: rgba(124,58,237,0.12); color: #7C3AED; }
+  .bottom-chip--default { background: rgba(255,255,255,0.35); color: var(--color-on-surface); }
+  .bottom-chip--default:hover { background: rgba(255,255,255,0.55); }
+  .bottom-divider { width: 1px; height: 20px; background: rgba(0,0,0,0.1); }
+
+  /* 照片足迹标记 */
+  .pin-marker {
+    position: absolute; z-index: 10; cursor: pointer; text-align: center;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .pin-marker:hover { transform: translateY(-6px) scale(1.08); }
+  .pin-photo {
+    position: relative; border-radius: 8px; overflow: hidden;
+    border: 2px solid #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+  .pin-badge {
+    position: absolute; top: -6px; right: -6px; min-width: 18px; height: 18px;
+    padding: 0 4px; border-radius: 9999px; background: #7C3AED; color: #fff;
+    font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    border: 2px solid #fff; box-shadow: 0 2px 6px rgba(124,58,237,0.3);
+  }
+  .pin-badge--gold { background: #F59E0B; }
+  .pin-label {
+    margin-top: 4px; opacity: 0; transition: opacity 0.2s, transform 0.2s;
+    transform: translateY(4px);
+  }
+  .pin-marker:hover .pin-label { opacity: 1; transform: translateY(0); }
+  .pin-label-text {
+    display: inline-block; padding: 3px 8px; border-radius: 6px;
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(8px);
+    font-size: 10px; font-weight: 700; color: var(--color-on-surface);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1); white-space: nowrap;
+  }
+
+  /* 路径叠加 */
+  .route-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
+
+  /* 形状卡片 */
+  .shape-card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 10px; padding: 20px; transition: box-shadow 0.2s; }
+  .shape-card:hover { box-shadow: 0 8px 24px rgba(124,58,237,0.08); }
+
+  /* 颜色色块 */
+  .color-swatch { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.15s; }
+  .color-swatch:hover { transform: scale(1.1); }
 
   /* ========== Dark Theme ========== */
   [data-theme="dark"] {
-    --color-primary: #93c5fd;
+    --color-primary: #a78bfa;
     --color-primary-container: #1e3a5f;
     --color-success: #6ee7b7;
-    --color-error: #fca5a5;
-    --color-warning: #fcd34d;
     --color-on-surface: #e2e8f0;
     --color-on-surface-variant: #94a3b8;
-    --color-surface: #0f172a;
+    --color-surface: #000000;
     --color-outline-variant: #334155;
-    --color-surface-container-low: #1e293b;
-    --color-on-primary: #1e3a5f;
-    --color-surface-container: #1e293b;
+    --color-surface-container-low: #0a0a0a;
+    --color-surface-container: #111111;
   }
   [data-theme="dark"] body { background: var(--color-surface); color: var(--color-on-surface); }
-  [data-theme="dark"] .card { background: #1e293b; border-color: #334155; }
-  [data-theme="dark"] code { background: #1e3a5f; color: #93c5fd; }
-  [data-theme="dark"] .spec-table th { background: rgba(30,58,95,0.5); }
+  [data-theme="dark"] .card { background: #111111; border-color: #222222; }
+  [data-theme="dark"] code { background: #1a1a2e; color: #a78bfa; }
+  [data-theme="dark"] .spec-table th { background: rgba(255,255,255,0.04); }
   [data-theme="dark"] .spec-table td { border-color: rgba(51,65,85,0.4); }
-  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); border-color: #334155; }
-  [data-theme="dark"] .map-bg::before { opacity: 0.1; }
-  [data-theme="dark"] h2 { border-color: #334155; }
-  /* 手机框架暗色适配 */
-  [data-theme="dark"] .phone-frame { border-color: #475569; background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); }
-  [data-theme="dark"] .search-bar { background: rgba(30,41,59,0.92); }
-  [data-theme="dark"] .search-placeholder { color: #64748b; }
-  [data-theme="dark"] .ctrl-btn { background: rgba(30,41,59,0.95); }
-  [data-theme="dark"] .ctrl-btn .material-symbols-outlined { color: #e2e8f0; }
-  [data-theme="dark"] .ctrl-group { background: rgba(30,41,59,0.95); }
-  [data-theme="dark"] .bottom-sheet { background: rgba(30,41,59,0.96); }
-  [data-theme="dark"] .bottom-nav { background: rgba(30,41,59,0.92); border-color: #334155; }
-  /* 形状卡片 */
-  [data-theme="dark"] .shape-card { background: #1e293b; border-color: #334155; }
-  [data-theme="dark"] .shape-card:hover { box-shadow: 0 8px 24px rgba(147,197,253,0.08); }
-  /* 性能/手势卡片 */
-  [data-theme="dark"] .perf-item,
-  [data-theme="dark"] .gesture-card,
-  [data-theme="dark"] .collision-box,
-  [data-theme="dark"] .zoom-card { background: #1e293b; border-color: #334155; }
-  /* 侧边栏 (PC) */
-  [data-theme="dark"] .sidebar { background: rgba(15,23,42,0.92); border-color: #334155; }
-  [data-theme="dark"] .sidebar-item:hover { background: rgba(147,197,253,0.08); }
-  /* 底部面板状态 */
-  [data-theme="dark"] .sheet-state-box { border-color: #334155; }
-  [data-theme="dark"] .sheet-state-map { background: linear-gradient(135deg, #1e293b, #0f172a); }
-  [data-theme="dark"] .sheet-state-panel { background: rgba(30,41,59,0.95); }
-  /* SVG 文字 */
+  [data-theme="dark"] h2 { border-color: #222222; }
+  [data-theme="dark"] .map-shell { background: linear-gradient(135deg, #111111 0%, #0a0a0a 50%, #111111 100%); border-color: #222222; }
+  [data-theme="dark"] .map-shell::before { opacity: 0.08; }
+  [data-theme="dark"] .float-topbar { background: rgba(17,17,17,0.6); border-color: rgba(71,85,105,0.4); }
+  [data-theme="dark"] .glass-panel { background: rgba(17,17,17,0.6); border-color: rgba(71,85,105,0.4); }
+  [data-theme="dark"] .float-bottom { background: rgba(17,17,17,0.6); border-color: rgba(71,85,105,0.4); }
+  [data-theme="dark"] .ctrl-circle { background: rgba(17,17,17,0.7); border-color: rgba(71,85,105,0.5); }
+  [data-theme="dark"] .ctrl-circle:hover { background: rgba(17,17,17,0.9); }
+  [data-theme="dark"] .ctrl-circle .material-symbols-outlined { color: #e2e8f0; }
+  [data-theme="dark"] .pin-badge { border-color: #1e293b; }
+  [data-theme="dark"] .pin-photo { border-color: #333333; }
+  [data-theme="dark"] .pin-label-text { background: rgba(17,17,17,0.92); color: #e2e8f0; }
+  [data-theme="dark"] .shape-card { background: #111111; border-color: #222222; }
+  [data-theme="dark"] .shape-card:hover { box-shadow: 0 8px 24px rgba(167,139,250,0.08); }
+  [data-theme="dark"] .bottom-chip--active { background: rgba(167,139,250,0.15); color: #a78bfa; }
+  [data-theme="dark"] .bottom-chip--default { background: rgba(255,255,255,0.08); color: #94a3b8; }
+  [data-theme="dark"] .bottom-chip--default:hover { background: rgba(255,255,255,0.15); }
+  [data-theme="dark"] .bottom-divider { background: rgba(255,255,255,0.1); }
   [data-theme="dark"] svg text[fill="#434655"],
   [data-theme="dark"] svg text[fill="#1e293b"] { fill: #e2e8f0; }
   [data-theme="dark"] svg text[fill="#64748b"] { fill: #94a3b8; }
-
-  /* 主题切换按钮 */
-  .theme-toggle {
-    position: fixed; top: 16px; right: 16px; z-index: 9999;
-    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--color-outline-variant);
-    background: var(--color-surface-container-low); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: background 0.2s, border-color 0.2s;
-    font-size: 18px; line-height: 1;
-  }
-  .theme-toggle:hover { background: var(--color-primary-container); }
-
+  [data-theme="dark"] svg path[stroke="#7C3AED"],
+  [data-theme="dark"] svg path[stroke="rgba(124,58,237,0.3)"] { stroke: #a78bfa; }
 </style>
-<script>
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        "primary": "#7C3AED",
-        "primary-light": "#a78bfa",
-        "primary-dark": "#5b21b6",
-        "accent-gold": "#F59E0B",
-        "surface": "#f8fafc",
-        "on-surface": "#1e293b",
-        "on-surface-variant": "#64748b",
-        "outline": "#cbd5e1",
-      },
-      spacing: {
-        "gutter": "16px",
-        "panel-gap": "12px",
-      },
-      fontFamily: {
-        "sans": ["Inter", "system-ui", "sans-serif"],
-      },
-    }
-  }
-}
-</script>
 </head>
-<body class="font-sans h-screen overflow-hidden bg-slate-100">
+<body>
 
-<!-- Level 0: 地图底图 -->
-<div class="fixed inset-0 z-0">
-  <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTJyIbCzkIpevTsVe4NGyx2NE188YL-B5mC_OJEvrxB-pIqv5fGi_v1G5kMuwIYqcEvX7xeEseJRlidxq_EzPPnRpZtrEZQBLOadatFL7rwdNZXHi2cCE_EkFwx1KjuHSVr2zTyLqtFaSTqbfof1aw4YFEdmtVFyFWAZ23uoXhbAANEWcffgRdrMhdvYznHy3wThGciDjqSkDZVMjSmbpZu8CA-nU7I2RcIcCUrvS3U8mZHbEBSmwdJEkmq4kCvt13T5XQ36vYzuM" alt="Global Map"/>
-  <!-- 路径线叠加 -->
-  <svg class="absolute inset-0 w-full h-full pointer-events-none opacity-30" xmlns="http://www.w3.org/2000/svg">
-    <path d="M200,350 Q500,150 900,320" fill="none" stroke="#7C3AED" stroke-dasharray="8 6" stroke-width="1.5"/>
-    <path d="M900,320 Q1100,250 1400,450" fill="none" stroke="#7C3AED" stroke-dasharray="8 6" stroke-width="1.5"/>
-    <path d="M200,350 Q400,500 700,550" fill="none" stroke="#7C3AED" stroke-dasharray="8 6" stroke-width="1.5"/>
-    <path d="M700,550 Q1000,500 1400,450" fill="none" stroke="#7C3AED" stroke-dasharray="8 6" stroke-width="1.5"/>
-  </svg>
-</div>
+<div class="page">
 
-<!-- Level 1: 悬浮状态栏 (Floating Status Bar) -->
-<header class="fixed top-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-5 py-2.5 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
-  <div class="flex items-center gap-2">
-    <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-purple-400 flex items-center justify-center shadow-sm">
-      <span class="material-symbols-outlined text-white text-[14px]">explore</span>
-    </div>
-    <span class="font-bold text-[13px] text-on-surface tracking-tight">Wanderlust</span>
-  </div>
-  <div class="w-px h-4 bg-black/10"></div>
-  <div class="flex items-center gap-1.5">
-    <div class="w-[6px] h-[6px] rounded-full bg-emerald-500 relative pulse-dot"></div>
-    <span class="text-[11px] font-medium text-on-surface-variant">2,847 在线</span>
-  </div>
-  <div class="w-px h-4 bg-black/10"></div>
-  <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10">
-    <span class="material-symbols-outlined text-primary text-[14px]">notifications</span>
-    <span class="text-[11px] font-semibold text-primary">5 新动态</span>
-  </div>
-</header>
+  <h1>沉浸式旅游足迹地图 设计规范</h1>
+  <p class="subtitle">Wanderlust Immersive Travel Map v1.0.0 — 照片驱动 · 毛玻璃悬浮 · 情感化足迹</p>
 
-<!-- Level 1: 左上角搜索面板 -->
-<div class="fixed top-20 left-6 z-30 w-72 space-y-3">
-  <!-- 搜索框 -->
-  <div class="bg-white/25 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-    <div class="flex items-center gap-2.5 mb-3">
-      <div class="w-8 h-8 rounded-xl bg-primary/15 flex items-center justify-center">
-        <span class="material-symbols-outlined text-primary text-[16px]">search</span>
-      </div>
-      <input class="bg-transparent border-none outline-none text-[12px] font-medium text-on-surface w-full placeholder:text-on-surface-variant/60" placeholder="搜索城市、国家或地区..." type="text"/>
+  <!-- 1. 设计原则 -->
+  <h2>1. 设计原则</h2>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px">
+    <div class="shape-card" style="text-align:center;padding:24px 16px">
+      <span class="material-symbols-outlined" style="font-size:32px;color:#7C3AED;margin-bottom:8px">travel_explore</span>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">沉浸感</div>
+      <div style="font-size:12px;color:var(--color-on-surface-variant)">UI 元素悬浮在地图之上，<br>减少实色背景，保持地理连续性</div>
     </div>
-    <div class="flex flex-wrap gap-1.5">
-      <button class="bg-primary text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm">已去过</button>
-      <button class="bg-white/30 text-on-surface px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider hover:bg-white/50 transition">想去</button>
-      <button class="bg-white/30 text-on-surface px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider hover:bg-white/50 transition">热门</button>
+    <div class="shape-card" style="text-align:center;padding:24px 16px">
+      <span class="material-symbols-outlined" style="font-size:32px;color:#7C3AED;margin-bottom:8px">layers</span>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">层级感</div>
+      <div style="font-size:12px;color:var(--color-on-surface-variant)">通过阴影、层叠和色彩饱和度<br>区分地图层 / 标记层 / 交互层</div>
+    </div>
+    <div class="shape-card" style="text-align:center;padding:24px 16px">
+      <span class="material-symbols-outlined" style="font-size:32px;color:#7C3AED;margin-bottom:8px">photo_library</span>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">情感连接</div>
+      <div style="font-size:12px;color:var(--color-on-surface-variant)">照片作为足迹核心载体，<br>模拟真实相册叠放的质感</div>
     </div>
   </div>
-  <!-- 统计面板 -->
-  <div class="bg-white/25 backdrop-blur-xl border border-white/30 rounded-2xl p-4 shadow-[0_8px_32px_rgba(0,0,0,0.06)]">
-    <div class="flex items-center justify-between mb-2.5">
-      <span class="text-[11px] font-bold text-on-surface uppercase tracking-wider">旅行统计</span>
-      <span class="text-[11px] font-bold text-primary">Level 8</span>
-    </div>
-    <div class="w-full h-1.5 bg-black/5 rounded-full overflow-hidden mb-3">
-      <div class="bg-gradient-to-r from-primary to-purple-400 h-full w-[72%] rounded-full"></div>
-    </div>
-    <div class="grid grid-cols-3 gap-2">
-      <div class="text-center">
-        <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider">国家</p>
-        <p class="text-[20px] font-bold text-on-surface leading-tight">18</p>
+
+  <!-- 2. 色彩体系 -->
+  <h2>2. 色彩体系</h2>
+
+  <div class="card">
+    <div class="card-title">Color Palette</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#7C3AED"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Primary</div>
+        <div style="font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">#7C3AED</div>
       </div>
-      <div class="text-center">
-        <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider">城市</p>
-        <p class="text-[20px] font-bold text-on-surface leading-tight">47</p>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:rgba(255,255,255,0.2);border:1.5px solid rgba(0,0,0,0.1)"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Glass</div>
+        <div style="font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">white/20</div>
       </div>
-      <div class="text-center">
-        <p class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider">照片</p>
-        <p class="text-[20px] font-bold text-on-surface leading-tight">1.2k</p>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#F59E0B"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Accent Gold</div>
+        <div style="font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">#F59E0B</div>
+      </div>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#10b981"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Success</div>
+        <div style="font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">#10B981</div>
+      </div>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#1e293b"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">On-Surface</div>
+        <div style="font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">#1E293B</div>
+      </div>
+      <div style="text-align:center">
+        <div class="color-swatch" style="background:#64748b"></div>
+        <div style="font-size:11px;font-weight:600;margin-top:6px">Variant</div>
+        <div style="font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">#64748B</div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Level 1: 右上角操作按钮 -->
-<div class="fixed top-5 right-6 z-40 flex items-center gap-2.5">
-  <button class="w-11 h-11 rounded-full bg-white/25 backdrop-blur-xl border border-white/30 flex items-center justify-center text-on-surface-variant hover:bg-white/40 transition-all shadow-lg">
-    <span class="material-symbols-outlined text-[20px]">notifications</span>
-  </button>
-  <button class="w-11 h-11 rounded-full bg-white/25 backdrop-blur-xl border border-white/30 flex items-center justify-center text-on-surface-variant hover:bg-white/40 transition-all shadow-lg">
-    <span class="material-symbols-outlined text-[20px]">settings</span>
-  </button>
-  <button class="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-white shadow-[0_6px_20px_rgba(124,58,237,0.4)] hover:shadow-[0_8px_28px_rgba(124,58,237,0.5)] hover:scale-105 transition-all">
-    <span class="material-symbols-outlined text-[20px]">add_a_photo</span>
-  </button>
-  <div class="w-11 h-11 rounded-full border-2 border-primary/50 overflow-hidden shadow-lg">
-    <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA37YhMw6MvSE-9qK1f6brEbKgFxXTQmCZQe_n4dRhI9r4xUWQPIZAr4ig-o4isYuz4xV-328acgcEYFrvlkDIz-l4HbvsuZaYFnnRhuh4qIwFKdSKQrTbKfcViWeojT462TyJpHUlSXmAb8xRYzi-X8V93eflfwZic2rpUv_vi-WsP1DfpB1AeMNRCbA8MLniY1I-wiTejmTh3_A2p53vQQlbDoxALXgLLcNqtgdVisnqpgIX0N51VekYNkSSR5NBR0evxyRa4fT8" alt="Avatar"/>
-  </div>
-</div>
-
-<!-- Level 1: 照片足迹标记 (Photo Pin Stack) -->
-<!-- 巴黎 -->
-<div class="absolute top-[28%] left-[32%] z-10 group cursor-pointer" style="animation: float 5s ease-in-out infinite;">
-  <div class="relative photo-stack w-[60px] h-[60px] rounded-[10px] overflow-hidden border-2 border-white shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:scale-110 group-hover:shadow-2xl">
-    <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=150&h=150&fit=crop" alt="Paris"/>
-    <div class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-md">12</div>
-  </div>
-  <div class="mt-1.5 text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-    <span class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-on-surface shadow-md">巴黎 Paris</span>
-  </div>
-</div>
-
-<!-- 东京 -->
-<div class="absolute top-[35%] left-[72%] z-10 group cursor-pointer" style="animation: float 4.5s ease-in-out infinite 0.5s;">
-  <div class="relative photo-stack w-[60px] h-[60px] rounded-[10px] overflow-hidden border-2 border-white shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:scale-110 group-hover:shadow-2xl">
-    <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=150&h=150&fit=crop" alt="Tokyo"/>
-    <div class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-md">23</div>
-  </div>
-  <div class="mt-1.5 text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-    <span class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-on-surface shadow-md">东京 Tokyo</span>
-  </div>
-</div>
-
-<!-- 纽约 -->
-<div class="absolute top-[32%] left-[18%] z-10 group cursor-pointer" style="animation: float 5.5s ease-in-out infinite 1s;">
-  <div class="relative photo-stack w-[60px] h-[60px] rounded-[10px] overflow-hidden border-2 border-white shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:scale-110 group-hover:shadow-2xl">
-    <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1543349689-9a4d426bee8e?w=150&h=150&fit=crop" alt="New York"/>
-    <div class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-md">31</div>
-  </div>
-  <div class="mt-1.5 text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-    <span class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-on-surface shadow-md">纽约 New York</span>
-  </div>
-</div>
-
-<!-- 威尼斯 -->
-<div class="absolute top-[38%] left-[38%] z-10 group cursor-pointer" style="animation: float 4.8s ease-in-out infinite 1.5s;">
-  <div class="relative photo-stack w-[54px] h-[54px] rounded-[10px] overflow-hidden border-2 border-white shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:scale-110 group-hover:shadow-2xl">
-    <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=150&h=150&fit=crop" alt="Venice"/>
-    <div class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-md">8</div>
-  </div>
-  <div class="mt-1.5 text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-    <span class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-on-surface shadow-md">威尼斯 Venice</span>
-  </div>
-</div>
-
-<!-- 悉尼 -->
-<div class="absolute top-[62%] left-[78%] z-10 group cursor-pointer" style="animation: float 5.2s ease-in-out infinite 2s;">
-  <div class="relative photo-stack w-[54px] h-[54px] rounded-[10px] overflow-hidden border-2 border-white shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:scale-110 group-hover:shadow-2xl">
-    <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?w=150&h=150&fit=crop" alt="Sydney"/>
-    <div class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-md">17</div>
-  </div>
-  <div class="mt-1.5 text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-    <span class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-on-surface shadow-md">悉尼 Sydney</span>
-  </div>
-</div>
-
-<!-- 开罗 -->
-<div class="absolute top-[48%] left-[42%] z-10 group cursor-pointer" style="animation: float 4.6s ease-in-out infinite 0.8s;">
-  <div class="relative photo-stack w-[50px] h-[50px] rounded-[10px] overflow-hidden border-2 border-white shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:scale-110 group-hover:shadow-2xl">
-    <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1539768942893-daf53e448371?w=150&h=150&fit=crop" alt="Cairo"/>
-    <div class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-md">5</div>
-  </div>
-  <div class="mt-1.5 text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-    <span class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-on-surface shadow-md">开罗 Cairo</span>
-  </div>
-</div>
-
-<!-- 伦敦 -->
-<div class="absolute top-[24%] left-[28%] z-10 group cursor-pointer" style="animation: float 5.8s ease-in-out infinite 1.2s;">
-  <div class="relative photo-stack w-[50px] h-[50px] rounded-[10px] overflow-hidden border-2 border-white shadow-xl transition-all duration-300 group-hover:-translate-y-2 group-hover:scale-110 group-hover:shadow-2xl">
-    <img class="w-full h-full object-cover" src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=150&h=150&fit=crop" alt="London"/>
-    <div class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-accent-gold text-white text-[10px] font-bold flex items-center justify-center border-2 border-white shadow-md">★</div>
-  </div>
-  <div class="mt-1.5 text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-    <span class="bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-on-surface shadow-md">伦敦 London <span class="text-accent-gold">★</span></span>
-  </div>
-</div>
-
-<!-- Level 2: 右侧地图控制工具 -->
-<div class="fixed right-6 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2">
-  <button class="w-10 h-10 bg-white/30 backdrop-blur-xl border border-white/40 rounded-xl flex items-center justify-center text-on-surface hover:bg-white/50 transition-all shadow-lg">
-    <span class="material-symbols-outlined text-[18px]">add</span>
-  </button>
-  <button class="w-10 h-10 bg-white/30 backdrop-blur-xl border border-white/40 rounded-xl flex items-center justify-center text-on-surface hover:bg-white/50 transition-all shadow-lg">
-    <span class="material-symbols-outlined text-[18px]">remove</span>
-  </button>
-  <button class="w-10 h-10 bg-white/30 backdrop-blur-xl border border-white/40 rounded-xl flex items-center justify-center text-on-surface hover:bg-white/50 transition-all shadow-lg mt-3">
-    <span class="material-symbols-outlined text-[18px]">my_location</span>
-  </button>
-  <button class="w-10 h-10 bg-white/30 backdrop-blur-xl border border-white/40 rounded-xl flex items-center justify-center text-on-surface hover:bg-white/50 transition-all shadow-lg" onclick="toggleMapMode()">
-    <span class="material-symbols-outlined text-[18px]" id="mapModeIcon">layers</span>
-  </button>
-</div>
-
-<!-- Level 3: 多功能操作底栏 (Floating Bottom Bar) -->
-<nav class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 px-4 py-2.5 bg-white/25 backdrop-blur-[24px] border border-white/35 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.1)]">
-  <!-- 环境模式切换 -->
-  <button class="w-10 h-10 rounded-xl flex items-center justify-center text-primary bg-primary/10 transition-all">
-    <span class="material-symbols-outlined text-[18px]">light_mode</span>
-  </button>
-  <button class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-white/30 transition-all">
-    <span class="material-symbols-outlined text-[18px]">dark_mode</span>
-  </button>
-  <button class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-white/30 transition-all">
-    <span class="material-symbols-outlined text-[18px]">satellite_alt</span>
-  </button>
-
-  <div class="w-px h-6 bg-black/10 mx-1.5"></div>
-
-  <!-- 个人头像/快速入口 -->
-  <div class="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-pink-500 flex items-center justify-center text-white text-[13px] font-bold shadow-[0_3px_10px_rgba(124,58,237,0.3)] cursor-pointer hover:scale-110 transition-transform">
-    L
-  </div>
-
-  <div class="w-px h-6 bg-black/10 mx-1.5"></div>
-
-  <!-- 区域快捷切换 -->
-  <button class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/35 text-[11px] font-semibold text-on-surface hover:bg-white/55 transition-all">
-    🇬🇧 UK
-  </button>
-  <button class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/35 text-[11px] font-semibold text-on-surface hover:bg-white/55 transition-all">
-    🇯🇵 JP
-  </button>
-  <button class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/35 text-[11px] font-semibold text-on-surface hover:bg-white/55 transition-all">
-    🇫🇷 FR
-  </button>
-
-  <div class="w-px h-6 bg-black/10 mx-1.5"></div>
-
-  <!-- 图层/定位 -->
-  <button class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-white/30 transition-all">
-    <span class="material-symbols-outlined text-[18px]">layers</span>
-  </button>
-  <button class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface-variant hover:bg-white/30 transition-all">
-    <span class="material-symbols-outlined text-[18px]">near_me</span>
-  </button>
-</nav>
-
-<!-- Map Mode Selector Overlay -->
-<div class="hidden fixed bottom-[88px] left-1/2 -translate-x-1/2 z-50 bg-white/50 backdrop-blur-2xl p-4 rounded-2xl border border-white/40 shadow-2xl" id="mapModeSelector">
-  <div class="flex gap-3">
-    <div class="text-center cursor-pointer group">
-      <div class="w-14 h-14 rounded-xl border-2 border-primary overflow-hidden mb-1 shadow-md">
-        <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDp3hvTueaKy-gyAHRkYH7zHT4MtTjs8DBFFSYcVaHvOuhVf1Gsbo4lIAe79UPWrRZtald01VsFsgpj8qXbVrTZabhW538bPmP3MCF9cFfwa-u5q3ECw6gDl-4pJq79CnnUGT-7q5YxF7TvWLIemUwqqJNP565fNuGkKbCn8ClbD0HqPPsZGcW749LPh14dPEUIWbmvTqVp6GREw7Fkzc7Upo-yQBmoSkmUhXdbyYDoo6q-TyIM10yb8fyG554ChFI_H1j5gw3FJP4" alt="Day"/>
+  <div class="card">
+    <div class="card-title">材质效果</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+      <div style="background:rgba(255,255,255,0.2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.35);border-radius:12px;padding:20px;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">Glassmorphism</div>
+        <code style="font-size:11px">backdrop-blur-xl</code>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">20-24px 模糊 + white/20</div>
       </div>
-      <span class="text-[9px] font-bold text-on-surface uppercase">日间</span>
-    </div>
-    <div class="text-center cursor-pointer group opacity-60 hover:opacity-100 transition-opacity">
-      <div class="w-14 h-14 rounded-xl border-2 border-transparent overflow-hidden mb-1 group-hover:border-primary/40 shadow-md">
-        <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHO0A_p2OhhrNiuxLFKSlO3xbbM2ABIHLyylIXq0aDzFphEbdohGTTCmimYBEQMEA5JmK7bk67L4tPBHRNFoVKhkvONG4bOX5rn9GZ5dnLiqvNpcE7XnR56mvWzNS9SteCw0LC3g0la4i6xd9qdUEjaX3AF8OqBC_f0_D2E1EOGyjyQu1qhrmXgr_bfEmnfthoBQm3myavrDkrVO2dwJazYOhbLOnNAs5rFXHdfc95ZqMH7ZRSi_OkQ8_8kwJc4sPbpqJt_XkzSF8" alt="Night"/>
+      <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(0,0,0,0.06);border-radius:12px;padding:20px;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">浮层阴影</div>
+        <code style="font-size:11px">shadow-xl</code>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">0 8px 32px rgba(0,0,0,0.08)</div>
       </div>
-      <span class="text-[9px] font-bold text-on-surface-variant uppercase">夜间</span>
-    </div>
-    <div class="text-center cursor-pointer group opacity-60 hover:opacity-100 transition-opacity">
-      <div class="w-14 h-14 rounded-xl border-2 border-transparent overflow-hidden mb-1 group-hover:border-primary/40 shadow-md">
-        <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlzNWsLzh4gbuHFUsxo42T8uZ8PGlxJr4oDR5h7-5YqV_oaACChUYQqKVHqZp2QzwGaCOBttIdBpxC_25_puL_y7cTEIAYvT-ghwqp-JPCzhvfVYqy3l92xfgUs7SN269hhwXdg3oYz3l-gq7APtqoU10JxxP6F9w_63zIDrolwbyXWiM0LCuRfgl6QZnuxBNu5AXno0AoZmSFjWOVqkly87yZbW1OVAL0H9qactVpMeYs5oT0l6sHB9PRkUMSYtBWPiN_x2P9aDQ" alt="Satellite"/>
+      <div style="border-radius:12px;padding:20px;text-align:center;box-shadow:0 6px 20px rgba(124,58,237,0.3)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">品牌发光</div>
+        <code style="font-size:11px">shadow-brand</code>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">0 6px 20px purple/40</div>
       </div>
-      <span class="text-[9px] font-bold text-on-surface-variant uppercase">卫星</span>
     </div>
   </div>
-</div>
 
-<script>
-function toggleMapMode() {
-  const selector = document.getElementById('mapModeSelector');
-  selector.classList.toggle('hidden');
+  <!-- 3. 核心界面 -->
+  <h2>3. 核心界面</h2>
+
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="map-shell">
+      <!-- 路径叠加 -->
+      <svg class="route-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" preserveAspectRatio="none">
+        <path d="M160,200 Q400,80 700,210" fill="none" stroke="rgba(124,58,237,0.25)" stroke-dasharray="8 6" stroke-width="1.5"/>
+        <path d="M700,210 Q820,160 920,300" fill="none" stroke="rgba(124,58,237,0.25)" stroke-dasharray="8 6" stroke-width="1.5"/>
+        <path d="M160,200 Q300,360 540,380" fill="none" stroke="rgba(124,58,237,0.25)" stroke-dasharray="8 6" stroke-width="1.5"/>
+        <path d="M540,380 Q750,320 920,300" fill="none" stroke="rgba(124,58,237,0.25)" stroke-dasharray="8 6" stroke-width="1.5"/>
+      </svg>
+
+      <!-- 悬浮状态栏 -->
+      <div class="float-topbar">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#7C3AED,#a78bfa);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(124,58,237,0.3)">
+            <span class="material-symbols-outlined" style="font-size:14px;color:#fff">explore</span>
+          </div>
+          <span style="font-size:13px;font-weight:700;color:var(--color-on-surface);letter-spacing:-0.01em">Wanderlust</span>
+        </div>
+        <div style="width:1px;height:16px;background:rgba(0,0,0,0.1)"></div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="pulse-dot" style="width:6px;height:6px;border-radius:50%;background:#10b981"></div>
+          <span style="font-size:11px;font-weight:500;color:var(--color-on-surface-variant)">2,847 在线</span>
+        </div>
+        <div style="width:1px;height:16px;background:rgba(0,0,0,0.1)"></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:3px 10px;border-radius:9999px;background:rgba(124,58,237,0.1)">
+          <span class="material-symbols-outlined" style="font-size:14px;color:#7C3AED">notifications</span>
+          <span style="font-size:11px;font-weight:600;color:#7C3AED">5 新动态</span>
+        </div>
+      </div>
+
+      <!-- 左侧搜索 + 统计 -->
+      <div class="float-search">
+        <div class="glass-panel" style="margin-bottom:10px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <div style="width:28px;height:28px;border-radius:8px;background:rgba(124,58,237,0.12);display:flex;align-items:center;justify-content:center">
+              <span class="material-symbols-outlined" style="font-size:16px;color:#7C3AED">search</span>
+            </div>
+            <span style="font-size:12px;font-weight:500;color:var(--color-on-surface-variant)">搜索城市、国家或地区…</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            <span style="background:#7C3AED;color:#fff;padding:3px 10px;border-radius:9999px;font-size:10px;font-weight:700;letter-spacing:0.04em">已去过</span>
+            <span style="background:rgba(255,255,255,0.3);padding:3px 10px;border-radius:9999px;font-size:10px;font-weight:700;letter-spacing:0.04em;color:var(--color-on-surface)">想去</span>
+            <span style="background:rgba(255,255,255,0.3);padding:3px 10px;border-radius:9999px;font-size:10px;font-weight:700;letter-spacing:0.04em;color:var(--color-on-surface)">热门</span>
+          </div>
+        </div>
+        <div class="glass-panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-on-surface)">旅行统计</span>
+            <span style="font-size:10px;font-weight:700;color:#7C3AED">Level 8</span>
+          </div>
+          <div style="width:100%;height:6px;background:rgba(0,0,0,0.05);border-radius:9999px;overflow:hidden;margin-bottom:10px">
+            <div style="height:100%;width:72%;border-radius:9999px;background:linear-gradient(90deg,#7C3AED,#a78bfa)"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center">
+            <div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-on-surface-variant)">国家</div>
+              <div style="font-size:20px;font-weight:700;line-height:1.2">18</div>
+            </div>
+            <div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-on-surface-variant)">城市</div>
+              <div style="font-size:20px;font-weight:700;line-height:1.2">47</div>
+            </div>
+            <div>
+              <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--color-on-surface-variant)">照片</div>
+              <div style="font-size:20px;font-weight:700;line-height:1.2">1.2k</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧控件 -->
+      <div class="float-controls">
+        <div class="ctrl-circle" style="border-radius:10px 10px 0 0"><span class="material-symbols-outlined">add</span></div>
+        <div class="ctrl-circle" style="border-radius:0 0 10px 10px;border-top:1px solid rgba(255,255,255,0.2)"><span class="material-symbols-outlined">remove</span></div>
+        <div class="ctrl-circle" style="border-radius:10px;margin-top:8px"><span class="material-symbols-outlined">my_location</span></div>
+        <div class="ctrl-circle" style="border-radius:10px;margin-top:2px"><span class="material-symbols-outlined">layers</span></div>
+      </div>
+
+      <!-- 照片足迹标记 -->
+      <div class="pin-marker" style="top:22%;left:25%;animation:float 5s ease-in-out infinite">
+        <div class="photo-stack pin-photo" style="width:48px;height:48px">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#a78bfa,#c4b5fd);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:20px">🗼</span>
+          </div>
+          <div class="pin-badge">31</div>
+        </div>
+        <div class="pin-label"><span class="pin-label-text">纽约 New York</span></div>
+      </div>
+
+      <div class="pin-marker" style="top:20%;left:36%;animation:float 5.8s ease-in-out infinite 1.2s">
+        <div class="photo-stack pin-photo" style="width:42px;height:42px">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#fbbf24,#fcd34d);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:18px">🎡</span>
+          </div>
+          <div class="pin-badge pin-badge--gold">★</div>
+        </div>
+        <div class="pin-label"><span class="pin-label-text">伦敦 London ★</span></div>
+      </div>
+
+      <div class="pin-marker" style="top:30%;left:40%;animation:float 4.8s ease-in-out infinite 0.3s">
+        <div class="photo-stack pin-photo" style="width:48px;height:48px">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#60a5fa,#93c5fd);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:20px">🗼</span>
+          </div>
+          <div class="pin-badge">12</div>
+        </div>
+        <div class="pin-label"><span class="pin-label-text">巴黎 Paris</span></div>
+      </div>
+
+      <div class="pin-marker" style="top:38%;left:45%;animation:float 4.6s ease-in-out infinite 0.8s">
+        <div class="photo-stack pin-photo" style="width:40px;height:40px">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#f87171,#fca5a5);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:16px">🏛</span>
+          </div>
+          <div class="pin-badge">5</div>
+        </div>
+        <div class="pin-label"><span class="pin-label-text">开罗 Cairo</span></div>
+      </div>
+
+      <div class="pin-marker" style="top:32%;left:47%;animation:float 5.2s ease-in-out infinite 1.5s">
+        <div class="photo-stack pin-photo" style="width:40px;height:40px">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#34d399,#6ee7b7);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:16px">🚢</span>
+          </div>
+          <div class="pin-badge">8</div>
+        </div>
+        <div class="pin-label"><span class="pin-label-text">威尼斯 Venice</span></div>
+      </div>
+
+      <div class="pin-marker" style="top:30%;left:74%;animation:float 4.5s ease-in-out infinite 0.5s">
+        <div class="photo-stack pin-photo" style="width:48px;height:48px">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#fb923c,#fdba74);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:20px">⛩</span>
+          </div>
+          <div class="pin-badge">23</div>
+        </div>
+        <div class="pin-label"><span class="pin-label-text">东京 Tokyo</span></div>
+      </div>
+
+      <div class="pin-marker" style="top:58%;left:80%;animation:float 5.2s ease-in-out infinite 2s">
+        <div class="photo-stack pin-photo" style="width:42px;height:42px">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#38bdf8,#7dd3fc);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:18px">🦘</span>
+          </div>
+          <div class="pin-badge">17</div>
+        </div>
+        <div class="pin-label"><span class="pin-label-text">悉尼 Sydney</span></div>
+      </div>
+
+      <!-- 底部浮动栏 -->
+      <div class="float-bottom">
+        <span class="bottom-chip bottom-chip--active"><span class="material-symbols-outlined" style="font-size:16px">light_mode</span></span>
+        <span class="bottom-chip bottom-chip--default"><span class="material-symbols-outlined" style="font-size:16px">dark_mode</span></span>
+        <span class="bottom-chip bottom-chip--default"><span class="material-symbols-outlined" style="font-size:16px">satellite_alt</span></span>
+        <div class="bottom-divider"></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#ec4899);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;box-shadow:0 3px 10px rgba(124,58,237,0.3);cursor:pointer">L</div>
+        <div class="bottom-divider"></div>
+        <span class="bottom-chip bottom-chip--default">🇬🇧 UK</span>
+        <span class="bottom-chip bottom-chip--default">🇯🇵 JP</span>
+        <span class="bottom-chip bottom-chip--default">🇫🇷 FR</span>
+        <div class="bottom-divider"></div>
+        <span class="bottom-chip bottom-chip--default"><span class="material-symbols-outlined" style="font-size:16px">layers</span></span>
+        <span class="bottom-chip bottom-chip--default"><span class="material-symbols-outlined" style="font-size:16px">near_me</span></span>
+      </div>
+
+      <!-- 右上角操作按钮 -->
+      <div style="position:absolute;top:16px;right:16px;z-index:20;display:flex;align-items:center;gap:8px">
+        <div class="ctrl-circle" style="border-radius:50%"><span class="material-symbols-outlined">notifications</span></div>
+        <div class="ctrl-circle" style="border-radius:50%"><span class="material-symbols-outlined">settings</span></div>
+        <div style="width:36px;height:36px;border-radius:14px;background:linear-gradient(135deg,#7C3AED,#8b5cf6);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(124,58,237,0.4);cursor:pointer">
+          <span class="material-symbols-outlined" style="font-size:18px;color:#fff">add_a_photo</span>
+        </div>
+        <div style="width:36px;height:36px;border-radius:50%;border:2px solid rgba(124,58,237,0.5);overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#fbbf24,#f97316);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">L</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. 组件规范 -->
+  <h2>4. 组件规范</h2>
+
+  <h3>A. 照片足迹标记 (Photo Pin Stack)</h3>
+  <div class="card">
+    <div class="card-title">Photo Pin Stack</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:20px;align-items:center;justify-items:center;padding:20px 0">
+      <!-- 小尺寸 -->
+      <div style="text-align:center">
+        <div class="photo-stack" style="width:42px;height:42px;border-radius:8px;overflow:hidden;border:2px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,0.15);margin:0 auto;position:relative">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#60a5fa,#93c5fd);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:18px">🗼</span>
+          </div>
+          <div class="pin-badge">8</div>
+        </div>
+        <div style="font-size:11px;font-weight:600;margin-top:12px">Small</div>
+        <div style="font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">42×42</div>
+      </div>
+      <!-- 中尺寸 -->
+      <div style="text-align:center">
+        <div class="photo-stack" style="width:54px;height:54px;border-radius:10px;overflow:hidden;border:2px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,0.15);margin:0 auto;position:relative">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#a78bfa,#c4b5fd);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:22px">⛩</span>
+          </div>
+          <div class="pin-badge">23</div>
+        </div>
+        <div style="font-size:11px;font-weight:600;margin-top:12px">Medium</div>
+        <div style="font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">54×54</div>
+      </div>
+      <!-- 大尺寸 + 金标 -->
+      <div style="text-align:center">
+        <div class="photo-stack" style="width:60px;height:60px;border-radius:10px;overflow:hidden;border:2px solid #fff;box-shadow:0 4px 16px rgba(0,0,0,0.15);margin:0 auto;position:relative">
+          <div style="width:100%;height:100%;background:linear-gradient(135deg,#fbbf24,#fcd34d);display:flex;align-items:center;justify-content:center">
+            <span style="font-size:24px">🎡</span>
+          </div>
+          <div class="pin-badge pin-badge--gold">★</div>
+        </div>
+        <div style="font-size:11px;font-weight:600;margin-top:12px">Large + Gold</div>
+        <div style="font-size:10px;color:var(--color-on-surface-variant);font-family:'JetBrains Mono',monospace">60×60</div>
+      </div>
+    </div>
+    <table class="spec-table" style="margin-top:16px">
+      <tr><th>属性</th><th>规格</th><th>Token</th></tr>
+      <tr><td>照片圆角</td><td>8-10px</td><td><code>radius-lg</code></td></tr>
+      <tr><td>边框</td><td>2px solid #FFFFFF</td><td><code>border-2 border-white</code></td></tr>
+      <tr><td>叠放伪元素旋转</td><td>-5° / +3°</td><td><code>rotate(-5deg) / rotate(3deg)</code></td></tr>
+      <tr><td>角标尺寸</td><td>min 18px h-18px</td><td><code>min-w-[18px] h-[18px]</code></td></tr>
+      <tr><td>角标背景（普通）</td><td>Primary Purple</td><td><code>bg-[#7C3AED]</code></td></tr>
+      <tr><td>角标背景（成就）</td><td>Accent Gold</td><td><code>bg-[#F59E0B]</code></td></tr>
+      <tr><td>悬浮偏移</td><td>Y -6px + scale 1.08</td><td><code>hover:-translate-y-6 hover:scale-108</code></td></tr>
+      <tr><td>浮动动画</td><td>4.5-5.8s ease-in-out infinite</td><td><code>animation: float 5s ease-in-out infinite</code></td></tr>
+    </table>
+  </div>
+
+  <h3>B. 悬浮状态栏 (Floating Status Bar)</h3>
+  <div class="card">
+    <div class="card-title">Floating Status Bar</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 18px;background:rgba(255,255,255,0.2);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.35);border-radius:9999px;box-shadow:0 8px 32px rgba(0,0,0,0.08);max-width:fit-content;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#7C3AED,#a78bfa);display:flex;align-items:center;justify-content:center">
+          <span class="material-symbols-outlined" style="font-size:14px;color:#fff">explore</span>
+        </div>
+        <span style="font-size:13px;font-weight:700;letter-spacing:-0.01em">Wanderlust</span>
+      </div>
+      <div style="width:1px;height:16px;background:rgba(0,0,0,0.1)"></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="pulse-dot" style="width:6px;height:6px;border-radius:50%;background:#10b981"></div>
+        <span style="font-size:11px;font-weight:500;color:var(--color-on-surface-variant)">2,847 在线</span>
+      </div>
+      <div style="width:1px;height:16px;background:rgba(0,0,0,0.1)"></div>
+      <div style="display:flex;align-items:center;gap:6px;padding:3px 10px;border-radius:9999px;background:rgba(124,58,237,0.1)">
+        <span class="material-symbols-outlined" style="font-size:14px;color:#7C3AED">notifications</span>
+        <span style="font-size:11px;font-weight:600;color:#7C3AED">5 新动态</span>
+      </div>
+    </div>
+    <table class="spec-table">
+      <tr><th>属性</th><th>规格</th><th>Token</th></tr>
+      <tr><td>背景</td><td>white/20 + blur(24px)</td><td><code>bg-white/20 backdrop-blur-2xl</code></td></tr>
+      <tr><td>边框</td><td>1px solid white/30</td><td><code>border border-white/30</code></td></tr>
+      <tr><td>圆角</td><td>Full (Pill)</td><td><code>rounded-full</code></td></tr>
+      <tr><td>阴影</td><td>0 8px 32px rgba(0,0,0,0.08)</td><td><code>shadow-xl</code></td></tr>
+      <tr><td>品牌标识</td><td>28×28 渐变紫圆角矩形</td><td><code>bg-gradient-to-br from-primary to-purple-400</code></td></tr>
+      <tr><td>通知 Chip</td><td>primary/10 背景 + primary 文字</td><td><code>bg-primary/10 text-primary</code></td></tr>
+    </table>
+  </div>
+
+  <h3>C. 多功能底栏 (Floating Bottom Bar)</h3>
+  <div class="card">
+    <div class="card-title">Floating Bottom Bar</div>
+    <div style="display:flex;align-items:center;gap:6px;padding:10px 16px;background:rgba(255,255,255,0.22);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.38);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.1);max-width:fit-content;margin-bottom:16px">
+      <span class="bottom-chip bottom-chip--active" style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center"><span class="material-symbols-outlined" style="font-size:16px">light_mode</span></span>
+      <span class="bottom-chip bottom-chip--default" style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center"><span class="material-symbols-outlined" style="font-size:16px">dark_mode</span></span>
+      <span class="bottom-chip bottom-chip--default" style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center"><span class="material-symbols-outlined" style="font-size:16px">satellite_alt</span></span>
+      <div class="bottom-divider"></div>
+      <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#ec4899);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;box-shadow:0 3px 10px rgba(124,58,237,0.3)">L</div>
+      <div class="bottom-divider"></div>
+      <span class="bottom-chip bottom-chip--default" style="font-size:11px">🇬🇧 UK</span>
+      <span class="bottom-chip bottom-chip--default" style="font-size:11px">🇯🇵 JP</span>
+      <span class="bottom-chip bottom-chip--default" style="font-size:11px">🇫🇷 FR</span>
+      <div class="bottom-divider"></div>
+      <span class="bottom-chip bottom-chip--default" style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center"><span class="material-symbols-outlined" style="font-size:16px">layers</span></span>
+      <span class="bottom-chip bottom-chip--default" style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center"><span class="material-symbols-outlined" style="font-size:16px">near_me</span></span>
+    </div>
+    <table class="spec-table">
+      <tr><th>区域</th><th>内容</th><th>规格</th></tr>
+      <tr><td>环境模式</td><td>日/夜/卫星切换</td><td>36×36 icon button, active: <code>bg-primary/10 text-primary</code></td></tr>
+      <tr><td>个人头像</td><td>渐变圆形快速入口</td><td>32×32 avatar, <code>bg-gradient-to-br from-primary to-pink-500</code></td></tr>
+      <tr><td>区域快捷</td><td>国旗 + 国家代码</td><td><code>bg-white/35 text-sm font-semibold</code></td></tr>
+      <tr><td>工具按钮</td><td>图层 / 定位</td><td>36×36 icon button, hover: <code>bg-white/50</code></td></tr>
+      <tr><td>分隔线</td><td>区域间隔</td><td>1px × 24px <code>bg-black/10</code></td></tr>
+    </table>
+  </div>
+
+  <h3>D. 毛玻璃面板 (Glass Panel)</h3>
+  <div class="card">
+    <div class="card-title">Glass Panel — 搜索 & 统计</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div style="background:rgba(255,255,255,0.22);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.35);border-radius:16px;padding:14px;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px">Search Panel</div>
+        <code style="font-size:11px">bg-white/22 backdrop-blur-xl rounded-2xl</code>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">搜索 + 标签筛选</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.22);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.35);border-radius:16px;padding:14px;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px">Stats Panel</div>
+        <code style="font-size:11px">bg-white/22 backdrop-blur-xl rounded-2xl</code>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">等级 + 国/城/照片</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.22);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.35);border-radius:16px;padding:14px;text-align:center">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px">Control Group</div>
+        <code style="font-size:11px">bg-white/30 backdrop-blur-xl rounded-xl</code>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">缩放 / 定位 / 图层</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. 交互 -->
+  <h2>5. 交互规格</h2>
+
+  <div class="card">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px">
+      <div class="shape-card" style="text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#7C3AED;font-family:'JetBrains Mono',monospace">Clustering</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px">缩放聚合</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">Zoom 级别变化时<br>相邻标记自动聚合为<br>大标记并更新数字角标</div>
+      </div>
+      <div class="shape-card" style="text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#7C3AED;font-family:'JetBrains Mono',monospace">300ms</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px">过渡动画</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">视图切换使用 <code>ease-in-out</code><br>弹出详情时地图进一步虚化</div>
+      </div>
+      <div class="shape-card" style="text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#7C3AED;font-family:'JetBrains Mono',monospace">Float</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px">标记浮动</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">4.5-5.8s 周期<br>Y轴 ±6px 上下浮动<br>各标记错开启动延迟</div>
+      </div>
+      <div class="shape-card" style="text-align:center">
+        <div style="font-size:22px;font-weight:700;color:#7C3AED;font-family:'JetBrains Mono',monospace">Hover</div>
+        <div style="font-size:13px;font-weight:600;margin-top:4px">悬浮展开</div>
+        <div style="font-size:11px;color:var(--color-on-surface-variant);margin-top:4px">Y -6px + scale(1.08)<br>显示城市名称标签<br>cubic-bezier 弹性缓动</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 响应式 -->
+  <h2>6. 适配建议</h2>
+
+  <div class="card">
+    <table class="spec-table">
+      <tr><th>断点</th><th>布局变化</th><th>标记尺寸</th></tr>
+      <tr><td><code>≥1024px</code> 桌面</td><td>搜索面板 + 统计面板左上，控件右侧，底栏居中悬浮</td><td>48-60px</td></tr>
+      <tr><td><code>768-1023px</code> 平板</td><td>搜索面板收窄至 200px，统计面板折叠为单行</td><td>42-48px</td></tr>
+      <tr><td><code>&lt;768px</code> 手机</td><td>顶栏合并为抽屉，统计隐藏到 Sheet，标记缩至 36px</td><td>36-42px</td></tr>
+    </table>
+  </div>
+
+  <!-- 7. CSS 速查 -->
+  <h2>7. CSS 速查</h2>
+
+  <div class="card">
+    <div class="card-title">核心 Token</div>
+    <pre style="background:#f1f5f9;border-radius:8px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;overflow-x:auto;margin:0;color:var(--color-on-surface)"><span style="color:#7C3AED">.glass-panel</span> {
+  <span style="color:#059669">background</span>: <span style="color:#D97706">rgba(255, 255, 255, 0.22)</span>;
+  <span style="color:#059669">backdrop-filter</span>: <span style="color:#D97706">blur(20px)</span>;
+  <span style="color:#059669">border</span>: <span style="color:#D97706">1px solid rgba(255, 255, 255, 0.35)</span>;
+  <span style="color:#059669">border-radius</span>: <span style="color:#D97706">16px</span>;
+  <span style="color:#059669">box-shadow</span>: <span style="color:#D97706">0 8px 32px rgba(0, 0, 0, 0.06)</span>;
 }
-document.addEventListener('click', (e) => {
-  const selector = document.getElementById('mapModeSelector');
-  const icon = document.getElementById('mapModeIcon');
-  if (!selector.contains(e.target) && !icon.parentElement.contains(e.target)) {
-    selector.classList.add('hidden');
-  }
-});
-</script>
-<button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
-<script>
-(function() {
-  var toggle = document.getElementById('themeToggle');
-  var html = document.documentElement;
-  var stored = localStorage.getItem('design-spec-theme');
-  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  var initial = stored || (prefersDark ? 'dark' : 'light');
-  html.setAttribute('data-theme', initial);
-  toggle.textContent = initial === 'dark' ? '☀️' : '🌙';
-  toggle.addEventListener('click', function() {
-    var current = html.getAttribute('data-theme');
-    var next = current === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', next);
-    toggle.textContent = next === 'dark' ? '☀️' : '🌙';
-    localStorage.setItem('design-spec-theme', next);
-  });
-})();
-</script>
+
+<span style="color:#7C3AED">.photo-pin</span> {
+  <span style="color:#059669">border</span>: <span style="color:#D97706">2px solid #FFFFFF</span>;
+  <span style="color:#059669">border-radius</span>: <span style="color:#D97706">8-10px</span>;
+  <span style="color:#059669">box-shadow</span>: <span style="color:#D97706">0 4px 16px rgba(0, 0, 0, 0.15)</span>;
+  <span style="color:#059669">animation</span>: <span style="color:#D97706">float 5s ease-in-out infinite</span>;
+}
+
+<span style="color:#7C3AED">.pin-badge</span> {
+  <span style="color:#059669">background</span>: <span style="color:#D97706">#7C3AED</span>;  /* gold: #F59E0B */
+  <span style="color:#059669">color</span>: <span style="color:#D97706">#FFFFFF</span>;
+  <span style="color:#059669">font-size</span>: <span style="color:#D97706">10px</span>;
+  <span style="color:#059669">border</span>: <span style="color:#D97706">2px solid #FFFFFF</span>;
+}
+
+<span style="color:#7C3AED">.float-bottom-bar</span> {
+  <span style="color:#059669">background</span>: <span style="color:#D97706">rgba(255, 255, 255, 0.22)</span>;
+  <span style="color:#059669">backdrop-filter</span>: <span style="color:#D97706">blur(24px)</span>;
+  <span style="color:#059669">border</span>: <span style="color:#D97706">1px solid rgba(255, 255, 255, 0.38)</span>;
+  <span style="color:#059669">border-radius</span>: <span style="color:#D97706">20px</span>;
+}</pre>
+  </div>
+
+</div>
+
+
 </body>
 </html>

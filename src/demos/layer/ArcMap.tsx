@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Aimap, LineLayer, ZoomControl } from '../../index';
+import { AiMap, LineLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 
@@ -33,7 +33,7 @@ export default function ArcMap() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [-74.0697, 40.7204],
@@ -71,7 +71,7 @@ export default function ArcMap() {
           ]}
         />
         <ZoomControl position="bottomright" />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

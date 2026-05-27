@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Aimap, LineLayer, ZoomControl } from '../../index';
+import { AiMap, LineLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 
@@ -33,7 +33,7 @@ export default function LineAnimate() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [107.778, 35.443],
@@ -64,7 +64,7 @@ export default function LineAnimate() {
           items={Object.entries(tooltipInfo.feature).slice(0, 3).map(([key, val]) => ({ label: key, value: String(val ?? '') }))}
         />
         <ZoomControl position="bottomright" />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

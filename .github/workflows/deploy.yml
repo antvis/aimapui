@@ -9,25 +9,24 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v4
+
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: website/package-lock.json
-      
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Install dependencies
-        working-directory: ./site
-        run: npm ci
-      
-      - name: Build
-        working-directory: ./site
-        run: npm run build
-        env:
-          NEXT_PUBLIC_AMAP_KEY: ${{ secrets.AMAP_KEY }}
-      
+        run: pnpm install
+
+      - name: Build site
+        run: pnpm site:build
+
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
@@ -35,4 +34,4 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
-          working-directory: ./website
+          working-directory: ./dist-site

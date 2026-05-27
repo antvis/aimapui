@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Aimap, LineLayer, ZoomControl } from '../../index';
+import { AiMap, LineLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 
@@ -33,7 +33,7 @@ export default function PathMap() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [103.837, 1.360],
@@ -64,7 +64,7 @@ export default function PathMap() {
           items={[{ label: '等级', value: tooltipInfo.level }]}
         />
         <ZoomControl position="bottomright" />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

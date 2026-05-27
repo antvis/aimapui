@@ -1,102 +1,74 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Raster Layer — CPS Design Spec</title>
   <style>
     :root {
+      --color-primary: #004ac6;
+      --color-primary-light: rgba(0, 74, 198, 0.4);
+      --color-warning: #f59e0b;
+      --color-error: #ef4444;
+      --color-success: #10b981;
+      --color-surface: #ffffff;
+      --color-on-surface: #121c2a;
+      --color-on-surface-variant: #434655;
+      --color-outline-variant: #c3c6d7;
+      --color-surface-container: #f5f5f5;
+      --color-surface-container-low: #fafafa;
+      --color-surface-container-high: #f0f0f0;
+      --color-surface-container-highest: #e8e8e8;
       --font-display: 'Inter', system-ui, -apple-system, sans-serif;
       --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-    }
-    [data-theme="dark"] {
-      --bg-primary: #0f172a;
-      --bg-surface: #1e293b;
-      --bg-surface-hover: #334155;
-      --bg-card: rgba(30,41,59,0.85);
-      --border-color: rgba(148,163,184,0.12);
-      --text-primary: #f1f5f9;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --accent: #06b6d4;
-      --accent-glow: rgba(6,182,212,0.15);
-      --success: #10b981;
-      --warning: #f59e0b;
-      --error: #ef4444;
-    }
-    [data-theme="light"] {
-      --bg-primary: #f8fafc;
-      --bg-surface: #ffffff;
-      --bg-surface-hover: #f1f5f9;
-      --bg-card: rgba(255,255,255,0.9);
-      --border-color: rgba(0,0,0,0.08);
-      --text-primary: #0f172a;
-      --text-secondary: #475569;
-      --text-muted: #94a3b8;
-      --accent: #0891b2;
-      --accent-glow: rgba(8,145,178,0.1);
-      --success: #059669;
-      --warning: #d97706;
-      --error: #dc2626;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: var(--font-display);
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      background: var(--color-surface);
+      color: var(--color-on-surface);
       line-height: 1.6;
       min-height: 100vh;
-      transition: background 0.3s, color 0.3s;
+      
     }
     .container { max-width: 960px; margin: 0 auto; padding: 48px 24px 80px; }
-    .theme-toggle {
-      position: fixed; top: 16px; right: 16px; z-index: 9999;
-      width: 40px; height: 40px; border-radius: 50%;
-      border: 1px solid var(--border-color);
-      background: var(--bg-surface);
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      font-size: 18px; transition: all 0.2s;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    }
-    .theme-toggle:hover { background: var(--bg-surface-hover); transform: scale(1.05); }
-
-    /* Header */
+/* Header */
     .header { margin-bottom: 48px; }
     .header-badge {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 4px 12px; border-radius: 20px; font-size: 11px;
       font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--accent); background: var(--accent-glow);
+      color: var(--color-primary); background: rgba(0, 74, 198, 0.08);
       border: 1px solid rgba(6,182,212,0.2); margin-bottom: 16px;
     }
     .header h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 12px; }
-    .header p { font-size: 15px; color: var(--text-secondary); max-width: 600px; }
+    .header p { font-size: 15px; color: var(--color-on-surface-variant); max-width: 600px; }
 
     /* Sections */
     .section { margin-bottom: 48px; }
     .section-title {
       font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-      color: var(--accent); margin-bottom: 20px;
+      color: var(--color-primary); margin-bottom: 20px;
       display: flex; align-items: center; gap: 8px;
     }
     .section-title::after {
-      content: ''; flex: 1; height: 1px; background: var(--border-color);
+      content: ''; flex: 1; height: 1px; background: var(--color-outline-variant);
     }
 
     /* Cards */
     .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
+      background: #fff;
+      border: 1px solid var(--color-outline-variant);
       border-radius: 14px; padding: 20px;
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       transition: all 0.2s;
     }
-    .card:hover { border-color: var(--accent); box-shadow: 0 4px 24px var(--accent-glow); }
-    .card-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; }
+    .card:hover { border-color: var(--color-primary); box-shadow: 0 4px 24px rgba(0, 74, 198, 0.08); }
+    .card-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 8px; }
     .card-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-    .card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
-    .card-code { font-family: var(--font-mono); font-size: 11px; color: var(--accent); background: var(--accent-glow); padding: 2px 6px; border-radius: 4px; }
+    .card-desc { font-size: 13px; color: var(--color-on-surface-variant); line-height: 1.5; }
+    .card-code { font-family: var(--font-mono); font-size: 11px; color: var(--color-primary); background: rgba(0, 74, 198, 0.08); padding: 2px 6px; border-radius: 4px; }
 
     /* Raster Preview */
     .raster-preview {
@@ -126,8 +98,8 @@
     /* Color Ramp Strips */
     .color-ramp { display: flex; flex-direction: column; gap: 12px; margin: 16px 0; }
     .ramp-row { display: flex; align-items: center; gap: 12px; }
-    .ramp-label { font-size: 11px; font-weight: 600; color: var(--text-muted); min-width: 60px; text-transform: uppercase; letter-spacing: 0.04em; }
-    .ramp-strip { flex: 1; height: 24px; border-radius: 6px; overflow: hidden; display: flex; box-shadow: 0 0 0 1px var(--border-color); }
+    .ramp-label { font-size: 11px; font-weight: 600; color: #94a3b8; min-width: 60px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .ramp-strip { flex: 1; height: 24px; border-radius: 6px; overflow: hidden; display: flex; box-shadow: 0 0 0 1px var(--color-outline-variant); }
     .ramp-strip div { flex: 1; }
 
     /* Spec Table */
@@ -135,45 +107,70 @@
     .spec-table th {
       text-align: left; padding: 10px 12px;
       font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
-      color: var(--text-muted); border-bottom: 1px solid var(--border-color);
+      color: #94a3b8; border-bottom: 1px solid var(--color-outline-variant);
     }
     .spec-table td {
-      padding: 10px 12px; border-bottom: 1px solid var(--border-color);
-      color: var(--text-secondary);
+      padding: 10px 12px; border-bottom: 1px solid var(--color-outline-variant);
+      color: var(--color-on-surface-variant);
     }
     .spec-table tr:last-child td { border-bottom: none; }
-    .spec-table code { font-family: var(--font-mono); font-size: 11px; color: var(--accent); }
+    .spec-table code { font-family: var(--font-mono); font-size: 11px; color: var(--color-primary); }
 
     /* Pixel Inspector Demo */
     .pixel-inspector {
-      background: var(--bg-surface); border: 1px solid var(--border-color);
+      background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant);
       border-radius: 12px; padding: 16px; font-family: var(--font-mono);
-      font-size: 12px; color: var(--text-secondary);
+      font-size: 12px; color: var(--color-on-surface-variant);
     }
-    .pixel-inspector .coords { color: var(--accent); font-weight: 600; }
+    .pixel-inspector .coords { color: var(--color-primary); font-weight: 600; }
     .pixel-inspector .band-values { margin-top: 8px; display: flex; gap: 16px; }
     .pixel-inspector .band { display: flex; flex-direction: column; gap: 2px; }
-    .pixel-inspector .band-name { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
-    .pixel-inspector .band-val { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+    .pixel-inspector .band-name { font-size: 10px; color: #94a3b8; text-transform: uppercase; }
+    .pixel-inspector .band-val { font-size: 14px; font-weight: 700; color: var(--color-on-surface); }
 
     /* Slider */
     .threshold-demo {
-      background: var(--bg-surface); border: 1px solid var(--border-color);
+      background: var(--color-surface-container-low); border: 1px solid var(--color-outline-variant);
       border-radius: 12px; padding: 20px; margin: 16px 0;
     }
-    .threshold-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
-    .threshold-bar { position: relative; height: 8px; background: var(--bg-surface-hover); border-radius: 4px; margin: 12px 0; }
-    .threshold-fill { position: absolute; left: 25%; right: 30%; top: 0; bottom: 0; background: var(--accent); border-radius: 4px; }
-    .threshold-handles { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); font-family: var(--font-mono); }
+    .threshold-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
+    .threshold-bar { position: relative; height: 8px; background: var(--color-surface-container); border-radius: 4px; margin: 12px 0; }
+    .threshold-fill { position: absolute; left: 25%; right: 30%; top: 0; bottom: 0; background: var(--color-primary); border-radius: 4px; }
+    .threshold-handles { display: flex; justify-content: space-between; font-size: 11px; color: var(--color-on-surface-variant); font-family: var(--font-mono); }
 
     /* Footer */
-    .footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--border-color); text-align: center; }
-    .footer p { font-size: 11px; color: var(--text-muted); }
+    .footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--color-outline-variant); text-align: center; }
+    .footer p { font-size: 11px; color: #94a3b8; }
+
+    /* ========== Dark Theme ========== */
+    [data-theme="dark"] {
+      --color-primary: #93c5fd;
+      --color-primary-light: rgba(147,197,253,0.4);
+      --color-success: #6ee7b7;
+      --color-error: #fca5a5;
+      --color-warning: #fcd34d;
+      --color-on-surface: #e2e8f0;
+      --color-on-surface-variant: #94a3b8;
+      --color-surface: #000000;
+      --color-outline-variant: #334155;
+      --color-surface-container: #111111;
+      --color-surface-container-low: #0a0a0a;
+      --color-surface-container-high: #1a1a1a;
+      --color-surface-container-highest: #222222;
+    }
+    [data-theme="dark"] body { background: var(--color-surface); color: var(--color-on-surface); }
+    [data-theme="dark"] .card { background: #111111; border-color: #222222; }
+    [data-theme="dark"] .card:hover { box-shadow: 0 4px 24px rgba(147,197,253,0.08); }
+    [data-theme="dark"] .card-code { background: #1e3a5f; color: #93c5fd; }
+    [data-theme="dark"] .spec-table th { background: rgba(255,255,255,0.04); }
+    [data-theme="dark"] .spec-table td { border-color: rgba(51,65,85,0.4); }
+    [data-theme="dark"] .pixel-inspector,
+    [data-theme="dark"] .threshold-demo { background: #111111; border-color: #222222; }
+    [data-theme="dark"] .header-badge { background: rgba(147,197,253,0.08); border-color: rgba(147,197,253,0.15); }
+    [data-theme="dark"] .raster-overlay { background: rgba(0,0,0,0.5); }
   </style>
 </head>
 <body>
-  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
-
   <div class="container">
     <!-- Header -->
     <div class="header">
@@ -309,7 +306,7 @@
               </div>
               <div class="band">
                 <span class="band-name">NDVI</span>
-                <span class="band-val" style="color: var(--success)">0.68</span>
+                <span class="band-val" style="color: var(--color-success)">0.68</span>
               </div>
             </div>
           </div>
@@ -325,7 +322,7 @@
             </div>
             <div class="threshold-handles">
               <span>1200</span>
-              <span style="color: var(--accent); font-weight: 700;">2000 — 3500</span>
+              <span style="color: var(--color-primary); font-weight: 700;">2000 — 3500</span>
               <span>5000</span>
             </div>
           </div>
@@ -357,23 +354,5 @@
       <p>Cartographic Precision System v1.2.0 · CPS Raster Module v1.0.0</p>
     </div>
   </div>
-
-  <script>
-    function toggleTheme() {
-      const html = document.documentElement;
-      const current = html.getAttribute('data-theme');
-      const next = current === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', next);
-      document.getElementById('themeBtn').textContent = next === 'dark' ? '🌙' : '☀️';
-      localStorage.setItem('cps-theme', next);
-    }
-    (function() {
-      const saved = localStorage.getItem('cps-theme');
-      if (saved) {
-        document.documentElement.setAttribute('data-theme', saved);
-        document.getElementById('themeBtn').textContent = saved === 'dark' ? '🌙' : '☀️';
-      }
-    })();
-  </script>
 </body>
 </html>

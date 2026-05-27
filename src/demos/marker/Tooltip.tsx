@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Aimap, Tooltip, Marker, ZoomControl } from '../../index';
+import { AiMap, Tooltip, Marker, ZoomControl } from '../../index';
 import type { TooltipItem } from '../../index';
 
 /**
@@ -95,7 +95,7 @@ export default function DemoTooltip() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [116.397, 39.909],
@@ -130,7 +130,7 @@ export default function DemoTooltip() {
         ))}
 
         <ZoomControl />
-      </Aimap>
+      </AiMap>
 
       {/* 图例面板 */}
       <div style={{

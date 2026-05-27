@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Aimap, Marker } from '../../index';
+import { AiMap, Marker } from '../../index';
 /**
  * 可拖拽标注 — draggable + onDragStart/onDragging/onDragEnd 回调
  * 参考 L7 Marker 的 mousedown/mousemove/mouseup 拖拽模式
@@ -13,7 +13,7 @@ export default function Demo06MarkerDrag() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [116.397, 39.909],
@@ -41,7 +41,7 @@ export default function Demo06MarkerDrag() {
             content={`📍 ${m.label}`}
           />
         ))}
-      </Aimap>
+      </AiMap>
 
       {/* 坐标面板 */}
       </div>

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, ZoomControl } from '../../index';
+import { AiMap, ZoomControl } from '../../index';
 import { RouteLayer } from '../../components/CompositeLayer/RouteLayer';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import { LegendCategories } from '../../components/Legend/LegendCategories';
@@ -94,7 +94,7 @@ export default function RouteLayerDemo() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [120.13, 30.25],
@@ -154,7 +154,7 @@ export default function RouteLayerDemo() {
           labels={['Day 1 · 西湖环线', 'Day 2 · 灵隐西溪', 'Day 3 · 钱塘滨江']}
           colors={[DAY_COLORS.day1, DAY_COLORS.day2, DAY_COLORS.day3]}
         />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

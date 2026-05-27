@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import type { Scene } from '@antv/l7';
 import { LineLayer as L7LineLayer, PointLayer as L7PointLayer, PolygonLayer as L7PolygonLayer } from '@antv/l7';
-import { Aimap, ZoomControl } from '../../index';
+import { AiMap, ZoomControl } from '../../index';
 
 /**
  * 流向图 — LineLayer flowline
@@ -75,7 +75,7 @@ export default function FlowMap() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [8.655, 47.413],
@@ -85,7 +85,7 @@ export default function FlowMap() {
         onSceneReady={handleSceneReady}
       >
         <ZoomControl position="bottomright" />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

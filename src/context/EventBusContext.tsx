@@ -4,7 +4,7 @@ import { EventBus, createEventBus } from '../core/event-bus';
 const EventBusContext = createContext<EventBus | null>(null);
 
 export interface EventBusProviderProps {
-  /** 初始事件监听（从 Aimap events prop 传入） */
+  /** 初始事件监听（从 AiMap events prop 传入） */
   events?: Record<string, (...args: unknown[]) => void>;
   children: React.ReactNode;
 }

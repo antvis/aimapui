@@ -7,32 +7,32 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --primary: #004ac6;
-    --primary-container: #dbeafe;
-    --surface: #f8f9ff;
-    --on-surface: #121c2a;
-    --on-surface-variant: #434655;
-    --outline-variant: #c3c6d7;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --error: #ef4444;
-    --glass-bg: rgba(248, 249, 255, 0.8);
-    --glass-border: rgba(195, 198, 215, 0.3);
-    --glass-blur: blur(12px);
+    --color-primary: #004ac6;
+    --color-surface-container: #dbeafe;
+    --color-surface: #ffffff;
+    --color-on-surface: #121c2a;
+    --color-on-surface-variant: #434655;
+    --color-outline-variant: #c3c6d7;
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-glass-bg: rgba(248, 249, 255, 0.8);
+    --color-glass-border: rgba(195, 198, 215, 0.3);
+    --color-glass-blur: blur(12px);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: var(--surface); color: var(--on-surface); line-height: 1.6; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
   .page { max-width: 960px; margin: 0 auto; padding: 48px 32px; }
   h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em; }
-  .subtitle { color: var(--on-surface-variant); font-size: 14px; margin-bottom: 40px; }
-  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--outline-variant); }
+  .subtitle { color: var(--color-on-surface-variant); font-size: 14px; margin-bottom: 40px; }
+  h2 { font-size: 20px; font-weight: 600; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--color-outline-variant); }
   h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; }
-  p { font-size: 14px; color: var(--on-surface-variant); margin-bottom: 12px; }
-  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--primary-container); padding: 2px 6px; border-radius: 4px; }
-  .card { background: #fff; border: 1px solid var(--outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
-  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 16px; }
+  p { font-size: 14px; color: var(--color-on-surface-variant); margin-bottom: 12px; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--color-surface-container); padding: 2px 6px; border-radius: 4px; }
+  .card { background: #fff; border: 1px solid var(--color-outline-variant); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-primary); margin-bottom: 16px; }
   .spec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--outline-variant); }
+  .spec-table th { text-align: left; font-weight: 600; padding: 8px 12px; background: rgba(219,234,254,0.4); border-bottom: 2px solid var(--color-outline-variant); }
   .spec-table td { padding: 8px 12px; border-bottom: 1px solid rgba(195,198,215,0.2); }
   .spec-table code { font-size: 12px; }
 
@@ -43,7 +43,7 @@
     height: 320px;
     background: linear-gradient(135deg, #e8edf5 0%, #d0d8e8 50%, #e2e8f2 100%);
     border-radius: 12px;
-    border: 1px solid var(--outline-variant);
+    border: 1px solid var(--color-outline-variant);
     overflow: hidden;
   }
   .map-sim::before {
@@ -58,21 +58,21 @@
   .legend-panel {
     position: absolute;
     z-index: 10;
-    background: var(--glass-bg);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
+    background: var(--color-glass-bg);
+    backdrop-filter: var(--color-glass-blur);
+    -webkit-backdrop-filter: var(--color-glass-blur);
+    border: 1px solid var(--color-glass-border);
     border-radius: 12px;
     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
     padding: 12px 14px;
     max-height: 40%;
     overflow-y: auto;
-    color: var(--on-surface);
+    color: var(--color-on-surface);
   }
   .legend-title {
     font-size: 12px; line-height: 16px; font-weight: 600;
     letter-spacing: 0.05em; text-transform: uppercase;
-    color: var(--on-surface-variant); margin-bottom: 8px;
+    color: var(--color-on-surface-variant); margin-bottom: 8px;
   }
 
   /* ── 分类图例 ── */
@@ -90,7 +90,7 @@
   }
   .cat-swatch--circle { border-radius: 50%; }
   .cat-label {
-    font-size: 12px; line-height: 16px; color: var(--on-surface);
+    font-size: 12px; line-height: 16px; color: var(--color-on-surface);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
@@ -103,13 +103,13 @@
   .ramp-labels {
     display: flex; justify-content: space-between; margin-top: 4px;
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    line-height: 14px; font-weight: 450; color: var(--on-surface-variant);
+    line-height: 14px; font-weight: 450; color: var(--color-on-surface-variant);
   }
   .ramp-ticks {
     display: flex; justify-content: space-between; height: 6px; position: relative; margin-top: 3px;
   }
   .ramp-tick {
-    width: 1px; height: 100%; background: var(--outline-variant);
+    width: 1px; height: 100%; background: var(--color-outline-variant);
     position: absolute;
   }
 
@@ -119,7 +119,7 @@
   }
   .classed-label {
     flex: 1; text-align: center; font-family: 'JetBrains Mono', monospace;
-    font-size: 10px; color: var(--on-surface-variant); line-height: 14px;
+    font-size: 10px; color: var(--color-on-surface-variant); line-height: 14px;
   }
   .classed-label:first-child { text-align: left; }
   .classed-label:last-child { text-align: right; }
@@ -132,12 +132,12 @@
   .diverging-labels {
     display: flex; justify-content: space-between; margin-top: 4px;
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    line-height: 14px; font-weight: 450; color: var(--on-surface-variant);
+    line-height: 14px; font-weight: 450; color: var(--color-on-surface-variant);
   }
   .diverging-middle {
     position: absolute; left: 50%; transform: translateX(-50%);
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    color: var(--on-surface-variant); white-space: nowrap; bottom: -18px;
+    color: var(--color-on-surface-variant); white-space: nowrap; bottom: -18px;
   }
 
   /* ── 阈值图例 ── */
@@ -154,7 +154,7 @@
   }
   .threshold-range {
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    line-height: 14px; color: var(--on-surface-variant);
+    line-height: 14px; color: var(--color-on-surface-variant);
   }
 
   /* ── 大小图例 ── */
@@ -166,7 +166,7 @@
   .size-labels { display: flex; align-items: flex-end; gap: 8px; margin-top: 4px; }
   .size-label {
     font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    line-height: 14px; color: var(--on-surface-variant); white-space: nowrap;
+    line-height: 14px; color: var(--color-on-surface-variant); white-space: nowrap;
   }
 
   /* ── 线宽图例 ── */
@@ -182,7 +182,7 @@
     box-shadow: 0 0 0 1px rgba(0,0,0,0.06);
   }
   .linewidth-label {
-    font-size: 12px; line-height: 16px; color: var(--on-surface);
+    font-size: 12px; line-height: 16px; color: var(--color-on-surface);
     white-space: nowrap;
   }
 
@@ -192,12 +192,12 @@
   }
   .brush-range {
     position: absolute; top: 0; height: 100%;
-    border: 2px solid var(--primary); border-radius: 2px;
+    border: 2px solid var(--color-primary); border-radius: 2px;
     background: rgba(0,74,198,0.1); pointer-events: none;
   }
   .brush-handle {
     position: absolute; top: 50%; width: 8px; height: 16px;
-    background: var(--primary); border-radius: 2px;
+    background: var(--color-primary); border-radius: 2px;
     transform: translate(-50%, -50%); cursor: ew-resize;
     box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     transition: box-shadow 0.15s;
@@ -217,12 +217,12 @@
     display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
   }
   .interact-card {
-    background: var(--glass-bg); backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border); border-radius: 10px; padding: 16px;
+    background: var(--color-glass-bg); backdrop-filter: var(--color-glass-blur);
+    -webkit-backdrop-filter: var(--color-glass-blur);
+    border: 1px solid var(--color-glass-border); border-radius: 10px; padding: 16px;
   }
-  .interact-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--primary); }
-  .interact-card p { font-size: 12px; color: var(--on-surface-variant); margin-bottom: 0; }
+  .interact-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--color-primary); }
+  .interact-card p { font-size: 12px; color: var(--color-on-surface-variant); margin-bottom: 0; }
 
   /* ========== Dark Theme ========== */
   [data-theme="dark"] {
@@ -233,60 +233,50 @@
     --color-warning: #fcd34d;
     --color-on-surface: #e2e8f0;
     --color-on-surface-variant: #94a3b8;
-    --color-surface: #0f172a;
+    --color-surface: #000000;
     --color-outline-variant: #334155;
-    --color-surface-container-low: #1e293b;
+    --color-surface-container-low: #0a0a0a;
     --color-on-primary: #1e3a5f;
-    --color-surface-container: #1e293b;
+    --color-surface-container: #111111;
   }
   [data-theme="dark"] body { background: var(--color-surface); color: var(--color-on-surface); }
-  [data-theme="dark"] .card { background: #1e293b; border-color: #334155; }
-  [data-theme="dark"] code { background: #1e3a5f; color: #93c5fd; }
-  [data-theme="dark"] .spec-table th { background: rgba(30,58,95,0.5); }
+  [data-theme="dark"] .card { background: #111111; border-color: #222222; }
+  [data-theme="dark"] code { background: #1a1a2e; color: #93c5fd; }
+  [data-theme="dark"] .spec-table th { background: rgba(255,255,255,0.04); }
   [data-theme="dark"] .spec-table td { border-color: rgba(51,65,85,0.4); }
-  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); border-color: #334155; }
+  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #111111 0%, #0a0a0a 50%, #111111 100%); border-color: #222222; }
   [data-theme="dark"] .map-bg::before { opacity: 0.1; }
-  [data-theme="dark"] h2 { border-color: #334155; }
+  [data-theme="dark"] h2 { border-color: #222222; }
   /* 手机框架暗色适配 */
-  [data-theme="dark"] .phone-frame { border-color: #475569; background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); }
-  [data-theme="dark"] .search-bar { background: rgba(30,41,59,0.92); }
+  [data-theme="dark"] .phone-frame { border-color: #333333; background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); }
+  [data-theme="dark"] .search-bar { background: rgba(17,17,17,0.92); }
   [data-theme="dark"] .search-placeholder { color: #64748b; }
-  [data-theme="dark"] .ctrl-btn { background: rgba(30,41,59,0.95); }
+  [data-theme="dark"] .ctrl-btn { background: rgba(17,17,17,0.95); }
   [data-theme="dark"] .ctrl-btn .material-symbols-outlined { color: #e2e8f0; }
-  [data-theme="dark"] .ctrl-group { background: rgba(30,41,59,0.95); }
-  [data-theme="dark"] .bottom-sheet { background: rgba(30,41,59,0.96); }
-  [data-theme="dark"] .bottom-nav { background: rgba(30,41,59,0.92); border-color: #334155; }
+  [data-theme="dark"] .ctrl-group { background: rgba(17,17,17,0.95); }
+  [data-theme="dark"] .bottom-sheet { background: rgba(17,17,17,0.96); }
+  [data-theme="dark"] .bottom-nav { background: rgba(17,17,17,0.92); border-color: #222222; }
   /* 形状卡片 */
-  [data-theme="dark"] .shape-card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] .shape-card { background: #111111; border-color: #222222; }
   [data-theme="dark"] .shape-card:hover { box-shadow: 0 8px 24px rgba(147,197,253,0.08); }
   /* 性能/手势卡片 */
   [data-theme="dark"] .perf-item,
   [data-theme="dark"] .gesture-card,
   [data-theme="dark"] .collision-box,
-  [data-theme="dark"] .zoom-card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] .zoom-card { background: #111111; border-color: #222222; }
   /* 侧边栏 (PC) */
-  [data-theme="dark"] .sidebar { background: rgba(15,23,42,0.92); border-color: #334155; }
+  [data-theme="dark"] .sidebar { background: rgba(15,23,42,0.92); border-color: #222222; }
   [data-theme="dark"] .sidebar-item:hover { background: rgba(147,197,253,0.08); }
   /* 底部面板状态 */
-  [data-theme="dark"] .sheet-state-box { border-color: #334155; }
+  [data-theme="dark"] .sheet-state-box { border-color: #222222; }
   [data-theme="dark"] .sheet-state-map { background: linear-gradient(135deg, #1e293b, #0f172a); }
-  [data-theme="dark"] .sheet-state-panel { background: rgba(30,41,59,0.95); }
+  [data-theme="dark"] .sheet-state-panel { background: rgba(17,17,17,0.95); }
   /* SVG 文字 */
   [data-theme="dark"] svg text[fill="#434655"],
   [data-theme="dark"] svg text[fill="#1e293b"] { fill: #e2e8f0; }
   [data-theme="dark"] svg text[fill="#64748b"] { fill: #94a3b8; }
 
   /* 主题切换按钮 */
-  .theme-toggle {
-    position: fixed; top: 16px; right: 16px; z-index: 9999;
-    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--color-outline-variant);
-    background: var(--color-surface-container-low); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: background 0.2s, border-color 0.2s;
-    font-size: 18px; line-height: 1;
-  }
-  .theme-toggle:hover { background: var(--color-primary-container); }
-
 </style>
 </head>
 <body>
@@ -304,17 +294,17 @@
       <div style="background:rgba(248,249,255,0.8);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(195,198,215,0.3);border-radius:12px;padding:20px;text-align:center;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px">Glassmorphism</div>
         <code>bg-surface/80</code>
-        <div style="margin-top:4px;font-size:12px;color:var(--on-surface-variant)"><code>backdrop-blur-md</code></div>
+        <div style="margin-top:4px;font-size:12px;color:var(--color-on-surface-variant)"><code>backdrop-blur-md</code></div>
       </div>
-      <div style="background:#fff;border:1px solid var(--outline-variant);border-radius:12px;padding:20px;text-align:center">
+      <div style="background:#fff;border:1px solid var(--color-outline-variant);border-radius:12px;padding:20px;text-align:center">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px">圆角 & 阴影</div>
         <code>rounded-xl (12px)</code>
-        <div style="margin-top:4px;font-size:12px;color:var(--on-surface-variant)"><code>shadow-lg</code> 浮动感</div>
+        <div style="margin-top:4px;font-size:12px;color:var(--color-on-surface-variant)"><code>shadow-lg</code> 浮动感</div>
       </div>
-      <div style="background:var(--glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--glass-border);border-radius:12px;padding:20px;text-align:center">
+      <div style="background:var(--color-glass-bg);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--color-glass-border);border-radius:12px;padding:20px;text-align:center">
         <div style="font-size:13px;font-weight:600;margin-bottom:8px">标题</div>
         <code>font-headline-sm</code>
-        <div style="margin-top:4px;font-size:12px;color:var(--on-surface-variant)"><code>text-on-surface</code></div>
+        <div style="margin-top:4px;font-size:12px;color:var(--color-on-surface-variant)"><code>text-on-surface</code></div>
       </div>
     </div>
   </div>
@@ -323,13 +313,13 @@
     <div class="card-title">Core Concept Mapping</div>
     <div style="display:flex;gap:32px;align-items:center;justify-content:center;padding:16px 0;flex-wrap:wrap">
       <div style="text-align:center">
-        <div style="font-size:22px;font-weight:700;color:var(--primary);font-family:'JetBrains Mono',monospace">Domain</div>
-        <div style="font-size:12px;color:var(--on-surface-variant);margin-top:4px">数据值范围<br>→ 图例标签 (Label)</div>
+        <div style="font-size:22px;font-weight:700;color:var(--color-primary);font-family:'JetBrains Mono',monospace">Domain</div>
+        <div style="font-size:12px;color:var(--color-on-surface-variant);margin-top:4px">数据值范围<br>→ 图例标签 (Label)</div>
       </div>
-      <div style="font-size:24px;color:var(--outline-variant)">→</div>
+      <div style="font-size:24px;color:var(--color-outline-variant)">→</div>
       <div style="text-align:center">
-        <div style="font-size:22px;font-weight:700;color:var(--primary);font-family:'JetBrains Mono',monospace">Range</div>
-        <div style="font-size:12px;color:var(--on-surface-variant);margin-top:4px">视觉变量<br>→ 色块 / 渐变 / 图形</div>
+        <div style="font-size:22px;font-weight:700;color:var(--color-primary);font-family:'JetBrains Mono',monospace">Range</div>
+        <div style="font-size:12px;color:var(--color-on-surface-variant);margin-top:4px">视觉变量<br>→ 色块 / 渐变 / 图形</div>
       </div>
     </div>
   </div>
@@ -451,8 +441,8 @@
           <div class="brush-handle" style="left:75%"></div>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:2px">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--primary)">20%</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--primary)">75%</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--color-primary)">20%</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--color-primary)">75%</span>
         </div>
       </div>
     </div>
@@ -518,7 +508,7 @@
   <div class="card">
     <div class="card-title">垂直列表 + [A, B) 区间</div>
     <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center">
-      <div style="width:200px;background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+      <div style="width:200px;background:var(--color-glass-bg);backdrop-filter:var(--color-glass-blur);-webkit-backdrop-filter:var(--color-glass-blur);border:1px solid var(--color-glass-border);border-radius:12px;padding:12px 14px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
         <div class="legend-title">PM2.5 (μg/m³)</div>
         <div class="threshold-list">
           <div class="threshold-item" onclick="toggleDim(this)">
@@ -548,7 +538,7 @@
         </div>
       </div>
 
-      <div style="width:200px;background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+      <div style="width:200px;background:var(--color-glass-bg);backdrop-filter:var(--color-glass-blur);-webkit-backdrop-filter:var(--color-glass-blur);border:1px solid var(--color-glass-border);border-radius:12px;padding:12px 14px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
         <div class="legend-title">Flood Depth (m)</div>
         <div class="threshold-list">
           <div class="threshold-item" onclick="toggleDim(this)">
@@ -586,7 +576,7 @@
         <div style="position:relative">
           <div class="diverging-bar" style="background:linear-gradient(to right, #ef4444, #fca5a5, #e5e7eb, #86efac, #10b981)"></div>
           <!-- 中间标记 -->
-          <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:1px;height:20px;background:var(--outline-variant)"></div>
+          <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:1px;height:20px;background:var(--color-outline-variant)"></div>
           <div class="diverging-middle">0</div>
         </div>
         <div class="diverging-labels" style="margin-top:20px">
@@ -599,7 +589,7 @@
         <div class="legend-title">Price Change</div>
         <div style="position:relative">
           <div class="diverging-bar" style="background:linear-gradient(to right, #dc2626, #f87171, #f3f4f6, #93c5fd, #2563eb)"></div>
-          <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:1px;height:20px;background:var(--outline-variant)"></div>
+          <div style="position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:1px;height:20px;background:var(--color-outline-variant)"></div>
           <div class="diverging-middle">Avg</div>
         </div>
         <div class="diverging-labels" style="margin-top:20px">
@@ -626,7 +616,7 @@
   <div class="card">
     <div style="display:flex;gap:32px;flex-wrap:wrap;justify-content:center">
       <!-- Size 比例圆 -->
-      <div style="background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;width:220px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+      <div style="background:var(--color-glass-bg);backdrop-filter:var(--color-glass-blur);-webkit-backdrop-filter:var(--color-glass-blur);border:1px solid var(--color-glass-border);border-radius:12px;padding:12px 14px;width:220px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
         <div class="legend-title">Population</div>
         <div class="size-row">
           <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:24px">
@@ -651,7 +641,7 @@
       </div>
 
       <!-- LineWidth 线宽 -->
-      <div style="background:var(--glass-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border);border-radius:12px;padding:12px 14px;width:200px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
+      <div style="background:var(--color-glass-bg);backdrop-filter:var(--color-glass-blur);-webkit-backdrop-filter:var(--color-glass-blur);border:1px solid var(--color-glass-border);border-radius:12px;padding:12px 14px;width:200px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.1)">
         <div class="legend-title">Traffic Volume</div>
         <div class="linewidth-list">
           <div class="linewidth-item" onmouseenter="dimOthersLw(this)" onmouseleave="undimAllLw(this)" onclick="toggleDimLw(this)">
@@ -683,17 +673,17 @@
       <div class="interact-card">
         <h4>Hover Highlight</h4>
         <p>鼠标移入某项，地图对应要素高亮，非对应要素置灰 (dimmed <code>opacity: 0.35</code>)</p>
-        <p style="margin-top:6px;color:var(--primary);font-family:'JetBrains Mono',monospace;font-size:11px">onHover(index: number)</p>
+        <p style="margin-top:6px;color:var(--color-primary);font-family:'JetBrains Mono',monospace;font-size:11px">onHover(index: number)</p>
       </div>
       <div class="interact-card">
         <h4>Toggle Visibility</h4>
         <p>点击图例项，切换该类要素在地图上的可见性（dimmed 态表示已隐藏）</p>
-        <p style="margin-top:6px;color:var(--primary);font-family:'JetBrains Mono',monospace;font-size:11px">onToggle(index: number)</p>
+        <p style="margin-top:6px;color:var(--color-primary);font-family:'JetBrains Mono',monospace;font-size:11px">onToggle(index: number)</p>
       </div>
       <div class="interact-card">
         <h4>Range Brush</h4>
         <p>连续型图例支持拖动双柄，动态筛选展示的数据范围</p>
-        <p style="margin-top:6px;color:var(--primary);font-family:'JetBrains Mono',monospace;font-size:11px">onBrush([min, max])</p>
+        <p style="margin-top:6px;color:var(--color-primary);font-family:'JetBrains Mono',monospace;font-size:11px">onBrush([min, max])</p>
       </div>
     </div>
   </div>
@@ -757,24 +747,6 @@
     el.classList.toggle('dimmed');
   }
 </script>
-<button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
-<script>
-(function() {
-  var toggle = document.getElementById('themeToggle');
-  var html = document.documentElement;
-  var stored = localStorage.getItem('design-spec-theme');
-  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  var initial = stored || (prefersDark ? 'dark' : 'light');
-  html.setAttribute('data-theme', initial);
-  toggle.textContent = initial === 'dark' ? '☀️' : '🌙';
-  toggle.addEventListener('click', function() {
-    var current = html.getAttribute('data-theme');
-    var next = current === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', next);
-    toggle.textContent = next === 'dark' ? '☀️' : '🌙';
-    localStorage.setItem('design-spec-theme', next);
-  });
-})();
-</script>
+
 </body>
 </html>

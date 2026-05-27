@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Aimap, LineLayer, ZoomControl } from '../../index';
+import { AiMap, LineLayer, ZoomControl } from '../../index';
 /**
  * 路径图
  */
@@ -15,7 +15,7 @@ export default function Demo22PathLayer() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap map={{ basemap: 'gaode', center: [103.837356, 1.360254], zoom: 9.5, pitch: 20, style: 'light' }}>
+      <AiMap map={{ basemap: 'gaode', center: [103.837356, 1.360254], zoom: 9.5, pitch: 20, style: 'light' }}>
         {data && (
           <LineLayer
             source={data}
@@ -30,7 +30,7 @@ export default function Demo22PathLayer() {
           />
         )}
         <ZoomControl />
-      </Aimap>
+      </AiMap>
 </div>
   );
 }

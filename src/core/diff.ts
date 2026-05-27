@@ -1,4 +1,4 @@
-import type { AimapSchema, LayerSchema, ControlSchema, InteractionSchema, LegendSchema } from '../schema/types';
+import type { AiMapSchema, LayerSchema, ControlSchema, InteractionSchema, LegendSchema } from '../schema/types';
 
 /**
  * Schema diff 结果
@@ -34,7 +34,7 @@ function shallowChanged(a: unknown, b: unknown): boolean {
 /**
  * 对比两个 Schema 的差异，返回需要更新的部分
  */
-export function diffSchema(prev: AimapSchema, next: AimapSchema): SchemaDiffResult {
+export function diffSchema(prev: AiMapSchema, next: AiMapSchema): SchemaDiffResult {
   // Map diff
   const mapChanged = shallowChanged(prev.map, next.map);
 

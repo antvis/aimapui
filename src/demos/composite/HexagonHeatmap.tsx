@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Aimap, HexagonLayer, ZoomControl } from '../../index';
+import { AiMap, HexagonLayer, ZoomControl } from '../../index';
 import { Legend } from '../components/Legend';
 
 /**
@@ -40,7 +40,7 @@ export default function HexagonHeatmapDemo() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [114.077376, 22.542657],
@@ -67,7 +67,7 @@ export default function HexagonHeatmapDemo() {
         )}
 
         <ZoomControl position="bottomright" />
-      </Aimap>
+      </AiMap>
 
       {/* 图例 — 蜂窝热力色带 */}
       <div style={{ position: 'absolute', bottom: 32, left: 16, zIndex: 10 }}>

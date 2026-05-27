@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Aimap, FillLayer, ZoomControl } from '../../index';
+import { AiMap, FillLayer, ZoomControl } from '../../index';
 type AnyGeoJSON = {
   type: 'FeatureCollection';
   features: Array<{
@@ -63,7 +63,7 @@ export default function Demo32ChoroplethMap() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap map={{ basemap: 'gaode', center: [116.368652, 39.93866], zoom: 10.07, style: 'light' }}>
+      <AiMap map={{ basemap: 'gaode', center: [116.368652, 39.93866], zoom: 10.07, style: 'light' }}>
         {data && (
           <FillLayer
             source={data}
@@ -85,7 +85,7 @@ export default function Demo32ChoroplethMap() {
           />
         )}
         <ZoomControl />
-      </Aimap>
+      </AiMap>
 
       </div>
   );

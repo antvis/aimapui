@@ -41,9 +41,9 @@ export const SATELLITE_PROVIDER_NAMES: Record<SatelliteProvider, string> = {
  * 支持高德、天地图、谷歌三种卫星影像切换，默认高德。
  *
  * ```tsx
- * <Aimap map={{ basemap: 'map', center: [116.39, 39.9], zoom: 10 }}>
+ * <AiMap map={{ basemap: 'map', center: [116.39, 39.9], zoom: 10 }}>
  *   <SatelliteLayer provider="gaode" />
- * </Aimap>
+ * </AiMap>
  * ```
  */
 export function SatelliteLayer({

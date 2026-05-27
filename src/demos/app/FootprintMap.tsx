@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import type { Scene } from '@antv/l7';
-import { Aimap } from '../../components/Aimap';
+import { AiMap } from '../../components/AiMap';
 import { ZoomControl } from '../../components/Control/ZoomControl';
 import { GeoLocateControl } from '../../components/Control/GeoLocateControl';
 import { Marker } from '../../components/Interaction/Marker';
@@ -174,7 +174,7 @@ export default function FootprintMap() {
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
       {/* ── 地图区域（底部留出导航栏空间） ── */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: NAV_HEIGHT }}>
-        <Aimap
+        <AiMap
           map={{
             basemap: 'gaode',
             center: [139.7005, 35.6938],
@@ -272,7 +272,7 @@ export default function FootprintMap() {
             </div>
           </Marker>
         ))}
-      </Aimap>
+      </AiMap>
       </div>
 
       {/* ═══════ 顶部搜索栏 ═══════ */}

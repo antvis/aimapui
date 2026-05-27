@@ -13,14 +13,14 @@
     --color-warning: #f59e0b;
     --color-error: #ef4444;
     --color-success: #10b981;
-    --color-surface: #f8f9ff;
+    --color-surface: #ffffff;
     --color-on-surface: #121c2a;
     --color-on-surface-variant: #434655;
     --color-outline-variant: #c3c6d7;
-    --color-surface-container: #e6eeff;
-    --color-surface-container-low: #eff4ff;
-    --color-surface-container-high: #dee9fc;
-    --color-surface-container-highest: #d9e3f6;
+    --color-surface-container: #f5f5f5;
+    --color-surface-container-low: #fafafa;
+    --color-surface-container-high: #f0f0f0;
+    --color-surface-container-highest: #e8e8e8;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
@@ -101,60 +101,50 @@
     --color-warning: #fcd34d;
     --color-on-surface: #e2e8f0;
     --color-on-surface-variant: #94a3b8;
-    --color-surface: #0f172a;
+    --color-surface: #000000;
     --color-outline-variant: #334155;
-    --color-surface-container-low: #1e293b;
+    --color-surface-container-low: #0a0a0a;
     --color-on-primary: #1e3a5f;
-    --color-surface-container: #1e293b;
+    --color-surface-container: #111111;
   }
   [data-theme="dark"] body { background: var(--color-surface); color: var(--color-on-surface); }
-  [data-theme="dark"] .card { background: #1e293b; border-color: #334155; }
-  [data-theme="dark"] code { background: #1e3a5f; color: #93c5fd; }
-  [data-theme="dark"] .spec-table th { background: rgba(30,58,95,0.5); }
+  [data-theme="dark"] .card { background: #111111; border-color: #222222; }
+  [data-theme="dark"] code { background: #1a1a2e; color: #93c5fd; }
+  [data-theme="dark"] .spec-table th { background: rgba(255,255,255,0.04); }
   [data-theme="dark"] .spec-table td { border-color: rgba(51,65,85,0.4); }
-  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); border-color: #334155; }
+  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #111111 0%, #0a0a0a 50%, #111111 100%); border-color: #222222; }
   [data-theme="dark"] .map-bg::before { opacity: 0.1; }
-  [data-theme="dark"] h2 { border-color: #334155; }
+  [data-theme="dark"] h2 { border-color: #222222; }
   /* 手机框架暗色适配 */
-  [data-theme="dark"] .phone-frame { border-color: #475569; background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); }
-  [data-theme="dark"] .search-bar { background: rgba(30,41,59,0.92); }
+  [data-theme="dark"] .phone-frame { border-color: #333333; background: linear-gradient(180deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); }
+  [data-theme="dark"] .search-bar { background: rgba(17,17,17,0.92); }
   [data-theme="dark"] .search-placeholder { color: #64748b; }
-  [data-theme="dark"] .ctrl-btn { background: rgba(30,41,59,0.95); }
+  [data-theme="dark"] .ctrl-btn { background: rgba(17,17,17,0.95); }
   [data-theme="dark"] .ctrl-btn .material-symbols-outlined { color: #e2e8f0; }
-  [data-theme="dark"] .ctrl-group { background: rgba(30,41,59,0.95); }
-  [data-theme="dark"] .bottom-sheet { background: rgba(30,41,59,0.96); }
-  [data-theme="dark"] .bottom-nav { background: rgba(30,41,59,0.92); border-color: #334155; }
+  [data-theme="dark"] .ctrl-group { background: rgba(17,17,17,0.95); }
+  [data-theme="dark"] .bottom-sheet { background: rgba(17,17,17,0.96); }
+  [data-theme="dark"] .bottom-nav { background: rgba(17,17,17,0.92); border-color: #222222; }
   /* 形状卡片 */
-  [data-theme="dark"] .shape-card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] .shape-card { background: #111111; border-color: #222222; }
   [data-theme="dark"] .shape-card:hover { box-shadow: 0 8px 24px rgba(147,197,253,0.08); }
   /* 性能/手势卡片 */
   [data-theme="dark"] .perf-item,
   [data-theme="dark"] .gesture-card,
   [data-theme="dark"] .collision-box,
-  [data-theme="dark"] .zoom-card { background: #1e293b; border-color: #334155; }
+  [data-theme="dark"] .zoom-card { background: #111111; border-color: #222222; }
   /* 侧边栏 (PC) */
-  [data-theme="dark"] .sidebar { background: rgba(15,23,42,0.92); border-color: #334155; }
+  [data-theme="dark"] .sidebar { background: rgba(15,23,42,0.92); border-color: #222222; }
   [data-theme="dark"] .sidebar-item:hover { background: rgba(147,197,253,0.08); }
   /* 底部面板状态 */
-  [data-theme="dark"] .sheet-state-box { border-color: #334155; }
+  [data-theme="dark"] .sheet-state-box { border-color: #222222; }
   [data-theme="dark"] .sheet-state-map { background: linear-gradient(135deg, #1e293b, #0f172a); }
-  [data-theme="dark"] .sheet-state-panel { background: rgba(30,41,59,0.95); }
+  [data-theme="dark"] .sheet-state-panel { background: rgba(17,17,17,0.95); }
   /* SVG 文字 */
   [data-theme="dark"] svg text[fill="#434655"],
   [data-theme="dark"] svg text[fill="#1e293b"] { fill: #e2e8f0; }
   [data-theme="dark"] svg text[fill="#64748b"] { fill: #94a3b8; }
 
   /* 主题切换按钮 */
-  .theme-toggle {
-    position: fixed; top: 16px; right: 16px; z-index: 9999;
-    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--color-outline-variant);
-    background: var(--color-surface-container-low); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: background 0.2s, border-color 0.2s;
-    font-size: 18px; line-height: 1;
-  }
-  .theme-toggle:hover { background: var(--color-primary-container); }
-
 </style>
 </head>
 <body>
@@ -332,24 +322,6 @@
   </div>
 
 </div>
-<button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
-<script>
-(function() {
-  var toggle = document.getElementById('themeToggle');
-  var html = document.documentElement;
-  var stored = localStorage.getItem('design-spec-theme');
-  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  var initial = stored || (prefersDark ? 'dark' : 'light');
-  html.setAttribute('data-theme', initial);
-  toggle.textContent = initial === 'dark' ? '☀️' : '🌙';
-  toggle.addEventListener('click', function() {
-    var current = html.getAttribute('data-theme');
-    var next = current === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', next);
-    toggle.textContent = next === 'dark' ? '☀️' : '🌙';
-    localStorage.setItem('design-spec-theme', next);
-  });
-})();
-</script>
+
 </body>
 </html>

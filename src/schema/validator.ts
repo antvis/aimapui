@@ -1,4 +1,4 @@
-import type { AimapSchema, MapSchema, LayerSchema } from './types';
+import type { AiMapSchema, MapSchema, LayerSchema } from './types';
 
 /**
  * Schema 校验器
@@ -10,7 +10,7 @@ export interface ValidationError {
   severity: 'error' | 'warning';
 }
 
-export function validateAimapSchema(schema: AimapSchema): ValidationError[] {
+export function validateAiMapSchema(schema: AiMapSchema): ValidationError[] {
   const errors: ValidationError[] = [];
 
   // 校验 map

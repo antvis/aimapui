@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, PointLayer, ZoomControl } from '../../index';
+import { AiMap, PointLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import { LegendCategories } from '../../components/Legend/LegendCategories';
 import type { LayerEventPayload } from '../../schema/types';
@@ -84,7 +84,7 @@ export default function GeometricPointDemo() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [112, 32],
@@ -133,7 +133,7 @@ export default function GeometricPointDemo() {
           labels={CATEGORY_LABELS}
           colors={CATEGORY_COLORS}
         />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

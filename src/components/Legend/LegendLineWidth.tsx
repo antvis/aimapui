@@ -54,10 +54,14 @@ export function LegendLineWidth({
   };
 
   return (
-    <div className={cx('aimapui-legend-section', className)}>
-      {title && <div className="aimapui-legend-title">{title}</div>}
+    <div className={cx(className)}>
+      {title && (
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+          {title}
+        </div>
+      )}
 
-      <div className="aimapui-legend-linewidth">
+      <div className="flex flex-col gap-1.5">
         {items.map((item, i) => {
           const isDimmed =
             hoveredIndex >= 0
@@ -68,22 +72,22 @@ export function LegendLineWidth({
             <div
               key={i}
               className={cx(
-                'aimapui-legend-linewidth-item',
-                isDimmed && 'aimapui-legend-linewidth-item--dimmed',
+                'flex items-center gap-2.5 py-0.5 cursor-pointer select-none transition-opacity duration-150 hover:opacity-80',
+                isDimmed && 'opacity-35',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
               onClick={() => handleClick(i)}
             >
               <div
-                className="aimapui-legend-linewidth-line"
+                className="w-7 shrink-0 rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"
                 style={{
                   height: item.width,
                   backgroundColor: color,
                   opacity: 0.85,
                 }}
               />
-              <span className="aimapui-legend-linewidth-label">
+              <span className="text-xs leading-4 text-on-surface whitespace-nowrap">
                 {item.label}
               </span>
             </div>

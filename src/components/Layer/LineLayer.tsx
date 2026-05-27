@@ -19,9 +19,9 @@ export interface LineLayerProps
  * 线图层组件
  *
  * ```tsx
- * <Aimap map={{ basemap: 'gaode' }}>
+ * <AiMap map={{ basemap: 'gaode' }}>
  *   <LineLayer source={flowData} sourceConfig={{ x: 'lng', y: 'lat', x1: 'lng1', y1: 'lat1' }} color="#5B8FF9" />
- * </Aimap>
+ * </AiMap>
  * ```
  */
 export function LineLayer({

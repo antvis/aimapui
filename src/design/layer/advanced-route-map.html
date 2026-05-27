@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
 <style>
   :root {
-    --color-primary: #2563eb;
+    --color-primary: #004ac6;
     --color-primary-container: #dbeafe;
     --color-on-primary: #fff;
     --color-success: #10b981;
@@ -16,9 +16,9 @@
     --color-warning: #f59e0b;
     --color-on-surface: #121c2a;
     --color-on-surface-variant: #434655;
-    --color-surface: #f8f9ff;
+    --color-surface: #ffffff;
     --color-outline-variant: #c3c6d7;
-    --color-surface-container-low: #eff4ff;
+    --color-surface-container-low: #fafafa;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Inter', system-ui, sans-serif; background: var(--color-surface); color: var(--color-on-surface); line-height: 1.6; }
@@ -95,20 +95,20 @@
     --color-warning: #fcd34d;
     --color-on-surface: #e2e8f0;
     --color-on-surface-variant: #94a3b8;
-    --color-surface: #0f172a;
+    --color-surface: #000000;
     --color-outline-variant: #334155;
-    --color-surface-container-low: #1e293b;
+    --color-surface-container-low: #0a0a0a;
     --color-on-primary: #1e3a5f;
   }
   [data-theme="dark"] body { background: var(--color-surface); color: var(--color-on-surface); }
-  [data-theme="dark"] .card { background: #1e293b; border-color: #334155; }
-  [data-theme="dark"] code { background: #1e3a5f; color: #93c5fd; }
-  [data-theme="dark"] .spec-table th { background: rgba(30,58,95,0.5); }
+  [data-theme="dark"] .card { background: #111111; border-color: #222222; }
+  [data-theme="dark"] code { background: #1a1a2e; color: #93c5fd; }
+  [data-theme="dark"] .spec-table th { background: rgba(255,255,255,0.04); }
   [data-theme="dark"] .spec-table td { border-color: rgba(51,65,85,0.4); }
-  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e293b 100%); border-color: #334155; }
+  [data-theme="dark"] .map-bg { background: linear-gradient(135deg, #111111 0%, #0a0a0a 50%, #111111 100%); border-color: #222222; }
   [data-theme="dark"] .map-bg::before { opacity: 0.1; }
-  [data-theme="dark"] h2 { border-color: #334155; }
-  [data-theme="dark"] .route-card { background: rgba(30,41,59,0.92); border-color: #334155; }
+  [data-theme="dark"] h2 { border-color: #222222; }
+  [data-theme="dark"] .route-card { background: rgba(17,17,17,0.92); border-color: #222222; }
   [data-theme="dark"] .route-card:hover { border-color: #93c5fd; box-shadow: 0 4px 16px rgba(147,197,253,0.08); }
   [data-theme="dark"] .route-card.active { border-color: #93c5fd; }
   [data-theme="dark"] .route-card.active::before { background: #93c5fd; }
@@ -118,15 +118,6 @@
   [data-theme="dark"] svg text[fill="#64748b"] { fill: #94a3b8; }
 
   /* 主题切换按钮 */
-  .theme-toggle {
-    position: fixed; top: 16px; right: 16px; z-index: 9999;
-    width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--color-outline-variant);
-    background: var(--color-surface-container-low); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: background 0.2s, border-color 0.2s;
-    font-size: 18px; line-height: 1;
-  }
-  .theme-toggle:hover { background: var(--color-primary-container); }
 </style>
 </head>
 <body>
@@ -358,24 +349,6 @@
 
 </div>
 
-<button class="theme-toggle" id="themeToggle" title="切换主题">🌙</button>
-<script>
-(function() {
-  var toggle = document.getElementById('themeToggle');
-  var html = document.documentElement;
-  var stored = localStorage.getItem('design-spec-theme');
-  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  var initial = stored || (prefersDark ? 'dark' : 'light');
-  html.setAttribute('data-theme', initial);
-  toggle.textContent = initial === 'dark' ? '☀️' : '🌙';
-  toggle.addEventListener('click', function() {
-    var current = html.getAttribute('data-theme');
-    var next = current === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', next);
-    toggle.textContent = next === 'dark' ? '☀️' : '🌙';
-    localStorage.setItem('design-spec-theme', next);
-  });
-})();
-</script>
+
 </body>
 </html>

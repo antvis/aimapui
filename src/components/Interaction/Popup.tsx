@@ -200,7 +200,7 @@ function CloseButton({ onClick }: { onClick: () => void }) {
         e.stopPropagation();
         onClick();
       }}
-      className="aimapui-popup-close-btn"
+      className="aimapui-popup-close-btn size-8 flex items-center justify-center text-on-surface-variant rounded-lg transition-[color,background] duration-200 cursor-pointer bg-transparent border-none shrink-0 p-0 ml-2 hover:text-on-surface hover:bg-surface-container-high [&_.material-symbols-outlined]:text-xl"
       aria-label="关闭"
     >
       <span className="material-symbols-outlined">close</span>
@@ -246,10 +246,10 @@ function PopupTip({ placement }: { placement: 'top' | 'bottom' | 'left' | 'right
 function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => void }) {
   if (!header.coverUrl) return null;
   return (
-    <div className="aimapui-popup-cover">
-      <img src={header.coverUrl} alt={header.title} className="aimapui-popup-cover-img" />
+    <div className="aimapui-popup-cover relative aspect-video overflow-hidden">
+      <img src={header.coverUrl} alt={header.title} className="w-full h-full object-cover" />
       <button
-        className="aimapui-popup-close-btn aimapui-popup-close-btn--cover"
+        className="absolute top-2 right-2 size-8 bg-black/30 backdrop-blur-sm text-white flex items-center justify-center rounded-full border-none cursor-pointer transition-colors duration-200 z-10 hover:bg-black/50 [&_.material-symbols-outlined]:text-lg"
         aria-label="关闭"
         onClick={(e) => {
           e.stopPropagation();
@@ -259,9 +259,9 @@ function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => v
         <span className="material-symbols-outlined">close</span>
       </button>
       {header.statusLabel && (
-        <div className="aimapui-popup-status-badge">
+        <div className="absolute bottom-2 left-2 flex items-center gap-1.5 px-2 py-0.5 bg-surface/90 backdrop-blur-sm rounded-md shadow-sm text-[10px] font-semibold uppercase tracking-wide text-on-surface">
           <div
-            className="aimapui-popup-status-dot"
+            className="size-2 rounded-full"
             style={{ background: header.statusColor || '#10b981' }}
           />
           <span>{header.statusLabel}</span>
@@ -284,14 +284,14 @@ function HeaderSection({
   showStatusDot?: boolean;
 }) {
   return (
-    <div className={cx('aimapui-popup-header', !hasCover && 'aimapui-popup-header--with-close')}>
+    <div className={cx('flex items-center p-4', !hasCover && 'justify-between')}>
       {showStatusDot && header.statusDot && (
         <div
-          className="aimapui-popup-header-dot"
+          className="size-2 rounded-full shrink-0 mr-2 animate-pulse"
           style={{ background: header.statusDot }}
         />
       )}
-      <h3 className="aimapui-popup-title">{header.title}</h3>
+      <h3 className="text-xl leading-7 font-semibold text-on-surface m-0 flex-1 min-w-0 truncate">{header.title}</h3>
       {!hasCover && <CloseButton onClick={onClose} />}
     </div>
   );
@@ -311,20 +311,22 @@ function AttributeList({
 
   return (
     <div
-      className="aimapui-popup-attrs"
+      className={cx(
+        isCompact ? 'flex flex-col' : 'grid gap-2',
+      )}
       style={!isCompact ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : undefined}
     >
       {attributes.map((attr, i) => {
         // Detailed 模式且属性有 icon：渲染图标容器 + 大号值
         if (isDetailed && attr.icon) {
           return (
-            <div key={i} className="aimapui-popup-attr aimapui-popup-attr--detailed">
-              <div className="aimapui-popup-attr-icon">
+            <div key={i} className="flex items-center gap-2">
+              <div className="size-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0 [&_.material-symbols-outlined]:text-[28px]">
                 <span className="material-symbols-outlined">{attr.icon}</span>
               </div>
-              <div className="aimapui-popup-attr-text">
-                <p className="aimapui-popup-attr-label">{attr.label}</p>
-                <p className="aimapui-popup-attr-value" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
+              <div>
+                <p className="text-sm leading-5 text-on-surface-variant m-0">{attr.label}</p>
+                <p className="text-sm leading-5 font-medium text-on-surface m-0" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
                   {attr.value}
                 </p>
               </div>
@@ -334,9 +336,12 @@ function AttributeList({
 
         // Compact/Standard 模式 — 标签-值左右对齐
         return (
-          <div key={i} className="aimapui-popup-attr">
-            <p className="aimapui-popup-attr-label">{attr.label}</p>
-            <p className="aimapui-popup-attr-value" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
+          <div key={i} className={cx(
+            'flex justify-between items-baseline gap-2',
+            isCompact && 'py-2 border-b border-outline-variant/30 last:border-b-0 last:pb-0 first:pt-0',
+          )}>
+            <p className="text-sm leading-5 text-on-surface-variant m-0">{attr.label}</p>
+            <p className="text-sm leading-5 font-medium text-on-surface m-0 text-right" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
               {attr.value}
             </p>
           </div>
@@ -349,15 +354,15 @@ function AttributeList({
 /** 底部操作栏 */
 function ActionBar({ actions }: { actions: PopupAction[] }) {
   return (
-    <div className="aimapui-popup-actions">
+    <div className="flex gap-3 px-4 pb-4">
       {actions.map((action, i) => (
         <button
           key={i}
           className={cx(
-            'aimapui-popup-action-btn',
+            'flex-1 py-2.5 text-sm leading-5 font-semibold rounded-lg border-none cursor-pointer transition-all duration-150 active:scale-[0.98]',
             action.variant === 'secondary'
-              ? 'aimapui-popup-action-btn--secondary'
-              : 'aimapui-popup-action-btn--primary',
+              ? 'bg-transparent text-on-surface border-2 border-solid border-outline-variant hover:bg-surface-container-low'
+              : 'bg-primary text-on-primary shadow-sm hover:shadow-[0_4px_12px_rgba(0,74,198,0.3)]',
           )}
           onClick={action.onClick}
         >
@@ -651,14 +656,14 @@ export function Popup({
     if (!hasStructuredContent) {
       if (isHtmlString(content)) {
         return (
-          <div className="aimapui-popup-body">
+          <div className="aimapui-popup-body relative p-4 pt-2 pr-10 text-sm leading-5 text-on-surface break-words whitespace-normal">
             {closeButton && <CloseButton onClick={handleClose} />}
             <div dangerouslySetInnerHTML={{ __html: content }} />
           </div>
         );
       }
       return (
-        <div className="aimapui-popup-body">
+        <div className="aimapui-popup-body relative p-4 pt-2 pr-10 text-sm leading-5 text-on-surface break-words whitespace-normal">
           {closeButton && <CloseButton onClick={handleClose} />}
           <div>{content ?? ''}</div>
         </div>
@@ -687,7 +692,7 @@ export function Popup({
         )}
 
         {/* 内容区 */}
-        <div className="aimapui-popup-body">
+        <div className="aimapui-popup-body relative p-4 text-sm leading-5 text-on-surface break-words whitespace-normal">
           {/* 非结构化内容传入时作为 body 补充 */}
           {content && !isHtmlString(content) && typeof content !== 'string' && <div>{content}</div>}
           {content && isHtmlString(content) && (
@@ -740,7 +745,7 @@ export function Popup({
       {currentPlacement === 'right' && <PopupTip placement={currentPlacement} />}
 
       {/* Popup 内容容器 - MD3 玻璃拟态 */}
-      <div className={cx('aimapui-popup-content', exiting && 'aimapui-popup-content--exit', className)}>
+      <div className={cx('aimapui-popup-content overflow-hidden rounded-xl', exiting && 'aimapui-popup-content--exit', className)}>
         {renderContent()}
       </div>
 

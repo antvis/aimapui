@@ -31,3 +31,5 @@ coverage/
 *.local
 
 .aone_copilot/
+
+dist-site/

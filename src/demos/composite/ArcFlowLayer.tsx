@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, ZoomControl } from '../../index';
+import { AiMap, ZoomControl } from '../../index';
 import { ArcFlowLayer } from '../../components/CompositeLayer/ArcFlowLayer';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import { LegendCategories } from '../../components/Legend/LegendCategories';
@@ -43,7 +43,7 @@ export default function ArcFlowLayerDemo() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [112, 32],
@@ -86,7 +86,7 @@ export default function ArcFlowLayerDemo() {
           labels={['核心枢纽 (80+)', '标准流向 (40~80)', '基础关联 (<40)']}
           colors={['#2563eb', '#60a5fa', '#93c5fd']}
         />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

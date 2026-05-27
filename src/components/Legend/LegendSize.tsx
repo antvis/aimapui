@@ -29,11 +29,15 @@ export function LegendSize({
   const maxSize = Math.max(...items.map((it) => it.size), 1);
 
   return (
-    <div className={cx('aimapui-legend-section', className)}>
-      {title && <div className="aimapui-legend-title">{title}</div>}
+    <div className={cx(className)}>
+      {title && (
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+          {title}
+        </div>
+      )}
 
-      <div className="aimapui-legend-size">
-        <div className="aimapui-legend-size-row">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-end gap-2 px-1">
           {items.map((item, i) => (
             <div
               key={i}
@@ -46,7 +50,7 @@ export function LegendSize({
               }}
             >
               <div
-                className="aimapui-legend-size-circle"
+                className="rounded-full shrink-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]"
                 style={{
                   width: item.size,
                   height: item.size,
@@ -57,9 +61,9 @@ export function LegendSize({
             </div>
           ))}
         </div>
-        <div className="aimapui-legend-size-labels">
+        <div className="flex items-end gap-2 mt-1">
           {items.map((item, i) => (
-            <span key={i} className="aimapui-legend-size-label">
+            <span key={i} className="font-mono text-[11px] leading-3.5 text-on-surface-variant whitespace-nowrap">
               {item.label}
             </span>
           ))}

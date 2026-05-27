@@ -1,5 +1,5 @@
 import React from 'react';
-import { Aimap, MapThemeControl } from '../../index';
+import { AiMap, MapThemeControl } from '../../index';
 /**
  * 主题切换控件 — MapThemeControl
  *
@@ -11,7 +11,7 @@ import { Aimap, MapThemeControl } from '../../index';
 export default function Demo06MapTheme() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [116.397, 39.909],
@@ -20,7 +20,7 @@ export default function Demo06MapTheme() {
         }}
       >
         <MapThemeControl />
-      </Aimap>
+      </AiMap>
 </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, PointLayer, ZoomControl } from '../../index';
+import { AiMap, PointLayer, ZoomControl } from '../../index';
 import { Tooltip } from '../../components/Interaction/Tooltip';
 import type { LayerEventPayload } from '../../schema/types';
 
@@ -28,7 +28,7 @@ export default function Demo10SizeMapping() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [121.473, 31.23],
@@ -52,7 +52,7 @@ export default function Demo10SizeMapping() {
           items={[{ label: '数值', value: tooltipInfo.value }]}
         />
         <ZoomControl />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

@@ -2,9 +2,9 @@
  * JSON Schema 导出 — 供 AI / LLM 理解 Schema 结构
  * 可用于验证、自动补全、文档生成等场景
  */
-export const AimapJSONSchema = {
+export const AiMapJSONSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
-  title: 'AimapSchema',
+  title: 'AiMapSchema',
   description: 'Schema-driven React map visualization component configuration',
   type: 'object',
   required: ['map', 'layers'],
@@ -308,4 +308,4 @@ export const AimapJSONSchema = {
   },
 } as const;
 
-export default AimapJSONSchema;
+export default AiMapJSONSchema;

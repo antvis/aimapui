@@ -1,12 +1,12 @@
 import React from 'react';
-import { Aimap, ImageLayer, RasterLayer, ZoomControl } from '../../index';
+import { AiMap, ImageLayer, RasterLayer, ZoomControl } from '../../index';
 /**
  * 图片图层
  */
 export default function Demo28ImageLayer() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'map',
           center: [121.268, 30.3628],
@@ -27,7 +27,7 @@ export default function Demo28ImageLayer() {
           sourceConfig={{ parser: { type: 'image', extent: [121.168, 30.2828, 121.384, 30.4219] } }}
         />
         <ZoomControl />
-      </Aimap>
+      </AiMap>
 </div>
   );
 }

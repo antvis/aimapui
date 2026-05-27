@@ -47,9 +47,13 @@ export function LegendIcon({ title, items, className, interaction }: LegendIconP
   };
 
   return (
-    <div className={cx('aimapui-legend-section', className)}>
-      {title && <div className="aimapui-legend-title">{title}</div>}
-      <div className="aimapui-legend-icon">
+    <div className={cx(className)}>
+      {title && (
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+          {title}
+        </div>
+      )}
+      <div className="flex flex-col gap-1">
         {items.map((item, i) => {
           const isDimmed =
             hoveredIndex >= 0
@@ -60,8 +64,8 @@ export function LegendIcon({ title, items, className, interaction }: LegendIconP
             <div
               key={i}
               className={cx(
-                'aimapui-legend-icon-item',
-                isDimmed && 'aimapui-legend-icon-item--dimmed',
+                'flex items-center gap-2 px-1 py-0.5 rounded cursor-pointer select-none transition-[background,opacity] duration-150 hover:bg-primary/[0.06]',
+                isDimmed && 'opacity-35',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
@@ -70,7 +74,7 @@ export function LegendIcon({ title, items, className, interaction }: LegendIconP
               <img
                 src={item.icon}
                 alt={item.label}
-                className="aimapui-legend-icon-img"
+                className="size-5 object-contain shrink-0"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
@@ -78,10 +82,12 @@ export function LegendIcon({ title, items, className, interaction }: LegendIconP
                   if (fallback) fallback.style.display = 'flex';
                 }}
               />
-              <span className="aimapui-legend-icon-fallback" style={{ display: 'none' }}>
+              <span
+                className="size-5 hidden items-center justify-center shrink-0 text-base leading-none text-on-surface-variant"
+              >
                 □
               </span>
-              <span className="aimapui-legend-icon-label">{item.label}</span>
+              <span className="text-xs leading-4 text-on-surface">{item.label}</span>
             </div>
           );
         })}

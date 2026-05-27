@@ -1,10 +1,10 @@
 import React, { createContext, useContext } from 'react';
-import type { AimapSchema } from '../schema/types';
+import type { AiMapSchema } from '../schema/types';
 
-const SchemaContext = createContext<AimapSchema | null>(null);
+const SchemaContext = createContext<AiMapSchema | null>(null);
 
 export interface SchemaProviderProps {
-  schema: AimapSchema;
+  schema: AiMapSchema;
   children: React.ReactNode;
 }
 
@@ -16,7 +16,7 @@ export function SchemaProvider({ schema, children }: SchemaProviderProps) {
   );
 }
 
-export function useSchema(): AimapSchema | null {
+export function useSchema(): AiMapSchema | null {
   return useContext(SchemaContext);
 }
 

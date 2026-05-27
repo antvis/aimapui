@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Aimap, SatelliteLayer, ZoomControl } from '../../index';
+import { AiMap, SatelliteLayer, ZoomControl } from '../../index';
 import type { SatelliteProvider } from '../../index';
 
 /**
@@ -16,7 +16,7 @@ export default function DemoSatelliteLayer() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'map',
           center: [116.39, 39.9],
@@ -27,7 +27,7 @@ export default function DemoSatelliteLayer() {
       >
         <SatelliteLayer provider={provider} />
         <ZoomControl />
-      </Aimap>
+      </AiMap>
 
       {/* 影像源切换面板 */}
       <div

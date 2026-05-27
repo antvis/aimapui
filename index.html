@@ -3,17 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>aimapui Dev Demos</title>
+  <title>AiMapUI Dev Demos</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   
-  <!-- Material Design 3 Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@450&display=swap" rel="stylesheet"/>
-  
-  <!-- Material Symbols -->
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <!-- Fonts loaded locally via JS imports (see src/demos/main.tsx) -->
   
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body, #root { width: 100%; height: 100%; }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: translateX(0); }
+      50% { opacity: 0.6; transform: translateX(-2px); }
+    }
+    .pulse-hint { animation: pulse-glow 2s ease-in-out infinite; }
   </style>
 </head>
 <body>

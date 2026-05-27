@@ -1,5 +1,5 @@
 import React from 'react';
-import { Aimap, PointLayer, ExportImageControl } from '../../index';
+import { AiMap, PointLayer, ExportImageControl } from '../../index';
 const cities = [
   { lng: 116.4, lat: 39.9, name: '北京', value: 100 },
   { lng: 121.5, lat: 31.2, name: '上海', value: 90 },
@@ -15,7 +15,7 @@ const cities = [
 export default function Demo08ExportImage() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [108, 32],
@@ -25,7 +25,7 @@ export default function Demo08ExportImage() {
       >
         <PointLayer source={cities} color="#5B8FF9" size={12} />
         <ExportImageControl />
-      </Aimap>
+      </AiMap>
 </div>
   );
 }

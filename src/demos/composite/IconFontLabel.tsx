@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Aimap, IconFontLayer, ZoomControl } from '../../index';
+import { AiMap, IconFontLayer, ZoomControl } from '../../index';
 
 /**
  * 字体图标标注（IconFontLayer + Material Symbols Demo）
@@ -38,7 +38,7 @@ export default function DemoIconFontLabel() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap map={{ basemap: 'gaode', center: [121.434765, 31.256735], zoom: 14.83, style: 'dark' }}>
+      <AiMap map={{ basemap: 'gaode', center: [121.434765, 31.256735], zoom: 14.83, style: 'dark' }}>
         {mappedData && (
           <IconFontLayer
             source={mappedData}
@@ -65,7 +65,7 @@ export default function DemoIconFontLabel() {
           />
         )}
         <ZoomControl />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

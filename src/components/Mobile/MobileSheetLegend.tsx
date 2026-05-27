@@ -42,7 +42,7 @@ export function MobileSheetLegend({
         className,
       )}
     >
-      <div className="aimapui-legend" style={{ maxHeight: 'none', position: 'static' }}>
+      <div className="rounded-xl border border-outline-variant/30 bg-surface/80 backdrop-blur-md p-3 px-3.5 text-on-surface shadow-lg">
         <button
           onClick={() => setExpanded(!expanded)}
           className="w-full flex items-center justify-between px-0 py-3 text-label-caps font-label-caps uppercase"
@@ -68,7 +68,7 @@ export function MobileSheetLegend({
           </svg>
         </button>
         {expanded && (
-          <div className="aimapui-legend-group custom-scrollbar" style={{ maxHeight: '55vh', overflowY: 'auto' }}>
+          <div className="flex flex-col gap-4 [&>*+*]:border-t [&>*+*]:border-outline-variant/20 [&>*+*]:pt-4 custom-scrollbar" style={{ maxHeight: '55vh', overflowY: 'auto' }}>
             {legends.map((legend, index) => (
               <LegendItem
                 key={`mobile-legend-${index}`}

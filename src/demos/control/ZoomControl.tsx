@@ -1,5 +1,5 @@
 import React from 'react';
-import { Aimap, ZoomControl, ScaleControl } from '../../index';
+import { AiMap, ZoomControl, ScaleControl } from '../../index';
 /**
  * 缩放 & 比例尺 — ZoomControl + ScaleControl
  *
@@ -11,7 +11,7 @@ import { Aimap, ZoomControl, ScaleControl } from '../../index';
 export default function Demo03ZoomControl() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [116.397, 39.909],
@@ -21,7 +21,7 @@ export default function Demo03ZoomControl() {
       >
         <ZoomControl />
         <ScaleControl />
-      </Aimap>
+      </AiMap>
 </div>
   );
 }

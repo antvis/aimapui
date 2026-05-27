@@ -299,13 +299,13 @@ export function Tooltip({
     if (hasStructuredContent) {
       return (
         <>
-          {title && <p className="aimapui-tooltip-title">{title}</p>}
+          {title && <p className="font-sans text-xs leading-4 font-semibold m-0 mb-0.5">{title}</p>}
           {items && items.length > 0 && (
-            <div className="aimapui-tooltip-items">
+            <div className="flex flex-col gap-0.5">
               {items.map((item, i) => (
-                <div key={i} className="aimapui-tooltip-item">
-                  <span className="aimapui-tooltip-item-label">{item.label}</span>
-                  <span className="aimapui-tooltip-item-value">{item.value}</span>
+                <div key={i} className="flex justify-between items-center gap-3">
+                  <span className="text-xs leading-4 font-normal opacity-70 m-0">{item.label}</span>
+                  <span className="font-mono text-xs leading-4 font-[450] text-right m-0">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -337,6 +337,7 @@ export function Tooltip({
       <div className={`aimapui-tooltip-arrow aimapui-tooltip-arrow--${arrowDirection}`} />
     </div>
   );
+
 
   // 统一 portal 到 document.body，使用 fixed 定位 + viewport 坐标
   return createPortal(tooltipElement, document.body);

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Aimap, ArcFlowLayer, ZoomControl, MapThemeControl } from '../../index';
+import { AiMap, ArcFlowLayer, ZoomControl, MapThemeControl } from '../../index';
 import type { ArcFlowDataItem } from '../../index';
 
 /* ================================================================
@@ -102,7 +102,7 @@ export default function FlightRouteMap() {
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", background: '#0f172a' }}>
       {/* 地图区域 */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: NAV_HEIGHT }}>
-        <Aimap
+        <AiMap
           map={{
             basemap: 'gaode',
             center: [105, 30],
@@ -130,7 +130,7 @@ export default function FlightRouteMap() {
 
           <ZoomControl position="bottomright" showZoom />
           <MapThemeControl position="topright" />
-        </Aimap>
+        </AiMap>
       </div>
 
       {/* ═══════ 顶部标题栏 ═══════ */}

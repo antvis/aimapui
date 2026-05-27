@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { Aimap } from '../../components/Aimap';
+import { AiMap } from '../../components/AiMap';
 import { Marker } from '../../components/Interaction/Marker';
 
 /* ================================================================
@@ -356,7 +356,7 @@ export default function InterestMap() {
 
       {/* ========== 地图区域 ========== */}
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
-        <Aimap
+        <AiMap
           map={{
             basemap: 'gaode',
             center: [116.338, 39.985],
@@ -381,7 +381,7 @@ export default function InterestMap() {
               }
             />
           ))}
-        </Aimap>
+        </AiMap>
 
         {/* ── 右下角浮动按钮组 ── */}
         <div

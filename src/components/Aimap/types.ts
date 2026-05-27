@@ -1,17 +1,17 @@
 import type { MapTheme } from '../../context/ThemeContext';
-import type { AimapSchema, MapSchema, LayerEventPayload, MapEventPayload, EventSchema } from '../../schema/types';
+import type { AiMapSchema, MapSchema, LayerEventPayload, MapEventPayload, EventSchema } from '../../schema/types';
 import type { Scene } from '@antv/l7';
 import type React from 'react';
 
-export interface AimapProps {
+export interface AiMapProps {
   /**
    * 组件化模式：只传地图配置，图层/控件/交互通过子组件添加
    *
    * ```tsx
-   * <Aimap map={{ basemap: 'gaode', center: [116, 39], zoom: 10 }}>
+   * <AiMap map={{ basemap: 'gaode', center: [116, 39], zoom: 10 }}>
    *   <PointLayer source={data} color="#5B8FF9" size={12} />
    *   <ZoomControl />
-   * </Aimap>
+   * </AiMap>
    * ```
    */
   map?: MapSchema;
@@ -20,10 +20,10 @@ export interface AimapProps {
    * Schema 模式：通过完整 JSON Schema 一次性配置（AI 生成场景）
    *
    * ```tsx
-   * <Aimap schema={fullSchema} />
+   * <AiMap schema={fullSchema} />
    * ```
    */
-  schema?: AimapSchema;
+  schema?: AiMapSchema;
 
   /**
    * 主题模式

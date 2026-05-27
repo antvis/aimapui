@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap, Popup, Marker, ZoomControl } from '../../index';
+import { AiMap, Popup, Marker, ZoomControl } from '../../index';
 import type { PopupHeader, PopupAttribute, PopupAction } from '../../index';
 
 /**
@@ -81,7 +81,7 @@ export default function Demo11Popup() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [116.397, 39.909],
@@ -156,7 +156,7 @@ export default function Demo11Popup() {
         ))}
 
         <ZoomControl />
-      </Aimap>
+      </AiMap>
 
       {/* 图例面板 */}
       <div style={{

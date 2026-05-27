@@ -27,9 +27,9 @@ export interface PointLayerProps
  * 点图层组件
  *
  * ```tsx
- * <Aimap map={{ basemap: 'gaode' }}>
+ * <AiMap map={{ basemap: 'gaode' }}>
  *   <PointLayer source={data} color="#5B8FF9" size={12} />
- * </Aimap>
+ * </AiMap>
  * ```
  */
 export function PointLayer({

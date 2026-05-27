@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import type { Scene } from '@antv/l7';
-import { Aimap, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl } from '../../index';
+import { AiMap, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl } from '../../index';
 import type { ThemeOption } from '../../index';
 
 const TDT_TOKEN = 'b88bfb160c81dab8d9d20aaa74846360';
@@ -78,7 +78,7 @@ export default function TiandituMap() {
   }, []);
 
   return (
-    <Aimap
+    <AiMap
       map={{
         basemap: 'tianditu',
         token: TDT_TOKEN,
@@ -96,6 +96,6 @@ export default function TiandituMap() {
         defaultValue={currentTheme}
         onThemeChange={handleThemeChange}
       />
-    </Aimap>
+    </AiMap>
   );
 }

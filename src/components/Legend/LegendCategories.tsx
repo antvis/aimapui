@@ -55,12 +55,16 @@ export function LegendCategories({
   };
 
   return (
-    <div className={cx('aimapui-legend-section', className)}>
-      {title && <div className="aimapui-legend-title">{title}</div>}
+    <div className={cx(className)}>
+      {title && (
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+          {title}
+        </div>
+      )}
       <div
         className={cx(
-          'aimapui-legend-categories',
-          grid && 'aimapui-legend-categories--grid',
+          'flex flex-col gap-1',
+          grid && 'grid grid-cols-2 gap-x-3 gap-y-1',
         )}
       >
         {labels.map((label, i) => {
@@ -73,8 +77,8 @@ export function LegendCategories({
             <div
               key={i}
               className={cx(
-                'aimapui-legend-cat-item',
-                isDimmed && 'aimapui-legend-cat-item--dimmed',
+                'flex items-center gap-2 rounded px-1 py-0.5 cursor-pointer select-none transition-[background,opacity] duration-150 hover:bg-primary/[0.06]',
+                isDimmed && 'opacity-35',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
               onMouseLeave={handleMouseLeave}
@@ -82,12 +86,14 @@ export function LegendCategories({
             >
               <span
                 className={cx(
-                  'aimapui-legend-cat-swatch',
-                  swatchShape === 'circle' && 'aimapui-legend-cat-swatch--circle',
+                  'size-3 shrink-0 rounded-sm shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)] transition-opacity duration-150',
+                  swatchShape === 'circle' && 'rounded-full',
                 )}
                 style={{ backgroundColor: colors[i] ?? '#ccc' }}
               />
-              <span className="aimapui-legend-cat-label">{label}</span>
+              <span className="text-xs leading-4 text-on-surface truncate">
+                {label}
+              </span>
             </div>
           );
         })}

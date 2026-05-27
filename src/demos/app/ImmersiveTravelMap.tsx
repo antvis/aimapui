@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Aimap } from '../../components/Aimap';
+import { AiMap } from '../../components/AiMap';
 import { ZoomControl } from '../../components/Control/ZoomControl';
 import { MapThemeControl } from '../../components/Control/MapThemeControl';
 import { Marker } from '../../components/Interaction/Marker';
@@ -56,7 +56,7 @@ export default function ImmersiveTravelMap() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', fontFamily: "'Inter', system-ui, sans-serif" }}>
       {/* 地图主体 — 全屏沉浸 */}
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [20, 30],
@@ -143,7 +143,7 @@ export default function ImmersiveTravelMap() {
             </div>
           </Marker>
         ))}
-      </Aimap>
+      </AiMap>
 
       {/* ═══════ 悬浮状态栏 (Floating Status Bar) ═══════ */}
       <div style={{

@@ -7,12 +7,12 @@
 import './styles/tailwind.css';
 
 // 主入口组件
-export { Aimap } from './components/Aimap';
-export type { AimapProps } from './components/Aimap/types';
+export { AiMap } from './components/AiMap';
+export type { AiMapProps } from './components/AiMap/types';
 
 // Schema 类型
 export type {
-  AimapSchema,
+  AiMapSchema,
   MapSchema,
   BasemapType,
   MapStylePreset,
@@ -60,9 +60,9 @@ export { applySchemaDefaults, applyMapDefaults, applyLayerDefaults, applyControl
 export { parseSchema, validateSchema } from './core/parser';
 export { diffSchema } from './core/diff';
 export type { SchemaDiffResult } from './core/diff';
-export { validateAimapSchema } from './schema/validator';
+export { validateAiMapSchema } from './schema/validator';
 export type { ValidationError } from './schema/validator';
-export { AimapJSONSchema } from './schema/json-schema';
+export { AiMapJSONSchema } from './schema/json-schema';
 
 // 事件总线
 export { EventBus, createEventBus } from './core/event-bus';
@@ -81,10 +81,12 @@ export type { ScreenPosition } from './hooks/useMapPosition';
 export { useMapControl } from './hooks/useMapControl';
 export type { ControlPosition as L7ControlPosition, ControlProps } from './hooks/useMapControl';
 
-// 底图工厂
+// 底图工厂（内部使用，不推荐直接调用）
+/** @internal */
 export { createBasemap } from './components/MapScene/basemap-factory';
 
 // 组件
+/** @internal */
 export { MapSceneRenderer } from './components/MapScene/MapSceneRenderer';
 export { LayerRenderer } from './components/Layer/LayerRenderer';
 export type { LayerEventHandlers } from './components/Layer/SchemaLayer';

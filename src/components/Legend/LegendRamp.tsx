@@ -74,15 +74,19 @@ export function LegendRamp({
   );
 
   return (
-    <div className={cx('aimapui-legend-section', className)}>
-      {title && <div className="aimapui-legend-title">{title}</div>}
+    <div className={cx(className)}>
+      {title && (
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+          {title}
+        </div>
+      )}
 
       {/* 色条 */}
-      <div className="aimapui-legend-ramp" ref={barRef}>
+      <div className="flex flex-col gap-1" ref={barRef}>
         <div
           className={cx(
-            'aimapui-legend-ramp-bar',
-            isContinuous && 'aimapui-legend-ramp-bar--continuous',
+            'flex h-3 rounded overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]',
+            isContinuous && 'bg-[length:100%_100%]',
           )}
           style={
             isContinuous
@@ -94,7 +98,7 @@ export function LegendRamp({
             colors.map((color, i) => (
               <div
                 key={i}
-                className="aimapui-legend-ramp-segment"
+                className="flex-1 relative"
                 style={{ backgroundColor: color }}
               />
             ))}
@@ -102,12 +106,12 @@ export function LegendRamp({
 
         {/* 刻度线 */}
         {showTicks && (
-          <div className="aimapui-legend-ramp-ticks">
+          <div className="flex justify-between h-1.5 mt-0.5">
             {colors.map((_, i) =>
               i === 0 ? null : (
                 <div
                   key={i}
-                  className="aimapui-legend-ramp-tick"
+                  className="w-px h-full bg-outline-variant"
                   style={{
                     position: 'absolute',
                     left: `${(i / (colors.length - 1)) * 100}%`,
@@ -119,7 +123,7 @@ export function LegendRamp({
         )}
 
         {/* 标签 */}
-        <div className="aimapui-legend-ramp-labels">
+        <div className="flex justify-between font-mono text-[11px] leading-3.5 font-[450] text-on-surface-variant">
           <span>{labels[0]}</span>
           {labels.length > 2 && (
             <span>{labels[Math.floor(labels.length / 2)]}</span>
@@ -129,21 +133,21 @@ export function LegendRamp({
 
         {/* 范围刷选 */}
         {brushable && (
-          <div className="aimapui-legend-ramp-brush">
+          <div className="relative h-3 mt-1 cursor-ew-resize">
             <div
-              className="aimapui-legend-ramp-brush-range"
+              className="absolute top-0 h-full border-2 border-primary rounded-sm bg-primary/10 pointer-events-none"
               style={{
                 left: `${brushRange[0]}%`,
                 width: `${brushRange[1] - brushRange[0]}%`,
               }}
             />
             <div
-              className="aimapui-legend-ramp-brush-handle"
+              className="absolute top-1/2 w-2 h-4 bg-primary rounded-sm -translate-x-1/2 -translate-y-1/2 cursor-ew-resize shadow-sm hover:shadow-md hover:shadow-primary/30 transition-shadow duration-150"
               style={{ left: `${brushRange[0]}%` }}
               onMouseDown={handleBrushMouseDown('left')}
             />
             <div
-              className="aimapui-legend-ramp-brush-handle"
+              className="absolute top-1/2 w-2 h-4 bg-primary rounded-sm -translate-x-1/2 -translate-y-1/2 cursor-ew-resize shadow-sm hover:shadow-md hover:shadow-primary/30 transition-shadow duration-150"
               style={{ left: `${brushRange[1]}%` }}
               onMouseDown={handleBrushMouseDown('right')}
             />

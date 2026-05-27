@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Aimap, FillLayer, ZoomControl } from '../../index';
+import { AiMap, FillLayer, ZoomControl } from '../../index';
 
 /**
  * 填充图（填充 + 描边 + 文字）— 使用 Tooltip
@@ -16,7 +16,7 @@ export default function Demo24FillStrokeText() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap map={{ basemap: 'gaode', center: [116.368652, 39.93866], zoom: 10.07, style: 'light' }}>
+      <AiMap map={{ basemap: 'gaode', center: [116.368652, 39.93866], zoom: 10.07, style: 'light' }}>
         {data && (
           <FillLayer
             source={data}
@@ -34,7 +34,7 @@ export default function Demo24FillStrokeText() {
           />
         )}
         <ZoomControl />
-      </Aimap>
+      </AiMap>
     </div>
   );
 }

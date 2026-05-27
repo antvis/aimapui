@@ -27,9 +27,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build",
-    "site:install": "cd site && npm install",
-    "site:dev": "cd site && npm run dev",
-    "site:build": "cd site && npm run build"
+    "site:dev": "vite --config vite.config.site.ts",
+    "site:build": "vite build --config vite.config.site.ts && npx tsx scripts/generate-static-html.ts",
+    "site:preview": "vite preview --config vite.config.site.ts"
   },
   "dependencies": {
     "@antv/l7": "2.28.10",
@@ -37,6 +37,8 @@
     "ahooks": "^3.8.4",
     "clsx": "^2.1.1",
     "geotiff": "^3.0.5",
+    "highlight.js": "^11.11.1",
+    "marked": "^18.0.4",
     "supercluster": "^8.0.1"
   },
   "peerDependencies": {
@@ -44,16 +46,21 @@
     "react-dom": ">=18.0.0"
   },
   "devDependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "@tailwindcss/vite": "^4.0.0",
+    "@types/marked": "^6.0.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/supercluster": "^7.1.3",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
+    "material-symbols": "^0.44.9",
     "postcss": "^8.4.49",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwindcss": "^4.0.0",
+    "tsx": "^4.22.3",
     "typescript": "^5.7.2",
     "vite": "^6.0.0",
     "vite-plugin-dts": "^4.3.0",
