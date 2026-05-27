@@ -72,6 +72,7 @@ export default function Demo20BubbleText() {
             labelAnchor="top"
             labelTrigger="always"
             labelOffset={[0, -8]}
+            tooltipEffect={false}
             onClick={handleBubbleClick}
           />
         )}
