@@ -1,5 +1,5 @@
 import React from 'react';
-import { Aimap, MarkerClusterLayer } from '../../index';
+import { AiMap, MarkerClusterLayer } from '../../index';
 /**
  * 聚合标注 — MarkerClusterLayer 组件
  *
@@ -72,7 +72,7 @@ export default function Demo33MarkerCluster() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Aimap
+      <AiMap
         map={{
           basemap: 'gaode',
           center: [116.397, 39.909],
@@ -91,12 +91,12 @@ export default function Demo33MarkerCluster() {
             // eslint-disable-next-line no-console
             console.log('点击点位:', point.properties?.name);
           }}
-          onClusterClick={(cluster: any) => {
+          onClusterClick={(cluster: any, leaves: any[]) => {
             // eslint-disable-next-line no-console
-            console.log('点击聚合点:', cluster.points.length, '个要素');
+            console.log('点击聚合点:', leaves.length, '个要素');
           }}
         />
-      </Aimap>
+      </AiMap>
 {/* 图例说明 */}
       <div
         style={{

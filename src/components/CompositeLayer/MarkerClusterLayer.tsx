@@ -36,7 +36,12 @@ export interface MarkerClusterLayerProps {
   easing?: string;
 
   onPointClick?: (point: ClusterPoint) => void;
-  onClusterClick?: (cluster: ClusterItem) => void;
+  /** 
+   * 聚合点点击回调
+   * @param cluster 聚合信息
+   * @param leaves 聚合包含的所有原始要素（Supercluster 叶子节点）
+   */
+  onClusterClick?: (cluster: ClusterItem, leaves?: any[]) => void;
 }
 
 /**
@@ -204,10 +209,18 @@ export function MarkerClusterLayer({
   const handleClusterClick = useCallback(
     (item: ClusterItem) => {
       if (!scene || !item.isCluster) return;
-      onClusterClick?.(item);
+      
+      // 获取叶子节点用于回调
+      let leaves: any[] = [];
+      const index = indexRef.current;
+      if (index) {
+        leaves = index.getLeaves(item.clusterId, Infinity);
+      }
+      
+      // 传递 cluster item 和叶子节点
+      onClusterClick?.(item, leaves);
 
       try {
-        const index = indexRef.current;
         const maxZoom = 20;
         const currentZoom = scene.getZoom();
 
@@ -217,20 +230,17 @@ export function MarkerClusterLayer({
           return;
         }
 
-        if (index) {
+        if (leaves.length > 0) {
           // 使用 supercluster 获取子叶点边界，fitBounds 展开聚合
-          const leaves = index.getLeaves(item.clusterId, Infinity);
-          if (leaves.length > 0) {
-            const coords = leaves.map((l) => l.geometry.coordinates);
-            const lngs = coords.map((c) => c[0]);
-            const lats = coords.map((c) => c[1]);
-            const sw: [number, number] = [Math.min(...lngs), Math.min(...lats)];
-            const ne: [number, number] = [Math.max(...lngs), Math.max(...lats)];
-            scene.fitBounds([sw, ne], {
-              padding: [40, 40, 40, 40] as [number, number, number, number],
-              duration: animationDuration,
-            });
-          }
+          const coords = leaves.map((l: any) => l.geometry.coordinates);
+          const lngs = coords.map((c: number[]) => c[0]);
+          const lats = coords.map((c: number[]) => c[1]);
+          const sw: [number, number] = [Math.min(...lngs), Math.min(...lats)];
+          const ne: [number, number] = [Math.max(...lngs), Math.max(...lats)];
+          scene.fitBounds([sw, ne], {
+            padding: [40, 40, 40, 40] as [number, number, number, number],
+            duration: animationDuration,
+          });
         }
       } catch {
         // ignore
