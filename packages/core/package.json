@@ -1,0 +1,74 @@
+{
+  "name": "@antv/aimapui",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Schema/DSL-driven React map visualization component library powered by L7",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && vite build && vite build --config vite.config.cjs.ts",
+    "build:esm": "vite build",
+    "build:cjs": "vite build --config vite.config.cjs.ts",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@antv/l7": "2.28.11",
+    "@antv/l7-maps": "2.28.11",
+    "ahooks": "^3.8.4",
+    "clsx": "^2.1.1",
+    "geotiff": "^3.0.5",
+    "supercluster": "^8.0.1"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/supercluster": "^7.1.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.3.0",
+    "vitest": "^2.1.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antvis/aimapui",
+    "directory": "packages/core"
+  },
+  "keywords": [
+    "antv",
+    "l7",
+    "map",
+    "visualization",
+    "react",
+    "schema",
+    "dsl",
+    "geo"
+  ]
+}

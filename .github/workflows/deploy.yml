@@ -25,7 +25,7 @@ jobs:
         run: pnpm install
 
       - name: Build site
-        run: pnpm site:build
+        run: pnpm build:site
 
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25

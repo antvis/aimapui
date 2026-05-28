@@ -1,90 +1,29 @@
 {
-  "name": "@antv/aimapui",
+  "name": "aimapkit-monorepo",
   "version": "0.1.0",
   "type": "module",
-  "description": "Schema/DSL-driven React map visualization component library powered by L7",
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js"
-    },
-    "./style.css": "./dist/style.css"
-  },
-  "files": [
-    "dist"
-  ],
+  "private": true,
+  "description": "Monorepo for @antv/aimapui — Schema/DSL-driven React map visualization powered by L7",
   "scripts": {
-    "dev": "vite",
-    "build": "rm -rf dist && vite build && vite build --config vite.config.cjs.ts",
-    "build:esm": "vite build",
-    "build:cjs": "vite build --config vite.config.cjs.ts",
-    "type-check": "tsc --noEmit",
-    "lint": "eslint src/",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "build:cli": "cd packages/cli && npm run build",
-    "build:all": "npm run build && npm run build:cli",
-    "publish:all": "npm run build:all && npm publish --access public && cd packages/cli && npm publish --access public",
-    "version:sync": "node -e \"const v=require('./package.json').version;const p='packages/cli/package.json';const c=JSON.parse(require('fs').readFileSync(p));c.version=v;require('fs').writeFileSync(p,JSON.stringify(c,null,2)+'\\n')\"",
-    "preversion": "npm run build:all",
-    "postversion": "npm run version:sync",
-    "prepublishOnly": "npm run build",
-    "site:dev": "vite --config vite.config.site.ts",
-    "site:build": "vite build --config vite.config.site.ts && npx tsx scripts/generate-static-html.ts",
-    "site:preview": "vite preview --config vite.config.site.ts"
-  },
-  "dependencies": {
-    "@antv/l7": "2.28.11",
-    "@antv/l7-maps": "2.28.11",
-    "ahooks": "^3.8.4",
-    "clsx": "^2.1.1",
-    "geotiff": "^3.0.5",
-    "highlight.js": "^11.11.1",
-    "marked": "^18.0.4",
-    "supercluster": "^8.0.1"
-  },
-  "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "dev": "pnpm --filter @antv/aimapui-site dev",
+    "build": "pnpm --filter @antv/aimapui build",
+    "build:cli": "pnpm --filter @antv/aimapui-cli build",
+    "build:site": "pnpm --filter @antv/aimapui-site build",
+    "build:all": "pnpm -r build",
+    "clean": "rm -rf dist-site packages/*/dist",
+    "type-check": "pnpm -r type-check",
+    "lint": "pnpm --filter @antv/aimapui lint",
+    "test": "pnpm --filter @antv/aimapui test",
+    "publish:all": "pnpm run build:all && pnpm --filter @antv/aimapui publish --access public --no-git-checks && pnpm --filter @antv/aimapui-cli publish --access public --no-git-checks",
+    "version:sync": "node -e \"const v=process.argv[1];const fs=require('fs');['packages/core/package.json','packages/cli/package.json'].forEach(p=>{const c=JSON.parse(fs.readFileSync(p));c.version=v;fs.writeFileSync(p,JSON.stringify(c,null,2)+'\\n');});\""
   },
   "devDependencies": {
-    "@fontsource/inter": "^5.2.8",
-    "@fontsource/jetbrains-mono": "^5.2.8",
-    "@tailwindcss/vite": "^4.0.0",
-    "@types/marked": "^6.0.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@types/supercluster": "^7.1.3",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
-    "material-symbols": "^0.44.9",
-    "postcss": "^8.4.49",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwindcss": "^4.0.0",
     "tsx": "^4.22.3",
-    "typescript": "^5.7.2",
-    "vite": "^6.0.0",
-    "vite-plugin-dts": "^4.3.0",
-    "vitest": "^2.1.0"
+    "typescript": "^5.7.2"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/antvis/aimapui"
-  },
-  "keywords": [
-    "antv",
-    "l7",
-    "map",
-    "visualization",
-    "react",
-    "schema",
-    "dsl",
-    "geo"
-  ]
+  }
 }

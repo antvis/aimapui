@@ -266,10 +266,10 @@ export async function add(componentNames: string[], options: AddOptions) {
     }
   }
 
-  // Determine source root (the project's root where src/ lives)
-  // From dist/commands/ -> dist/ -> packages/cli/ -> packages/ -> project root
+  // Determine source root (packages/core/ where src/ lives)
+  // From dist/commands/ -> dist/ -> packages/cli/ -> packages/ -> packages/core/
   const cliDir = path.dirname(path.dirname(path.dirname(fileURLToPath(import.meta.url))));
-  const sourceRoot = path.resolve(cliDir, '..', '..');
+  const sourceRoot = path.resolve(cliDir, '..', 'core');
 
   // Copy files
   console.log('');

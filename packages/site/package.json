@@ -1,0 +1,36 @@
+{
+  "name": "@antv/aimapui-site",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Demo site for @antv/aimapui",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && tsx ../../scripts/generate-static-html.ts",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@antv/aimapui": "workspace:*",
+    "@antv/l7": "2.28.11",
+    "@antv/l7-maps": "2.28.11",
+    "ahooks": "^3.8.4",
+    "highlight.js": "^11.11.1",
+    "marked": "^18.0.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/marked": "^6.0.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "material-symbols": "^0.44.9",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.22.3",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0"
+  }
+}
