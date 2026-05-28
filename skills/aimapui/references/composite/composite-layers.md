@@ -1,0 +1,215 @@
+# 复合图层（BubbleLayer / RouteLayer / ArcFlowLayer / GlyphLayer / IconLayer / ChinaDistrict / MarkerClusterLayer / HexagonLayer / FillLayer / SatelliteLayer / TiffRasterLayer）
+
+复合图层是基于基础图层组合的高级业务组件，内置设计规范和最佳实践。
+
+## BubbleLayer — 气泡图
+
+用圆的大小编码数值字段，适合在区域底图上叠加显示数值指标。
+
+```tsx
+import { BubbleLayer, BUBBLE_SIZE_LEVELS } from '@antv/aimapui';
+
+<BubbleLayer
+  source={cityData}
+  sourceType="geojson"
+  sizeField="population"
+  sizeValues={BUBBLE_SIZE_LEVELS}  // [8, 16, 32, 48, 64]
+  color="#2563eb"
+  labelField="name"
+  labelTrigger="hover"          // 'always' | 'hover'，大数据量用 hover
+  hoverEffect={true}            // 默认启用
+  clickEffect={true}            // 默认启用
+  tooltipEffect={true}          // 默认启用
+  semanticColorField="status"   // 按 primary/warning/error/success 着色
+/>
+```
+
+**专有属性：**
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `labelField` | `string` | `'name'` | 标签字段 |
+| `labelColor` | `string` | `'#0b3b8c'` | 标签颜色 |
+| `labelSize` | `number` | `12` | 标签字号 |
+| `showLabel` | `boolean` | `true` | 是否显示标签 |
+| `labelTrigger` | `'always' \| 'hover'` | `'always'` | 标签触发方式 |
+| `bubbleAnchor` | `BubbleAnchor` | `'bottom'` | 气泡锚点 |
+| `labelAnchor` | `BubbleAnchor` | `'top'` | 标签锚点 |
+| `hoverEffect` | `boolean` | `true` | hover 高亮 |
+| `clickEffect` | `boolean` | `true` | click 选中 |
+| `tooltipEffect` | `boolean` | `true` | 点击弹窗 |
+| `tooltipFields` | `string[]` | — | 弹窗展示字段 |
+| `tooltipTemplate` | `string` | — | 弹窗模板 `{{field}}` |
+| `semanticColorField` | `string` | — | 语义色板字段 |
+
+**内置常量：**
+- `BUBBLE_SIZE_LEVELS = [8, 16, 32, 48, 64]`
+- `BUBBLE_QUALITATIVE_COLORS = { primary: '#2563eb', warning: '#f59e0b', error: '#ef4444', success: '#10b981' }`
+
+> **何时选择：** 需要大小编码时用 BubbleLayer；只需颜色分类用 PointLayer；热力渐变用 HeatmapLayer。
+
+## RouteLayer — 路径地图
+
+序列化途经点 + 发光效果 + 分段着色 + 流动动画。
+
+```tsx
+import { RouteLayer } from '@antv/aimapui';
+
+<RouteLayer
+  path={[[120.15, 30.28], [120.17, 30.25], [120.20, 30.22]]}
+  stops={[
+    { lng: 120.15, lat: 30.28, name: '西湖' },
+    { lng: 120.20, lat: 30.22, name: '龙井' },
+  ]}
+  color="#2563eb"
+  lineWidth={4}
+  glow={true}
+  animate={true}
+  showStopIndex={true}
+  endColor="#10b981"
+  onPathClick={(p) => console.log(p)}
+/>
+```
+
+**专有属性：** `path`, `segments`, `stops`, `color`, `lineWidth`, `opacity`, `glow`, `animate`, `animateSpeed`, `stopSize`, `stopColor`, `endColor`, `showStopIndex`, `activeColor`, `onPathClick`, `onStopClick`
+
+**RouteStop:** `{ lng, lat, name, index?, type?: 'start' | 'end' | 'waypoint' }`
+
+**RouteSegment:** `{ coordinates: [number, number][], color?, width? }`
+
+## ArcFlowLayer — 弧线流向图
+
+OD 数据弧线动画。
+
+```tsx
+import { ArcFlowLayer } from '@antv/aimapui';
+
+<ArcFlowLayer
+  source={odData}
+  sourceConfig={{ x: 'fromLng', y: 'fromLat', x1: 'toLng', y1: 'toLat' }}
+  color="#5B8FF9"
+  size={2}
+  curvature={0.5}
+  animate={{ enable: true, speed: 1, duration: 2000, trailLength: 0.3 }}
+/>
+```
+
+**专有属性：** `curvature`, `colorMode`, `ArcFlowDataItem`
+
+## GlyphLayer — 图标字体图层
+
+Material Symbols 图标标注。
+
+```tsx
+import { GlyphLayer, BUILTIN_ICON_FONTS } from '@antv/aimapui';
+
+<GlyphLayer
+  source={poiData}
+  sourceConfig={{ x: 'lng', y: 'lat' }}
+  iconField="iconType"
+  iconValues={['restaurant', 'hotel', 'parking']}
+  labelField="name"
+  labelAnchor="top"
+/>
+```
+
+## IconLayer — 图标图片图层
+
+自定义图片图标。
+
+```tsx
+import { IconLayer } from '@antv/aimapui';
+
+<IconLayer
+  source={poiData}
+  sourceConfig={{ x: 'lng', y: 'lat' }}
+  iconField="iconType"
+  iconValues={{ airport: 'https://example.com/airport.png' }}
+  iconAnchor="bottom"
+/>
+```
+
+## ChinaDistrict — 行政区划下钻
+
+省市区三级下钻。
+
+```tsx
+import { ChinaDistrict, DEFAULT_PROVINCE_SOURCE } from '@antv/aimapui';
+
+<ChinaDistrict
+  level="province"    // 'province' | 'city' | 'district'
+  source={DEFAULT_PROVINCE_SOURCE}
+  colorField="value"
+  colorValues={['#f0f9e8', '#bae4bc', '#7bccc4', '#43a2ca', '#0868ac']}
+  onDrillDown={(node) => console.log('下钻:', node)}
+  onDrillUp={() => console.log('上钻')}
+/>
+```
+
+**内置数据源：** `DEFAULT_PROVINCE_SOURCE`, `DEFAULT_CITY_SOURCE`, `DEFAULT_DISTRICT_SOURCE`
+
+**DrillPathNode:** `{ code, name, level, parentCode? }`
+
+## MarkerClusterLayer — 聚合标注
+
+```tsx
+<MarkerClusterLayer
+  source={bikePoints}
+  sourceConfig={{ x: 'lng', y: 'lat' }}
+  colorField="count"
+  colorValues={['#5B8FF9', '#F6BD16']}
+  size={20}
+  clusterRadius={80}
+/>
+```
+
+## HexagonLayer — 蜂窝热力
+
+```tsx
+<HexagonLayer
+  source={points}
+  sourceConfig={{ x: 'lng', y: 'lat' }}
+  colorField="count"
+  colorValues={['#f0f9e8', '#bae4bc', '#7bccc4', '#43a2ca', '#0868ac']}
+  size={30}
+/>
+```
+
+## FillLayer — 区域填充
+
+```tsx
+<FillLayer
+  source={geojsonData}
+  sourceType="geojson"
+  colorField="density"
+  colorValues={['#f7fbff', '#c6dbef', '#6baed6', '#2171b5', '#08306b']}
+  active={{ color: '#60a5fa' }}
+/>
+```
+
+## SatelliteLayer — 卫星影像
+
+```tsx
+import { SatelliteLayer, SATELLITE_PROVIDER_NAMES } from '@antv/aimapui';
+
+<SatelliteLayer provider="gaode" token="your-token" opacity={0.8} />
+```
+
+**provider:** `'gaode'` | `'tianditu'`
+
+## TiffRasterLayer — GeoTIFF 栅格
+
+```tsx
+<TiffRasterLayer
+  source="https://example.com/dem.tif"
+  rampColors={{ 0: '#f7fbff', 500: '#c6dbef', 1000: '#6baed6', 2000: '#2171b5', 4000: '#08306b' }}
+  renderMode="continuous"    // 'continuous' | 'discrete'
+/>
+```
+
+**RampColors:** `Record<number, string>` — 值到颜色的映射
+
+## 相关文档
+
+- [base-layers.md](../layers/base-layers.md) — 基础图层
+- [schema-system.md](../schema/schema-system.md) — Schema 系统
