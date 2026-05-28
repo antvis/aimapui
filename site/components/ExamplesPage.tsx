@@ -28,6 +28,8 @@ const allExamples: ExampleItem[] = [
   { id: 'maplibre-map', title: 'MapLibre 地图引擎', category: 'engine', description: '开源 MapLibre GL JS 引擎' },
   { id: 'mapbox-map', title: 'Mapbox 地图引擎', category: 'engine', description: 'Mapbox GL JS 引擎' },
   { id: 'tianditu-map', title: '天地图引擎', category: 'engine', description: '天地图底图' },
+  { id: 'tencent-map', title: '腾讯地图引擎', category: 'engine', description: '腾讯地图底图' },
+  { id: 'baidu-map', title: '百度地图引擎', category: 'engine', description: '百度地图底图' },
   { id: 'independent-map', title: '独立 Map', category: 'engine', description: '不依赖 Aimap 的独立地图' },
   // 基础功能
   { id: 'basic-point', title: '基础点图层', category: 'basic', description: '最简单的点图层可视化' },

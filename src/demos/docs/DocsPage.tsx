@@ -69,6 +69,8 @@ const docToMultiDemoMap: Record<string, Array<{ label: string; file: string }>> 
     { label: 'Maplibre', file: 'engine/MaplibreMap' },
     { label: 'Mapbox', file: 'engine/MapboxMap' },
     { label: '天地图', file: 'engine/TiandituMap' },
+    { label: '腾讯地图', file: 'engine/TencentMap' },
+    { label: '百度地图', file: 'engine/BaiduMap' },
     { label: '独立 Map', file: 'engine/IndependentMap' },
   ],
 };

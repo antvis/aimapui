@@ -28,6 +28,8 @@ import MaplibreMap from './engine/MaplibreMap';
 import MapboxMap from './engine/MapboxMap';
 import IndependentMap from './engine/IndependentMap';
 import TiandituMap from './engine/TiandituMap';
+import TencentMap from './engine/TencentMap';
+import BaiduMap from './engine/BaiduMap';
 // ── 控件 ──
 import ZoomControl from './control/ZoomControl';
 import FullscreenControl from './control/FullscreenControl';
@@ -253,6 +255,8 @@ const demos = [
   { name: 'Maplibre 地图', icon: 'language', component: MaplibreMap, group: '地图引擎', file: 'engine/MaplibreMap' },
   { name: 'Mapbox 地图', icon: 'travel_explore', component: MapboxMap, group: '地图引擎', file: 'engine/MapboxMap' },
   { name: '天地图', icon: 'terrain', component: TiandituMap, group: '地图引擎', file: 'engine/TiandituMap' },
+  { name: '腾讯地图', icon: 'map', component: TencentMap, group: '地图引擎', file: 'engine/TencentMap' },
+  { name: '百度地图', icon: 'explore', component: BaiduMap, group: '地图引擎', file: 'engine/BaiduMap' },
   { name: '独立 Map', icon: 'inventory_2', component: IndependentMap, group: '地图引擎', file: 'engine/IndependentMap' },
 
   // ── 基础图层 ──────────────────────────────

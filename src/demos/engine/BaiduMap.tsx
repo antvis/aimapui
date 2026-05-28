@@ -3,19 +3,19 @@ import { AiMap, ZoomControl, ScaleControl, GeoLocateControl } from '../../index'
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 /**
- * 腾讯地图 — 基础地图展示
+ * 百度地图 — 基础地图展示
  *
- * 使用腾讯地图引擎，包含：缩放、比例尺、定位控件
- * 使用 ErrorBoundary 防止腾讯 SDK 异常影响其他页面
+ * 使用百度地图引擎，包含：缩放、比例尺、定位控件
+ * 使用 ErrorBoundary 防止百度 SDK key 阻断影响其他页面
  */
-export default function TencentMap() {
+export default function BaiduMap() {
   return (
     <ErrorBoundary>
       <div style={{ width: '100%', height: '100%', position: 'relative' }}>
         <AiMap
           map={{
-            basemap: 'tencent',
-            token: 'VZ2BZ-EZ7KZ-D4RXM-TZQDP-Q3PQH-TVF5L',
+            basemap: 'baidu',
+            token: 'ShSrOHgrilK8rvaXV6kHC8vwxgnvF3CV',
             center: [116.397, 39.909],
             zoom: 10,
             style: 'light',
