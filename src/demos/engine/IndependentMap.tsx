@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { AiMap, RasterLayer, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl } from '../../index';
+import { AiMap, PointLayer, RasterLayer, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl } from '../../index';
 import type { ThemeOption } from '../../index';
+import { CHINA_CITIES } from './data';
 
 const TDT_TOKEN = 'b88bfb160c81dab8d9d20aaa74846360';
 
@@ -58,11 +59,19 @@ export default function IndependentMap() {
       key={activeStyle}
       map={{
         basemap: 'map',
-        center: [116.397, 39.909],
-        zoom: 10,
+        center: [105, 35],
+        zoom: 4,
         style: 'blank',
       }}
     >
+      {/* 城市点图层 */}
+      <PointLayer
+        source={CHINA_CITIES}
+        color="#5B8FF9"
+        size={12}
+        active={{ color: '#F6BD16' }}
+        zIndex={2}
+      />
       {/* 底图瓦片层 */}
       <RasterLayer
         source={getTiandituTileUrl(activeStyle)}

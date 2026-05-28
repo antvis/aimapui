@@ -1,10 +1,10 @@
 import React from 'react';
-import { AiMap, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl, OPENFREEMAP_THEME_PRESETS } from '../../index';
+import { AiMap, PointLayer, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl, OPENFREEMAP_THEME_PRESETS } from '../../index';
+import { CHINA_CITIES } from './data';
 
 /**
- * Mapbox 地图 — 完整地图控件展示
+ * Mapbox 地图 — 完整地图控件展示 + 城市点图层
  *
- * 包含：放大缩小、定位、比例尺、地图样式切换
  * 使用 Mapbox GL JS 引擎，需要配置 token
  */
 export default function MapboxMap() {
@@ -13,11 +13,17 @@ export default function MapboxMap() {
       <AiMap
         map={{
           basemap: 'mapbox',
-          center: [116.397, 39.909],
-          zoom: 10,
+          center: [105, 35],
+          zoom: 4,
           style: 'light',
         }}
       >
+        <PointLayer
+          source={CHINA_CITIES}
+          color="#5B8FF9"
+          size={12}
+          active={{ color: '#F6BD16' }}
+        />
         <ZoomControl position="bottomright" />
         <ScaleControl position="bottomleft" />
         <GeoLocateControl position="topright" />

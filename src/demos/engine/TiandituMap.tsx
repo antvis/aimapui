@@ -1,7 +1,8 @@
 import React, { useCallback, useRef, useState } from 'react';
 import type { Scene } from '@antv/l7';
-import { AiMap, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl } from '../../index';
+import { AiMap, PointLayer, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl } from '../../index';
 import type { ThemeOption } from '../../index';
+import { CHINA_CITIES } from './data';
 
 const TDT_TOKEN = 'b88bfb160c81dab8d9d20aaa74846360';
 
@@ -82,11 +83,17 @@ export default function TiandituMap() {
       map={{
         basemap: 'tianditu',
         token: TDT_TOKEN,
-        center: [116.397, 39.909],
-        zoom: 10,
+        center: [105, 35],
+        zoom: 4,
       }}
       onSceneReady={handleSceneReady}
     >
+      <PointLayer
+        source={CHINA_CITIES}
+        color="#5B8FF9"
+        size={12}
+        active={{ color: '#F6BD16' }}
+      />
       <ZoomControl position="bottomright" />
       <ScaleControl position="bottomleft" />
       <GeoLocateControl position="topright" />

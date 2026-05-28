@@ -1,10 +1,11 @@
 import React from 'react';
-import { AiMap, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl, GAODE_THEME_PRESETS } from '../../index';
+import { AiMap, PointLayer, ZoomControl, ScaleControl, GeoLocateControl, MapThemeControl, GAODE_THEME_PRESETS } from '../../index';
+import { CHINA_CITIES } from './data';
 
 /**
- * 高德地图 — 完整地图控件展示
+ * 高德地图 — 完整地图控件展示 + 城市点图层
  *
- * 包含：放大缩小、定位、比例尺、地图样式切换
+ * 包含：放大缩小、定位、比例尺、地图样式切换、城市可视化图层
  */
 export default function GaodeMap() {
   return (
@@ -12,11 +13,17 @@ export default function GaodeMap() {
       <AiMap
         map={{
           basemap: 'gaode',
-          center: [116.397, 39.909],
-          zoom: 10,
+          center: [105, 35],
+          zoom: 4,
           style: 'light',
         }}
       >
+        <PointLayer
+          source={CHINA_CITIES}
+          color="#5B8FF9"
+          size={12}
+          active={{ color: '#F6BD16' }}
+        />
         <ZoomControl position="bottomright" />
         <ScaleControl position="bottomleft" />
         <GeoLocateControl position="topright" />
