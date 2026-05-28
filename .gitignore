@@ -34,4 +34,6 @@ coverage/
 
 dist-site/
 
-.codefuse
+.codefuse/
+
+.codefuseone/
