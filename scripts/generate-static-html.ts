@@ -14,7 +14,7 @@ const SITE_URL = 'https://aimapui.antv.vision';
 const SITE_NAME = '@antv/aimapui';
 const SITE_DESCRIPTION = '开箱即用的 React 地图可视化组件库。Schema 驱动 · 组件化 API · 多引擎支持 · 主题定制。基于 AntV L7 构建。';
 
-// Demo 路由列表（与 src/demos/main.tsx 中的 demos 数组保持同步）
+// Demo 路由列表（与 src/main.tsx 中的 demos 数组保持同步）
 const demoRoutes: Array<{ file: string; name: string; group: string; description?: string }> = [
   // 应用模板
   { file: 'app/MobileApp', name: '移动端应用', group: '应用模板', description: '开箱即用的移动端地图应用模板' },
@@ -58,6 +58,7 @@ const demoRoutes: Array<{ file: string; name: string; group: string; description
   { file: 'engine/TiandituMap', name: '天地图', group: '地图引擎', description: '天地图底图引擎' },
   { file: 'engine/TencentMap', name: '腾讯地图', group: '地图引擎', description: '腾讯地图引擎集成' },
   { file: 'engine/BaiduMap', name: '百度地图', group: '地图引擎', description: '百度地图引擎集成' },
+  { file: 'engine/GoogleMap', name: 'Google 地图', group: '地图引擎', description: 'Google Maps 引擎集成' },
   { file: 'engine/IndependentMap', name: '独立 Map', group: '地图引擎', description: '独立地图实例管理' },
   // 基础图层
   { file: 'layer/PointLayer', name: '点图层', group: '基础图层', description: '基础点数据渲染图层' },

@@ -33,3 +33,5 @@ coverage/
 .aone_copilot/
 
 dist-site/
+
+.codefuse

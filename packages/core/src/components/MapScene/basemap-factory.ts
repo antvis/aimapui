@@ -75,6 +75,15 @@ export async function createBasemap(schema: MapSchema) {
       });
     }
 
+    case 'google': {
+      const { GoogleMap } = await import('@antv/l7-maps');
+      return new GoogleMap({
+        ...commonOptions,
+        style: mapStyleToGoogle(style),
+        token,
+      });
+    }
+
     case 'map':
     default: {
       const { Map } = await import('@antv/l7-maps');
@@ -121,6 +130,20 @@ function mapStyleToBaidu(style: string): string {
     satellite: 'satellite',
   };
   return map[style] ?? style;
+}
+
+/** Google Maps mapTypeId 映射：normal → roadmap，satellite → satellite，dark/light → roadmap（颜色样式由 styles 控制） */
+function mapStyleToGoogle(style: string): string {
+  const map: Record<string, string> = {
+    light: 'roadmap',
+    dark: 'roadmap',
+    normal: 'roadmap',
+    darkblue: 'roadmap',
+    satellite: 'satellite',
+    hybrid: 'hybrid',
+    terrain: 'terrain',
+  };
+  return map[style] ?? 'roadmap';
 }
 
 function mapStyleToMaplibre(style: string): string {

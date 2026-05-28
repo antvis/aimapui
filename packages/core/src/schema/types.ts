@@ -7,7 +7,7 @@
 // 地图底图
 // ============================================================
 
-export type BasemapType = 'gaode' | 'mapbox' | 'maplibre' | 'tianditu' | 'tencent' | 'baidu' | 'map';
+export type BasemapType = 'gaode' | 'mapbox' | 'maplibre' | 'tianditu' | 'tencent' | 'baidu' | 'google' | 'map';
 
 export type MapStylePreset = 'light' | 'dark' | 'normal' | 'darkblue' | 'satellite';
 

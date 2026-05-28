@@ -1,6 +1,6 @@
 /**
  * 文档导航数据配置
- * id 对应 src/demos/docs/content/ 下的 md 文件路径（去掉 .md 后缀）
+ * id 对应 src/docs/content/ 下的 md 文件路径（去掉 .md 后缀）
  */
 
 export interface DocNavItem {

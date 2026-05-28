@@ -1,6 +1,6 @@
 # 文档写作规范（WRITING-SKILL）
 
-本文档是 AiMapUI 组件文档的写作规范，所有 `src/demos/docs/content/` 下的 Markdown 文档必须遵循。
+本文档是 AiMapUI 组件文档的写作规范，所有 `src/docs/content/` 下的 Markdown 文档必须遵循。
 
 ---
 

@@ -15,7 +15,7 @@ export const AiMapJSONSchema = {
       properties: {
         basemap: {
           type: 'string',
-          enum: ['gaode', 'mapbox', 'tianditu', 'tencent', 'baidu', 'map'],
+          enum: ['gaode', 'mapbox', 'maplibre', 'tianditu', 'tencent', 'baidu', 'google', 'map'],
           description: 'Map base tile provider',
         },
         token: { type: 'string', description: 'API token for the map service' },

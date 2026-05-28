@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { marked } from 'marked';
-import '../../../core/src/styles/tailwind.css';
+import '../../core/src/styles/tailwind.css';
 import HomePage from './home/HomePage';
 import DesignPage from './home/DesignPage';
 import NavBar from './home/NavBar';
@@ -30,6 +30,7 @@ import IndependentMap from './engine/IndependentMap';
 import TiandituMap from './engine/TiandituMap';
 import TencentMap from './engine/TencentMap';
 import BaiduMap from './engine/BaiduMap';
+import GoogleMap from './engine/GoogleMap';
 // ── 控件 ──
 import ZoomControl from './control/ZoomControl';
 import FullscreenControl from './control/FullscreenControl';
@@ -100,7 +101,7 @@ const designHtmlModules = import.meta.glob(
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
 
-// 组件文档 — 从 src/demos/docs/content/ 加载 Markdown
+// 组件文档 — 从 src/docs/content/ 加载 Markdown
 const docsContentModules = import.meta.glob(
   './docs/content/**/*.md',
   { query: '?raw', eager: true }
@@ -257,6 +258,7 @@ const demos = [
   { name: '天地图', icon: 'terrain', component: TiandituMap, group: '地图引擎', file: 'engine/TiandituMap' },
   { name: '腾讯地图', icon: 'map', component: TencentMap, group: '地图引擎', file: 'engine/TencentMap' },
   { name: '百度地图', icon: 'explore', component: BaiduMap, group: '地图引擎', file: 'engine/BaiduMap' },
+  { name: 'Google 地图', icon: 'g_translate', component: GoogleMap, group: '地图引擎', file: 'engine/GoogleMap' },
   { name: '独立 Map', icon: 'inventory_2', component: IndependentMap, group: '地图引擎', file: 'engine/IndependentMap' },
 
   // ── 基础图层 ──────────────────────────────
