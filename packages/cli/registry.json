@@ -1,0 +1,342 @@
+{
+  "$schema": "./registry-schema.json",
+  "name": "@antv/aimapui",
+  "baseUrl": "https://raw.githubusercontent.com/antvis/aimapui/main",
+  "peerDependencies": {
+    "@antv/l7": "^2.28.0",
+    "@antv/l7-maps": "^2.28.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1"
+  },
+  "utils": [
+    {
+      "name": "schema-types",
+      "files": ["src/schema/types.ts"]
+    },
+    {
+      "name": "scene-context",
+      "files": ["src/context/SceneContext.tsx"]
+    },
+    {
+      "name": "event-bus-context",
+      "files": ["src/context/EventBusContext.tsx", "src/core/event-bus.ts"]
+    },
+    {
+      "name": "theme-context",
+      "files": ["src/context/ThemeContext.tsx"]
+    },
+    {
+      "name": "style-utils",
+      "files": ["src/utils/style.ts"]
+    },
+    {
+      "name": "map-position-hook",
+      "files": ["src/hooks/useMapPosition.ts"]
+    },
+    {
+      "name": "map-control-hook",
+      "files": ["src/hooks/useMapControl.ts"]
+    },
+    {
+      "name": "schema-defaults",
+      "files": ["src/schema/defaults.ts"]
+    },
+    {
+      "name": "schema-parser",
+      "files": ["src/core/parser.ts"]
+    },
+    {
+      "name": "schema-layer",
+      "files": [
+        "src/components/Layer/SchemaLayer.tsx",
+        "src/components/Layer/adapters/common.ts",
+        "src/components/Layer/adapters/point.ts",
+        "src/components/Layer/adapters/line.ts",
+        "src/components/Layer/adapters/polygon.ts",
+        "src/components/Layer/adapters/heatmap.ts",
+        "src/components/Layer/adapters/raster.ts",
+        "src/components/Layer/adapters/image.ts"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "name": "AiMap",
+      "description": "地图容器组件，管理 Scene/Map 生命周期",
+      "category": "core",
+      "files": [
+        "src/components/AiMap/index.tsx",
+        "src/components/AiMap/types.ts",
+        "src/components/MapScene/MapSceneRenderer.tsx",
+        "src/components/Responsive/useBreakpoint.tsx",
+        "src/context/ResponsiveContext.tsx",
+        "src/context/SchemaContext.tsx"
+      ],
+      "registryDependencies": [
+        "schema-types",
+        "scene-context",
+        "event-bus-context",
+        "theme-context",
+        "schema-defaults",
+        "schema-parser"
+      ]
+    },
+    {
+      "name": "PointLayer",
+      "description": "点图层",
+      "category": "layer",
+      "files": ["src/components/Layer/PointLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "schema-layer"]
+    },
+    {
+      "name": "LineLayer",
+      "description": "线图层",
+      "category": "layer",
+      "files": ["src/components/Layer/LineLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "schema-layer"]
+    },
+    {
+      "name": "PolygonLayer",
+      "description": "面图层",
+      "category": "layer",
+      "files": ["src/components/Layer/PolygonLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "schema-layer"]
+    },
+    {
+      "name": "HeatmapLayer",
+      "description": "热力图图层",
+      "category": "layer",
+      "files": ["src/components/Layer/HeatmapLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "schema-layer"]
+    },
+    {
+      "name": "RasterLayer",
+      "description": "栅格图层",
+      "category": "layer",
+      "files": ["src/components/Layer/RasterLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "schema-layer"]
+    },
+    {
+      "name": "ImageLayer",
+      "description": "图片图层",
+      "category": "layer",
+      "files": ["src/components/Layer/ImageLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "schema-layer"]
+    },
+    {
+      "name": "IconLayer",
+      "description": "图片标注图层（图标+文字标签）",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/IconLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "PointLayer"]
+    },
+    {
+      "name": "GlyphLayer",
+      "description": "字体图标标注图层（iconfont/Material Symbols+文字标签）",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/GlyphLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "PointLayer"]
+    },
+    {
+      "name": "BubbleLayer",
+      "description": "气泡图层（气泡+文字标签）",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/BubbleLayer.tsx"],
+      "registryDependencies": ["schema-types", "PointLayer"]
+    },
+    {
+      "name": "RouteLayer",
+      "description": "路径图层（线+端点标记）",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/RouteLayer.tsx"],
+      "registryDependencies": ["schema-types", "LineLayer", "PointLayer"]
+    },
+    {
+      "name": "ArcFlowLayer",
+      "description": "弧线流向图层",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/ArcFlowLayer.tsx"],
+      "registryDependencies": ["schema-types", "LineLayer", "PointLayer"]
+    },
+    {
+      "name": "FillLayer",
+      "description": "填充图层（区域着色+边界线+标签）",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/FillLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "PolygonLayer", "LineLayer", "PointLayer"]
+    },
+    {
+      "name": "ChinaDistrict",
+      "description": "中国行政区划图层",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/ChinaDistrict.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "PolygonLayer", "LineLayer", "PointLayer"]
+    },
+    {
+      "name": "HexagonLayer",
+      "description": "六边形聚合图层",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/HexagonLayer.tsx"],
+      "registryDependencies": ["schema-types", "HeatmapLayer"]
+    },
+    {
+      "name": "MarkerClusterLayer",
+      "description": "聚合标注图层",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/MarkerClusterLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "Marker"],
+      "dependencies": { "supercluster": "^8.0.1" }
+    },
+    {
+      "name": "SatelliteLayer",
+      "description": "卫星影像图层",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/SatelliteLayer.tsx"],
+      "registryDependencies": ["RasterLayer"]
+    },
+    {
+      "name": "TiffRasterLayer",
+      "description": "TIFF 栅格图层",
+      "category": "composite",
+      "files": ["src/components/CompositeLayer/TiffRasterLayer.tsx"],
+      "registryDependencies": ["schema-types", "scene-context"],
+      "dependencies": { "geotiff": "^3.0.5" }
+    },
+    {
+      "name": "Marker",
+      "description": "标注组件（4 种变体）",
+      "category": "interaction",
+      "files": ["src/components/Interaction/Marker.tsx"],
+      "registryDependencies": ["schema-types", "scene-context"]
+    },
+    {
+      "name": "Popup",
+      "description": "弹窗组件（3 种尺寸）",
+      "category": "interaction",
+      "files": ["src/components/Interaction/Popup.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "map-position-hook", "style-utils"]
+    },
+    {
+      "name": "Tooltip",
+      "description": "提示框组件（3 种变体）",
+      "category": "interaction",
+      "files": ["src/components/Interaction/Tooltip.tsx"],
+      "registryDependencies": ["schema-types", "scene-context", "map-position-hook", "style-utils", "theme-context"]
+    },
+    {
+      "name": "ZoomControl",
+      "description": "缩放控件",
+      "category": "control",
+      "files": ["src/components/Control/ZoomControl.tsx"],
+      "registryDependencies": ["map-control-hook"]
+    },
+    {
+      "name": "ScaleControl",
+      "description": "比例尺控件",
+      "category": "control",
+      "files": ["src/components/Control/ScaleControl.tsx"],
+      "registryDependencies": ["map-control-hook"]
+    },
+    {
+      "name": "FullscreenControl",
+      "description": "全屏控件",
+      "category": "control",
+      "files": ["src/components/Control/FullscreenControl.tsx"],
+      "registryDependencies": ["map-control-hook"]
+    },
+    {
+      "name": "GeoLocateControl",
+      "description": "定位控件",
+      "category": "control",
+      "files": ["src/components/Control/GeoLocateControl.tsx"],
+      "registryDependencies": ["map-control-hook"]
+    },
+    {
+      "name": "MapThemeControl",
+      "description": "地图主题切换控件",
+      "category": "control",
+      "files": ["src/components/Control/MapThemeControl.tsx"],
+      "registryDependencies": ["map-control-hook"]
+    },
+    {
+      "name": "MouseLocationControl",
+      "description": "鼠标位置显示控件",
+      "category": "control",
+      "files": ["src/components/Control/MouseLocationControl.tsx"],
+      "registryDependencies": ["map-control-hook"]
+    },
+    {
+      "name": "ExportImageControl",
+      "description": "导出图片控件",
+      "category": "control",
+      "files": ["src/components/Control/ExportImageControl.tsx"],
+      "registryDependencies": ["map-control-hook"]
+    },
+    {
+      "name": "LayerSwitchControl",
+      "description": "图层切换控件",
+      "category": "control",
+      "files": ["src/components/Control/LayerSwitchControl.tsx"],
+      "registryDependencies": ["map-control-hook"]
+    },
+    {
+      "name": "LegendCategories",
+      "description": "分类图例",
+      "category": "legend",
+      "files": ["src/components/Legend/LegendCategories.tsx"],
+      "registryDependencies": ["schema-types", "style-utils"]
+    },
+    {
+      "name": "LegendRamp",
+      "description": "渐变图例",
+      "category": "legend",
+      "files": ["src/components/Legend/LegendRamp.tsx"],
+      "registryDependencies": ["schema-types", "style-utils"]
+    },
+    {
+      "name": "LegendSize",
+      "description": "大小图例",
+      "category": "legend",
+      "files": ["src/components/Legend/LegendSize.tsx"],
+      "registryDependencies": ["schema-types", "style-utils"]
+    },
+    {
+      "name": "LegendDiverging",
+      "description": "发散图例",
+      "category": "legend",
+      "files": ["src/components/Legend/LegendDiverging.tsx"],
+      "registryDependencies": ["schema-types", "style-utils"]
+    },
+    {
+      "name": "LegendThreshold",
+      "description": "阈值图例",
+      "category": "legend",
+      "files": ["src/components/Legend/LegendThreshold.tsx"],
+      "registryDependencies": ["schema-types", "style-utils"]
+    },
+    {
+      "name": "LegendLineWidth",
+      "description": "线宽图例",
+      "category": "legend",
+      "files": ["src/components/Legend/LegendLineWidth.tsx"],
+      "registryDependencies": ["schema-types", "style-utils"]
+    },
+    {
+      "name": "LegendProportion",
+      "description": "比例大小图例",
+      "category": "legend",
+      "files": ["src/components/Legend/LegendProportion.tsx"],
+      "registryDependencies": ["schema-types", "style-utils"]
+    },
+    {
+      "name": "LegendIcon",
+      "description": "图标图例",
+      "category": "legend",
+      "files": ["src/components/Legend/LegendIcon.tsx"],
+      "registryDependencies": ["schema-types", "style-utils"]
+    }
+  ]
+}

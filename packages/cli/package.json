@@ -1,0 +1,29 @@
+{
+  "name": "@antv/aimapui-cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "CLI for adding @antv/aimapui components to your project (shadcn/ui style)",
+  "bin": {
+    "aimapui": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "registry.json"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^20.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/antvis/aimapui"
+  }
+}
