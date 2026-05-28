@@ -56,6 +56,7 @@ const demoRoutes: Array<{ file: string; name: string; group: string; description
   { file: 'engine/MaplibreMap', name: 'Maplibre 地图', group: '地图引擎', description: 'Maplibre GL 开源地图引擎' },
   { file: 'engine/MapboxMap', name: 'Mapbox 地图', group: '地图引擎', description: 'Mapbox GL 地图引擎' },
   { file: 'engine/TiandituMap', name: '天地图', group: '地图引擎', description: '天地图底图引擎' },
+  { file: 'engine/TencentMap', name: '腾讯地图', group: '地图引擎', description: '腾讯地图引擎集成' },
   { file: 'engine/IndependentMap', name: '独立 Map', group: '地图引擎', description: '独立地图实例管理' },
   // 基础图层
   { file: 'layer/PointLayer', name: '点图层', group: '基础图层', description: '基础点数据渲染图层' },
