@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { AiMap, IconFontLayer, ZoomControl } from '../../index';
+import { AiMap, GlyphLayer, ZoomControl } from '../../index';
 
 /**
- * 字体图标标注（IconFontLayer + Material Symbols Demo）
+ * 字体图标标注（GlyphLayer + Material Symbols Demo）
  *
  * 展示特性：
  * - 使用 Material Symbols Outlined 字体图标（Google Material Design 图标）
@@ -21,18 +21,13 @@ export default function DemoIconFontLabel() {
       .catch(() => setData(null));
   }, []);
 
-  // 将原始数据中的 name 字段映射为 Material Symbols 图标名
+  // 将原始数据随机分配 Material Symbols 图标
   const mappedData = useMemo(() => {
     if (!data) return null;
-    // 原始数据的 name 值为 '00', '01', '02' 等编号，映射为天气图标
-    const iconMapping: Record<string, string> = {
-      '00': 'sunny',
-      '01': 'partly_cloudy_day',
-      '02': 'rainy',
-    };
-    return data.map((item) => ({
+    const iconNames = ['restaurant', 'hotel', 'school', 'local_cafe', 'park', 'museum', 'hospital', 'store', 'local_bar', 'fitness_center'];
+    return data.map((item, index) => ({
       ...item,
-      icon: iconMapping[item.name as string] ?? 'cloud',
+      icon: iconNames[index % iconNames.length],
     }));
   }, [data]);
 
@@ -40,7 +35,7 @@ export default function DemoIconFontLabel() {
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap map={{ basemap: 'gaode', center: [121.434765, 31.256735], zoom: 14.83, style: 'dark' }}>
         {mappedData && (
-          <IconFontLayer
+          <GlyphLayer
             source={mappedData}
             sourceType="json"
             sourceConfig={{ x: 'longitude', y: 'latitude' }}
@@ -54,7 +49,8 @@ export default function DemoIconFontLabel() {
             labelField="name"
             labelColor="#e2e8f0"
             labelSize={11}
-            labelAnchor="bottom"
+            labelAnchor="top"
+            labelOffset={[0, -20]}
             labelHaloColor="#0d1117"
             labelHaloWidth={2}
             textAllowOverlap={false}

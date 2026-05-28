@@ -1,11 +1,11 @@
-# IconFontLayer
+# GlyphLayer
 
 字体图标标注图层，支持 Material Symbols Outlined 图标（158+个）和自定义 iconfont，带三级缩放适配策略。
 
 ## 导入
 
 ```tsx
-import { IconFontLayer } from '@antv/aimapui'
+import { GlyphLayer } from '@antv/aimapui'
 ```
 
 ## Props
@@ -36,5 +36,5 @@ import { IconFontLayer } from '@antv/aimapui'
 ## 示例
 
 ```tsx
-<IconFontLayer source={pois} iconField="icon" iconFontFamily="material-symbols" iconColor="#3B82F6" iconSize={20} showLabel labelField="name" zoomAdaption />
+<GlyphLayer source={pois} iconField="icon" iconFontFamily="material-symbols" iconColor="#3B82F6" iconSize={20} showLabel labelField="name" zoomAdaption />
 ```

@@ -171,12 +171,13 @@ export const BUILTIN_ICON_FONTS: Array<[string, string]> = [
 
 /** Material Symbols Outlined CSS 字体族名 */
 const MATERIAL_SYMBOLS_FONT_FAMILY = 'Material Symbols Outlined';
+const MATERIAL_SYMBOLS_FONT_PATH = 'https://fonts.gstatic.com/s/materialsymbolsoutlined/v261/kJEhBvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oFsI.woff2';
 
 /** 默认 iconfont 字体（at.alicdn.com） */
 const ALICDN_FONT_FAMILY = 'iconfont';
 const ALICDN_FONT_PATH = '//at.alicdn.com/t/font_2534097_ao9soua2obv.woff2?t=1622021146076';
 
-export interface IconFontLayerProps extends Omit<LayerSchema, 'type' | 'source' | 'sourceType' | 'sourceConfig'> {
+export interface GlyphLayerProps extends Omit<LayerSchema, 'type' | 'source' | 'sourceType' | 'sourceConfig'> {
   source: LayerSchema['source'];
   sourceType?: LayerSchema['sourceType'];
   sourceConfig?: LayerSchema['sourceConfig'];
@@ -222,8 +223,10 @@ export interface IconFontLayerProps extends Omit<LayerSchema, 'type' | 'source' 
   labelColor?: string;
   /** 标签字号 (10-14px)，默认 11 */
   labelSize?: number;
-  /** 标签相对图标的锚点位置，默认 'bottom' */
+  /** 文字锚点位置（直接透传给 L7 textAnchor），默认 'top' */
   labelAnchor?: LabelAnchor;
+  /** 标签偏移量 [x, y]，默认 [0, 0] */
+  labelOffset?: [number, number];
   /** 标签光晕颜色，默认白色 */
   labelHaloColor?: string;
   /** 标签光晕宽度，默认 2px */
@@ -252,7 +255,7 @@ export interface IconFontLayerProps extends Omit<LayerSchema, 'type' | 'source' 
 }
 
 /**
- * 字体图标标注图层（IconFontLayer）
+ * 字体图标标注图层（GlyphLayer）
  *
  * 支持 Material Symbols Outlined 及自定义 iconfont 字体：
  * - Material Symbols: 页面已加载 Google 字体，组件自动注册映射表，开箱即用
@@ -266,7 +269,7 @@ export interface IconFontLayerProps extends Omit<LayerSchema, 'type' | 'source' 
  * - 碰撞检测：图标始终可见，仅文本被避让
  * - 缩放适配：L1(14+) 全显示 → L2(10-13) 仅图标 → L3(<10) 降级圆点
  */
-export function IconFontLayer({
+export function GlyphLayer({
   source,
   sourceType = 'json',
   sourceConfig,
@@ -283,7 +286,8 @@ export function IconFontLayer({
   labelField,
   labelColor = '#333',
   labelSize = 11,
-  labelAnchor = 'bottom',
+  labelAnchor = 'top',
+  labelOffset = [0, 0],
   labelHaloColor = '#fff',
   labelHaloWidth = 2,
   labelStyle,
@@ -296,7 +300,7 @@ export function IconFontLayer({
   onMouseEnter,
   onMouseLeave,
   ...rest
-}: IconFontLayerProps) {
+}: GlyphLayerProps) {
   const scene = useScene();
   const [fontReady, setFontReady] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
@@ -309,7 +313,7 @@ export function IconFontLayer({
       case 'material-symbols':
         return {
           fontFamily: MATERIAL_SYMBOLS_FONT_FAMILY,
-          fontPath: null, // Material Symbols 已通过 index.html <link> 加载，无需 addFontFace
+          fontPath: MATERIAL_SYMBOLS_FONT_PATH,
           iconMappings: MATERIAL_SYMBOLS_ICONS,
         };
       case 'iconfont':
@@ -387,7 +391,7 @@ export function IconFontLayer({
         }
       } catch {
         // 字体加载失败，仍然尝试渲染
-        console.warn(`[IconFontLayer] 字体 "${fontFamily}" 加载超时，尝试继续渲染`);
+        console.warn(`[GlyphLayer] 字体 "${fontFamily}" 加载超时，尝试继续渲染`);
       }
 
       // 4. 验证字体确实可用
@@ -431,18 +435,6 @@ export function IconFontLayer({
     };
   }, [scene]);
 
-  // 计算标签偏移（必须在条件返回之前）
-  const labelOffset: [number, number] = useMemo(() => {
-    const gap = iconSize / 2 + 4;
-    switch (labelAnchor) {
-      case 'right': return [gap, 0];
-      case 'left': return [-gap, 0];
-      case 'top': return [0, -gap];
-      case 'center': return [0, 0];
-      case 'bottom':
-      default: return [0, gap];
-    }
-  }, [labelAnchor, iconSize]);
 
   // 缩放适配监听
   useEffect(() => {
@@ -518,7 +510,7 @@ export function IconFontLayer({
           color={labelColor}
           size={labelSize}
           style={{
-            textAnchor: labelAnchor === 'right' ? 'left' : labelAnchor === 'left' ? 'right' : 'center',
+            textAnchor: labelAnchor,
             textOffset: labelOffset,
             stroke: labelHaloColor,
             strokeWidth: labelHaloWidth,
@@ -532,4 +524,4 @@ export function IconFontLayer({
   );
 }
 
-export default IconFontLayer;
+export default GlyphLayer;

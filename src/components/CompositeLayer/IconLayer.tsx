@@ -3,10 +3,11 @@ import { useScene } from '../../context/SceneContext';
 import type { LayerSchema, LayerEventPayload } from '../../schema/types';
 import { PointLayer } from '../Layer/PointLayer';
 
-/** 标签锚点位置 */
+/** 锚点位置 */
 export type LabelAnchor = 'right' | 'bottom' | 'top' | 'left';
+export type IconAnchor = 'center' | 'top' | 'bottom' | 'left' | 'right';
 
-export interface IconImageLayerProps extends Omit<LayerSchema, 'type' | 'source' | 'sourceType' | 'sourceConfig'> {
+export interface IconLayerProps extends Omit<LayerSchema, 'type' | 'source' | 'sourceType' | 'sourceConfig'> {
   source: LayerSchema['source'];
   sourceType?: LayerSchema['sourceType'];
   sourceConfig?: LayerSchema['sourceConfig'];
@@ -18,6 +19,8 @@ export interface IconImageLayerProps extends Omit<LayerSchema, 'type' | 'source'
   iconMap: Record<string, string>;
   /** 图标尺寸，标准 24，紧凑 16 */
   iconSize?: number;
+  /** 图标锚点位置，默认 'bottom' */
+  iconAnchor?: IconAnchor;
 
   // ===== 文字标签配置 =====
   /** 是否显示文字标签，默认 true */
@@ -28,12 +31,14 @@ export interface IconImageLayerProps extends Omit<LayerSchema, 'type' | 'source'
   labelColor?: string;
   /** 标签字号 (12-14px) */
   labelSize?: number;
-  /** 标签相对图标的锚点位置，默认 'bottom' */
+  /** 文字锚点位置（直接透传给 L7 textAnchor），默认 'top' */
   labelAnchor?: LabelAnchor;
   /** 标签光晕颜色，默认白色 */
   labelHaloColor?: string;
   /** 标签光晕宽度，默认 2px */
   labelHaloWidth?: number;
+  /** 标签偏移量 [x, y]，默认 [0, 0] */
+  labelOffset?: [number, number];
   /** 标签样式扩展 */
   labelStyle?: Record<string, unknown>;
 
@@ -57,20 +62,8 @@ export interface IconImageLayerProps extends Omit<LayerSchema, 'type' | 'source'
   onMouseLeave?: (payload: LayerEventPayload) => void;
 }
 
-/** 根据锚点方向计算偏移量 */
-function computeLabelOffset(anchor: LabelAnchor, iconSize: number): [number, number] {
-  const gap = iconSize / 2 + 4;
-  switch (anchor) {
-    case 'right': return [gap, 0];
-    case 'left': return [-gap, 0];
-    case 'top': return [0, -gap];
-    case 'bottom':
-    default: return [0, gap];
-  }
-}
-
 /**
- * 图片标注图层（IconImageLayer）
+ * 图片标注图层（IconLayer）
  *
  * 按照设计规范实现的图片图标+文字标签组合图层：
  * - 内置图标与文字两个 PointLayer，统一管理渲染时序
@@ -79,19 +72,21 @@ function computeLabelOffset(anchor: LabelAnchor, iconSize: number): [number, num
  * - 缩放适配：Zoom15+ 全显示 → 10-14 仅图标 → <10 降级圆点
  * - 碰撞检测：重叠时隐藏低优先级文本
  */
-export function IconImageLayer({
+export function IconLayer({
   source,
   sourceType = 'json',
   sourceConfig,
   iconField,
   iconMap,
   iconSize = 24,
+  iconAnchor = 'bottom',
   size,
   showLabel = true,
   labelField,
   labelColor = '#333',
   labelSize = 12,
-  labelAnchor = 'bottom',
+  labelAnchor = 'top',
+  labelOffset = [0, 0],
   labelHaloColor = '#fff',
   labelHaloWidth = 2,
   labelStyle,
@@ -104,7 +99,7 @@ export function IconImageLayer({
   onMouseEnter,
   onMouseLeave,
   ...rest
-}: IconImageLayerProps) {
+}: IconLayerProps) {
   const scene = useScene();
   const [ready, setReady] = useState(false);
   const [currentZoom, setCurrentZoom] = useState<number>(15);
@@ -112,10 +107,6 @@ export function IconImageLayer({
   const iconKeys = useMemo(() => Object.keys(iconMap), [iconMap]);
   const resolvedIconSize = size ?? iconSize;
   const resolvedLabelField = labelField ?? iconField;
-  const labelOffset = useMemo(
-    () => computeLabelOffset(labelAnchor, resolvedIconSize),
-    [labelAnchor, resolvedIconSize],
-  );
 
   // 注册图片资源
   useEffect(() => {
@@ -162,9 +153,8 @@ export function IconImageLayer({
 
   return (
     <>
-      {/* 图标图层 — anchor: bottom，图标底部对齐地理坐标点 */}
+      {/* 图标图层 */}
       <PointLayer
-        {...rest}
         source={source}
         sourceType={sourceType}
         sourceConfig={sourceConfig}
@@ -172,16 +162,16 @@ export function IconImageLayer({
         shapeValues={iconKeys}
         size={resolvedIconSize}
         style={{
-          anchor: 'bottom',
+          ...((rest.style as Record<string, unknown>) ?? {}),
+          anchor: iconAnchor,
           allowOverlap: iconAllowOverlap,
-          ...(rest.style as Record<string, unknown> ?? {}),
         }}
         onClick={onClick}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
       />
 
-      {/* 文字标签图层 — anchor: top，文字顶部对齐地理坐标点 */}
+      {/* 文字标签图层 */}
       {showLabel && shouldShowLabel && (
         <PointLayer
           source={source}
@@ -192,8 +182,7 @@ export function IconImageLayer({
           color={labelColor}
           size={labelSize}
           style={{
-            anchor: 'top',
-            textAnchor: labelAnchor === 'right' ? 'left' : labelAnchor === 'left' ? 'right' : 'center',
+            textAnchor: labelAnchor,
             textOffset: labelOffset,
             stroke: labelHaloColor,
             strokeWidth: labelHaloWidth,
@@ -207,4 +196,4 @@ export function IconImageLayer({
   );
 }
 
-export default IconImageLayer;
+export default IconLayer;

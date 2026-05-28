@@ -58,8 +58,8 @@ const allExamples: ExampleItem[] = [
   { id: 'map-events', title: '地图事件', category: 'layer', description: 'onMapMove / onMapZoom 数据驱动' },
   // 复合图层
   { id: 'bubble-layer', title: '气泡图', category: 'composite', description: 'BubbleLayer 气泡 + 文字标签' },
-  { id: 'icon-label', title: '图片标注', category: 'composite', description: 'IconImageLayer 图标 + 文字缩放自适应' },
-  { id: 'icon-font-label', title: '字体图标标注', category: 'composite', description: 'IconFontLayer Material Symbols 图标' },
+  { id: 'icon-label', title: '图片标注', category: 'composite', description: 'IconLayer 图标 + 文字缩放自适应' },
+  { id: 'icon-font-label', title: '字体图标标注', category: 'composite', description: 'GlyphLayer Material Symbols 图标' },
   { id: 'choropleth', title: '分级统计图', category: 'composite', description: 'FillLayer 三种 colorMapping 模式' },
   { id: 'hexagon-heatmap', title: '蜂窝热力图', category: 'composite', description: 'HexagonLayer 六边形聚合热力' },
   { id: 'satellite-layer', title: '卫星影像图层', category: 'composite', description: '三种卫星影像源切换' },

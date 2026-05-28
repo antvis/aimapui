@@ -1,11 +1,11 @@
-# IconImageLayer
+# IconLayer
 
 图片图标标注图层，通过 iconMap 注册图片资源，支持缩放适配。
 
 ## 导入
 
 ```tsx
-import { IconImageLayer } from '@antv/aimapui'
+import { IconLayer } from '@antv/aimapui'
 ```
 
 ## Props
@@ -31,5 +31,5 @@ import { IconImageLayer } from '@antv/aimapui'
 ## 示例
 
 ```tsx
-<IconImageLayer source={locations} iconField="type" iconMap={{ hospital: "/icons/hospital.png", school: "/icons/school.png" }} iconSize={24} showLabel labelField="name" />
+<IconLayer source={locations} iconField="type" iconMap={{ hospital: "/icons/hospital.png", school: "/icons/school.png" }} iconSize={24} showLabel labelField="name" />
 ```

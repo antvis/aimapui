@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AiMap, IconImageLayer, ZoomControl, Tooltip } from '../../index';
+import { AiMap, IconLayer, ZoomControl, Tooltip } from '../../index';
 import type { LayerEventPayload } from '../../index';
 
 /**
- * 图片标注图（IconImageLayer 设计规范 Demo）
+ * 图片标注图（IconLayer 设计规范 Demo）
  *
  * 展示特性：
  * - 图标 + 文字标签组合（图片在上，文字在下）
@@ -39,7 +39,7 @@ export default function Demo21IconLabel() {
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap map={{ basemap: 'gaode', center: [121.434765, 31.256735], zoom: 14.83, style: 'dark' }}>
         {data && (
-          <IconImageLayer
+          <IconLayer
             source={data}
             sourceType="json"
             sourceConfig={{ x: 'longitude', y: 'latitude' }}
@@ -50,7 +50,9 @@ export default function Demo21IconLabel() {
               '02': 'https://gw.alipayobjects.com/zos/basement_prod/7aa1f460-9f9f-499f-afdf-13424aa26bbf.svg',
             }}
             iconSize={12}
-            labelAnchor="bottom"
+            iconAnchor="bottom"
+            labelAnchor="top"
+            labelOffset={[0, -10]}
             labelColor="#e6edf3"
             labelSize={12}
             labelHaloColor="#0d1117"
