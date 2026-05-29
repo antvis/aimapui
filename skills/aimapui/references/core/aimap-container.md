@@ -137,4 +137,4 @@ interface MapEventPayload {
 
 - [schema-system.md](../schema/schema-system.md) — Schema 系统详解
 - [event-bus.md](../core/event-bus.md) — EventBus 事件系统
-- [basemap-factory.md](../core/basemap-factory.md) — 底图工厂
+- [basemap-factory.md](basemap-factory.md) — 底图工厂
