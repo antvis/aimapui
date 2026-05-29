@@ -1,12 +1,14 @@
-name: Deploy to Vercel
+name: CI
 
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,14 +26,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build site
-        run: pnpm build:site
+      - name: Build CLI
+        run: pnpm --filter @antv/aimapui-cli build
 
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: '--prod'
-          working-directory: ./dist-site
+      - name: Build site
+        run: pnpm --filter @antv/aimapui-site build
+
+      - name: Verify dist-site
+        run: ls -la dist-site/
