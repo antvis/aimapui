@@ -1,5 +1,5 @@
 {
-  "buildCommand": "pnpm install && pnpm build:cli && pnpm build:site",
+  "buildCommand": "pnpm install && pnpm --filter @antv/aimapui-cli build && pnpm --filter @antv/aimapui-site build",
   "outputDirectory": "dist-site",
   "framework": null,
   "rewrites": [
