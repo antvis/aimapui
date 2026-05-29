@@ -58,8 +58,25 @@ const docToDemoMap: Record<string, string> = {
   'controls/map-theme-control': 'control/MapThemeControl',
   'controls/mouse-location-control': 'control/MouseLocationControl',
   'controls/layer-switch-control': 'control/ThemeToggle',
+  'controls/scale-control': 'control/ScaleControl',
   // 容器 & 地图引擎
   'container/map-scene': 'engine/MaplibreMap',
+  // 图例
+  'legends/legend-categories': 'layer/LegendCategoriesDemo',
+  'legends/legend-ramp': 'layer/LegendRampDemo',
+  'legends/legend-diverging': 'layer/LegendDivergingDemo',
+  'legends/legend-threshold': 'layer/LegendThresholdDemo',
+  'legends/legend-size': 'layer/LegendSizeDemo',
+  'legends/legend-line-width': 'layer/LegendLineWidthDemo',
+  'legends/legend-proportion': 'layer/LegendProportionDemo',
+  'legends/legend-icon': 'layer/LegendIconDemo',
+  // Hooks
+  'hooks/use-responsive': 'layer/UseResponsiveDemo',
+  // 移动端
+  'mobile/bottom-sheet': 'app/BottomSheetDemo',
+  'mobile/search-bar': 'app/SearchBarDemo',
+  'mobile/mobile-toolbar': 'app/MobileToolbarDemo',
+  'mobile/mobile-sheet-legend': 'app/MobileSheetLegendDemo',
 };
 
 // 文档 ID → 多 Demo 映射（Tab 切换）
@@ -71,6 +88,7 @@ const docToMultiDemoMap: Record<string, Array<{ label: string; file: string }>> 
     { label: '天地图', file: 'engine/TiandituMap' },
     { label: '腾讯地图', file: 'engine/TencentMap' },
     { label: '百度地图', file: 'engine/BaiduMap' },
+    { label: 'Google 地图', file: 'engine/GoogleMap' },
     { label: '独立 Map', file: 'engine/IndependentMap' },
   ],
 };
@@ -459,10 +477,34 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
             </div>
           )}
           {/* 渲染区 */}
-          <div style={{ height: 360, position: 'relative', background: isDark ? '#0a0a0a' : '#fafafa' }}>
+          <div style={{ height: demoItem?.device === 'mobile' ? 560 : 360, position: 'relative', background: isDark ? '#0a0a0a' : '#fafafa' }}>
             {DemoComponent ? (
               <React.Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: c.muted }}>加载中...</div>}>
-                <DemoComponent />
+                {demoItem?.device === 'mobile' ? (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div
+                      style={{
+                        width: 260,
+                        height: 540,
+                        maxHeight: 'calc(100% - 20px)',
+                        borderRadius: 26,
+                        overflow: 'hidden',
+                        border: `2px solid ${isDark ? '#333' : '#eaeaea'}`,
+                        boxShadow: isDark
+                          ? '0 0 0 1px rgba(255,255,255,0.06), 0 16px 40px rgba(0,0,0,0.5)'
+                          : '0 0 0 1px rgba(0,0,0,0.06), 0 16px 40px rgba(0,0,0,0.1)',
+                        background: isDark ? '#111' : '#fff',
+                        position: 'relative',
+                      }}
+                    >
+                      <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
+                        <DemoComponent />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <DemoComponent />
+                )}
               </React.Suspense>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: c.muted }}>暂无预览</div>

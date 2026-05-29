@@ -38,6 +38,7 @@ import GeoLocateControl from './control/GeoLocateControl';
 import MapThemeControl from './control/MapThemeControl';
 import MouseLocationControl from './control/MouseLocationControl';
 import ExportImageControl from './control/ExportImageControl';
+import ScaleControlDemo from './control/ScaleControl';
 // ── Marker 标注 ──
 import Marker from './marker/Marker';
 import MarkerDrag from './marker/MarkerDrag';
@@ -84,6 +85,22 @@ import FillLayer from './layer/FillLayer';
 import Fill3DLayer from './layer/Fill3DLayer';
 import ImageLayer from './layer/ImageLayer';
 import RasterTileLayer from './layer/RasterTileLayer';
+// ── 图例 ──
+import LegendCategoriesDemo from './layer/LegendCategoriesDemo';
+import LegendRampDemo from './layer/LegendRampDemo';
+import LegendDivergingDemo from './layer/LegendDivergingDemo';
+import LegendThresholdDemo from './layer/LegendThresholdDemo';
+import LegendSizeDemo from './layer/LegendSizeDemo';
+import LegendLineWidthDemo from './layer/LegendLineWidthDemo';
+import LegendProportionDemo from './layer/LegendProportionDemo';
+import LegendIconDemo from './layer/LegendIconDemo';
+// ── Hooks ──
+import UseResponsiveDemo from './layer/UseResponsiveDemo';
+// ── 移动端 ──
+import BottomSheetDemo from './app/BottomSheetDemo';
+import SearchBarDemo from './app/SearchBarDemo';
+import MobileToolbarDemo from './app/MobileToolbarDemo';
+import MobileSheetLegendDemo from './app/MobileSheetLegendDemo';
 
 const sourceModules = import.meta.glob(
   ['./{engine,control,marker,layer,composite,app}/*.tsx', './{engine,control,marker,layer,composite,app}/*.md'],
@@ -91,13 +108,14 @@ const sourceModules = import.meta.glob(
 ) as Record<string, { default: string }>;
 
 // 设计规范文档 — 从 src/design/ 子目录加载 (.md + .html)
+// 注意：src/design 是指向 ../../core/src/design 的软链接（vite import.meta.glob 不支持跨 package 路径）
 const designMdModules = import.meta.glob(
-  '../design/{app,composite,marker,control,layer,block}/*.md',
+  './design/{app,composite,marker,control,layer,block}/*.md',
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
 
 const designHtmlModules = import.meta.glob(
-  '../design/{app,composite,marker,control,layer,block}/*.html',
+  './design/{app,composite,marker,control,layer,block}/*.html',
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
 
@@ -250,6 +268,7 @@ const demos = [
   { name: '底图主题', icon: 'palette', component: MapThemeControl, group: '控件', file: 'control/MapThemeControl' },
   { name: '鼠标坐标', icon: 'pin_drop', component: MouseLocationControl, group: '控件', file: 'control/MouseLocationControl' },
   { name: '导出图片', icon: 'photo_camera', component: ExportImageControl, group: '控件', file: 'control/ExportImageControl' },
+  { name: '比例尺', icon: 'straighten', component: ScaleControlDemo, group: '控件', file: 'control/ScaleControl' },
 
   // ── 地图引擎 ──────────────────────────────
   { name: '高德地图', icon: 'public', component: GaodeMap, group: '地图引擎', file: 'engine/GaodeMap' },
@@ -286,6 +305,25 @@ const demos = [
   { name: '栅格瓦片', icon: 'grid_view', component: RasterTileLayer, group: '基础图层', file: 'layer/RasterTileLayer' },
   // 事件 & 组合
   { name: '多图层叠加', icon: 'layers', component: MultiLayer, group: '基础图层', file: 'layer/MultiLayer' },
+
+  // ── 图例 ──────────────────────────────────
+  { name: '分类图例', icon: 'category', component: LegendCategoriesDemo, group: '图例', file: 'layer/LegendCategoriesDemo' },
+  { name: '色带图例', icon: 'gradient', component: LegendRampDemo, group: '图例', file: 'layer/LegendRampDemo' },
+  { name: '发散图例', icon: 'swap_horiz', component: LegendDivergingDemo, group: '图例', file: 'layer/LegendDivergingDemo' },
+  { name: '阈值图例', icon: 'stairs', component: LegendThresholdDemo, group: '图例', file: 'layer/LegendThresholdDemo' },
+  { name: '大小图例', icon: 'bubble_chart', component: LegendSizeDemo, group: '图例', file: 'layer/LegendSizeDemo' },
+  { name: '线宽图例', icon: 'horizontal_rule', component: LegendLineWidthDemo, group: '图例', file: 'layer/LegendLineWidthDemo' },
+  { name: '比例图例', icon: 'bar_chart', component: LegendProportionDemo, group: '图例', file: 'layer/LegendProportionDemo' },
+  { name: '图标图例', icon: 'emoji_symbols', component: LegendIconDemo, group: '图例', file: 'layer/LegendIconDemo' },
+
+  // ── Hooks ────────────────────────────────
+  { name: 'useResponsive', icon: 'devices', component: UseResponsiveDemo, group: 'Hooks', file: 'layer/UseResponsiveDemo' },
+
+  // ── 移动端 ────────────────────────────────
+  { name: '底部抽屉', icon: 'expand_less', component: BottomSheetDemo, group: '移动端', file: 'app/BottomSheetDemo', device: 'mobile' },
+  { name: '搜索栏', icon: 'search', component: SearchBarDemo, group: '移动端', file: 'app/SearchBarDemo', device: 'mobile' },
+  { name: '工具栏', icon: 'apps', component: MobileToolbarDemo, group: '移动端', file: 'app/MobileToolbarDemo', device: 'mobile' },
+  { name: '弹出式图例', icon: 'label', component: MobileSheetLegendDemo, group: '移动端', file: 'app/MobileSheetLegendDemo', device: 'mobile' },
 ];
 
 const componentDemos = demos.filter(d => d.group !== '应用模板');

@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* 显式声明源码扫描范围
+ * Tailwind v4 默认基于"使用 CSS 的项目根目录"自动扫描，site 项目下不会自动覆盖到 core 的组件源码，
+ * 因此 LegendCategories / Popup 等组件使用的 Tailwind 类（包括 hover: / bg-black/30 / size-8 等）
+ * 都不会被生成。这里用 @source 指令显式声明扫描范围，覆盖整个 core/src 源码。
+ */
+@source "../../";
+
 /* Material Design 3 设计令牌 - GeoLink Pro Cartographic Precision System */
 @theme {
   /* Colors - Material Design 3 */
