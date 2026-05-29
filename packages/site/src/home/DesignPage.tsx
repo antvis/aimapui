@@ -21,10 +21,11 @@ interface DesignPageProps {
   onNavigateDemo: () => void;
   onNavigateDocs: () => void;
   onNavigateBlock: () => void;
+  onNavigateSkill?: () => void;
   markdownToHtml: (md: string) => string;
 }
 
-export default function DesignPage({ docs, groups, theme, initialDocIndex = 0, onDocChange, onToggleTheme, onNavigateHome, onNavigateDemo, onNavigateDocs, onNavigateBlock, markdownToHtml }: DesignPageProps) {
+export default function DesignPage({ docs, groups, theme, initialDocIndex = 0, onDocChange, onToggleTheme, onNavigateHome, onNavigateDemo, onNavigateDocs, onNavigateBlock, onNavigateSkill, markdownToHtml }: DesignPageProps) {
   const isDark = theme === 'dark';
   const [currentDoc, setCurrentDoc] = React.useState(initialDocIndex);
   const [showSource, setShowSource] = React.useState(false);
@@ -82,6 +83,7 @@ export default function DesignPage({ docs, groups, theme, initialDocIndex = 0, o
         onNavigateDocs={onNavigateDocs}
         onNavigateDesign={() => {}}
         onNavigateBlock={onNavigateBlock}
+        onNavigateSkill={onNavigateSkill}
         onToggleTheme={onToggleTheme}
       />
 

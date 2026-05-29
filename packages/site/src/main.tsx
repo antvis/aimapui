@@ -9,6 +9,7 @@ import DocsPage from './docs/DocsPage';
 import BlockPage from './home/BlockPage';
 import { SourceCodePanel, SourceCodeToggle } from './components/SourceCodePanel';
 import BlockDemoPage from './home/BlockDemoPage';
+import SkillPage from './home/SkillPage';
 
 // 本地字体（替代 Google Fonts CDN）
 import '@fontsource/inter/400.css';
@@ -330,7 +331,7 @@ const componentDemos = demos.filter(d => d.group !== '应用模板');
 const groups = [...new Set(componentDemos.map((d) => d.group))];
 
 // 从 URL 获取当前页面状态（支持 path 和 hash 两种模式）
-const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design'; demoIndex: number } => {
+const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design' | 'skill'; demoIndex: number } => {
   // 优先读 pathname（预渲染 SEO 模式），fallback 到 hash（开发兼容）
   const pathname = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
   const hash = window.location.hash.slice(1);
@@ -349,6 +350,7 @@ const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block'
     return { page: 'design', demoIndex: designIndex >= 0 ? designIndex : 0 };
   }
   if (route === 'docs' || route.startsWith('docs/')) return { page: 'docs', demoIndex: 0 };
+  if (route === 'skill' || route === 'skill/') return { page: 'skill', demoIndex: 0 };
 
   // 支持格式: block/app/MobileApp
   const blockMatch = route.match(/^block\/(.+)$/);
@@ -371,7 +373,7 @@ const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block'
 const blockDemos = demos.filter(d => d.group === '应用模板');
 
 function App() {
-  const [currentPage, setCurrentPage] = React.useState<'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design'>(() => getPageFromUrl().page);
+  const [currentPage, setCurrentPage] = React.useState<'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design' | 'skill'>(() => getPageFromUrl().page);
   const [current, setCurrent] = React.useState(() => getPageFromUrl().demoIndex);
   const [showPanel, setShowPanel] = React.useState(false);
   // 全局 UI 主题
@@ -468,6 +470,7 @@ function App() {
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
+          onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           demos={demos}
           theme={appTheme}
@@ -491,6 +494,7 @@ function App() {
           onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
           markdownToHtml={markdownToHtml}
         />
       </div>
@@ -511,6 +515,7 @@ function App() {
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
         />
       </div>
     );
@@ -532,6 +537,7 @@ function App() {
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
           markdownToHtml={markdownToHtml}
         />
       </div>
@@ -549,9 +555,27 @@ function App() {
           onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
           docsMap={docsMap}
           demos={demos}
           sourceModules={sourceModules}
+        />
+      </div>
+    );
+  }
+
+  // Skill 介绍页面渲染
+  if (currentPage === 'skill') {
+    return (
+      <div data-theme={appTheme} style={{ width: '100%', height: '100%', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+        <SkillPage
+          theme={appTheme}
+          onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
+          onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
+          onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
+          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
         />
       </div>
     );
@@ -567,7 +591,8 @@ function App() {
         onNavigateDemos={() => {}}
         onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
         onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
-          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+        onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+        onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
         onToggleTheme={() => setAppTheme((prev) => prev === 'light' ? 'dark' : 'light')}
       />
 

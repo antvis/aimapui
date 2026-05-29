@@ -5,6 +5,7 @@ interface HomePageProps {
   onNavigate: (demoIndex: number) => void;
   onNavigateDesign: () => void;
   onNavigateBlock: () => void;
+  onNavigateSkill?: () => void;
   onNavigateDocs: () => void;
   onToggleTheme: () => void;
   demos: Array<{
@@ -35,7 +36,7 @@ const features = [
   { icon: 'speed', title: '高性能', description: '基于 L7 WebGL 渲染，支持海量数据' },
 ];
 
-export default function HomePage({ onNavigate, onNavigateDesign, onNavigateBlock, onNavigateDocs, onToggleTheme, demos, theme }: HomePageProps) {
+export default function HomePage({ onNavigate, onNavigateDesign, onNavigateBlock, onNavigateDocs, onNavigateSkill, onToggleTheme, demos, theme }: HomePageProps) {
   const isDark = theme === 'dark';
 
   // Geist/Vercel design tokens
@@ -75,6 +76,7 @@ export default function HomePage({ onNavigate, onNavigateDesign, onNavigateBlock
         onNavigateDocs={onNavigateDocs}
         onNavigateDesign={onNavigateDesign}
         onNavigateBlock={onNavigateBlock}
+        onNavigateSkill={onNavigateSkill}
         onToggleTheme={onToggleTheme}
       />
 

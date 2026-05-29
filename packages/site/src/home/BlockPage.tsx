@@ -20,9 +20,10 @@ interface BlockPageProps {
   onNavigateDocs: () => void;
   onNavigateDesign: () => void;
   onNavigateBlock: () => void;
+  onNavigateSkill?: () => void;
 }
 
-export default function BlockPage({ demos, theme, sourceModules, onToggleTheme, onNavigateHome, onNavigateDemo, onNavigateDocs, onNavigateDesign }: BlockPageProps) {
+export default function BlockPage({ demos, theme, sourceModules, onToggleTheme, onNavigateHome, onNavigateDemo, onNavigateDocs, onNavigateDesign, onNavigateSkill }: BlockPageProps) {
   const isDark = theme === 'dark';
   const [current, setCurrent] = React.useState(0);
   const [showPanel, setShowPanel] = React.useState(false);
@@ -51,6 +52,7 @@ export default function BlockPage({ demos, theme, sourceModules, onToggleTheme, 
         onNavigateDocs={onNavigateDocs}
         onNavigateDesign={onNavigateDesign}
         onNavigateBlock={() => {}}
+        onNavigateSkill={onNavigateSkill}
         onToggleTheme={onToggleTheme}
       />
 

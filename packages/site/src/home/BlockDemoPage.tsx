@@ -22,6 +22,7 @@ interface BlockDemoPageProps {
   onNavigateDocs: () => void;
   onNavigateDesign: () => void;
   onNavigateBlock: () => void;
+  onNavigateSkill?: () => void;
   markdownToHtml: (md: string) => string;
 }
 
@@ -37,6 +38,7 @@ export default function BlockDemoPage({
   onNavigateDocs,
   onNavigateDesign,
   onNavigateBlock,
+  onNavigateSkill,
   markdownToHtml,
 }: BlockDemoPageProps) {
   const isDark = theme === 'dark';
@@ -96,6 +98,7 @@ export default function BlockDemoPage({
         onNavigateDocs={onNavigateDocs}
         onNavigateDesign={onNavigateDesign}
         onNavigateBlock={() => {}}
+        onNavigateSkill={onNavigateSkill}
         onToggleTheme={onToggleTheme}
       />
 

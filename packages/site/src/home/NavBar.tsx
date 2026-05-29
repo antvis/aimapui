@@ -8,16 +8,17 @@ interface NavItem {
 
 interface NavBarProps {
   theme: 'light' | 'dark';
-  activePage: 'home' | 'demos' | 'docs' | 'design' | 'block';
+  activePage: 'home' | 'demos' | 'docs' | 'design' | 'block' | 'skill';
   onLogoClick: () => void;
   onNavigateDemos: () => void;
   onNavigateDocs: () => void;
   onNavigateDesign: () => void;
   onNavigateBlock?: () => void;
+  onNavigateSkill?: () => void;
   onToggleTheme: () => void;
 }
 
-export default function NavBar({ theme, activePage, onLogoClick, onNavigateDemos, onNavigateDocs, onNavigateDesign, onNavigateBlock, onToggleTheme }: NavBarProps) {
+export default function NavBar({ theme, activePage, onLogoClick, onNavigateDemos, onNavigateDocs, onNavigateDesign, onNavigateBlock, onNavigateSkill, onToggleTheme }: NavBarProps) {
   const isDark = theme === 'dark';
 
   const c = {
@@ -33,6 +34,7 @@ export default function NavBar({ theme, activePage, onLogoClick, onNavigateDemos
     { label: 'Components', active: activePage === 'demos', action: onNavigateDemos },
     { label: 'Blocks', active: activePage === 'block', action: onNavigateBlock || (() => {}) },
     { label: 'Design', active: activePage === 'design', action: onNavigateDesign },
+    { label: 'Skill', active: activePage === 'skill', action: onNavigateSkill || (() => {}) },
   ];
 
   return (
