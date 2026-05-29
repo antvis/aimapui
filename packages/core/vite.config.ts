@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 
 export default defineConfig({
   server: {
@@ -15,6 +16,9 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       rollupTypes: true,
+    }),
+    nodeResolve({
+      extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
     }),
   ],
   resolve: {
@@ -54,6 +58,9 @@ export default defineConfig({
           return assetInfo.names?.[0] ?? 'assets/[name]-[hash][extname]';
         },
       },
+    },
+    commonjsOptions: {
+      extensions: ['.js', '.ts', '.tsx'],
     },
   },
 });
