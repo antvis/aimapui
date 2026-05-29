@@ -19,8 +19,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      // 开发时直接引用 core 源码，避免每次改源码都要重新构建
-      '@antv/aimapui': resolve(__dirname, '../core/src/index.ts'),
+      // 生产环境使用构建后的 core 包
+      '@antv/aimapui': resolve(__dirname, '../core/dist/index.es.js'),
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
