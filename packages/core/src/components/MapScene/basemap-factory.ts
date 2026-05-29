@@ -77,11 +77,17 @@ export async function createBasemap(schema: MapSchema) {
 
     case 'google': {
       const { GoogleMap } = await import('@antv/l7-maps');
-      return new GoogleMap({
+      const instance = new GoogleMap({
         ...commonOptions,
         style: mapStyleToGoogle(style),
         token,
       });
+      // 移除 Google 原生控件（zoom / mapType / streetView / fullscreen / scale 等），
+      // 统一由 L7 控件层接管（ZoomControl / ScaleControl / ...）。
+      // L7 GMapService 在初始化后会根据 zoomEnable 重新打开 zoomControl，这里在 init
+      // 完成后强制覆盖一次原生 setOptions。
+      suppressGoogleNativeControls(instance);
+      return instance;
     }
 
     case 'map':
@@ -155,4 +161,66 @@ function mapStyleToMaplibre(style: string): string {
     fiord: 'https://tiles.openfreemap.org/styles/fiord',
   };
   return map[style] ?? style;
+}
+
+/**
+ * 移除 Google Maps 原生 UI 控件
+ *
+ * L7 GMapService 虽然初始化时设置了 disableDefaultUI: true，但 init 完成后会根据
+ * zoomEnable 选项调用 setMapStatus，重新打开原生的 zoomControl。为了让三方地图
+ * 统一使用 L7 控件（ZoomControl / ScaleControl 等），这里在底图实例上挂一个补丁：
+ *
+ * 1. 轮询等待 L7 内部 this.map（原生 google.maps.Map 实例）就绪
+ * 2. 强制 setOptions 关闭所有原生 UI
+ * 3. 拦截后续 L7 触发的 setOptions 调用，过滤掉 zoomControl 等原生 UI 字段
+ */
+function suppressGoogleNativeControls(instance: unknown): void {
+  const NATIVE_UI_KEYS = [
+    'zoomControl',
+    'mapTypeControl',
+    'streetViewControl',
+    'fullscreenControl',
+    'scaleControl',
+    'rotateControl',
+    'panControl',
+  ] as const;
+
+  const nativeUiOff: Record<string, false> = {};
+  for (const key of NATIVE_UI_KEYS) {
+    nativeUiOff[key] = false;
+  }
+
+  const tryPatch = (): boolean => {
+    const nativeMap = (instance as { map?: unknown }).map as
+      | { setOptions?: (opts: Record<string, unknown>) => void }
+      | undefined;
+    if (!nativeMap || typeof nativeMap.setOptions !== 'function') return false;
+
+    // 第一次强制覆盖
+    nativeMap.setOptions(nativeUiOff);
+
+    // 拦截后续 L7 内部的 setOptions，过滤掉原生 UI 字段
+    const originalSetOptions = nativeMap.setOptions.bind(nativeMap);
+    nativeMap.setOptions = (opts: Record<string, unknown>) => {
+      const filtered: Record<string, unknown> = { ...opts };
+      for (const key of NATIVE_UI_KEYS) {
+        if (key in filtered) {
+          delete filtered[key];
+        }
+      }
+      originalSetOptions(filtered);
+    };
+    return true;
+  };
+
+  if (tryPatch()) return;
+
+  // 原生 Map 尚未创建，轮询等待（init 通常 < 2s 完成）
+  let attempts = 0;
+  const timer = setInterval(() => {
+    attempts += 1;
+    if (tryPatch() || attempts > 40) {
+      clearInterval(timer);
+    }
+  }, 100);
 }

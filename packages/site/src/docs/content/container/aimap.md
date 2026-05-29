@@ -45,7 +45,7 @@ import { AiMap } from '@antv/aimapui'
 
 | 属性 | 类型 | 组合模式默认值 | Schema 模式默认值 | 说明 |
 |------|------|---------------|-----------------|------|
-| `basemap` | `'gaode' \| 'mapbox' \| 'maplibre' \| 'tianditu' \| 'tencent' \| 'baidu' \| 'map'` | `'gaode'` | `'map'` | 底图引擎。`'map'` = MapLibre 开源底图（无需 token）；其余需配 `token` |
+| `basemap` | `'gaode' \| 'mapbox' \| 'maplibre' \| 'tianditu' \| 'tencent' \| 'baidu' \| 'google' \| 'map'` | `'gaode'` | `'map'` | 底图引擎。`'map'`/`'maplibre'` = 开源底图（无需 token）；其余需配 `token` |
 | `center` | `[number, number]` | `[105, 35]` | `[105, 35]` | 初始中心点 [经度, 纬度] |
 | `zoom` | `number` | `4` | `4` | 初始缩放级别（0~22，值越大越细节） |
 | `pitch` | `number` | `0` | `0` | 俯仰角（0~60），大于 0 开启 3D 透视，配合 [PolygonLayer](../layers/polygon-layer) 的 `extrusion` 或 [LineLayer](../layers/line-layer) 的 `arc3d` 使用 |
@@ -163,6 +163,88 @@ const cities = [
 </AiMap>
 ```
 
+### Google 地图底图
+
+需要在 [Google Cloud Console](https://console.cloud.google.com/google/maps-apis) 申请 Maps JavaScript API Key 并开启 **Maps JavaScript API**。`style` 初始值支持 `'normal' | 'satellite' | 'hybrid' | 'terrain'`。
+
+#### 基础用法
+
+```tsx
+import { AiMap, PointLayer, ZoomControl, ErrorBoundary } from '@antv/aimapui'
+
+<ErrorBoundary>
+  <AiMap
+    map={{
+      basemap: 'google',
+      token: 'YOUR_GOOGLE_MAPS_API_KEY',
+      center: [105, 35],
+      zoom: 4,
+      style: 'normal',
+    }}
+  >
+    <PointLayer source={cities} sourceType="json" sourceConfig={{ x: 'lng', y: 'lat' }} size={10} color="#3B82F6" />
+    <ZoomControl position="bottomright" />
+  </AiMap>
+</ErrorBoundary>
+```
+
+#### 主题切换（roadmap/satellite/hybrid/terrain）
+
+L7 的 `mapsService.setMapStyle` 对 Google 已封装为 `setMapTypeId`，但建议**直接拿原生 map 实例调用**以获得最稳定的体验：
+
+```tsx
+import React, { useCallback, useRef, useState } from 'react'
+import type { Scene } from '@antv/l7'
+import { AiMap, MapThemeControl, ErrorBoundary } from '@antv/aimapui'
+import type { ThemeOption } from '@antv/aimapui'
+
+const GOOGLE_THEMES: ThemeOption[] = [
+  { text: '路图', value: 'roadmap' },
+  { text: '卫星', value: 'satellite' },
+  { text: '混合', value: 'hybrid' },
+  { text: '地形', value: 'terrain' },
+]
+
+function GoogleMapWithTheme() {
+  const nativeMapRef = useRef<any>(null)
+  const [currentTheme, setCurrentTheme] = useState('roadmap')
+
+  const handleSceneReady = useCallback((scene: Scene) => {
+    // 通过 scene.mapService.map 拿到 google.maps.Map 原生实例
+    nativeMapRef.current = (scene as any).mapService?.map
+  }, [])
+
+  const handleThemeChange = useCallback((value: string) => {
+    setCurrentTheme(value)
+    nativeMapRef.current?.setMapTypeId?.(value)
+  }, [])
+
+  return (
+    <ErrorBoundary>
+      <AiMap
+        map={{
+          basemap: 'google',
+          token: 'YOUR_GOOGLE_MAPS_API_KEY',
+          center: [105, 35],
+          zoom: 4,
+        }}
+        onSceneReady={handleSceneReady}
+      >
+        <MapThemeControl
+          position="topleft"
+          options={GOOGLE_THEMES}
+          defaultValue={currentTheme}
+          onThemeChange={handleThemeChange}
+        />
+      </AiMap>
+    </ErrorBoundary>
+  )
+}
+```
+
+> 💡 国内访问 Google Maps 需要 VPN，建议用 `ErrorBoundary` 包裹避免 SDK 加载失败影响其他页面。
+> 同样的模式也适用于百度（`nativeMap.setMapStyleV2({ styleJson })`）和腾讯（`nativeMap.setMapStyleId(styleId)`）地图。
+
 ### 边界范围初始化
 
 用 `bounds` 替代 `center` + `zoom`，让地图自动适配指定区域：
@@ -182,7 +264,8 @@ const cities = [
 - **容器高度**：`AiMap` 默认撑满父容器，如果父容器高度为 0（如 flex 布局未设 `height`），地图不会显示。确保父容器有明确高度，如 `style={{ height: '100vh' }}`
 - `map` 和 `schema` 互斥，同时传入时 `map` 优先，`schema` 会被忽略
 - 组合模式中子组件自动按类型分发：图层组件渲染到场景，控件组件渲染到 L7 控件容器，交互组件（Popup/Tooltip/Marker）渲染到 Overlay 层
-- `basemap='map'` 使用 MapLibre 开源底图，无需 token；`'gaode'`、`'mapbox'` 等需要对应平台的 API Key
+- `basemap='map'`/`'maplibre'` 使用开源底图，无需 token；`'gaode'`、`'mapbox'`、`'google'`、`'tencent'`、`'baidu'`、`'tianditu'` 等需要对应平台的 API Key
+- `basemap='google'` 在国内需要 VPN 才能访问，建议用 `ErrorBoundary` 包裹避免 SDK 加载失败影响其他页面
 - `pitch` 大于 0 开启 3D 透视，配合 [PolygonLayer](../layers/polygon-layer) 的 `extrusion` 和 [LineLayer](../layers/line-layer) 的 `arc3d` 使用
 - `gestureConfig` 在移动端场景特别有用：禁用 `dragRotate` 可防止误触旋转地图
 - `events` 的 EventBus 可用于跨组件通信，如图层点击后触发图例更新
