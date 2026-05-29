@@ -20,6 +20,7 @@ interface DocsPageProps {
   onNavigateDemo: () => void;
   onNavigateDesign: () => void;
   onNavigateBlock: () => void;
+  onNavigateSkill?: () => void;
   docsMap: Record<string, string>; // id → markdown content
   demos?: DemoItem[];
   sourceModules?: Record<string, { default: string }>;
@@ -94,7 +95,7 @@ const docToMultiDemoMap: Record<string, Array<{ label: string; file: string }>> 
 };
 
 // ── 简易语法高亮 Token 类型 ──
-type TokenType = 'keyword' | 'string' | 'number' | 'comment' | 'type' | 'punctuation' | 'function' | 'operator' | 'plain';
+type TokenType = 'keyword' | 'string' | 'number' | 'comment' | 'type' | 'punctuation' | 'function' | 'operator' | 'plain' | 'attr' | 'tag';
 
 // ── 简易代码语法高亮器 ──
 function highlightCode(code: string, lang: string, isDark: boolean): string {
@@ -108,6 +109,10 @@ function highlightCode(code: string, lang: string, isDark: boolean): string {
     function: isDark ? '#d2a8ff' : '#8250df',
     operator: isDark ? '#ff7b72' : '#cf222e',
     plain: isDark ? '#e6edf3' : '#1f2328',
+    // JSX 属性名 — GitHub 风格用紫色
+    attr: isDark ? '#79c0ff' : '#0550ae',
+    // JSX 标签名 — GitHub 风格用绿色
+    tag: isDark ? '#7ee787' : '#116329',
   };
 
   const tsKeywords = new Set([
@@ -123,6 +128,9 @@ function highlightCode(code: string, lang: string, isDark: boolean): string {
   const tokenize = (src: string): Array<{ type: TokenType; text: string }> => {
     const tokens: Array<{ type: TokenType; text: string }> = [];
     let i = 0;
+    // JSX 上下文跟踪：true 表示当前在 <Tag ...> 内部（标签开/闭合括号之间）
+    let inJsxTag = false;
+
     while (i < src.length) {
       if (src[i] === '/' && src[i + 1] === '/') {
         let end = src.indexOf('\n', i); if (end === -1) end = src.length;
@@ -137,6 +145,41 @@ function highlightCode(code: string, lang: string, isDark: boolean): string {
         while (j < src.length) { if (src[j] === '\\') { j += 2; continue; } if (src[j] === q) { j++; break; } j++; }
         tokens.push({ type: 'string', text: src.slice(i, j) }); i = j; continue;
       }
+
+      // JSX 标签开始：< 后紧跟字母 → 当前 token 视为 tag 起始
+      if (src[i] === '<' && /[a-zA-Z]/.test(src[i + 1] ?? '')) {
+        tokens.push({ type: 'punctuation', text: '<' });
+        i += 1;
+        // 紧跟标签名
+        let j = i; while (j < src.length && /[\w.$-]/.test(src[j])) j++;
+        if (j > i) {
+          tokens.push({ type: 'tag', text: src.slice(i, j) });
+          i = j;
+          inJsxTag = true;
+        }
+        continue;
+      }
+      // JSX 闭合标签 </Foo>
+      if (src[i] === '<' && src[i + 1] === '/' && /[a-zA-Z]/.test(src[i + 2] ?? '')) {
+        tokens.push({ type: 'punctuation', text: '</' });
+        i += 2;
+        let j = i; while (j < src.length && /[\w.$-]/.test(src[j])) j++;
+        if (j > i) {
+          tokens.push({ type: 'tag', text: src.slice(i, j) });
+          i = j;
+          inJsxTag = true;
+        }
+        continue;
+      }
+      // JSX 标签结束：> 或 />
+      if (inJsxTag && (src[i] === '>' || (src[i] === '/' && src[i + 1] === '>'))) {
+        const text = src[i] === '/' ? '/>' : '>';
+        tokens.push({ type: 'punctuation', text });
+        i += text.length;
+        inJsxTag = false;
+        continue;
+      }
+
       if (/\d/.test(src[i]) && (i === 0 || !/\w/.test(src[i - 1]))) {
         let j = i; while (j < src.length && /[\d.xXa-fA-F]/.test(src[j])) j++;
         tokens.push({ type: 'number', text: src.slice(i, j) }); i = j; continue;
@@ -144,10 +187,19 @@ function highlightCode(code: string, lang: string, isDark: boolean): string {
       if (/[a-zA-Z_$]/.test(src[i])) {
         let j = i; while (j < src.length && /[\w$]/.test(src[j])) j++;
         const word = src.slice(i, j);
-        if (tsKeywords.has(word)) tokens.push({ type: 'keyword', text: word });
-        else if (j < src.length && src[j] === '(') tokens.push({ type: 'function', text: word });
-        else if (/^[A-Z]/.test(word) && word.length > 1) tokens.push({ type: 'type', text: word });
-        else tokens.push({ type: 'plain', text: word });
+
+        // 在 JSX 标签内 → 视为属性名（含布尔型属性如 showLabel hoverEffect）
+        if (inJsxTag) {
+          tokens.push({ type: 'attr', text: word });
+        } else if (tsKeywords.has(word)) {
+          tokens.push({ type: 'keyword', text: word });
+        } else if (j < src.length && src[j] === '(') {
+          tokens.push({ type: 'function', text: word });
+        } else if (/^[A-Z]/.test(word) && word.length > 1) {
+          tokens.push({ type: 'type', text: word });
+        } else {
+          tokens.push({ type: 'plain', text: word });
+        }
         i = j; continue;
       }
       if (/[=<>!&|?:+\-*/%^~]/.test(src[i])) {
@@ -213,27 +265,31 @@ function docsMarkdownToHtml(md: string, isDark: boolean): string {
   renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
     const language = lang || 'tsx';
     const highlighted = highlightCode(text, language, isDark);
-    return `<div style="margin:16px 0;border-radius:8px;overflow:hidden;border:1px solid ${C.codeBorder}"><div style="padding:8px 14px;background:${C.tableHeaderBg};border-bottom:1px solid ${C.codeBorder};font-size:12px;color:${C.text2};font-family:ui-sans-serif,-apple-system,sans-serif;display:flex;justify-content:space-between;align-items:center"><span style="text-transform:uppercase;letter-spacing:0.04em;font-weight:500">${language}</span></div><pre style="margin:0;padding:16px 18px;background:${C.codeBg};overflow-x:auto;tab-size:2"><code style="font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;font-size:13px;line-height:1.7;display:block">${highlighted}</code></pre></div>`;
+    // mapcn 风格：无语言标签条；右上角悬浮复制按钮；统一 muted 底色；单层边框
+    const encoded = encodeURIComponent(text);
+    return `<div class="docs-code-block" data-code="${encoded}" style="position:relative;margin:18px 0;border-radius:8px;overflow:hidden;border:1px solid ${C.codeBorder};background:${C.codeBg}"><button type="button" class="docs-code-copy" aria-label="复制代码" style="position:absolute;top:8px;right:8px;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;border:1px solid ${C.codeBorder};background:${isDark ? 'rgba(13,17,23,0.7)' : 'rgba(255,255,255,0.7)'};color:${C.text2};cursor:pointer;backdrop-filter:blur(4px);transition:color 120ms,background 120ms;opacity:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><pre style="margin:0;padding:16px 18px;overflow-x:auto;tab-size:2"><code style="font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;font-size:13px;line-height:1.7;display:block;background:transparent">${highlighted}</code></pre></div>`;
   };
 
   renderer.codespan = ({ text }: { text: string }) =>
-    `<code style="background:${C.inlineCodeBg};padding:2px 6px;border-radius:4px;font-size:12px;color:${C.inlineCodeColor};font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;border:none">${text}</code>`;
+    `<code style="background:${C.inlineCodeBg};padding:2px 6px;border-radius:4px;font-size:12.5px;color:${C.inlineCodeColor};font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;border:none">${text}</code>`;
 
   renderer.table = function(this: { parser: { parseInline: (tokens: unknown[]) => string } }, token: { header: { tokens: unknown[] }[]; rows: { tokens: unknown[] }[][] }) {
+    // mapcn 风格：极简表格 — 无外框、无阴影、无表头背景、无斑马纹；仅 border-b 分割行
     const thHtml = token.header.map((h) =>
-      `<th style="padding:10px 14px;text-align:left;font-weight:600;font-size:12px;color:${C.tableHeaderText};white-space:nowrap;background:${C.tableHeaderBg};border-bottom:2px solid ${C.tableBorder};letter-spacing:0.01em">${this.parser.parseInline(h.tokens)}</th>`
+      `<th style="padding:10px 14px;text-align:left;font-weight:500;font-size:13px;color:${C.text2};white-space:nowrap;border-bottom:1px solid ${C.tableBorder}">${this.parser.parseInline(h.tokens)}</th>`
     ).join('');
     const trHtml = token.rows.map((row, ri) => {
-      const bg = ri % 2 === 1 ? (isDark ? 'rgba(110,118,129,0.04)' : 'rgba(175,184,193,0.06)') : 'transparent';
-      return `<tr style="background:${bg};border-bottom:1px solid ${C.tableBorder}">${row.map((cell) =>
-        `<td style="padding:9px 14px;font-size:13px;line-height:1.65;color:${C.text};vertical-align:top;min-width:60px">${this.parser.parseInline(cell.tokens)}</td>`
+      const isLast = ri === token.rows.length - 1;
+      return `<tr${isLast ? '' : ` style="border-bottom:1px solid ${C.tableBorder}"`}>${row.map((cell) =>
+        `<td style="padding:10px 14px;font-size:13.5px;line-height:1.65;color:${C.text};vertical-align:top">${this.parser.parseInline(cell.tokens)}</td>`
       ).join('')}</tr>`;
     }).join('');
-    return `<div style="margin:20px 0;overflow-x:auto;border:1px solid ${C.tableBorder};border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.04)"><table style="width:100%;border-collapse:collapse;background:${C.tableBg}"><thead><tr>${thHtml}</tr></thead><tbody>${trHtml}</tbody></table></div>`;
+    return `<div style="margin:18px 0;width:100%;overflow-x:auto"><table style="width:100%;border-collapse:collapse;caption-side:bottom;font-size:14px"><thead style="border-bottom:1px solid ${C.tableBorder}"><tr>${thHtml}</tr></thead><tbody>${trHtml}</tbody></table></div>`;
   };
 
   renderer.blockquote = function(this: { parser: { parse: (tokens: unknown[]) => string } }, token: { tokens: unknown[] }) {
-    return `<blockquote style="margin:16px 0;padding:10px 18px;border-left:3px solid ${C.calloutBorder};color:${C.text2};font-size:13.5px;line-height:1.75;background:${isDark ? 'rgba(110,118,129,0.04)' : 'rgba(175,184,193,0.04)'};border-radius:0 6px 6px 0">${this.parser.parse(token.tokens)}</blockquote>`;
+    // mapcn 风格 DocsNote：bg-muted/40 卡片，无左侧色条
+    return `<div style="margin:18px 0;padding:14px 18px;border-radius:8px;border:1px solid ${C.codeBorder};background:${isDark ? 'rgba(110,118,129,0.08)' : 'rgba(175,184,193,0.08)'};color:${isDark ? 'rgba(230,237,243,0.85)' : 'rgba(31,35,40,0.85)'};font-size:14px;line-height:1.7">${this.parser.parse(token.tokens)}</div>`;
   };
 
   renderer.list = function(this: { parser: { parse: (tokens: unknown[]) => string } }, token: { ordered: boolean; items: { tokens: unknown[] }[] }) {
@@ -294,7 +350,7 @@ function DemoCodeBlock({ code, isDark, border }: { code: string; isDark: boolean
 }
 
 // ── 主组件 ──
-export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavigateDemo, onNavigateDesign, onNavigateBlock, docsMap, demos = [], sourceModules = {} }: DocsPageProps) {
+export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavigateDemo, onNavigateDesign, onNavigateBlock, onNavigateSkill, docsMap, demos = [], sourceModules = {} }: DocsPageProps) {
   const isDark = theme === 'dark';
 
   const getInitialDoc = (): string => {
@@ -366,6 +422,55 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
     headings.forEach(h => obs.observe(h));
     return () => obs.disconnect();
   }, [toc, htmlContent]);
+
+  // mapcn 风格：代码块右上角复制按钮（hover 显示 + 点击复制 + 反馈）
+  React.useEffect(() => {
+    const root = contentRef.current;
+    if (!root) return;
+
+    const handleEnter = (e: Event) => {
+      const block = (e.target as HTMLElement).closest?.('.docs-code-block') as HTMLElement | null;
+      if (!block) return;
+      const btn = block.querySelector<HTMLButtonElement>('.docs-code-copy');
+      if (btn) btn.style.opacity = '1';
+    };
+    const handleLeave = (e: Event) => {
+      const block = (e.target as HTMLElement).closest?.('.docs-code-block') as HTMLElement | null;
+      if (!block) return;
+      const btn = block.querySelector<HTMLButtonElement>('.docs-code-copy');
+      // 复制成功反馈期间不要隐藏
+      if (btn && btn.dataset.copied !== '1') btn.style.opacity = '0';
+    };
+    const handleClick = (e: Event) => {
+      const btn = (e.target as HTMLElement).closest?.('.docs-code-copy') as HTMLButtonElement | null;
+      if (!btn) return;
+      const block = btn.closest('.docs-code-block') as HTMLElement | null;
+      const encoded = block?.getAttribute('data-code') ?? '';
+      const text = decodeURIComponent(encoded);
+      navigator.clipboard.writeText(text).then(() => {
+        btn.dataset.copied = '1';
+        const original = btn.innerHTML;
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        btn.style.color = '#16a34a';
+        btn.style.opacity = '1';
+        window.setTimeout(() => {
+          btn.dataset.copied = '';
+          btn.innerHTML = original;
+          btn.style.color = '';
+          btn.style.opacity = '0';
+        }, 1400);
+      });
+    };
+
+    root.addEventListener('mouseover', handleEnter);
+    root.addEventListener('mouseout', handleLeave);
+    root.addEventListener('click', handleClick);
+    return () => {
+      root.removeEventListener('mouseover', handleEnter);
+      root.removeEventListener('mouseout', handleLeave);
+      root.removeEventListener('click', handleClick);
+    };
+  }, [htmlContent, currentDoc]);
 
   const renderSidebar = () => (
     <aside style={{ width: 200, minWidth: 200, flexShrink: 0, padding: '20px 0', userSelect: 'none' }}>
@@ -545,7 +650,7 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', background: c.bg, fontFamily: "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
-      <NavBar theme={theme} activePage="docs" onLogoClick={onNavigateHome} onNavigateDemos={onNavigateDemo} onNavigateDocs={() => {}} onNavigateDesign={onNavigateDesign} onNavigateBlock={onNavigateBlock} onToggleTheme={onToggleTheme} />
+      <NavBar theme={theme} activePage="docs" onLogoClick={onNavigateHome} onNavigateDemos={onNavigateDemo} onNavigateDocs={() => {}} onNavigateDesign={onNavigateDesign} onNavigateBlock={onNavigateBlock} onNavigateSkill={onNavigateSkill} onToggleTheme={onToggleTheme} />
 
       {/* 移动端 sidebar toggle */}
       <div className="docs-mobile-toggle" style={{ display: 'none', padding: '8px 16px', borderBottom: `1px solid ${c.border}`, background: c.bg }}>
@@ -563,12 +668,12 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
 
         <main style={{ flex: 1, overflowY: 'auto', minWidth: 0 }} ref={contentRef}>
           {content ? (
-            <div style={{ display: 'flex', padding: '0 0 80px 0' }}>
-              <div style={{ flex: 1, minWidth: 0, maxWidth: 832, padding: '48px 24px 0' }}>
+            <div className="docs-content-wrap" style={{ display: 'flex', padding: '0 0 80px 0', justifyContent: 'center', gap: 48 }}>
+              <div className="docs-article" style={{ flex: 1, minWidth: 0, maxWidth: 820, padding: '48px 64px 0' }}>
                 {renderDocContent()}
                 {renderPrevNext()}
               </div>
-              <div style={{ width: 160, flexShrink: 0 }} className="docs-toc-aside">
+              <div style={{ width: 200, flexShrink: 0, paddingRight: 24 }} className="docs-toc-aside">
                 {renderToc()}
               </div>
             </div>
@@ -583,11 +688,18 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
       </div>
 
       <style>{`
-        @media (max-width: 1200px) { .docs-toc-aside { display: none !important; } }
+        @media (max-width: 1200px) {
+          .docs-toc-aside { display: none !important; }
+          .docs-content-wrap { gap: 0 !important; }
+        }
+        @media (max-width: 900px) {
+          .docs-article { padding: 40px 40px 0 !important; }
+        }
         @media (max-width: 768px) {
           .docs-mobile-toggle { display: flex !important; }
           .docs-sidebar aside { box-shadow: 2px 0 12px rgba(0,0,0,0.15); }
           .docs-sidebar:not([style*="position: fixed"]) aside { display: none; }
+          .docs-article { padding: 32px 20px 0 !important; }
         }
         @media (min-width: 769px) { .docs-mobile-toggle { display: none !important; } }
       `}</style>

@@ -4,16 +4,119 @@ AiMapUI 是基于 L7 引擎的 React 地图可视化组件库，提供两种使�
 
 ## 安装
 
+AiMapUI 提供两种使用方式，按需选择：
+
+- **CLI 方式（推荐）** —— 类 shadcn/ui 体验，组件源码直接拷贝到你的项目，可读可改、零运行时锁版
+- **npm 包方式** —— 传统依赖安装，整库统一升级
+
+### 方式一：shadcn 风格 CLI
+
+像 [shadcn/ui](https://ui.shadcn.com) 那样，按需把组件源码 **拷贝到你的项目**，而不是作为 `node_modules` 黑盒依赖。后续可任意修改源码、按需升级，不再受版本锁定。
+
+#### 1. 初始化项目
+
+在 React 项目根目录运行：
+
 ```bash
-npm install @antv/aimapui
-# 或
-pnpm add @antv/aimapui
+npx aimapui init
 ```
 
-> **注意：** 需要同时安装地图引擎依赖：
-> ```bash
-> pnpm add @antv/l7 @antv/l7-maps
-> ```
+该命令会创建 `components.json`，让你自定义组件 / hooks / utils 的存放目录：
+
+```json
+{
+  "$schema": "https://aimapui.antv.vision/schema/components.json",
+  "style": "tailwind",
+  "aliases": {
+    "components": "src/components/map",
+    "utils": "src/lib/map",
+    "hooks": "src/hooks/map"
+  }
+}
+```
+
+如需跳过交互直接使用默认目录：
+
+```bash
+npx aimapui init -y
+```
+
+#### 2. 安装地图引擎依赖
+
+CLI 模式下，**仍需手动安装 L7 引擎和外设依赖**（CLI 只负责拷贝组件源码）：
+
+```bash
+pnpm add @antv/l7 @antv/l7-maps react react-dom clsx
+```
+
+#### 3. 添加组件
+
+按需添加单个组件，CLI 会自动解析依赖（如 `AiMap` 会自动带上 `scene-context` / `schema-types` 等基础 utils）：
+
+```bash
+# 添加容器
+npx aimapui add AiMap
+
+# 添加常用图层
+npx aimapui add PointLayer LineLayer PolygonLayer
+
+# 添加复合图层
+npx aimapui add BubbleLayer IconLayer GlyphLayer
+
+# 添加控件与交互
+npx aimapui add ZoomControl ScaleControl Popup Tooltip
+```
+
+常用选项：
+
+| 选项 | 说明 |
+|------|------|
+| `-d, --dir <path>` | 临时覆盖组件存放目录 |
+| `-y, --yes` | 跳过所有交互确认 |
+| `--overwrite` | 覆盖已存在的文件（默认会跳过） |
+
+#### 4. 查看可用组件
+
+```bash
+# 列出所有组件
+npx aimapui list
+
+# 按分类筛选
+npx aimapui list -c layer
+npx aimapui list -c composite
+npx aimapui list -c control
+```
+
+#### 5. 在代码中使用
+
+CLI 拷贝过去的组件会自动按 `components.json` 中的 alias 写入，直接从你自己的目录引用即可：
+
+```tsx
+import { AiMap } from '@/components/map/AiMap';
+import { PointLayer } from '@/components/map/PointLayer';
+
+<AiMap map={{ basemap: 'gaode', center: [116.4, 39.9], zoom: 10, token }}>
+  <PointLayer source={data} sourceType="json" sourceConfig={{ x: 'lng', y: 'lat' }} />
+</AiMap>
+```
+
+> **CLI 模式优点：** 组件代码完全在你的仓库里，可随时根据业务调整样式 / 行为，不受 `@antv/aimapui` 包版本约束；适合需要深度定制、对包体积敏感、追求长期可维护性的中大型项目。
+
+### 方式二：npm 包安装
+
+如果你只是想快速跑通 Demo、不打算改组件源码，按传统方式安装即可：
+
+```bash
+npm install @antv/aimapui @antv/l7 @antv/l7-maps
+# 或
+pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
+```
+
+之后从 `@antv/aimapui` 直接 import：
+
+```tsx
+import { AiMap, PointLayer } from '@antv/aimapui';
+```
 
 > **Node 版本：** 需要 Node.js 18+，项目使用 ESM 模块格式。
 
