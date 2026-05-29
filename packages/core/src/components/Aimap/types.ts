@@ -36,6 +36,16 @@ export interface AiMapProps {
   /** 场景就绪回调 */
   onSceneReady?: (scene: Scene) => void;
 
+  /**
+   * 是否自动缩放至所有图层数据范围（覆盖 map.center / map.zoom）
+   *
+   * 开启后会在地图与所有图层就绪后自动调用 `scene.fitBounds`，将视野适配到全部
+   * 图层数据的外接矩形。适合数据范围未知或需要"打开页面即看到全部数据"的场景。
+   *
+   * 注意：底图必须支持 `fitBounds`（高德 / Maplibre / Mapbox / 天地图均支持）。
+   */
+  autoFit?: boolean;
+
   // ========== 图层事件回调 ==========
   /** 图层点击事件 */
   onLayerClick?: (payload: LayerEventPayload) => void;

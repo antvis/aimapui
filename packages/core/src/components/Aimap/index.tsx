@@ -49,6 +49,7 @@ export function AiMap({
   onLayerMouseLeave,
   onMapMove,
   onMapZoom,
+  autoFit,
   events,
   children,
   className,
@@ -88,6 +89,13 @@ export function AiMap({
     onZoom: onMapZoom,
   }), [onMapMove, onMapZoom]);
 
+  // 包装 onSceneReady：autoFit 开启时，自动聚合所有图层 bounds 并调用 fitBounds
+  const handleSceneReady = useCallback((scene: Scene) => {
+    onSceneReady?.(scene);
+    if (!autoFit) return;
+    autoFitAllLayers(scene);
+  }, [onSceneReady, autoFit]);
+
   return (
     <ThemeProvider defaultTheme={theme} target="container">
       <SchemaProvider schema={resolvedSchema}>
@@ -96,7 +104,7 @@ export function AiMap({
             <AiMapCore
               schema={resolvedSchema}
               isComposableMode={isComposableMode}
-              onSceneReady={onSceneReady}
+              onSceneReady={handleSceneReady}
               layerEventHandlers={layerEventHandlers}
               mapEventHandlers={mapEventHandlers}
               containerRef={containerRef}
@@ -110,6 +118,72 @@ export function AiMap({
       </SchemaProvider>
     </ThemeProvider>
   );
+}
+
+/**
+ * 自动缩放到所有已注册图层的数据范围
+ *
+ * 实现策略：scene.loaded 后启动短间隔轮询（最长 3s），等待所有图层渲染并产生 bounds，
+ * 聚合所有图层的外接矩形 → 调用 scene.fitBounds。已有 bounds 缓存，避免重复 fit。
+ */
+function autoFitAllLayers(scene: Scene) {
+  let fitted = false;
+  let attempts = 0;
+  const maxAttempts = 30; // 30 * 100ms = 3s
+
+  const tryFit = () => {
+    if (fitted) return;
+    attempts += 1;
+
+    try {
+      const layers = (scene as unknown as { getLayers?: () => unknown[] }).getLayers?.() ?? [];
+      if (layers.length === 0) {
+        if (attempts < maxAttempts) window.setTimeout(tryFit, 100);
+        return;
+      }
+
+      // 聚合所有图层的 bounds（[[minLng, minLat], [maxLng, maxLat]]）
+      let minLng = Infinity;
+      let minLat = Infinity;
+      let maxLng = -Infinity;
+      let maxLat = -Infinity;
+      let hasValidBounds = false;
+
+      for (const layer of layers) {
+        const getBounds = (layer as { getBounds?: () => unknown }).getBounds;
+        if (typeof getBounds !== 'function') continue;
+        try {
+          const bounds = getBounds.call(layer) as [[number, number], [number, number]] | undefined;
+          if (!bounds || !Array.isArray(bounds) || bounds.length !== 2) continue;
+          const [sw, ne] = bounds;
+          if (!sw || !ne || !isFinite(sw[0]) || !isFinite(sw[1]) || !isFinite(ne[0]) || !isFinite(ne[1])) continue;
+          minLng = Math.min(minLng, sw[0]);
+          minLat = Math.min(minLat, sw[1]);
+          maxLng = Math.max(maxLng, ne[0]);
+          maxLat = Math.max(maxLat, ne[1]);
+          hasValidBounds = true;
+        } catch {
+          // 单个图层 getBounds 失败时跳过
+        }
+      }
+
+      if (!hasValidBounds) {
+        if (attempts < maxAttempts) window.setTimeout(tryFit, 100);
+        return;
+      }
+
+      (scene as unknown as { fitBounds: (bounds: [[number, number], [number, number]]) => void }).fitBounds([
+        [minLng, minLat],
+        [maxLng, maxLat],
+      ]);
+      fitted = true;
+    } catch {
+      if (attempts < maxAttempts) window.setTimeout(tryFit, 100);
+    }
+  };
+
+  // 首次延迟 200ms，等首批 addLayer 完成
+  window.setTimeout(tryFit, 200);
 }
 
 /** 仅对 map 配置应用默认值（组件化模式） */
