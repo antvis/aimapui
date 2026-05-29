@@ -7,7 +7,7 @@
 import './styles/tailwind.css';
 
 // 主入口组件
-export { AiMap } from './components/AiMap/index';
+export { AiMap } from './components/AiMap/index.tsx';
 export type { AiMapProps } from './components/AiMap/types';
 
 // Schema 类型
