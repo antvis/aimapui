@@ -7,11 +7,25 @@ description: >
   (4) Configuring visual mappings (color/size/shape), (5) Adding controls, legends, interactions (Marker/Popup/Tooltip),
   (6) Schema/JSON-driven map generation for AI, (7) Mobile-responsive map layouts.
   Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React".
+version: "0.1.0"
 ---
 
 # aimapui
 
 React map visualization library built on L7. Supports both JSX component mode and Schema-driven mode.
+
+## Version
+
+- **@antv/aimapui**: `0.1.0`
+- **@antv/aimapui-cli**: `0.1.0`
+
+## Install
+
+```bash
+npm install @antv/aimapui @antv/l7 @antv/l7-maps
+# or
+pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
+```
 
 ## Quick Start
 
