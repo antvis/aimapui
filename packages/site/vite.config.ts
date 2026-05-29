@@ -22,6 +22,7 @@ export default defineConfig({
       // 开发时直接引用 core 源码，避免每次改源码都要重新构建
       '@antv/aimapui': resolve(__dirname, '../core/src/index.ts'),
     },
+    extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
   },
   build: {
     outDir: resolve(__dirname, '../../dist-site'),
