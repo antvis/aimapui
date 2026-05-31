@@ -26,14 +26,19 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
-        'react', 
+        'react',
         'react-dom',
         '@antv/l7',
+        /^@antv\/l7-maps\//,   // 子路径按需导入: @antv/l7-maps/gaode, /mapbox, etc.
         '@antv/l7-maps',
         '@antv/l7-core',
+        /^@antv\/l7-core\//,
         '@antv/l7-layers',
+        /^@antv\/l7-layers\//,
         '@antv/l7-component',
+        /^@antv\/l7-component\//,
         '@antv/l7-source',
+        /^@antv\/l7-source\//,
       ],
       output: {
         globals: {

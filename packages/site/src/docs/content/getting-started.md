@@ -6,10 +6,28 @@ AiMapUI 是基于 L7 引擎的 React 地图可视化组件库，提供两种使�
 
 AiMapUI 提供两种使用方式，按需选择：
 
-- **CLI 方式（推荐）** —— 类 shadcn/ui 体验，组件源码直接拷贝到你的项目，可读可改、零运行时锁版
-- **npm 包方式** —— 传统依赖安装，整库统一升级
+- **npm 包方式（推荐）** —— 传统依赖安装，开箱即用，底图按需加载
+- **CLI 方式** —— 类 shadcn/ui 体验，组件源码直接拷贝到你的项目，可读可改、零运行时锁版
 
-### 方式一：shadcn 风格 CLI
+### 方式一：npm 包安装（推荐）
+
+```bash
+npm install @antv/aimapui @antv/l7 @antv/l7-maps
+# 或
+pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
+```
+
+之后从 `@antv/aimapui` 直接 import：
+
+```tsx
+import { AiMap, PointLayer } from '@antv/aimapui';
+```
+
+> **底图按需加载：** AiMapUI 内部对各底图引擎（高德、Mapbox、百度等）采用动态 `import()` 子路径加载，只有在 `map.basemap` 指定某底图时才会加载对应的引擎代码，不会将所有底图打包进产物。
+
+> **Node 版本：** 需要 Node.js 18+，项目使用 ESM 模块格式。
+
+### 方式二：shadcn 风格 CLI
 
 像 [shadcn/ui](https://ui.shadcn.com) 那样，按需把组件源码 **拷贝到你的项目**，而不是作为 `node_modules` 黑盒依赖。后续可任意修改源码、按需升级，不再受版本锁定。
 
@@ -95,34 +113,16 @@ CLI 拷贝过去的组件会自动按 `components.json` 中的 alias 写入，�
 import { AiMap } from '@/components/map/AiMap';
 import { PointLayer } from '@/components/map/PointLayer';
 
-<AiMap map={{ basemap: 'gaode', center: [116.4, 39.9], zoom: 10, token }}>
+<AiMap map={{ basemap: 'gaode', center: [116.4, 39.9], zoom: 10 /* token: 'YOUR_GAODE_TOKEN' */ }}>
   <PointLayer source={data} sourceType="json" sourceConfig={{ x: 'lng', y: 'lat' }} />
 </AiMap>
 ```
 
 > **CLI 模式优点：** 组件代码完全在你的仓库里，可随时根据业务调整样式 / 行为，不受 `@antv/aimapui` 包版本约束；适合需要深度定制、对包体积敏感、追求长期可维护性的中大型项目。
 
-### 方式二：npm 包安装
-
-如果你只是想快速跑通 Demo、不打算改组件源码，按传统方式安装即可：
-
-```bash
-npm install @antv/aimapui @antv/l7 @antv/l7-maps
-# 或
-pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
-```
-
-之后从 `@antv/aimapui` 直接 import：
-
-```tsx
-import { AiMap, PointLayer } from '@antv/aimapui';
-```
-
-> **Node 版本：** 需要 Node.js 18+，项目使用 ESM 模块格式。
-
 ## 最简示例
 
-5 行代码渲染一个带底图和高德 token 的地图：
+5 行代码渲染一个高德底图地图：
 
 ```tsx
 import { AiMap } from '@antv/aimapui';
@@ -134,7 +134,7 @@ export default function BasicMap() {
         basemap: 'gaode',
         center: [116.397, 39.908],  // 北京天安门
         zoom: 10,
-        token: 'YOUR_GAODE_TOKEN',
+        // token: 'YOUR_GAODE_TOKEN',  // 高德地图可选，未设置时不传 token
       }}
     />
   );
@@ -158,7 +158,7 @@ const cities = [
   { lng: 113.264, lat: 23.129, name: '广州' },
 ];
 
-<AiMap map={{ basemap: 'gaode', center: [108, 34], zoom: 4, token }}>
+<AiMap map={{ basemap: 'gaode', center: [108, 34], zoom: 4 }}>
   <PointLayer
     source={cities}
     sourceType="json"
@@ -183,7 +183,7 @@ const cities = [
 ```tsx
 <AiMap
   schema={{
-    map: { basemap: 'gaode', center: [108, 34], zoom: 4, token },
+    map: { basemap: 'gaode', center: [108, 34], zoom: 4 },
     layers: [
       {
         type: 'point',
@@ -227,17 +227,22 @@ Schema 模式特点：
 
 ### Token 配置
 
-不同底图需要不同的 token，在 `map.token` 中传入：
+部分底图需要 token 才能正常使用，在 `map.token` 中传入；不需要 token 的底图可以省略此字段：
 
-| 底图 | token 获取 |
-|------|-----------|
-| `'gaode'` | [高德开放平台](https://lbs.amap.com/) |
-| `'mapbox'` | [Mapbox](https://account.mapbox.com/) |
-| `'maplibre'` | 无需 token（使用开源 style） |
+| 底图 | 是否需要 token | token 获取 |
+|------|---------------|-----------|
+| `'gaode'` | 可选 | [高德开放平台](https://lbs.amap.com/) |
+| `'mapbox'` | 需要 | [Mapbox](https://account.mapbox.com/) |
+| `'maplibre'` | 不需要 | — |
+| `'baidu'` | 可选 | [百度地图开放平台](https://lbsyun.baidu.com/) |
+| `'tencent'` | 可选 | [腾讯位置服务](https://lbs.qq.com/) |
+| `'tianditu'` | 可选 | [国家地理信息公共服务平台](https://www.tianditu.gov.cn/) |
+| `'google'` | 需要 | [Google Cloud Console](https://console.cloud.google.com/) |
+| `'map'` | 不需要 | — |
 
 ### 底图不显示
 
-- 检查 `token` 是否正确传入
+- 如果使用了需要 token 的底图，检查 `token` 是否正确传入
 - 高德底图需要申请 JS API 权限（不是 Web 服务 API）
 - 如果地图容器高度为 0，确保父容器有明确高度
 

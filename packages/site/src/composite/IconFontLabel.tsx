@@ -32,7 +32,7 @@ export default function DemoIconFontLabel() {
   }, [data]);
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', background: '#0d1117' }}>
       <AiMap map={{ basemap: 'gaode', center: [121.434765, 31.256735], zoom: 14.83, style: 'dark' }}>
         {mappedData && (
           <GlyphLayer
@@ -41,16 +41,24 @@ export default function DemoIconFontLabel() {
             sourceConfig={{ x: 'longitude', y: 'latitude' }}
             iconFontFamily="material-symbols"
             iconField="icon"
-            iconColor="#06b6d4"
-            iconSize={20}
-            iconHaloColor="#0d1117"
+            iconColor="white"
+            iconSize={16}
+            iconHaloColor="#f00"
             iconHaloWidth={1}
+            iconBgShape="circle"
+            iconBgShapeColor="#E81A1A"
+            iconBgShapeSize={16}
+            iconBgStrokeColor="#F8A3A3"
+            iconBgStrokeWidth={0}
+            iconBgPadding={2}
+            iconBgCornerRadius={16}
+            iconAnchor="bottom"
             showLabel={true}
             labelField="name"
             labelColor="#e2e8f0"
             labelSize={11}
             labelAnchor="top"
-            labelOffset={[0, -20]}
+            labelOffset={[0, 0]}
             labelHaloColor="#0d1117"
             labelHaloWidth={2}
             textAllowOverlap={false}

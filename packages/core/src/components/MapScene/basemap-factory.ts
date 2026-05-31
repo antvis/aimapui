@@ -24,7 +24,7 @@ export async function createBasemap(schema: MapSchema) {
 
   switch (basemap) {
     case 'gaode': {
-      const { GaodeMap } = await import('@antv/l7-maps');
+      const { GaodeMap } = await import('@antv/l7-maps/gaode');
       return new GaodeMap({
         ...commonOptions,
         style: mapStyleToGaode(style),
@@ -33,7 +33,7 @@ export async function createBasemap(schema: MapSchema) {
     }
 
     case 'mapbox': {
-      const { Mapbox } = await import('@antv/l7-maps');
+      const { Mapbox } = await import('@antv/l7-maps/mapbox');
       return new Mapbox({
         ...commonOptions,
         style: mapStyleToMapbox(style),
@@ -42,7 +42,7 @@ export async function createBasemap(schema: MapSchema) {
     }
 
     case 'tianditu': {
-      const { TMap } = await import('@antv/l7-maps');
+      const { TMap } = await import('@antv/l7-maps/tianditu');
       return new TMap({
         ...commonOptions,
         token,
@@ -50,7 +50,7 @@ export async function createBasemap(schema: MapSchema) {
     }
 
     case 'tencent': {
-      const { TencentMap } = await import('@antv/l7-maps');
+      const { TencentMap } = await import('@antv/l7-maps/tencent');
       return new TencentMap({
         ...commonOptions,
         token,
@@ -58,7 +58,7 @@ export async function createBasemap(schema: MapSchema) {
     }
 
     case 'baidu': {
-      const { BaiduMap } = await import('@antv/l7-maps');
+      const { BaiduMap } = await import('@antv/l7-maps/baidu');
       return new BaiduMap({
         ...commonOptions,
         style: mapStyleToBaidu(style),
@@ -67,7 +67,7 @@ export async function createBasemap(schema: MapSchema) {
     }
 
     case 'maplibre': {
-      const { MapLibre } = await import('@antv/l7-maps');
+      const { MapLibre } = await import('@antv/l7-maps/maplibre');
       return new MapLibre({
         ...commonOptions,
         style: mapStyleToMaplibre(style),
@@ -76,7 +76,7 @@ export async function createBasemap(schema: MapSchema) {
     }
 
     case 'google': {
-      const { GoogleMap } = await import('@antv/l7-maps');
+      const { GoogleMap } = await import('@antv/l7-maps/google');
       const instance = new GoogleMap({
         ...commonOptions,
         style: mapStyleToGoogle(style),
@@ -92,7 +92,7 @@ export async function createBasemap(schema: MapSchema) {
 
     case 'map':
     default: {
-      const { Map } = await import('@antv/l7-maps');
+      const { Map } = await import('@antv/l7-maps/simple');
       return new Map({
         center: schema.center ?? DEFAULT_MAP.center,
         zoom: schema.zoom ?? DEFAULT_MAP.zoom,

@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useScene } from '../../context/SceneContext';
 import type { MarkerSchema } from '../../schema/types';
+import { MAKI_ICONS } from './maki-icons';
 
 // ============================================================
 // Marker 类型定义 — Cartographic Precision System v1.2.0
@@ -11,7 +12,7 @@ import type { MarkerSchema } from '../../schema/types';
  * Marker 基础形态
  * - pin:   水滴型 (32x40px)，默认业务点，用于 POI、站点、静态设施
  * - circle: 圆型 (24x24px)，移动/轻量点，用于实时车辆、传感器
- * - icon:  图标型，在 Pin 内嵌入 Material Symbols 图标
+ * - icon:  图标型，在 Pin 内嵌入 Maki 图标
  * - dot:   简化点 (8px)，低缩放级降级形态
  */
 export type MarkerVariant = 'pin' | 'circle' | 'icon' | 'dot';
@@ -56,8 +57,8 @@ function PinSvg({ color = 'primary' }: { color?: MarkerColor }) {
       viewBox="0 0 32 40"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      style={{ width: 32, height: 40, display: 'block' }}
-      className="aimapui-marker-pin block drop-shadow-md"
+      className="aimapui-marker-pin"
+      style={{ width: 32, height: 40, display: 'block', filter: 'drop-shadow(0 4px 3px rgba(0,0,0,0.07)) drop-shadow(0 2px 2px rgba(0,0,0,0.06))' }}
     >
       <path
         d="M16 0C7.16344 0 0 7.16344 0 16C0 24.8366 16 40 16 40C16 40 32 24.8366 32 16C32 7.16344 24.8366 0 16 0Z"
@@ -71,12 +72,18 @@ function PinSvg({ color = 'primary' }: { color?: MarkerColor }) {
 }
 
 /**
- * 带 Material Symbols 图标的 Pin — 32x40px
+ * 带 Maki 图标的 Pin — 32x40px
+ * icon 为 Maki 图标名（如 "cafe"、"bus"、"airport"），从内置注册表渲染 SVG path
  */
 function IconPin({ icon, color = 'primary' }: { icon: string; color?: MarkerColor }) {
   const { fill } = MARKER_COLOR_MAP[color];
+  const iconPath = MAKI_ICONS[icon] ?? MAKI_ICONS['marker'] ?? '';
+
   return (
-    <div className="aimapui-marker-pin aimapui-marker-pin--icon relative inline-flex items-start justify-center drop-shadow-md" style={{ width: 32, height: 40 }}>
+    <div
+      className="aimapui-marker-pin aimapui-marker-pin--icon"
+      style={{ position: 'relative', display: 'inline-flex', alignItems: 'flex-start', justifyContent: 'center', width: 32, height: 40, filter: 'drop-shadow(0 4px 3px rgba(0,0,0,0.07)) drop-shadow(0 2px 2px rgba(0,0,0,0.06))' }}
+    >
       <svg
         viewBox="0 0 32 40"
         fill="none"
@@ -90,24 +97,23 @@ function IconPin({ icon, color = 'primary' }: { icon: string; color?: MarkerColo
           strokeWidth={1.5}
         />
       </svg>
-      <span
-        className="material-symbols-outlined"
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          fontSize: 14,
-          color: 'white',
-          fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-          lineHeight: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 32,
-          height: 28,
-        }}
-      >
-        {icon}
-      </span>
+      {/* Maki 图标 SVG：原始 viewBox 15x15，缩放居中在 Pin 上半部分 */}
+      {iconPath && (
+        <svg
+          viewBox="0 0 15 15"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{
+            position: 'relative',
+            zIndex: 1,
+            width: 16,
+            height: 16,
+            marginTop: 8,
+            fill: 'white',
+          }}
+        >
+          <path d={iconPath} style={{ fill: 'white' }} />
+        </svg>
+      )}
     </div>
   );
 }
@@ -118,8 +124,19 @@ function IconPin({ icon, color = 'primary' }: { icon: string; color?: MarkerColo
 function CircleMarker({ color = 'primary' }: { color?: MarkerColor }) {
   const { fill, bg } = MARKER_COLOR_MAP[color];
   return (
-    <div className="aimapui-marker-circle size-6 rounded-full border-[1.5px] border-white shadow-md flex items-center justify-center relative" style={{ background: bg, borderColor: fill }}>
-      <div className="aimapui-marker-circle__inner size-1.5 rounded-full" style={{ background: fill }} />
+    <div
+      className="aimapui-marker-circle"
+      style={{
+        position: 'relative', width: 24, height: 24, borderRadius: '50%',
+        border: '1.5px solid white', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: bg, borderColor: fill,
+      }}
+    >
+      <div
+        className="aimapui-marker-circle__inner"
+        style={{ width: 6, height: 6, borderRadius: '50%', background: fill }}
+      />
     </div>
   );
 }
@@ -130,7 +147,15 @@ function CircleMarker({ color = 'primary' }: { color?: MarkerColor }) {
 function DotMarker({ color = 'primary' }: { color?: MarkerColor }) {
   const { fill } = MARKER_COLOR_MAP[color];
   return (
-    <div className="aimapui-marker-dot size-2 rounded-full border-[1.5px] border-white shadow-[0_1px_3px_rgba(0,0,0,0.3)]" style={{ background: fill }} />
+    <div
+      className="aimapui-marker-dot"
+      style={{
+        width: 8, height: 8, borderRadius: '50%',
+        border: '1.5px solid white',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+        background: fill,
+      }}
+    />
   );
 }
 
@@ -139,7 +164,23 @@ function DotMarker({ color = 'primary' }: { color?: MarkerColor }) {
  */
 function MarkerLabel({ text }: { text: string }) {
   return (
-    <div className="aimapui-marker-label absolute top-[calc(100%+4px)] left-1/2 -translate-x-1/2 font-mono text-xs leading-4 font-[450] text-on-surface whitespace-nowrap pointer-events-none [text-shadow:-1px_-1px_0_white,1px_-1px_0_white,-1px_1px_0_white,1px_1px_0_white,0_0_2px_white,0_0_4px_rgba(255,255,255,0.5)]">
+    <div
+      className="aimapui-marker-label"
+      style={{
+        position: 'absolute',
+        top: 'calc(100% + 4px)',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+        fontSize: 12,
+        lineHeight: '16px',
+        fontWeight: 450,
+        color: '#1d1d1f',
+        whiteSpace: 'nowrap',
+        pointerEvents: 'none',
+        textShadow: '-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 2px #fff, 0 0 4px rgba(255,255,255,0.5)',
+      }}
+    >
       {text}
     </div>
   );
@@ -154,7 +195,7 @@ export interface MarkerProps extends Omit<MarkerSchema, 'type' | 'content'> {
   variant?: MarkerVariant;
   /** 语义颜色，默认 primary */
   color?: MarkerColor;
-  /** Material Symbols 图标名 (仅 variant='icon' 时生效) */
+  /** Maki 图标名（如 "cafe"、"bus"、"airport"），仅 variant='icon' 时生效 */
   icon?: string;
   /** 文本标注，显示在 Marker 下方 4px */
   label?: string;
@@ -214,7 +255,7 @@ function renderMarkerContent(
       markerElement = <CircleMarker color={color} />;
       break;
     case 'icon':
-      markerElement = <IconPin icon={icon || 'location_on'} color={color} />;
+      markerElement = <IconPin icon={icon || 'marker'} color={color} />;
       break;
     case 'dot':
       markerElement = <DotMarker color={color} />;
@@ -273,6 +314,22 @@ export function Marker({
     handleDragMove: (e: any) => void;
     handleDragEnd: () => void;
   } | null>(null);
+
+  // 用 ref 持有最新的事件回调，避免 DOM 监听器闭包过期
+  const onClickRef = useRef(onClick);
+  onClickRef.current = onClick;
+  const onMouseEnterRef = useRef(onMouseEnter);
+  onMouseEnterRef.current = onMouseEnter;
+  const onMouseLeaveRef = useRef(onMouseLeave);
+  onMouseLeaveRef.current = onMouseLeave;
+  const onDoubleClickRef = useRef(onDoubleClick);
+  onDoubleClickRef.current = onDoubleClick;
+  const onDragStartRef = useRef(onDragStart);
+  onDragStartRef.current = onDragStart;
+  const onDraggingRef = useRef(onDragging);
+  onDraggingRef.current = onDragging;
+  const onDragEndRef = useRef(onDragEnd);
+  onDragEndRef.current = onDragEnd;
 
   // 计算 className：合并 variant、color、state 类名
   const computedClassName = React.useMemo(() => {
@@ -425,8 +482,8 @@ export function Marker({
         mapsService.on('mousemove', handleDragMove);
         document.addEventListener('mouseup', handleDragEnd);
 
-        if (onDragStart) {
-          onDragStart(lngLatRef.current.lng, lngLatRef.current.lat);
+        if (onDragStartRef.current) {
+          onDragStartRef.current(lngLatRef.current.lng, lngLatRef.current.lat);
         }
       };
 
@@ -447,8 +504,8 @@ export function Marker({
 
         updatePositionSync(mapsService);
 
-        if (onDragging) {
-          onDragging(newLngLat.lng, newLngLat.lat);
+        if (onDraggingRef.current) {
+          onDraggingRef.current(newLngLat.lng, newLngLat.lat);
         }
       };
 
@@ -459,24 +516,16 @@ export function Marker({
         mapsService.off('mousemove', handleDragMove);
         document.removeEventListener('mouseup', handleDragEnd);
 
-        if (onDragEnd) {
-          onDragEnd(lngLatRef.current.lng, lngLatRef.current.lat);
+        if (onDragEndRef.current) {
+          onDragEndRef.current(lngLatRef.current.lng, lngLatRef.current.lat);
         }
       };
 
-      // 绑定事件
-      if (onClick) {
-        element.addEventListener('click', (e: any) => onClick(e));
-      }
-      if (onMouseEnter) {
-        element.addEventListener('mouseenter', (e: any) => onMouseEnter(e));
-      }
-      if (onMouseLeave) {
-        element.addEventListener('mouseleave', (e: any) => onMouseLeave(e));
-      }
-      if (onDoubleClick) {
-        element.addEventListener('dblclick', (e: any) => onDoubleClick(e));
-      }
+      // 绑定 DOM 事件（通过 ref 调用最新回调，避免闭包过期）
+      element.addEventListener('click', ((e: any) => onClickRef.current?.(e)) as EventListener);
+      element.addEventListener('mouseenter', ((e: any) => onMouseEnterRef.current?.(e)) as EventListener);
+      element.addEventListener('mouseleave', ((e: any) => onMouseLeaveRef.current?.(e)) as EventListener);
+      element.addEventListener('dblclick', ((e: any) => onDoubleClickRef.current?.(e)) as EventListener);
 
       if (draggable) {
         element.addEventListener('mousedown', handleDragStart);
@@ -523,7 +572,7 @@ export function Marker({
 
       handlersRef.current = null;
     };
-  }, [scene, computedClassName, anchor, offsetX, offsetY, overflowHide, draggable, overlayContainer]);
+  }, [scene, anchor, offsetX, offsetY, overflowHide, draggable, overlayContainer]);
 
   // 渲染内容
   useEffect(() => {

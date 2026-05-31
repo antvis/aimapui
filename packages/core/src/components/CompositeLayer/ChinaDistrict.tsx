@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LayerEventPayload } from '../../schema/types';
 import { useScene } from '../../context/SceneContext';
 import { PolygonLayer } from '../Layer/PolygonLayer';
@@ -41,12 +41,16 @@ export interface ChinaDistrictProps {
 
   /** 当前显示层级（非下钻模式时使用） */
   level?: AdministrativeLevel;
-  /** 是否启用下钻模式 */
+  /** 是否启用下钻模式，默认 true */
   drillEnabled?: boolean;
   /** 下钻路径（受控模式） */
   drillPath?: DrillPathNode[];
-  /** 下钻回调 */
+  /** 下钻回调，点击区域进入下一级时触发 */
   onDrill?: (path: DrillPathNode[]) => void;
+  /** 上钻回调，用于面包屑导航返回上级 */
+  onDrillUp?: (path: DrillPathNode[]) => void;
+  /** 下钻时是否自动适配视口（fitBounds），默认 true */
+  autoFitOnDrill?: boolean;
 
   /** 业务数据，通过 name 或 adcode 与地理数据关联 */
   data?: BusinessDataItem[];
@@ -90,6 +94,16 @@ export interface ChinaDistrictProps {
   zIndex?: number;
 }
 
+/** ChinaDistrict 命令式 API，通过 ref 获取 */
+export interface ChinaDistrictHandle {
+  /** 返回上一级 */
+  drillUp: () => void;
+  /** 返回到指定层级（面包屑导航） */
+  drillUpTo: (targetIndex: number) => void;
+  /** 当前下钻路径 */
+  getDrillPath: () => DrillPathNode[];
+}
+
 interface GeoJSONFeatureCollection {
   type: 'FeatureCollection';
   features: Array<{
@@ -104,14 +118,17 @@ interface GeoJSONFeatureCollection {
  *
  * 内置全国省/市/县三级 GeoJSON 数据，支持下钻模式与业务数据关联色阶映射。
  */
-export function ChinaDistrict({
+export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrictProps>(function ChinaDistrict(props, ref) {
+  const {
   provinceSource = DEFAULT_PROVINCE_SOURCE,
   citySource = DEFAULT_CITY_SOURCE,
   districtSource = DEFAULT_DISTRICT_SOURCE,
   level = 'province',
-  drillEnabled = false,
+  drillEnabled = true,
   drillPath: controlledDrillPath,
   onDrill,
+  onDrillUp,
+  autoFitOnDrill = true,
   data,
   joinField = 'name',
   dataJoinField = 'name',
@@ -130,7 +147,7 @@ export function ChinaDistrict({
   tooltipFields,
   onRegionClick,
   zIndex = 0,
-}: ChinaDistrictProps) {
+} = props;
   const scene = useScene();
 
   // 数据加载状态
@@ -150,9 +167,46 @@ export function ChinaDistrict({
     ? inferLevelFromPath(drillPath)
     : level;
 
+  // 上钻（返回上一级）
+  const drillUp = useCallback(() => {
+    if (drillPath.length <= 1) return;
+    const newPath = drillPath.slice(0, -1);
+    if (controlledDrillPath) {
+      onDrillUp?.(newPath);
+    } else {
+      setInternalDrillPath(newPath);
+      onDrillUp?.(newPath);
+      onDrill?.(newPath);
+    }
+    setSelectedName(null);
+  }, [drillPath, controlledDrillPath, onDrillUp, onDrill]);
+
+  // 上钻到指定层级
+  const drillUpTo = useCallback((targetIndex: number) => {
+    if (targetIndex < 0 || targetIndex >= drillPath.length - 1) return;
+    const newPath = drillPath.slice(0, targetIndex + 1);
+    if (controlledDrillPath) {
+      onDrillUp?.(newPath);
+    } else {
+      setInternalDrillPath(newPath);
+      onDrillUp?.(newPath);
+      onDrill?.(newPath);
+    }
+    setSelectedName(null);
+  }, [drillPath, controlledDrillPath, onDrillUp, onDrill]);
+
   // 选中与 hover 状态
-  const [hoveredName, setHoveredName] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState<string | null>(null);
+
+  // 暴露命令式 API
+  React.useImperativeHandle(ref, () => ({
+    drillUp,
+    drillUpTo,
+    getDrillPath: () => drillPath,
+  }), [drillUp, drillUpTo, drillPath]);
+
+  // 上次下钻路径长度，用于检测下钻/上钻变化并自动 fitBounds
+  const prevDrillPathLengthRef = useRef(drillPath.length);
 
   // 加载远程数据
   useEffect(() => {
@@ -207,13 +261,40 @@ export function ChinaDistrict({
     return `<div style="min-width:140px"><table style="font-size:12px;line-height:1.6">${rows.join('')}</table></div>`;
   }, [tooltipFields, labelField, valueField]);
 
+  // 计算展示数据（派生值，用 useMemo 保持引用稳定，避免 hooks 顺序问题）
+  const hasBusinessData = Boolean(data && data.length > 0);
+  const displayData = useMemo(() => {
+    if (!mergedGeoData) return null;
+    return filteredGeoData ?? mergedGeoData;
+  }, [filteredGeoData, mergedGeoData]);
+
+  const strokeWidthByLevel = currentLevel === 'province' ? strokeWidth : strokeWidth * 0.6;
+
+  // 下钻/上钻时自动 fitBounds 到当前区域
+  useEffect(() => {
+    if (!autoFitOnDrill || !scene || !displayData) return;
+    const prevLength = prevDrillPathLengthRef.current;
+    if (prevLength === drillPath.length) return;
+    prevDrillPathLengthRef.current = drillPath.length;
+
+    try {
+      const bounds = computeBounds(displayData);
+      if (bounds) {
+        scene.fitBounds(bounds, { padding: [40, 40, 40, 40] });
+      }
+    } catch {
+      // fitBounds 可能因为底图不支持而抛错
+    }
+  }, [autoFitOnDrill, scene, displayData, drillPath.length]);
+
   // 事件处理
   const handleClick = useCallback((payload: LayerEventPayload) => {
     const feature = payload.feature;
     if (!feature) return;
 
     const name = String(feature[labelField] ?? feature.name ?? '');
-    const adcode = feature.adcode as string | number | undefined;
+    // 优先取 adcode，备选取 gb（国家行政区划编码，如 "156330000"）
+    const adcode = (feature.adcode ?? feature.gb) as string | number | undefined;
 
     onRegionClick?.(feature, currentLevel);
 
@@ -222,7 +303,8 @@ export function ChinaDistrict({
     }
 
     if (drillEnabled && canDrillDeeper(currentLevel)) {
-      const newPath = [...drillPath, { level: getNextLevel(currentLevel), name, adcode }];
+      // level 记录被点击实体的真实层级（而非目标层级），供 filterByParent 判断前缀长度
+      const newPath = [...drillPath, { level: currentLevel, name, adcode }];
       if (controlledDrillPath) {
         onDrill?.(newPath);
       } else {
@@ -233,11 +315,8 @@ export function ChinaDistrict({
     }
   }, [labelField, currentLevel, clickSelect, drillEnabled, drillPath, controlledDrillPath, onDrill, onRegionClick]);
 
-  if (!scene || !mergedGeoData) return null;
-
-  const hasBusinessData = Boolean(data && data.length > 0);
-  const displayData = filteredGeoData ?? mergedGeoData;
-  const strokeWidthByLevel = currentLevel === 'province' ? strokeWidth : strokeWidth * 0.6;
+  // 所有 hooks 必须在 conditional return 之前
+  if (!scene || !displayData) return null;
 
   return (
     <>
@@ -298,7 +377,7 @@ export function ChinaDistrict({
       )}
     </>
   );
-}
+});
 
 // ─── 标签内部组件 ─────────────────────────────────────────
 
@@ -423,6 +502,28 @@ function mergeBusinessData(
   return { type: 'FeatureCollection', features };
 }
 
+/** 提取行政区划码：去除 "156" 国家前缀，返回标准 6 位码 */
+function normalizeAdcode(code: string | number): string {
+  const s = String(code);
+  if (s.startsWith('156') && s.length >= 9) return s.slice(3);
+  return s;
+}
+
+/** 常见行政后缀，用于名称模糊匹配 */
+const ADMIN_SUFFIXES = ['省', '市', '自治区', '特别行政区', '壮族', '回族', '维吾尔', '藏族', '彝族', '苗', '侗', '瑶', '白', '哈尼', '傣', '傈僳', '佤', '畲', '拉祜', '水', '景颇', '土家', '羌', '毛南', '仫佬', '布朗', '撒拉', '裕固', '塔吉克', '柯尔克孜', '锡伯', '达斡尔', '鄂温克', '鄂伦春', '赫哲', '德昂', '门巴', '珞巴', '基诺', '怒', '保安', '京', '独龙', '仡佬', '阿昌', '普米'] as const;
+
+/** 去除行政区划名称后的常见后缀，便于模糊匹配 */
+function stripAdminSuffix(name: string): string {
+  let stripped = name;
+  for (const suffix of ADMIN_SUFFIXES) {
+    if (stripped.endsWith(suffix)) {
+      stripped = stripped.slice(0, -suffix.length);
+      break;
+    }
+  }
+  return stripped;
+}
+
 function filterByParent(
   geo: GeoJSONFeatureCollection,
   parentNode: DrillPathNode,
@@ -430,21 +531,40 @@ function filterByParent(
 ): GeoJSONFeatureCollection {
   const parentName = parentNode.name;
   const parentAdcode = parentNode.adcode;
+  const parentLevel = parentNode.level;
+
+  // 根据父级层级确定行政区划码前缀长度：省=2位，市=4位
+  const adcodePrefixLen = parentLevel === 'province' ? 2 : 4;
 
   const features = geo.features.filter((feature) => {
     const props = feature.properties;
-    // 通过 parent 字段匹配
+
+    // 通过 parent / parentName 字段匹配
     if (props.parent && String(props.parent) === parentName) return true;
     if (props.parentName && String(props.parentName) === parentName) return true;
-    // 通过 adcode 前缀匹配
-    if (parentAdcode && props.adcode) {
-      const parentCode = String(parentAdcode);
-      const childCode = String(props.adcode);
-      if (childCode.startsWith(parentCode.slice(0, 2)) && childCode !== parentCode) return true;
+
+    // 通过行政区划码前缀匹配（支持 adcode 和 gb 字段，自动去除 "156" 国家前缀）
+    const childCodeRaw = (props.adcode ?? props.gb) as string | number | undefined;
+    if (parentAdcode && childCodeRaw) {
+      const parentCode = normalizeAdcode(String(parentAdcode));
+      const childCode = normalizeAdcode(String(childCodeRaw));
+      if (childCode.length >= adcodePrefixLen
+        && childCode.slice(0, adcodePrefixLen) === parentCode.slice(0, adcodePrefixLen)
+        && childCode !== parentCode) {
+        return true;
+      }
     }
-    // 通过省/市名字段匹配
-    if (props.province && String(props.province) === parentName) return true;
-    if (props.city && String(props.city) === parentName) return true;
+
+    // 通过省/市名字段匹配（精确匹配 + 去后缀模糊匹配）
+    const parentBase = stripAdminSuffix(parentName);
+    if (props.province) {
+      if (String(props.province) === parentName) return true;
+      if (stripAdminSuffix(String(props.province)) === parentBase) return true;
+    }
+    if (props.city) {
+      if (String(props.city) === parentName) return true;
+      if (stripAdminSuffix(String(props.city)) === parentBase) return true;
+    }
     return false;
   });
 
@@ -528,4 +648,57 @@ function ringArea(ring: number[][]): number {
     area -= ring[j][0] * ring[i][1];
   }
   return area / 2;
+}
+
+/** 从 GeoJSON FeatureCollection 计算包围盒 [[minLng, minLat], [maxLng, maxLat]] */
+function computeBounds(geo: GeoJSONFeatureCollection): [[number, number], [number, number]] | null {
+  let minLng = Infinity;
+  let minLat = Infinity;
+  let maxLng = -Infinity;
+  let maxLat = -Infinity;
+
+  for (const feature of geo.features) {
+    traverseCoords(feature.geometry, (lng, lat) => {
+      if (lng < minLng) minLng = lng;
+      if (lat < minLat) minLat = lat;
+      if (lng > maxLng) maxLng = lng;
+      if (lat > maxLat) maxLat = lat;
+    });
+  }
+
+  if (!isFinite(minLng) || !isFinite(minLat)) return null;
+  return [[minLng, minLat], [maxLng, maxLat]];
+}
+
+/** 递归遍历 geometry 所有坐标点 */
+function traverseCoords(
+  geometry: Record<string, unknown>,
+  visitor: (lng: number, lat: number) => void,
+): void {
+  const type = geometry.type as string;
+  const coords = geometry.coordinates as unknown;
+  if (!coords) return;
+
+  if (type === 'Point') {
+    const [lng, lat] = coords as [number, number];
+    visitor(lng, lat);
+  } else if (type === 'LineString' || type === 'MultiPoint') {
+    for (const [lng, lat] of coords as [number, number][]) {
+      visitor(lng, lat);
+    }
+  } else if (type === 'Polygon' || type === 'MultiLineString') {
+    for (const ring of coords as [number, number][][]) {
+      for (const [lng, lat] of ring) {
+        visitor(lng, lat);
+      }
+    }
+  } else if (type === 'MultiPolygon') {
+    for (const polygon of coords as [number, number][][][]) {
+      for (const ring of polygon) {
+        for (const [lng, lat] of ring) {
+          visitor(lng, lat);
+        }
+      }
+    }
+  }
 }

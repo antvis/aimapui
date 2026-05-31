@@ -5,6 +5,8 @@ import { PointLayer } from '../Layer/PointLayer';
 
 /** 标签锚点位置 */
 export type LabelAnchor = 'right' | 'bottom' | 'top' | 'left' | 'center';
+/** 图标锚点位置 */
+export type IconAnchor = 'center' | 'top' | 'bottom' | 'left' | 'right';
 
 /**
  * Material Symbols Outlined 图标名称 → Unicode 映射
@@ -177,6 +179,17 @@ const MATERIAL_SYMBOLS_FONT_PATH = 'https://fonts.gstatic.com/s/materialsymbolso
 const ALICDN_FONT_FAMILY = 'iconfont';
 const ALICDN_FONT_PATH = '//at.alicdn.com/t/font_2534097_ao9soua2obv.woff2?t=1622021146076';
 
+/** Pin 形状 SVG 路径（与 maki-icons.ts 中的 PIN_PATH 一致，32×40 viewBox） */
+const PIN_PATH = 'M16 0C7.16344 0 0 7.16344 0 16C0 24.8366 16 40 16 40C16 40 32 24.8366 32 16C32 7.16344 24.8366 0 16 0Z';
+
+/** 动态创建 Pin 背景 SVG 图片，支持自定义颜色 */
+function createPinSvg(fill: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">`
+    + `<path d="${PIN_PATH}" fill="${fill}" stroke="white" stroke-width="1.5"/>`
+    + `</svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
 export interface GlyphLayerProps extends Omit<LayerSchema, 'type' | 'source' | 'sourceType' | 'sourceConfig'> {
   source: LayerSchema['source'];
   sourceType?: LayerSchema['sourceType'];
@@ -213,6 +226,22 @@ export interface GlyphLayerProps extends Omit<LayerSchema, 'type' | 'source' | '
   iconHaloWidth?: number;
   /** 图标样式扩展 */
   iconStyle?: Record<string, unknown>;
+  /** 图标锚点位置，默认 'center' */
+  iconAnchor?: IconAnchor;
+  /** 图标背景形状，默认 'pin' */
+  iconBgShape?: 'circle' | 'pin';
+  /** 图标背景形状颜色，默认不显示 */
+  iconBgShapeColor?: string;
+  /** 图标背景形状大小，默认 24 */
+  iconBgShapeSize?: number;
+  /** 图标背景边框颜色 */
+  iconBgStrokeColor?: string;
+  /** 图标背景边框宽度，默认 0 */
+  iconBgStrokeWidth?: number;
+  /** 图标背景 padding，默认 0 */
+  iconBgPadding?: number;
+  /** 图标背景圆角半径，默认 0 */
+  iconBgCornerRadius?: number;
 
   // ===== 文字标签配置 =====
   /** 是否显示文字标签，默认 true */
@@ -282,6 +311,14 @@ export function GlyphLayer({
   iconHaloColor = '#fff',
   iconHaloWidth = 1,
   iconStyle,
+  iconAnchor = 'center',
+  iconBgShape = 'pin',
+  iconBgShapeColor,
+  iconBgShapeSize = 24,
+  iconBgStrokeColor,
+  iconBgStrokeWidth = 0,
+  iconBgPadding = 0,
+  iconBgCornerRadius = 0,
   showLabel = true,
   labelField,
   labelColor = '#333',
@@ -304,8 +341,19 @@ export function GlyphLayer({
   const scene = useScene();
   const [fontReady, setFontReady] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
+  const [pinImageReady, setPinImageReady] = useState(false);
   const [currentZoom, setCurrentZoom] = useState<number>(14);
   const fontRegisteredRef = useRef(false);
+
+  // 注册 pin 图片（仅当需要 pin 背景时）
+  useEffect(() => {
+    if (!scene || iconBgShape !== 'pin' || !iconBgShapeColor) return;
+
+    // 动态创建 pin 图片并注册到 scene
+    const pinSvg = createPinSvg(iconBgShapeColor);
+    scene.addImage('glyph-pin-bg', pinSvg);
+    setPinImageReady(true);
+  }, [scene, iconBgShape, iconBgShapeColor]);
 
   // 确定最终字体族和图标映射
   const { fontFamily, fontPath, iconMappings } = useMemo(() => {
@@ -450,8 +498,9 @@ export function GlyphLayer({
   }, [scene, zoomAdaption]);
 
   // 所有 hooks 已在此之上调用完毕
-  // 等待字体就绪 + 场景就绪
+  // 等待字体就绪 + 场景就绪 + pin 图片就绪（如果需要）
   if (!fontReady || !sceneReady) return null;
+  if (iconBgShape === 'pin' && iconBgShapeColor && !pinImageReady) return null;
 
   const resolvedLabelField = labelField ?? iconField;
 
@@ -490,8 +539,15 @@ export function GlyphLayer({
           fontFamily: fontFamily,
           iconfont: true,
           textAllowOverlap: iconAllowOverlap,
-          stroke: iconHaloColor,
-          strokeWidth: iconHaloWidth,
+          textAnchor: iconAnchor,
+          // 背景属性
+          backgroundColor: iconBgShapeColor,
+          backgroundPadding: iconBgPadding,
+          backgroundRadius: iconBgCornerRadius,
+          backgroundShape: iconBgShape === 'pin' ? undefined : 'circle',
+          // 背景边框属性
+          stroke: iconBgStrokeColor,
+          strokeWidth: iconBgStrokeWidth,
           ...(iconStyle ?? {}),
         }}
         onClick={onClick}

@@ -121,10 +121,9 @@ export type { MarkerClusterLayerProps } from './components/CompositeLayer/Marker
 export { FillLayer } from './components/CompositeLayer/FillLayer';
 export type { FillLayerProps } from './components/CompositeLayer/FillLayer';
 export { ChinaDistrict, ADMIN_SEQUENTIAL_COLORS, DEFAULT_PROVINCE_SOURCE, DEFAULT_CITY_SOURCE, DEFAULT_DISTRICT_SOURCE } from './components/CompositeLayer/ChinaDistrict';
-export type { ChinaDistrictProps, AdministrativeLevel, DrillPathNode, BusinessDataItem } from './components/CompositeLayer/ChinaDistrict';
+export type { ChinaDistrictProps, ChinaDistrictHandle, AdministrativeLevel, DrillPathNode, BusinessDataItem } from './components/CompositeLayer/ChinaDistrict';
 export { GlyphLayer, BUILTIN_ICON_FONTS } from './components/CompositeLayer/GlyphLayer';
-export type { GlyphLayerProps } from './components/CompositeLayer/GlyphLayer';
-export type { LabelAnchor } from './components/CompositeLayer/GlyphLayer';
+export type { GlyphLayerProps, LabelAnchor } from './components/CompositeLayer/GlyphLayer';
 export { IconLayer } from './components/CompositeLayer/IconLayer';
 export type { IconLayerProps, IconAnchor } from './components/CompositeLayer/IconLayer';
 export { SatelliteLayer, SATELLITE_PROVIDER_NAMES } from './components/CompositeLayer/SatelliteLayer';
@@ -157,6 +156,8 @@ export type { LayerSwitchControlProps, LayerItem } from './components/Control/La
 // Interaction 组件
 export { Marker } from './components/Interaction/Marker';
 export type { MarkerProps, MarkerVariant, MarkerColor } from './components/Interaction/Marker';
+export { MAKI_ICONS, MAKI_ICON_NAMES, makiIconUrl, createMakiIconMap, makiPinUrl, createMakiPinMap } from './components/Interaction/maki-icons';
+export type { MakiIconName } from './components/Interaction/maki-icons';
 export { Popup } from './components/Interaction/Popup';
 export type { PopupProps, PopupSize, PopupPlacement, PopupHeader, PopupAttribute, PopupAction } from './components/Interaction/Popup';
 export { Tooltip } from './components/Interaction/Tooltip';

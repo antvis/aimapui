@@ -30,11 +30,11 @@ pnpm add @antv/aimapui
 ### Usage
 
 ```tsx
-import { MapView } from '@antv/aimapui';
+import { AiMap } from '@antv/aimapui';
 import '@antv/aimapui/style.css';
 
 function App() {
-  return <MapView schema={mapSchema} />;
+  return <AiMap schema={mapSchema} />;
 }
 ```
 

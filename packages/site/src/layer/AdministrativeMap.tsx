@@ -92,7 +92,7 @@ export default function AdministrativeMap() {
               color: !drillEnabled ? '#fff' : '#475569',
             }}
           >
-            🔒 锁定模式
+            单层模式
           </button>
           <button
             onClick={() => setDrillEnabled(true)}
@@ -103,7 +103,7 @@ export default function AdministrativeMap() {
               color: drillEnabled ? '#fff' : '#475569',
             }}
           >
-            🔍 深度模式
+            下钻模式
           </button>
         </div>
 

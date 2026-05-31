@@ -552,8 +552,8 @@
 
 /* Primary (默认蓝) — 由组件内联样式或 SVG fill 控制，无需额外 CSS 覆盖 */
 
-/* Success (绿) */
-.aimapui-marker--success .aimapui-marker-pin svg path {
+/* Success (绿) — :first-child 只选中 Pin 背景 SVG，避免覆盖图标 SVG 的白色 fill */
+.aimapui-marker--success .aimapui-marker-pin > svg:first-child path {
   fill: #00854d;
 }
 .aimapui-marker--success .aimapui-marker-icon::before {
@@ -574,7 +574,7 @@
 }
 
 /* Warning (橙) */
-.aimapui-marker--warning .aimapui-marker-pin svg path {
+.aimapui-marker--warning .aimapui-marker-pin > svg:first-child path {
   fill: #943700;
 }
 .aimapui-marker--warning .aimapui-marker-icon::before {
@@ -595,7 +595,7 @@
 }
 
 /* Error (红) */
-.aimapui-marker--error .aimapui-marker-pin svg path {
+.aimapui-marker--error .aimapui-marker-pin > svg:first-child path {
   fill: #ba1a1a;
 }
 .aimapui-marker--error .aimapui-marker-icon::before {

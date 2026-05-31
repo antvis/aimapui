@@ -69,7 +69,7 @@ export default function Demo20BubbleText() {
             sizeField="value"
             sizeValues={[10, 18, 28, 40, 54]}
             bubbleAnchor="center"
-            labelAnchor="top"
+            labelAnchor="center"
             labelTrigger="always"
             labelOffset={[0, -8]}
             tooltipEffect={false}

@@ -108,9 +108,9 @@ export default function RouteLayerDemo() {
           path={day1Path}
           stops={day1Stops}
           color={DAY_COLORS.day1}
-          lineWidth={4}
+          lineWidth={2}
           glow
-          stopSize={12}
+          stopSize={8}
           onStopClick={handleStopClick}
         />
 
@@ -119,9 +119,9 @@ export default function RouteLayerDemo() {
           path={day2Path}
           stops={day2Stops}
           color={DAY_COLORS.day2}
-          lineWidth={4}
+          lineWidth={2}
           glow
-          stopSize={12}
+          stopSize={8}
           endColor={DAY_COLORS.day2}
           onStopClick={handleStopClick}
         />
@@ -131,9 +131,9 @@ export default function RouteLayerDemo() {
           path={day3Path}
           stops={day3Stops}
           color={DAY_COLORS.day3}
-          lineWidth={4}
+          lineWidth={2}
           glow
-          stopSize={12}
+          stopSize={8}
           endColor={DAY_COLORS.day3}
           onStopClick={handleStopClick}
         />
