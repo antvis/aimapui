@@ -1,7 +1,3 @@
 packages:
   - packages/*
 
-overrides:
-  '@antv/l7': link:../L7/packages/l7
-  '@antv/l7-layers': link:../L7/packages/layers
-  '@antv/l7-maps': link:../L7/packages/maps
