@@ -37,15 +37,14 @@ export function MobileSheetLegend({
   return (
     <div
       className={cx(
-        'absolute bottom-3 left-3 right-3 z-30 transition-all duration-300',
-        expanded ? 'max-h-[65vh]' : 'max-h-14',
+        'absolute bottom-3 left-3 right-3 z-[1000]',
         className,
       )}
     >
-      <div className="rounded-xl border border-outline-variant/30 bg-surface/80 backdrop-blur-md p-3 px-3.5 text-on-surface shadow-lg">
+      <div className="flex flex-col rounded-xl border border-outline-variant/30 bg-surface/80 backdrop-blur-md px-3.5 text-on-surface shadow-lg">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-between px-0 py-3 text-label-caps font-label-caps uppercase"
+          className="w-full flex items-center justify-between py-3 text-label-caps font-label-caps uppercase"
           style={{
             background: 'none',
             border: 'none',
@@ -67,17 +66,20 @@ export function MobileSheetLegend({
             <path d="M6 9l6 6 6-6" />
           </svg>
         </button>
-        {expanded && (
-          <div className="flex flex-col gap-4 [&>*+*]:border-t [&>*+*]:border-outline-variant/20 [&>*+*]:pt-4 custom-scrollbar" style={{ maxHeight: '55vh', overflowY: 'auto' }}>
-            {legends.map((legend, index) => (
-              <LegendItem
-                key={`mobile-legend-${index}`}
-                legend={legend}
-                interaction={interaction}
-              />
-            ))}
-          </div>
-        )}
+        <div
+          className={cx(
+            'flex flex-col gap-4 [&>*+*]:border-t [&>*+*]:border-outline-variant/20 [&>*+*]:pt-4 custom-scrollbar transition-all duration-300 overflow-y-auto',
+            expanded ? 'max-h-[60vh] pb-3' : 'max-h-0',
+          )}
+        >
+          {legends.map((legend, index) => (
+            <LegendItem
+              key={`mobile-legend-${index}`}
+              legend={legend}
+              interaction={interaction}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -2,6 +2,11 @@ import React, { useState } from 'react';
 import type { LegendIconSchema, LegendInteractionCallbacks } from '../../schema/types';
 import { cx } from '../../utils/style';
 
+/** 判断字符串是否为可加载的 URL（图片地址） */
+function isUrlIcon(icon: string): boolean {
+  return /^(https?:|\/\/|data:)/i.test(icon);
+}
+
 export interface LegendIconProps extends LegendIconSchema {
   className?: string;
   interaction?: LegendInteractionCallbacks;
@@ -71,22 +76,30 @@ export function LegendIcon({ title, items, className, interaction }: LegendIconP
               onMouseLeave={handleMouseLeave}
               onClick={() => handleClick(i)}
             >
-              <img
-                src={item.icon}
-                alt={item.label}
-                className="size-5 object-contain shrink-0"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'flex';
-                }}
-              />
-              <span
-                className="size-5 hidden items-center justify-center shrink-0 text-base leading-none text-on-surface-variant"
-              >
-                □
-              </span>
+              {isUrlIcon(item.icon) ? (
+                <img
+                  src={item.icon}
+                  alt={item.label}
+                  className="size-5 object-contain shrink-0"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+              ) : (
+                <span className="size-5 flex items-center justify-center shrink-0 text-base leading-none">
+                  {item.icon}
+                </span>
+              )}
+              {isUrlIcon(item.icon) && (
+                <span
+                  className="size-5 hidden items-center justify-center shrink-0 text-base leading-none text-on-surface-variant"
+                >
+                  □
+                </span>
+              )}
               <span className="text-xs leading-4 text-on-surface">{item.label}</span>
             </div>
           );

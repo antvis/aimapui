@@ -47,11 +47,11 @@ export default function DemoIconFontLabel() {
             iconHaloWidth={1}
             iconBgShape="circle"
             iconBgShapeColor="#E81A1A"
-            iconBgShapeSize={16}
+            iconBgShapeSize={20}
             iconBgStrokeColor="#F8A3A3"
             iconBgStrokeWidth={0}
             iconBgPadding={2}
-            iconBgCornerRadius={16}
+            iconBgCornerRadius={0}
             iconAnchor="bottom"
             showLabel={true}
             labelField="name"
