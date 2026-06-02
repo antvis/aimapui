@@ -1,6 +1,6 @@
 {
   "name": "@antv/aimapui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Schema/DSL-driven React map visualization component library powered by L7",
   "main": "dist/index.cjs.js",
@@ -10,18 +10,22 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js"
+      "require": "./dist/index.cjs.js",
+      "default": "./dist/index.iife.js"
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/style.css",
+    "./dist/index.iife.js": "./dist/index.iife.js"
   },
+  "unpkg": "./dist/index.iife.js",
   "files": [
     "dist",
     "README.md"
   ],
   "scripts": {
-    "build": "rm -rf dist && vite build && vite build --config vite.config.cjs.ts",
+    "build": "rm -rf dist && vite build && vite build --config vite.config.cjs.ts && vite build --config vite.config.iife.ts",
     "build:esm": "vite build",
     "build:cjs": "vite build --config vite.config.cjs.ts",
+    "build:iife": "vite build --config vite.config.iife.ts",
     "type-check": "tsc --noEmit",
     "lint": "eslint src/",
     "test": "vitest run",
@@ -56,6 +60,9 @@
     "vite": "^6.0.0",
     "vite-plugin-dts": "^4.3.0",
     "vitest": "^2.1.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "license": "MIT",
   "repository": {

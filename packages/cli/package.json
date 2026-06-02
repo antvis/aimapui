@@ -1,6 +1,6 @@
 {
   "name": "@antv/aimapui-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "CLI for adding @antv/aimapui components to your project (shadcn/ui style)",
   "bin": {
@@ -20,6 +20,9 @@
   "devDependencies": {
     "typescript": "^5.7.2",
     "@types/node": "^20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "license": "MIT",
   "repository": {
