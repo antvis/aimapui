@@ -159,25 +159,9 @@ export const MATERIAL_SYMBOLS_ICONS: Array<[string, string]> = [
   ['visibility_off', '&#xe8f6;'],
 ];
 
-/**
- * 内置天气 iconfont 图标映射（at.alicdn.com 字体）
- * key 为语义化名称，value 为 HTML 实体格式的 iconfont unicode（&#xHEX;）
- */
-export const BUILTIN_ICON_FONTS: Array<[string, string]> = [
-  ['smallRain', '&#xe6f7;'],
-  ['middleRain', '&#xe61c;'],
-  ['hugeRain', '&#xe6a6;'],
-  ['sun', '&#xe6da;'],
-  ['cloud', '&#xe8da;'],
-];
-
 /** Material Symbols Outlined CSS 字体族名 */
 const MATERIAL_SYMBOLS_FONT_FAMILY = 'Material Symbols Outlined';
 const MATERIAL_SYMBOLS_FONT_PATH = 'https://fonts.gstatic.com/s/materialsymbolsoutlined/v261/kJEhBvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oFsI.woff2';
-
-/** 默认 iconfont 字体（at.alicdn.com） */
-const ALICDN_FONT_FAMILY = 'iconfont';
-const ALICDN_FONT_PATH = '//at.alicdn.com/t/font_2534097_ao9soua2obv.woff2?t=1622021146076';
 
 /** Pin 形状 SVG 路径（与 maki-icons.ts 中的 PIN_PATH 一致，32×40 viewBox） */
 const PIN_PATH = 'M16 0C7.16344 0 0 7.16344 0 16C0 24.8366 16 40 16 40C16 40 32 24.8366 32 16C32 7.16344 24.8366 0 16 0Z';
@@ -201,13 +185,13 @@ export interface GlyphLayerProps extends Omit<LayerSchema, 'type' | 'source' | '
   /**
    * 字体族模式
    * - 'material-symbols'（默认）：使用 Material Symbols Outlined 字体，图标名需使用官方名称（如 sunny / flight / restaurant）
-   * - 'iconfont'：使用 at.alicdn.com 内置 iconfont 字体，图标名需使用 BUILTIN_ICON_FONTS 中的名称
    * - 自定义字符串：自行通过 scene.addFontFace / addIconFonts 注册的字体族名
+   * @deprecated 不再使用 'iconfont' 值指向 alicdn 天气字体，请使用 Material Symbols 中的天气图标或自定义字体
    */
   iconFontFamily?: string;
   /**
    * 自定义字体文件 URL，仅在 iconFontFamily 为自定义字符串时需要
-   * Material Symbols 自动从页面已加载的字体中获取；iconfont 使用内置 URL
+   * Material Symbols 自动从页面已加载的字体中获取
    */
   iconFontPath?: string;
   /**
@@ -288,8 +272,7 @@ export interface GlyphLayerProps extends Omit<LayerSchema, 'type' | 'source' | '
  *
  * 支持 Material Symbols Outlined 及自定义 iconfont 字体：
  * - Material Symbols: 页面已加载 Google 字体，组件自动注册映射表，开箱即用
- * - 内置 iconfont: at.alicdn.com 天气字体，内置 5 个图标
- * - 自定义: 传入 iconFontFamily + iconFontPath + iconFontMap
+ * - 自定义: 传入 iconFontFamily + iconFontPath + iconFontMap（通过 scene.addFontFace / addIconFonts 注册）
  *
  * 特性：
  * - SDF 渲染确保任意缩放下边缘锐利
@@ -363,12 +346,6 @@ export function GlyphLayer({
           fontFamily: MATERIAL_SYMBOLS_FONT_FAMILY,
           fontPath: MATERIAL_SYMBOLS_FONT_PATH,
           iconMappings: MATERIAL_SYMBOLS_ICONS,
-        };
-      case 'iconfont':
-        return {
-          fontFamily: ALICDN_FONT_FAMILY,
-          fontPath: ALICDN_FONT_PATH,
-          iconMappings: BUILTIN_ICON_FONTS,
         };
       default:
         return {

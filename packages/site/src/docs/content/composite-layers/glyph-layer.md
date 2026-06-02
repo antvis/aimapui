@@ -1,13 +1,35 @@
 # GlyphLayer
 
-字体图标（Glyph）+ 文字标签组合标注图层。基于 SDF 文本渲染矢量图标，支持 Google Material Symbols、阿里 iconfont 及任意自定义字体，**任意缩放下边缘锐利**、可数据驱动着色。适合天气、状态、品类、专题地图的轻量符号化标注。
+字体图标（Glyph）+ 文字标签组合标注图层。基于 SDF 文本渲染矢量图标，支持 Google Material Symbols 及任意自定义字体，**任意缩放下边缘锐利**、可数据驱动着色。适合天气、状态、品类、专题地图的轻量符号化标注。
 
 > **何时选择：** 需要矢量、可染色、缩放锐利的图标用 GlyphLayer；需要使用栅格图片（PNG / 远端 URL）用 [IconLayer](./icon-layer)；需要纯文字标签用 [PointLayer](../layers/point-layer)。
+
+## 💡 优先使用内置字体图标
+
+**强烈建议优先使用内置字体图标**，无需自行准备图标资源和字体文件：
+
+- ✅ **Material Symbols Outlined**：Google 出品，内置 **140+** 个常用图标，覆盖天气、交通、地点、城市生活、活动、地图功能、通用 7 大类
+- ✅ **零配置**：直接使用 `iconFontFamily="material-symbols"`（默认），组件自动注册映射表
+- ✅ **矢量染色**：图标颜色可任意定制，支持数据驱动映射
+
+### 快速使用内置字体
+
+```tsx
+// Material Symbols（默认）— 推荐
+<GlyphLayer
+  source={data}
+  iconField="icon"           // 使用 Material Symbols 官方图标名
+  iconColor="#2563eb"
+  labelField="name"
+/>
+```
+
+📖 **完整内置字体图标列表及预览效果详见上方 Demo**，支持搜索、分类筛选、尺寸/颜色实时预览。
 
 ## 导入
 
 ```tsx
-import { GlyphLayer, BUILTIN_ICON_FONTS } from '@antv/aimapui';
+import { GlyphLayer } from '@antv/aimapui';
 ```
 
 ## 基础用法
@@ -31,21 +53,7 @@ import { GlyphLayer, BUILTIN_ICON_FONTS } from '@antv/aimapui';
 
 > 图标名直接使用 [Material Symbols 官方名称](https://fonts.google.com/icons)，组件自动从页面已加载的字体获取符号。
 
-### 2. 使用内置 iconfont（天气字体）
-
-```tsx
-<GlyphLayer
-  source={data}
-  sourceType="json"
-  sourceConfig={{ x: 'lng', y: 'lat' }}
-  iconField="weather"
-  iconFontFamily="iconfont"
-/>
-```
-
-支持的图标名见 `BUILTIN_ICON_FONTS`。
-
-### 3. 自定义 iconfont
+### 2. 自定义 iconfont
 
 ```tsx
 <GlyphLayer
@@ -81,7 +89,7 @@ GlyphLayer 继承 [LayerSchema 公共属性](../layers/point-layer#公共属性)
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `iconField` | `string` | **必填** | 图标内容字段，每行数据用该字段值作为图标文本渲染 |
-| `iconFontFamily` | `'material-symbols' \| 'iconfont' \| string` | `'material-symbols'` | 字体族模式 |
+| `iconFontFamily` | `'material-symbols' \| string` | `'material-symbols'` | 字体族模式 |
 | `iconFontPath` | `string` | - | 自定义字体文件 URL（仅 `iconFontFamily` 为自定义时） |
 | `iconFontMap` | `Array<[string, string]>` | - | 自定义图标映射表（仅 `iconFontFamily` 为自定义时） |
 | `iconColor` | `string \| ColorMapping` | `'#3b82f6'` | 图标颜色，支持单色或数据驱动映射 |

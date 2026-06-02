@@ -122,7 +122,7 @@ export { FillLayer } from './components/CompositeLayer/FillLayer';
 export type { FillLayerProps } from './components/CompositeLayer/FillLayer';
 export { ChinaDistrict, ADMIN_SEQUENTIAL_COLORS, DEFAULT_PROVINCE_SOURCE, DEFAULT_CITY_SOURCE, DEFAULT_DISTRICT_SOURCE } from './components/CompositeLayer/ChinaDistrict';
 export type { ChinaDistrictProps, ChinaDistrictHandle, AdministrativeLevel, DrillPathNode, BusinessDataItem } from './components/CompositeLayer/ChinaDistrict';
-export { GlyphLayer, BUILTIN_ICON_FONTS } from './components/CompositeLayer/GlyphLayer';
+export { GlyphLayer } from './components/CompositeLayer/GlyphLayer';
 export type { GlyphLayerProps, LabelAnchor } from './components/CompositeLayer/GlyphLayer';
 export { IconLayer } from './components/CompositeLayer/IconLayer';
 export type { IconLayerProps, IconAnchor } from './components/CompositeLayer/IconLayer';

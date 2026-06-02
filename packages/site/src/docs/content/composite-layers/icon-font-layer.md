@@ -1,6 +1,6 @@
 # GlyphLayer
 
-字体图标标注图层，支持 Material Symbols Outlined 图标（158+个）和自定义 iconfont，带三级缩放适配策略。
+字体图标标注图层，支持 Material Symbols Outlined 图标（158+个）和自定义字体，带三级缩放适配策略。
 
 ## 导入
 
@@ -14,7 +14,7 @@ import { GlyphLayer } from '@antv/aimapui'
 |------|------|-------|------|
 | `source` | `any` | - | 数据源（必填） |
 | `iconField` | `string` | - | 图标字段名（必填） |
-| `iconFontFamily` | `'material-symbols' \| 'iconfont' \| string` | - | 字体图标族 |
+| `iconFontFamily` | `'material-symbols' \| string` | `'material-symbols'` | 字体图标族 |
 | `iconFontPath` | `string` | - | 自定义字体文件路径 |
 | `iconFontMap` | `object` | - | 图标名称到 Unicode 映射 |
 | `iconColor` | `string` | - | 图标颜色 |
