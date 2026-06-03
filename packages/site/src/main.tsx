@@ -40,7 +40,7 @@ import MapThemeControl from './control/MapThemeControl';
 import MouseLocationControl from './control/MouseLocationControl';
 import ExportImageControl from './control/ExportImageControl';
 import ScaleControlDemo from './control/ScaleControl';
-// ── Marker 标注 ──
+// ── 点位标注 / 交互 ──
 import Marker from './marker/Marker';
 import MarkerDrag from './marker/MarkerDrag';
 import Popup from './marker/Popup';
@@ -58,6 +58,8 @@ import DarkThemeMap from './app/DarkThemeMap';
 import BubbleLayer from './composite/BubbleLayer';
 import IconLabel from './composite/IconLabel';
 import IconFontLabel from './composite/IconFontLabel';
+import BuiltinIconsDemo from './composite/BuiltinIconsDemo';
+import BuiltinGlyphsDemo from './composite/BuiltinGlyphsDemo';
 import ChoroplethMap from './composite/ChoroplethMap';
 import HexagonHeatmap from './composite/HexagonHeatmap';
 import SatelliteLayerDemo from './composite/SatelliteLayer';
@@ -191,7 +193,7 @@ const designIconMap: Record<string, string> = {
 const designCategoryMap: Record<string, string> = {
   app: '应用模板',
   composite: '复合图层',
-  marker: 'Marker 标注',
+  marker: '点位标注',
   control: '控件',
   engine: '地图引擎',
   layer: '基础图层',
@@ -241,26 +243,30 @@ const demos = [
   { name: '航线地图', icon: 'flight', component: FlightRouteMap, group: '应用模板', file: 'app/FlightRouteMap', device: 'mobile' },
   { name: '暗色主题', icon: 'dark_mode', component: DarkThemeMap, group: '应用模板', file: 'app/DarkThemeMap', device: 'desktop' },
 
+  // ── 点位标注 ──────────────────────────────
+  // 排序原则：默认方案优先、再到按需方案
+  { name: '图片标注', icon: 'label', component: IconLabel, group: '点位标注', file: 'composite/IconLabel' },
+  { name: '内置图标', icon: 'emoji_symbols', component: BuiltinIconsDemo, group: '点位标注', file: 'composite/BuiltinIconsDemo' },
+  { name: 'Marker 标注', icon: 'location_on', component: Marker, group: '点位标注', file: 'marker/Marker' },
+  { name: '可拖拽标注', icon: 'push_pin', component: MarkerDrag, group: '点位标注', file: 'marker/MarkerDrag' },
+  { name: '字体标注', icon: 'font_download', component: IconFontLabel, group: '点位标注', file: 'composite/IconFontLabel' },
+  { name: '内置字体图标', icon: 'text_fields', component: BuiltinGlyphsDemo, group: '点位标注', file: 'composite/BuiltinGlyphsDemo' },
+
   // ── 复合图层 ──────────────────────────────
-  // 点
-  { name: '气泡图', icon: 'bubble_chart', component: BubbleLayer, group: '复合图层', file: 'composite/BubbleLayer' },
-  { name: '图片标注', icon: 'label', component: IconLabel, group: '复合图层', file: 'composite/IconLabel' },
-  { name: '字体标注', icon: 'font_download', component: IconFontLabel, group: '复合图层', file: 'composite/IconFontLabel' },
-  // 面
-  { name: '分级统计图', icon: 'stacked_bar_chart', component: ChoroplethMap, group: '复合图层', file: 'composite/ChoroplethMap' },
-  // 热力图
-  { name: '蜂窝热力图', icon: 'hexagon', component: HexagonHeatmap, group: '复合图层', file: 'composite/HexagonHeatmap' },
-  { name: '卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '复合图层', file: 'composite/SatelliteLayer' },
   { name: 'Marker 聚合', icon: 'scatter_plot', component: MarkerCluster, group: '复合图层', file: 'composite/MarkerCluster' },
-  { name: '弧线流向图', icon: 'south_east', component: ArcFlowLayer, group: '复合图层', file: 'composite/ArcFlowLayer' },
   { name: '路径地图', icon: 'route', component: RouteLayerDemo, group: '复合图层', file: 'composite/RouteLayer' },
+  // 常见分析类
+  { name: '气泡图', icon: 'bubble_chart', component: BubbleLayer, group: '复合图层', file: 'composite/BubbleLayer' },
+  { name: '分级统计图', icon: 'stacked_bar_chart', component: ChoroplethMap, group: '复合图层', file: 'composite/ChoroplethMap' },
+  { name: '蜂窝热力图', icon: 'hexagon', component: HexagonHeatmap, group: '复合图层', file: 'composite/HexagonHeatmap' },
+  { name: '弧线流向图', icon: 'south_east', component: ArcFlowLayer, group: '复合图层', file: 'composite/ArcFlowLayer' },
+  // 专题影像类
+  { name: '卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '复合图层', file: 'composite/SatelliteLayer' },
   { name: '栅格影像', icon: 'satellite_alt', component: TiffRasterLayerDemo, group: '复合图层', file: 'composite/TiffRasterLayer' },
 
-  // ── Marker 标注 ───────────────────────────
-  { name: 'Marker 标注', icon: 'location_on', component: Marker, group: 'Marker 标注', file: 'marker/Marker' },
-  { name: '可拖拽标注', icon: 'push_pin', component: MarkerDrag, group: 'Marker 标注', file: 'marker/MarkerDrag' },
-  { name: 'Popup 弹窗', icon: 'chat_bubble', component: Popup, group: 'Marker 标注', file: 'marker/Popup' },
-  { name: 'Tooltip 轻提示', icon: 'info', component: TooltipDemo, group: 'Marker 标注', file: 'marker/Tooltip' },
+  // ── 交互组件 ──────────────────────────────
+  { name: 'Popup 弹窗', icon: 'chat_bubble', component: Popup, group: '交互组件', file: 'marker/Popup' },
+  { name: 'Tooltip 轻提示', icon: 'info', component: TooltipDemo, group: '交互组件', file: 'marker/Tooltip' },
 
   // ── 控件 ──────────────────────────────────
   { name: '缩放控件', icon: 'zoom_in', component: ZoomControl, group: '控件', file: 'control/ZoomControl' },
@@ -610,7 +616,7 @@ function App() {
           }}
         >
           {groups.map((group) => {
-            const groupIcon: Record<string, string> = { '基础图层': 'layers', '复合图层': 'bubble_chart', 'Marker 标注': 'location_on', '控件': 'tune', '地图引擎': 'public' };
+            const groupIcon: Record<string, string> = { '基础图层': 'layers', '点位标注': 'location_on', '复合图层': 'bubble_chart', '交互组件': 'gesture', '控件': 'tune', '地图引擎': 'public' };
             return (
               <div key={group} style={{ marginBottom: group === groups[groups.length - 1] ? 0 : 8 }}>
                 <div

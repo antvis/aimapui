@@ -33,6 +33,8 @@ const docToDemoMap: Record<string, string> = {
   'composite-layers/arc-flow-layer': 'composite/ArcFlowLayer',
   'composite-layers/icon-font-layer': 'composite/IconFontLabel',
   'composite-layers/icon-image-layer': 'composite/IconLabel',
+  'composite-layers/builtin-icons': 'composite/BuiltinIconsDemo',
+  'composite-layers/icon-layer': 'composite/IconLabel',
   'composite-layers/fill-layer': 'composite/ChoroplethMap',
   'composite-layers/hexagon-layer': 'composite/HexagonHeatmap',
   'composite-layers/marker-cluster-layer': 'composite/MarkerCluster',
@@ -91,6 +93,10 @@ const docToMultiDemoMap: Record<string, Array<{ label: string; file: string }>> 
     { label: '百度地图', file: 'engine/BaiduMap' },
     { label: 'Google 地图', file: 'engine/GoogleMap' },
     { label: '独立 Map', file: 'engine/IndependentMap' },
+  ],
+  'composite-layers/glyph-layer': [
+    { label: '地图可视化', file: 'composite/IconFontLabel' },
+    { label: '图标库', file: 'composite/BuiltinGlyphsDemo' },
   ],
 };
 

@@ -39,17 +39,24 @@ export const docsNav: DocNavGroup[] = [
     ],
   },
   {
+    title: '点位标注',
+    items: [
+      { id: 'composite-layers/icon-layer', name: 'IconLayer', icon: 'label' },
+      { id: 'composite-layers/builtin-icons', name: '内置图标', icon: 'emoji_symbols' },
+      { id: 'composite-layers/glyph-layer', name: 'GlyphLayer', icon: 'font_download' },
+      { id: 'interaction/marker', name: 'Marker', icon: 'location_on' },
+    ],
+  },
+  {
     title: '复合图层',
     items: [
-      { id: 'composite-layers/arc-flow-layer', name: 'ArcFlowLayer', icon: 'south_east' },
-      { id: 'composite-layers/bubble-layer', name: 'BubbleLayer', icon: 'bubble_chart' },
-      { id: 'composite-layers/china-district', name: 'ChinaDistrict', icon: 'public' },
-      { id: 'composite-layers/fill-layer', name: 'FillLayer', icon: 'stacked_bar_chart' },
-      { id: 'composite-layers/hexagon-layer', name: 'HexagonLayer', icon: 'hexagon' },
-      { id: 'composite-layers/glyph-layer', name: 'GlyphLayer', icon: 'font_download' },
-      { id: 'composite-layers/icon-layer', name: 'IconLayer', icon: 'label' },
       { id: 'composite-layers/marker-cluster-layer', name: 'MarkerClusterLayer', icon: 'scatter_plot' },
       { id: 'composite-layers/route-layer', name: 'RouteLayer', icon: 'route' },
+      { id: 'composite-layers/bubble-layer', name: 'BubbleLayer', icon: 'bubble_chart' },
+      { id: 'composite-layers/fill-layer', name: 'FillLayer', icon: 'stacked_bar_chart' },
+      { id: 'composite-layers/china-district', name: 'ChinaDistrict', icon: 'public' },
+      { id: 'composite-layers/hexagon-layer', name: 'HexagonLayer', icon: 'hexagon' },
+      { id: 'composite-layers/arc-flow-layer', name: 'ArcFlowLayer', icon: 'south_east' },
       { id: 'composite-layers/satellite-layer', name: 'SatelliteLayer', icon: 'satellite_alt' },
       { id: 'composite-layers/tiff-raster-layer', name: 'TiffRasterLayer', icon: 'terrain' },
     ],
@@ -57,7 +64,6 @@ export const docsNav: DocNavGroup[] = [
   {
     title: '交互组件',
     items: [
-      { id: 'interaction/marker', name: 'Marker', icon: 'location_on' },
       { id: 'interaction/popup', name: 'Popup', icon: 'chat_bubble' },
       { id: 'interaction/tooltip', name: 'Tooltip', icon: 'info' },
     ],

@@ -55,8 +55,6 @@ export default function Demo21IconLabel() {
   const [data, setData] = useState<Record<string, unknown>[] | null>(null);
   const [tooltipInfo, setTooltipInfo] = useState<{ lng: number; lat: number; name: string } | null>(null);
   const [activeTab, setActiveTab] = useState<TabName>('全部');
-  const [selected, setSelected] = useState<string | null>(null);
-  const [filter, setFilter] = useState('');
 
   // 当前 tab 要展示的图标列表
   const visibleIcons = useMemo(() => {
@@ -122,37 +120,6 @@ export default function Demo21IconLabel() {
     setTooltipInfo(null);
   }, []);
 
-  // 面板分类（静态）
-  const categories = useMemo(() => {
-    const cats: Record<string, MakiIconName[]> = {};
-    for (const [cat, { icons }] of Object.entries(ICON_CATEGORIES)) {
-      const valid = icons.filter(i => MAKI_ICONS[i]);
-      if (valid.length > 0) cats[cat] = valid;
-    }
-    return cats;
-  }, []);
-
-  const categorizedSet = useMemo(() => {
-    const set = new Set<string>();
-    Object.values(categories).forEach(icons => icons.forEach(i => set.add(i)));
-    return set;
-  }, [categories]);
-
-  const uncategorized = useMemo(
-    () => Object.keys(MAKI_ICONS).filter(i => !categorizedSet.has(i)).sort() as MakiIconName[],
-    [categorizedSet],
-  );
-
-  const matchesFilter = (name: string) => !filter || name.toLowerCase().includes(filter.toLowerCase());
-
-  // 点击面板图标 → 选中
-  const handleSelectIcon = useCallback((name: string) => {
-    setSelected(prev => {
-      if (prev === name) return null;
-      return name;
-    });
-  }, []);
-
   // tab 颜色指示器
   const tabColor: Record<string, string> = {
     '全部': '#6366f1',
@@ -166,9 +133,9 @@ export default function Demo21IconLabel() {
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* 地图 */}
-      <div style={{ flex: 1, position: 'relative' }}>
+      <div style={{ width: '100%', height: '100%', position: 'relative' }}>
         <AiMap map={{ basemap: 'gaode', center: [121.434765, 31.256735], zoom: 14.83, style: 'dark' }}>
           {data && (
             <IconLayer
@@ -224,7 +191,7 @@ export default function Demo21IconLabel() {
             return (
               <button
                 key={tab}
-                onClick={() => { setActiveTab(tab); setSelected(null); }}
+                onClick={() => setActiveTab(tab)}
                 style={{
                   padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
                   fontSize: 12, fontWeight: isActive ? 600 : 400,
@@ -242,122 +209,6 @@ export default function Demo21IconLabel() {
         </div>
       </div>
 
-      {/* 右侧图标面板 */}
-      <div style={{
-        width: 340, height: '100%', overflow: 'hidden', display: 'flex', flexDirection: 'column',
-        background: '#fff', borderLeft: '1px solid #e5e7eb',
-        boxShadow: '-4px 0 16px rgba(0,0,0,0.06)',
-      }}>
-        {/* 标题 + 搜索 */}
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', flexShrink: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14, color: '#111827', marginBottom: 4 }}>
-            Maki Icons
-          </div>
-          <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 8 }}>
-            {Object.keys(MAKI_ICONS).length} 个地图图标 · 点击切换图标类型
-          </div>
-          <input
-            type="text"
-            placeholder="搜索图标..."
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            style={{
-              width: '100%', padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6,
-              fontSize: 12, outline: 'none', boxSizing: 'border-box',
-            }}
-          />
-        </div>
-
-        {/* 图标网格 */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
-          {Object.entries(categories).map(([cat, icons]) => {
-            const filtered = icons.filter(matchesFilter);
-            if (filtered.length === 0) return null;
-            const color = ICON_CATEGORIES[cat]?.color ?? 'primary';
-            return (
-              <div key={cat} style={{ marginBottom: 12 }}>
-                <div style={{
-                  fontSize: 11, fontWeight: 600, marginBottom: 4, textTransform: 'uppercase',
-                  letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: 6,
-                }}>
-                  <span style={{
-                    width: 8, height: 8, borderRadius: '50%',
-                    background: color === 'primary' ? '#2563eb' : color === 'success' ? '#00854d' : color === 'warning' ? '#943700' : '#ba1a1a',
-                    flexShrink: 0,
-                  }} />
-                  <span style={{ color: '#374151' }}>{cat}</span>
-                  <span style={{ color: '#9ca3af', fontWeight: 400 }}>{filtered.length}</span>
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                  {filtered.map(name => (
-                    <IconChip
-                      key={name}
-                      name={name}
-                      color={color}
-                      selected={selected === name}
-                      onClick={() => handleSelectIcon(name)}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-
-          {uncategorized.filter(matchesFilter).length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                其他
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-                {uncategorized.filter(matchesFilter).map(name => (
-                  <IconChip
-                    key={name}
-                    name={name}
-                    color="primary"
-                    selected={selected === name}
-                    onClick={() => handleSelectIcon(name)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** 单个图标芯片：SVG 预览 + 名称 */
-function IconChip({ name, color, selected, onClick }: {
-  name: string;
-  color: 'primary' | 'success' | 'warning' | 'error';
-  selected: boolean;
-  onClick: () => void;
-}) {
-  const pathData = MAKI_ICONS[name];
-  const accent = color === 'primary' ? '#2563eb' : color === 'success' ? '#00854d' : color === 'warning' ? '#943700' : '#ba1a1a';
-  return (
-    <div
-      onClick={onClick}
-      title={name}
-      style={{
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        width: 52, padding: '4px 0', borderRadius: 6, cursor: 'pointer',
-        background: selected ? accent + '12' : 'transparent',
-        border: selected ? `1px solid ${accent}` : '1px solid transparent',
-        transition: 'all 0.15s',
-      }}
-    >
-      <svg viewBox="0 0 15 15" width={18} height={18} fill={selected ? accent : '#374151'}>
-        <path d={pathData} />
-      </svg>
-      <span style={{
-        fontSize: 8, color: selected ? accent : '#6b7280', marginTop: 2,
-        maxWidth: 48, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        textAlign: 'center', lineHeight: 1.2,
-      }}>
-        {name}
-      </span>
     </div>
   );
 }

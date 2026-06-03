@@ -25,6 +25,9 @@ import { RouteLayer } from '@antv/aimapui'
 | `stopColor` | `string` | `'#3B82F6'` | 中间站点颜色 |
 | `endColor` | `string` | `'#EF4444'` | 终点站点颜色 |
 | `showStopIndex` | `boolean` | `true` | 是否显示站点序号 |
+| `stopRenderer` | `'point' \| 'marker' \| 'icon'` | `'point'` | 停留点渲染模式 |
+| `stopMarkerVariant` | `'pin' \| 'circle' \| 'icon' \| 'dot'` | `'circle'` | `marker` 模式下的默认停留点形态 |
+| `stopIconMap` | `Record<string, string>` | - | `icon` 模式下的图标资源映射；不传时会根据 `RouteStop.icon` 自动生成 Maki pin 图标 |
 | `activeColor` | `string` | `'#F59E0B'` | 悬停高亮颜色 |
 | `onPathClick` | `(e: LayerEvent) => void` | - | 路径点击事件 |
 | `onStopClick` | `(stop: RouteStop, index: number) => void` | - | 站点点击事件 |
@@ -47,6 +50,9 @@ interface RouteStop {
   lat: number;        // 纬度
   name?: string;      // 站点名称
   index?: number;     // 站点序号
+  icon?: string;      // icon 模式或 marker icon 变体使用的图标名
+  markerVariant?: 'pin' | 'circle' | 'icon' | 'dot';
+  markerColor?: 'primary' | 'success' | 'warning' | 'error';
 }
 ```
 
@@ -108,8 +114,31 @@ const segments = [
 </AiMap>
 ```
 
+### 停留点使用 Marker / Icon 渲染
+
+```tsx
+const stops = [
+  { lng: 116.397, lat: 39.908, name: '北京', icon: 'airport', markerVariant: 'icon' as const },
+  { lng: 117.200, lat: 39.084, name: '天津', icon: 'harbor' },
+  { lng: 121.473, lat: 31.230, name: '上海', icon: 'marker' },
+];
+
+<RouteLayer
+  path={path}
+  stops={stops}
+  stopRenderer="marker"
+  stopMarkerVariant="icon"
+/>
+
+<RouteLayer
+  path={path}
+  stops={stops}
+  stopRenderer="icon"
+/>
+```
+
 ## 注意事项
 
 > 💡 `glow` 属性会在路径下方叠加一层发光效果，使路线在深色底图上更加醒目。
 > 
-> 📎 `showStopIndex` 为 `true` 时，起点显示绿色圆点，终点显示红色圆点，中间站点显示序号。
+> 📎 `showStopIndex` 为 `true` 时，默认 `point` 模式会在停留点中心绘制编号；`marker` / `icon` 模式下会尽量以编号标签方式补充显示。

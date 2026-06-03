@@ -37,47 +37,54 @@ export function MobileSheetLegend({
   return (
     <div
       className={cx(
-        'absolute bottom-3 left-3 right-3 z-[1000]',
+        'aimapui-mobile-sheet-legend',
         className,
       )}
     >
-      <div className="flex flex-col rounded-xl border border-outline-variant/30 bg-surface/80 backdrop-blur-md px-3.5 text-on-surface shadow-lg">
+      <div className="aimapui-mobile-sheet-legend__panel">
+        <div className="aimapui-mobile-sheet-legend__handle" aria-hidden="true" />
         <button
           onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-between py-3 text-label-caps font-label-caps uppercase"
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--color-primary, #004ac6)',
-          }}
+          className="aimapui-mobile-sheet-legend__toggle"
+          style={{ background: 'none', border: 'none', cursor: 'pointer' }}
         >
-          <span>图例</span>
-          <svg
-            viewBox="0 0 24 24"
-            className={cx(
-              'w-5 h-5 transition-transform',
-              expanded ? 'rotate-180' : '',
-            )}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path d="M6 9l6 6 6-6" />
-          </svg>
+          <span className="aimapui-mobile-sheet-legend__toggle-copy">
+            <span className="aimapui-mobile-sheet-legend__eyebrow">Legend Panel</span>
+            <span className="aimapui-mobile-sheet-legend__title-row">
+              <span className="aimapui-mobile-sheet-legend__title">图例</span>
+              <span className="aimapui-mobile-sheet-legend__badge">{legends.length} 项</span>
+            </span>
+          </span>
+          <span className="aimapui-mobile-sheet-legend__chevron-shell" aria-hidden="true">
+            <svg
+              viewBox="0 0 24 24"
+              className={cx(
+                'aimapui-mobile-sheet-legend__chevron',
+                expanded && 'aimapui-mobile-sheet-legend__chevron--expanded',
+              )}
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </span>
         </button>
         <div
           className={cx(
-            'flex flex-col gap-4 [&>*+*]:border-t [&>*+*]:border-outline-variant/20 [&>*+*]:pt-4 custom-scrollbar transition-all duration-300 overflow-y-auto',
-            expanded ? 'max-h-[60vh] pb-3' : 'max-h-0',
+            'aimapui-mobile-sheet-legend__content custom-scrollbar',
+            expanded
+              ? 'aimapui-mobile-sheet-legend__content--expanded'
+              : 'aimapui-mobile-sheet-legend__content--collapsed',
           )}
         >
           {legends.map((legend, index) => (
-            <LegendItem
-              key={`mobile-legend-${index}`}
-              legend={legend}
-              interaction={interaction}
-            />
+            <div key={`mobile-legend-${index}`} className="aimapui-mobile-sheet-legend__section">
+              <LegendItem
+                legend={legend}
+                interaction={interaction}
+              />
+            </div>
           ))}
         </div>
       </div>

@@ -2,6 +2,9 @@ import React, { useMemo } from 'react';
 import type { LayerEventPayload } from '../../schema/types';
 import { LineLayer } from '../Layer/LineLayer';
 import { PointLayer } from '../Layer/PointLayer';
+import { IconLayer, type IconAnchor } from './IconLayer';
+import { Marker, type MarkerColor, type MarkerVariant } from '../Interaction/Marker';
+import { createMakiPinMap } from '../Interaction/maki-icons';
 
 /**
  * 途经点数据
@@ -17,6 +20,12 @@ export interface RouteStop {
   index?: number;
   /** 类型：start / end / waypoint */
   type?: 'start' | 'end' | 'waypoint';
+  /** 停留点图标名，供 stopRenderer='icon' 或 marker icon 变体使用 */
+  icon?: string;
+  /** marker 模式下的自定义变体 */
+  markerVariant?: MarkerVariant;
+  /** marker 模式下的语义颜色 */
+  markerColor?: MarkerColor;
 }
 
 /**
@@ -62,6 +71,18 @@ export interface RouteLayerProps {
   endColor?: string;
   /** 是否显示途经点序号，默认 true */
   showStopIndex?: boolean;
+  /** 停留点渲染模式，默认 'point' */
+  stopRenderer?: 'point' | 'marker' | 'icon';
+  /** marker 模式下的默认变体，默认 'circle' */
+  stopMarkerVariant?: MarkerVariant;
+  /** icon 模式下的图标资源映射；不传时会基于 stop.icon 自动生成 Maki pin 图标 */
+  stopIconMap?: Record<string, string>;
+  /** icon 模式下的图标字段名，默认 'iconValue' */
+  stopIconField?: string;
+  /** icon 模式下的图标尺寸，默认 16 */
+  stopIconSize?: number;
+  /** icon 模式下的图标锚点，默认 'bottom' */
+  stopIconAnchor?: IconAnchor;
 
   // ===== 交互 =====
   /** hover 高亮色 */
@@ -108,6 +129,12 @@ export function RouteLayer({
   stopColor,
   endColor = '#10b981',
   showStopIndex = true,
+  stopRenderer = 'point',
+  stopMarkerVariant = 'circle',
+  stopIconMap,
+  stopIconField = 'iconValue',
+  stopIconSize = 16,
+  stopIconAnchor = 'bottom',
   activeColor = '#fbbf24',
   onPathClick,
   onStopClick,
@@ -149,8 +176,24 @@ export function RouteLayer({
       stopColor: (stop.type === 'end' || (!stop.type && idx === stops.length - 1))
         ? endColor
         : (stopColor ?? color),
+      iconValue: stop.icon ?? 'marker',
+      indexLabel: String(stop.index ?? idx + 1),
+      markerColorValue: stop.markerColor ?? resolveMarkerColor(stop.type ?? (idx === 0 ? 'start' : idx === stops.length - 1 ? 'end' : 'waypoint')),
     }));
   }, [stops, color, stopColor, endColor]);
+
+  const resolvedStopIconMap = useMemo(() => {
+    if (stopRenderer !== 'icon') return undefined;
+    if (stopIconMap) return stopIconMap;
+
+    const names = [...new Set(stopsWithIndex.map((stop) => stop.iconValue).filter(Boolean))] as string[];
+    if (!names.length) return undefined;
+
+    return createMakiPinMap(names, {
+      fill: stopColor ?? color,
+      size: Math.max(24, stopIconSize + 8),
+    });
+  }, [stopRenderer, stopIconMap, stopsWithIndex, stopColor, color, stopIconSize]);
 
   if (!pathGeoJSON) return null;
 
@@ -188,7 +231,7 @@ export function RouteLayer({
       />
 
       {/* 途经点层 */}
-      {stopsWithIndex.length > 0 && (
+      {stopsWithIndex.length > 0 && stopRenderer === 'point' && (
         <PointLayer
           source={stopsWithIndex}
           sourceConfig={{ x: 'lng', y: 'lat' }}
@@ -205,7 +248,121 @@ export function RouteLayer({
           onClick={onStopClick}
         />
       )}
+
+      {stopsWithIndex.length > 0 && stopRenderer === 'point' && showStopIndex && (
+        <PointLayer
+          source={stopsWithIndex}
+          sourceConfig={{ x: 'lng', y: 'lat' }}
+          shapeField="indexLabel"
+          shapeValues="text"
+          color="#ffffff"
+          size={Math.max(10, Math.round(stopSize * 0.75))}
+          style={{
+            textAnchor: 'center',
+            stroke: 'rgba(18, 28, 42, 0.28)',
+            strokeWidth: 1.5,
+            fontWeight: '700',
+            textAllowOverlap: true,
+          }}
+        />
+      )}
+
+      {stopsWithIndex.length > 0 && stopRenderer === 'icon' && resolvedStopIconMap && (
+        <IconLayer
+          source={stopsWithIndex}
+          sourceType="json"
+          sourceConfig={{ x: 'lng', y: 'lat' }}
+          iconField={stopIconField}
+          iconMap={resolvedStopIconMap}
+          iconSize={stopIconSize}
+          iconAnchor={stopIconAnchor}
+          showLabel={showStopIndex}
+          labelField="indexLabel"
+          labelColor="#ffffff"
+          labelSize={11}
+          labelAnchor="top"
+          labelOffset={[0, stopIconAnchor === 'bottom' ? Math.max(10, Math.round(stopIconSize * 0.6)) : 0]}
+          labelHaloColor="rgba(18, 28, 42, 0.35)"
+          labelHaloWidth={2}
+          onClick={onStopClick}
+        />
+      )}
+
+      {stopsWithIndex.length > 0 && stopRenderer === 'marker' && stopsWithIndex.map((stop, index) => {
+        const variant = stop.markerVariant ?? stopMarkerVariant;
+        const markerColor = stop.markerColorValue as MarkerColor;
+        const markerContent = createMarkerStopContent(stop.indexLabel, stop.stopColor, showStopIndex, variant);
+
+        return (
+          <Marker
+            key={`route-stop-marker-${index}`}
+            longitude={stop.lng}
+            latitude={stop.lat}
+            variant={variant}
+            color={markerColor}
+            icon={stop.icon}
+            content={markerContent}
+            label={markerContent ? undefined : (showStopIndex ? stop.indexLabel : undefined)}
+            onClick={(event) => {
+              onStopClick?.({
+                layerId: 'route-stop-marker',
+                layerType: 'point',
+                originalEvent: event,
+                lng: stop.lng,
+                lat: stop.lat,
+                feature: stop,
+              });
+            }}
+          />
+        );
+      })}
     </>
+  );
+}
+
+function resolveMarkerColor(type: RouteStop['type']): MarkerColor {
+  switch (type) {
+    case 'start':
+      return 'success';
+    case 'end':
+      return 'error';
+    default:
+      return 'primary';
+  }
+}
+
+function createMarkerStopContent(
+  indexLabel: string,
+  fill: string,
+  showStopIndex: boolean,
+  variant: MarkerVariant,
+): React.ReactNode | undefined {
+  if (!showStopIndex) return undefined;
+  if (variant !== 'circle' && variant !== 'dot') return undefined;
+
+  const size = variant === 'circle' ? 24 : 18;
+  const fontSize = variant === 'circle' ? 11 : 10;
+
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: '9999px',
+        border: '2px solid #ffffff',
+        background: fill,
+        color: '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize,
+        lineHeight: 1,
+        fontWeight: 700,
+        boxShadow: '0 6px 12px rgba(0,0,0,0.14)',
+      }}
+    >
+      {indexLabel}
+    </div>
   );
 }
 

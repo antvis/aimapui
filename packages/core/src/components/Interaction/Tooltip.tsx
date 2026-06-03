@@ -179,6 +179,7 @@ export function Tooltip({
     left = Math.max(padding, Math.min(left, window.innerWidth - tipRect.width - padding));
     top = Math.max(padding, Math.min(top, window.innerHeight - tipRect.height - padding));
 
+    tooltipRef.current.style.display = '';
     tooltipRef.current.style.left = `${left}px`;
     tooltipRef.current.style.top = `${top}px`;
   }, [targetElement, placement, offset]);
@@ -195,61 +196,83 @@ export function Tooltip({
     };
   }, [visible, targetElement, isMapMode, updateDomPosition]);
 
-  // ── 地图模式：获取地图容器的 viewport 偏移 ──
-  const getMapContainerOffset = useCallback(() => {
-    if (!scene) return { left: 0, top: 0 };
+  // ── 地图模式：获取地图容器在 viewport 中的 rect（同时承担"是否在视口内"裁剪判定）──
+  const getMapContainerRect = useCallback((): DOMRect | null => {
+    if (!scene) return null;
     try {
       const mapsService = (scene as any).mapService;
-      const mapContainer = mapsService?.getMarkerContainer?.()
-        ?? (scene as any).getMapContainer?.()
-        ?? (scene as any).container
-        ?? (scene as any).getContainer?.();
+      // 注意：用 getContainer 拿地图根容器（视口边界），而非 markerContainer
+      const mapContainer = (mapsService?.getContainer?.() as HTMLElement | undefined)
+        ?? ((scene as any).getMapContainer?.() as HTMLElement | undefined)
+        ?? ((scene as any).container as HTMLElement | undefined);
       if (mapContainer instanceof HTMLElement) {
-        const rect = mapContainer.getBoundingClientRect();
-        return { left: rect.left, top: rect.top };
+        return mapContainer.getBoundingClientRect();
       }
     } catch {
       // ignore
     }
-    return { left: 0, top: 0 };
+    return null;
   }, [scene]);
 
-  // ── 地图模式：定位到经纬度（使用 fixed 定位，计算 viewport 绝对坐标）──
-  const updateMapPosition = useCallback(() => {
+  // ── 地图模式：统一的"经纬度容器坐标 → viewport 坐标 → 应用 transform + 视口裁剪"逻辑 ──
+  // 放在 ref 中，供初次定位与 useMapPosition 回调共用，避免逻辑漂移
+  const applyMapPositionRef = useRef<(containerX: number, containerY: number) => void>(() => {});
+  applyMapPositionRef.current = (containerX: number, containerY: number) => {
     const el = tooltipRef.current;
-    if (!el || !scene || !isMapMode) {
+    if (!el || !isMapMode) return;
+
+    let offsetX = 0;
+    let offsetY = 0;
+    switch (placement) {
+      case 'top': offsetY = -offset; break;
+      case 'bottom': offsetY = offset; break;
+      case 'left': offsetX = -offset; break;
+      case 'right': offsetX = offset; break;
+    }
+
+    const mapRect = getMapContainerRect();
+
+    // 视口裁剪：锚点是否落在地图容器范围内
+    // 加 2px buffer 避免锚点压边时抖动；拿不到 rect 时保持上次可见性，避免闪烁
+    let inView = true;
+    if (mapRect && mapRect.width > 0 && mapRect.height > 0) {
+      const buffer = 2;
+      inView = containerX >= -buffer
+        && containerX <= mapRect.width + buffer
+        && containerY >= -buffer
+        && containerY <= mapRect.height + buffer;
+    }
+
+    if (!inView) {
+      el.style.display = 'none';
       return;
     }
 
+    // lngLatToContainer 返回相对地图容器坐标，叠加容器在 viewport 中的偏移得到 fixed 定位坐标
+    const containerLeft = mapRect ? mapRect.left : 0;
+    const containerTop = mapRect ? mapRect.top : 0;
+    const rx = Math.round(containerX + offsetX + containerLeft);
+    const ry = Math.round(containerY + offsetY + containerTop);
+    const anchorTranslate = PLACEMENT_TRANSLATE[placement];
+
+    el.style.display = '';
+    el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${anchorTranslate}`;
+  };
+
+  // ── 地图模式：定位到经纬度（初次定位入口） ──
+  const updateMapPosition = useCallback(() => {
+    if (!scene || !isMapMode) return;
     try {
       const mapsService = (scene as any).mapService;
       const pos = mapsService
         ? mapsService.lngLatToContainer([longitude, latitude])
         : (scene as any).lngLatToContainer([longitude, latitude]);
-
       if (!pos || isNaN(pos.x) || isNaN(pos.y)) return;
-
-      let offsetX = 0;
-      let offsetY = 0;
-      switch (placement) {
-        case 'top': offsetY = -offset; break;
-        case 'bottom': offsetY = offset; break;
-        case 'left': offsetX = -offset; break;
-        case 'right': offsetX = offset; break;
-      }
-
-      // lngLatToContainer 返回相对于地图容器的坐标，需加上容器在 viewport 中的偏移
-      const containerOffset = getMapContainerOffset();
-      const rx = Math.round(pos.x + offsetX + containerOffset.left);
-      const ry = Math.round(pos.y + offsetY + containerOffset.top);
-      const anchorTranslate = PLACEMENT_TRANSLATE[placement];
-
-      el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${anchorTranslate}`;
-      el.style.visibility = 'visible';
+      applyMapPositionRef.current(pos.x, pos.y);
     } catch {
       // ignore
     }
-  }, [scene, longitude, latitude, placement, offset, isMapMode, getMapContainerOffset]);
+  }, [scene, longitude, latitude, isMapMode]);
 
   useEffect(() => {
     if (!isMapMode || !visible) return;
@@ -257,31 +280,13 @@ export function Tooltip({
     return () => cancelAnimationFrame(rafId);
   }, [visible, isMapMode, updateMapPosition]);
 
-  // 地图交互时持续同步位置（拖拽/缩放时更新）
+  // 地图交互时持续同步位置（拖拽/缩放）— 复用 applyMapPositionRef
   useMapPosition(
     isMapMode ? scene : null,
     longitude ?? 0,
     latitude ?? 0,
     (x, y) => {
-      const el = tooltipRef.current;
-      if (!el || !isMapMode) return;
-
-      let offsetX = 0;
-      let offsetY = 0;
-      switch (placement) {
-        case 'top': offsetY = -offset; break;
-        case 'bottom': offsetY = offset; break;
-        case 'left': offsetX = -offset; break;
-        case 'right': offsetX = offset; break;
-      }
-
-      const containerOffset = getMapContainerOffset();
-      const rx = Math.round(x + offsetX + containerOffset.left);
-      const ry = Math.round(y + offsetY + containerOffset.top);
-      const anchorTranslate = PLACEMENT_TRANSLATE[placement];
-
-      el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${anchorTranslate}`;
-      el.style.visibility = 'visible';
+      applyMapPositionRef.current(x, y);
     },
   );
 
@@ -326,7 +331,8 @@ export function Tooltip({
         left: 0,
         top: 0,
         transform: 'translate(-9999px, -9999px)',
-        visibility: 'hidden',
+        // 初始隐藏，等首帧 applyMapPosition/updateDomPosition 计算后再显示，避免闪烁
+        display: 'none',
         zIndex: 9999,
         pointerEvents: 'none',
       }}

@@ -1,13 +1,7 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { Scene } from '@antv/l7';
-import { AiMap } from '@antv/aimapui';
-import { ZoomControl } from '@antv/aimapui';
-import { GeoLocateControl } from '@antv/aimapui';
-import { Marker } from '@antv/aimapui';
-import { LineLayer } from '@antv/aimapui';
-import { BottomSheet } from '@antv/aimapui';
-import type { BottomSheetSnap } from '@antv/aimapui';
-
+import { AiMap, RouteLayer, ZoomControl, GeoLocateControl, BottomSheet } from '@antv/aimapui';
+import type { BottomSheetSnap, LayerEventPayload } from '@antv/aimapui';
 /* ================================================================
    杭州 3 日游旅游攻略 — 多日路线数据
    ================================================================ */
@@ -73,21 +67,20 @@ const TRAVEL_ROUTES: DayRoute[] = [
   },
 ];
 
-/** 将景点数组转换为路线 GeoJSON */
-function spotsToLineGeoJSON(spots: Spot[]) {
-  return {
-    type: 'FeatureCollection' as const,
-    features: [
-      {
-        type: 'Feature' as const,
-        properties: {},
-        geometry: {
-          type: 'LineString' as const,
-          coordinates: spots.map((spot) => [spot.lng, spot.lat]),
-        },
-      },
-    ],
-  };
+/** 将景点数组转换为 RouteLayer 的 path 坐标数组 */
+function spotsToPath(spots: Spot[]): [number, number][] {
+  return spots.map((spot) => [spot.lng, spot.lat]);
+}
+
+/** 将景点数组转换为 RouteLayer 的 stops 途经点数组 */
+function spotsToStops(spots: Spot[]) {
+  return spots.map((spot) => ({
+    id: spot.id,
+    lng: spot.lng,
+    lat: spot.lat,
+    name: spot.name,
+    icon: spot.icon,
+  }));
 }
 
 /**
@@ -104,9 +97,6 @@ export default function MobileApp() {
   const sceneRef = useRef<Scene | null>(null);
 
   const currentRoute = TRAVEL_ROUTES[activeDay];
-
-  /** 当日路线的 GeoJSON */
-  const lineGeoJSON = useMemo(() => spotsToLineGeoJSON(currentRoute.spots), [currentRoute]);
 
   /** 根据景点坐标计算包围盒并缩放到合适视图 */
   const fitRouteBounds = useCallback((spots: Spot[], animate = true) => {
@@ -161,6 +151,17 @@ export default function MobileApp() {
     setSelectedSpot(spot);
   }, []);
 
+  const handleStopClick = useCallback((payload: LayerEventPayload) => {
+    const stopId = typeof payload.feature?.id === 'string' ? payload.feature.id : undefined;
+    const stopName = typeof payload.feature?.name === 'string' ? payload.feature.name : undefined;
+    const spot = currentRoute.spots.find((item) => item.id === stopId)
+      ?? currentRoute.spots.find((item) => item.name === stopName);
+
+    if (spot) {
+      handleSpotClick(spot);
+    }
+  }, [currentRoute.spots, handleSpotClick]);
+
   const handleDayChange = useCallback((dayIndex: number) => {
     setActiveDay(dayIndex);
     setSelectedSpot(null);
@@ -184,28 +185,21 @@ export default function MobileApp() {
           <ZoomControl position="rightcenter" />
           <GeoLocateControl position="rightcenter" />
 
-          {/* 当日路线 */}
-          <LineLayer
-            source={lineGeoJSON}
-            sourceType="geojson"
+          {/* 当日路线（路径图层） */}
+          <RouteLayer
+            key={currentRoute.day}
+            path={spotsToPath(currentRoute.spots)}
+            stops={spotsToStops(currentRoute.spots)}
+            onStopClick={handleStopClick}
             color={currentRoute.color}
-            size={4}
-            style={{ lineType: 'dash', dashArray: [6, 4], opacity: 0.85 }}
+            lineWidth={3}
+            glow
+            stopSize={10}
+            stopRenderer="icon"
+            stopIconSize={24}
+            stopIconColor={currentRoute.color}
+            showStopIndex={false}
           />
-
-          {/* 景点标记 */}
-          {currentRoute.spots.map((spot) => (
-            <Marker
-              key={spot.id}
-              longitude={spot.lng}
-              latitude={spot.lat}
-              variant="icon"
-              icon={spot.icon}
-              color={selectedSpot?.id === spot.id ? 'warning' : 'primary'}
-              label={spot.name}
-              onClick={() => handleSpotClick(spot)}
-            />
-          ))}
         </AiMap>
       </div>
 

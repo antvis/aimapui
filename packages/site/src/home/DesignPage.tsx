@@ -92,7 +92,7 @@ export default function DesignPage({ docs, groups, theme, initialDocIndex = 0, o
         {/* Sidebar */}
         <aside style={{ width: 220, minWidth: 220, flexShrink: 0, overflowY: 'auto', padding: '24px 0', userSelect: 'none' }}>
           {groups.map((group) => {
-            const groupIcon: Record<string, string> = { '应用模板': 'widgets', '复合图层': 'bubble_chart', 'Marker 标注': 'location_on', '控件': 'tune', '基础图层': 'layers' };
+            const groupIcon: Record<string, string> = { '应用模板': 'widgets', '点位标注': 'location_on', '复合图层': 'bubble_chart', '交互组件': 'gesture', '控件': 'tune', '基础图层': 'layers' };
             return (
               <div key={group} style={{ marginBottom: 8 }}>
                 <div style={{ padding: '4px 16px 8px', fontSize: 10, fontWeight: 600, color: c.muted, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6 }}>

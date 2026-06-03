@@ -16,25 +16,26 @@ export default function MobileSheetLegendDemo() {
           zoom: 4,
           style: 'light',
         }}
-      />
-      <MobileSheetLegend
-        legends={[
-          {
-            type: 'categories',
-            title: 'POI 类型',
-            labels: ['餐饮', '购物', '交通', '住宿', '景点'],
-            colors: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6'],
-            swatchShape: 'circle',
-          },
-          {
-            type: 'ramp',
-            title: '人口密度 (人/km²)',
-            labels: ['0', '500', '1000', '2000', '5000'],
-            colors: ['#eff6ff', '#bfdbfe', '#60a5fa', '#2563eb', '#1e3a8a'],
-            isContinuous: true,
-          },
-        ]}
-      />
+      >
+        <MobileSheetLegend
+          legends={[
+            {
+              type: 'categories',
+              title: 'POI 类型',
+              labels: ['餐饮', '购物', '交通', '住宿', '景点'],
+              colors: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981', '#8b5cf6'],
+              swatchShape: 'circle',
+            },
+            {
+              type: 'ramp',
+              title: '人口密度 (人/km²)',
+              labels: ['0', '500', '1000', '2000', '5000'],
+              colors: ['#eff6ff', '#bfdbfe', '#60a5fa', '#2563eb', '#1e3a8a'],
+              isContinuous: true,
+            },
+          ]}
+        />
+      </AiMap>
     </div>
   );
 }

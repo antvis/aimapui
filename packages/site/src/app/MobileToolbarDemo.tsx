@@ -16,13 +16,14 @@ export default function MobileToolbarDemo() {
           zoom: 12,
           style: 'light',
         }}
-      />
-      <MobileToolbar
-        config={{
-          items: ['zoomIn', 'zoomOut', 'locate', 'reset', 'layers'],
-          position: 'bottom',
-        }}
-      />
+      >
+        <MobileToolbar
+          config={{
+            items: ['zoomIn', 'zoomOut', 'locate', 'reset', 'layers'],
+            position: 'bottom',
+          }}
+        />
+      </AiMap>
     </div>
   );
 }

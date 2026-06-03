@@ -57,17 +57,17 @@ const day1Stops = [
 ];
 
 const day2Stops = [
-  { lng: 120.0990, lat: 30.2400, name: '灵隐寺' },
-  { lng: 120.1050, lat: 30.2450, name: '飞来峰' },
-  { lng: 120.1000, lat: 30.2550, name: '北高峰' },
-  { lng: 120.0700, lat: 30.2700, name: '西溪湿地' },
+  { lng: 120.0990, lat: 30.2400, name: '灵隐寺', markerVariant: 'pin' as const, markerColor: 'success' as const },
+  { lng: 120.1050, lat: 30.2450, name: '飞来峰', markerVariant: 'circle' as const, markerColor: 'warning' as const },
+  { lng: 120.1000, lat: 30.2550, name: '北高峰', markerVariant: 'dot' as const, markerColor: 'primary' as const },
+  { lng: 120.0700, lat: 30.2700, name: '西溪湿地', markerVariant: 'pin' as const, markerColor: 'error' as const },
 ];
 
 const day3Stops = [
-  { lng: 120.1700, lat: 30.2250, name: '六和塔' },
-  { lng: 120.1850, lat: 30.2200, name: '钱江新城' },
-  { lng: 120.2000, lat: 30.2220, name: '城市阳台' },
-  { lng: 120.2200, lat: 30.2150, name: '奥体中心' },
+  { lng: 120.1700, lat: 30.2250, name: '六和塔', icon: 'religious-buddhist' },
+  { lng: 120.1850, lat: 30.2200, name: '钱江新城', icon: 'town-hall' },
+  { lng: 120.2000, lat: 30.2220, name: '城市阳台', icon: 'viewpoint' },
+  { lng: 120.2200, lat: 30.2150, name: '奥体中心', icon: 'stadium' },
 ];
 
 const DAY_COLORS = {
@@ -111,6 +111,7 @@ export default function RouteLayerDemo() {
           lineWidth={2}
           glow
           stopSize={8}
+          stopRenderer="point"
           onStopClick={handleStopClick}
         />
 
@@ -123,6 +124,8 @@ export default function RouteLayerDemo() {
           glow
           stopSize={8}
           endColor={DAY_COLORS.day2}
+          stopRenderer="marker"
+          stopMarkerVariant="circle"
           onStopClick={handleStopClick}
         />
 
@@ -135,6 +138,8 @@ export default function RouteLayerDemo() {
           glow
           stopSize={8}
           endColor={DAY_COLORS.day3}
+          stopRenderer="icon"
+          stopIconSize={28}
           onStopClick={handleStopClick}
         />
 
@@ -151,7 +156,7 @@ export default function RouteLayerDemo() {
         <LegendCategories
           type="categories"
           title="杭州三日游"
-          labels={['Day 1 · 西湖环线', 'Day 2 · 灵隐西溪', 'Day 3 · 钱塘滨江']}
+          labels={['Day 1 · Point 编号站点', 'Day 2 · Marker 停留点', 'Day 3 · Icon 停留点']}
           colors={[DAY_COLORS.day1, DAY_COLORS.day2, DAY_COLORS.day3]}
         />
       </AiMap>

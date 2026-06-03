@@ -15,10 +15,6 @@ export function MobileToolbar({ config, className }: MobileToolbarProps) {
   const scene = useScene();
   const { items, position = 'bottom' } = config;
 
-  const positionClasses = position === 'top'
-    ? 'top-0 left-0 right-0'
-    : 'bottom-0 left-0 right-0';
-
   const handleAction = (action: string) => {
     switch (action) {
       case 'zoomIn':
@@ -92,22 +88,28 @@ export function MobileToolbar({ config, className }: MobileToolbarProps) {
 
   return (
     <div
-      className={cx('absolute z-[1000] px-3 pointer-events-none', wrapperPosition)}
+      className={cx(
+        'aimapui-mobile-toolbar pointer-events-none',
+        position === 'bottom'
+          ? 'aimapui-mobile-toolbar--bottom'
+          : 'aimapui-mobile-toolbar--top',
+        className,
+      )}
     >
-      <div className="pointer-events-auto flex items-center gap-1 rounded-[20px] border border-outline-variant/40 bg-surface/85 px-1.5 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.16)] backdrop-blur-xl">
+      <div className="aimapui-mobile-toolbar__bar pointer-events-auto">
         {items.map((item, index) => (
           <button
             key={`${item}-${index}`}
             onClick={() => handleAction(item)}
-            className="group flex flex-col items-center gap-1 rounded-2xl px-2.5 py-1.5 text-on-surface-variant transition-colors hover:bg-primary/10 hover:text-primary active:bg-primary/15"
+            className="aimapui-mobile-toolbar__button group"
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
             aria-label={ACTION_LABELS[item] ?? item}
             title={ACTION_LABELS[item] ?? item}
           >
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+            <span className="aimapui-mobile-toolbar__icon">
               {ACTION_ICONS[item]}
             </span>
-            <span className="text-[11px] font-medium leading-none whitespace-nowrap">
+            <span className="aimapui-mobile-toolbar__label">
               {ACTION_LABELS[item] ?? item}
             </span>
           </button>

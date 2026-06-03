@@ -247,9 +247,9 @@ function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => v
   if (!header.coverUrl) return null;
   return (
     <div className="aimapui-popup-cover relative aspect-video overflow-hidden">
-      <img src={header.coverUrl} alt={header.title} className="w-full h-full object-cover" />
+      <img src={header.coverUrl} alt={header.title} className="aimapui-popup-cover-img w-full h-full object-cover" />
       <button
-        className="absolute top-2 right-2 size-8 bg-black/30 backdrop-blur-sm text-white flex items-center justify-center rounded-full border-none cursor-pointer transition-colors duration-200 z-10 hover:bg-black/50 [&_.material-symbols-outlined]:text-lg"
+        className="aimapui-popup-close-btn aimapui-popup-close-btn--cover absolute top-2 right-2 size-8 bg-black/30 backdrop-blur-sm text-white flex items-center justify-center rounded-full border-none cursor-pointer transition-colors duration-200 z-10 hover:bg-black/50 [&_.material-symbols-outlined]:text-lg"
         aria-label="关闭"
         onClick={(e) => {
           e.stopPropagation();
@@ -259,7 +259,7 @@ function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => v
         <span className="material-symbols-outlined">close</span>
       </button>
       {header.statusLabel && (
-        <div className="absolute bottom-2 left-2 flex items-center gap-1.5 px-2 py-0.5 bg-surface/90 backdrop-blur-sm rounded-md shadow-sm text-[10px] font-semibold uppercase tracking-wide text-on-surface">
+        <div className="aimapui-popup-status-badge absolute bottom-2 left-2 flex items-center gap-1.5 px-2 py-0.5 bg-surface/90 backdrop-blur-sm rounded-md shadow-sm text-[10px] font-semibold uppercase tracking-wide text-on-surface">
           <div
             className="size-2 rounded-full"
             style={{ background: header.statusColor || '#10b981' }}
@@ -284,14 +284,14 @@ function HeaderSection({
   showStatusDot?: boolean;
 }) {
   return (
-    <div className={cx('relative flex items-center p-4', !hasCover && 'pr-10')}>
+    <div className={cx('aimapui-popup-header relative flex items-center p-4', !hasCover && 'pr-10')}>
       {showStatusDot && header.statusDot && (
         <div
           className="size-2 rounded-full shrink-0 mr-2 animate-pulse"
           style={{ background: header.statusDot }}
         />
       )}
-      <h3 className="text-xl leading-7 font-semibold text-on-surface m-0 flex-1 min-w-0 truncate">{header.title}</h3>
+      <h3 className="aimapui-popup-title text-xl leading-7 font-semibold text-on-surface m-0 flex-1 min-w-0 truncate">{header.title}</h3>
       {!hasCover && <CloseButton onClick={onClose} />}
     </div>
   );
@@ -312,6 +312,7 @@ function AttributeList({
   return (
     <div
       className={cx(
+        'aimapui-popup-attrs',
         isCompact ? 'flex flex-col' : 'grid gap-2',
       )}
       style={!isCompact ? { gridTemplateColumns: `repeat(${cols}, 1fr)` } : undefined}
@@ -320,13 +321,13 @@ function AttributeList({
         // Detailed 模式且属性有 icon：渲染图标容器 + 大号值
         if (isDetailed && attr.icon) {
           return (
-            <div key={i} className="flex items-center gap-2">
-              <div className="size-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0 [&_.material-symbols-outlined]:text-[28px]">
+            <div key={i} className="aimapui-popup-attr flex items-center gap-2">
+              <div className="aimapui-popup-attr-icon size-12 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary shrink-0 [&_.material-symbols-outlined]:text-[28px]">
                 <span className="material-symbols-outlined">{attr.icon}</span>
               </div>
               <div>
-                <p className="text-sm leading-5 text-on-surface-variant m-0">{attr.label}</p>
-                <p className="text-sm leading-5 font-medium text-on-surface m-0" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
+                <p className="aimapui-popup-attr-label text-sm leading-5 text-on-surface-variant m-0">{attr.label}</p>
+                <p className="aimapui-popup-attr-value text-sm leading-5 font-medium text-on-surface m-0" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
                   {attr.value}
                 </p>
               </div>
@@ -337,11 +338,12 @@ function AttributeList({
         // Compact/Standard 模式 — 标签-值左右对齐
         return (
           <div key={i} className={cx(
+            'aimapui-popup-attr',
             'flex justify-between items-baseline gap-2',
             isCompact && 'py-2 border-b border-outline-variant/30 last:border-b-0 last:pb-0 first:pt-0',
           )}>
-            <p className="text-sm leading-5 text-on-surface-variant m-0">{attr.label}</p>
-            <p className="text-sm leading-5 font-medium text-on-surface m-0 text-right" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
+            <p className="aimapui-popup-attr-label text-sm leading-5 text-on-surface-variant m-0">{attr.label}</p>
+            <p className="aimapui-popup-attr-value text-sm leading-5 font-medium text-on-surface m-0 text-right" style={attr.valueColor ? { color: attr.valueColor } : undefined}>
               {attr.value}
             </p>
           </div>
@@ -354,15 +356,16 @@ function AttributeList({
 /** 底部操作栏 */
 function ActionBar({ actions }: { actions: PopupAction[] }) {
   return (
-    <div className="flex gap-3 px-4 pb-4">
+    <div className="aimapui-popup-actions flex gap-3 px-4 pb-4">
       {actions.map((action, i) => (
         <button
           key={i}
           className={cx(
+            'aimapui-popup-action-btn',
             'flex-1 py-2.5 text-sm leading-5 font-semibold rounded-lg border-none cursor-pointer transition-all duration-150 active:scale-[0.98]',
             action.variant === 'secondary'
-              ? 'bg-transparent text-on-surface border-2 border-solid border-outline-variant hover:bg-surface-container-low'
-              : 'bg-primary text-on-primary shadow-sm hover:shadow-[0_4px_12px_rgba(0,74,198,0.3)]',
+              ? 'aimapui-popup-action-btn--secondary bg-transparent text-on-surface border-2 border-solid border-outline-variant hover:bg-surface-container-low'
+              : 'aimapui-popup-action-btn--primary bg-primary text-on-primary shadow-sm hover:shadow-[0_4px_12px_rgba(0,74,198,0.3)]',
           )}
           onClick={action.onClick}
         >
@@ -489,60 +492,81 @@ export function Popup({
     };
   }, [singleton, visible, handleClose]);
 
-  // ── 计算并设置 Popup 位置（含视口边界检测 & 自动翻转） ──
-  const updatePopupPosition = useCallback(() => {
+  // ── 统一定位 + 视口裁剪逻辑（供初次定位与地图交互回调共用） ──
+  // 将共享逻辑放入 ref，避免重复实现导致行为不一致
+  const applyPositionRef = useRef<(x: number, y: number) => void>(() => {});
+  applyPositionRef.current = (x: number, y: number) => {
     const el = popupRef.current;
-    if (!el || !scene) return;
+    if (!el) return;
 
+    const rx = Math.round(x);
+    const ry = Math.round(y);
+
+    // 获取地图容器实际显示尺寸（注意：popup 渲染在 markerContainer 内，不会被地图自动裁剪，
+    // 需要在这里手动判定锚点是否落在地图可视区域内）
+    let mapW = 0;
+    let mapH = 0;
+    try {
+      const mapsService = (scene as any)?.mapService;
+      const mapContainer = mapsService?.getContainer?.() as HTMLElement | undefined;
+      if (mapContainer) {
+        const rect = mapContainer.getBoundingClientRect();
+        mapW = rect.width || mapContainer.clientWidth || mapContainer.scrollWidth;
+        mapH = rect.height || mapContainer.clientHeight || mapContainer.scrollHeight;
+      }
+    } catch { /* 降级 */ }
+
+    // 计算 popup 自身尺寸（用于 placement 翻转决策）
+    const contentEl = el.querySelector('.aimapui-popup-content') as HTMLElement | null;
+    const pw = contentEl?.offsetWidth || 320;
+    const ph = contentEl?.offsetHeight || 200;
+
+    const { placement, transform: subTransform } = computePlacement(
+      rx, ry, pw, ph, mapW, mapH, placementProp, offset,
+    );
+
+    setCurrentPlacement(placement);
+
+    el.style.left = '0';
+    el.style.top = '0';
+    el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${subTransform}`;
+
+    // ── 视口内判断 ──
+    // 修复点：拿不到地图尺寸时不能默认 inView=true，否则被拖出地图后仍会显示。
+    // 此时退化为"尝试用 marker 容器尺寸"做兜底，再不济也保持当前可见性不变。
+    let inView: boolean;
+    if (mapW > 0 && mapH > 0) {
+      // 允许一点点 buffer，避免锚点恰好压在边缘时抖动
+      const buffer = 2;
+      inView = rx >= -buffer && rx <= mapW + buffer && ry >= -buffer && ry <= mapH + buffer;
+    } else {
+      // 尝试用父容器尺寸兜底
+      const parent = el.parentElement;
+      if (parent && parent.clientWidth > 0 && parent.clientHeight > 0) {
+        inView = rx >= 0 && rx <= parent.clientWidth && ry >= 0 && ry <= parent.clientHeight;
+      } else {
+        // 完全拿不到尺寸：保持先前状态，避免一上来就闪烁
+        inView = isInViewRef.current;
+      }
+    }
+    isInViewRef.current = inView;
+    // 使用 display:none 彻底从布局移除，避免 visibility:hidden 仍残留 GPU 合成层
+    el.style.display = inView ? '' : 'none';
+  };
+
+  // ── 计算并设置 Popup 位置（初次定位入口） ──
+  const updatePopupPosition = useCallback(() => {
+    if (!scene) return;
     try {
       const mapsService = (scene as any).mapService;
       const pos = mapsService
         ? mapsService.lngLatToContainer([longitude, latitude])
         : scene.lngLatToContainer([longitude, latitude]);
-
-      if (pos) {
-        const rx = Math.round(pos.x);
-        const ry = Math.round(pos.y);
-
-        el.style.left = '0';
-        el.style.top = '0';
-
-        // 获取地图容器和 Popup 元素尺寸
-        let mapW = 0, mapH = 0;
-        try {
-          if (mapsService) {
-            const mapContainer = mapsService.getContainer?.() as HTMLElement;
-            if (mapContainer) {
-              mapW = mapContainer.scrollWidth || mapContainer.clientWidth;
-              mapH = mapContainer.scrollHeight || mapContainer.clientHeight;
-            }
-          }
-        } catch { /* 降级 */ }
-
-        // 计算最佳方向
-        const contentEl = el.querySelector('.aimapui-popup-content') as HTMLElement;
-        const pw = contentEl?.offsetWidth || 320;
-        const ph = contentEl?.offsetHeight || 200;
-
-        const { placement, transform: subTransform } = computePlacement(
-          rx, ry, pw, ph, mapW, mapH, placementProp, offset,
-        );
-
-        setCurrentPlacement(placement);
-        el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${subTransform}`;
-
-        // 视口内判断
-        let inView = true;
-        if (mapW > 0 && mapH > 0) {
-          inView = rx >= 0 && rx <= mapW && ry >= 0 && ry <= mapH;
-        }
-        isInViewRef.current = inView;
-        el.style.visibility = inView ? 'visible' : 'hidden';
-      }
+      if (pos) applyPositionRef.current(pos.x, pos.y);
     } catch {
       // 场景可能未初始化
     }
-  }, [scene, longitude, latitude, placementProp, offset]);
+  }, [scene, longitude, latitude]);
 
   // 容器或 visible 变化后，Portal DOM 准备就绪，重新定位
   useEffect(() => {
@@ -595,47 +619,9 @@ export function Popup({
     return () => targetEl.removeEventListener('click', handleMapClick, true);
   }, [visible, container, scene, handleClose]);
 
-  // 高性能位置更新 — 地图交互时持续同步
+  // 高性能位置更新 — 地图交互时持续同步（复用 applyPositionRef，避免逻辑漂移）
   useMapPosition(scene, longitude, latitude, (x, y) => {
-    const el = popupRef.current;
-    if (!el) return;
-
-    const rx = Math.round(x);
-    const ry = Math.round(y);
-
-    let mapW = 0, mapH = 0;
-    try {
-      const mapsService = (scene as any)?.mapService;
-      if (mapsService) {
-        const mapContainer = mapsService.getContainer?.() as HTMLElement;
-        if (mapContainer) {
-          mapW = mapContainer.scrollWidth || mapContainer.clientWidth;
-          mapH = mapContainer.scrollHeight || mapContainer.clientHeight;
-        }
-      }
-    } catch { /* 降级 */ }
-
-    // 重新计算位置
-    const contentEl = el.querySelector('.aimapui-popup-content') as HTMLElement;
-    const pw = contentEl?.offsetWidth || 320;
-    const ph = contentEl?.offsetHeight || 200;
-
-    const { placement, transform: subTransform } = computePlacement(
-      rx, ry, pw, ph, mapW, mapH, placementProp, offset,
-    );
-
-    setCurrentPlacement(placement);
-
-    let inView = true;
-    if (mapW > 0 && mapH > 0) {
-      inView = rx >= 0 && rx <= mapW && ry >= 0 && ry <= mapH;
-    }
-    isInViewRef.current = inView;
-
-    el.style.left = '0';
-    el.style.top = '0';
-    el.style.transform = `translate3d(${rx}px, ${ry}px, 0) ${subTransform}`;
-    el.style.visibility = inView ? 'visible' : 'hidden';
+    applyPositionRef.current(x, y);
   });
 
   // ── 渲染 ──
@@ -729,7 +715,8 @@ export function Popup({
         left: 0,
         top: 0,
         transform: 'translate(-9999px, -9999px)',
-        visibility: 'hidden',
+        // 初始隐藏，等待 applyPosition 计算后再显示，避免 (-9999,-9999) 闪烁
+        display: 'none',
         zIndex: 30,
         pointerEvents: 'auto',
         ...wrapperStyle,

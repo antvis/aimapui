@@ -1,6 +1,6 @@
 {
   "name": "@antv/aimapui",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Schema/DSL-driven React map visualization component library powered by L7",
   "main": "dist/index.cjs.js",
@@ -11,12 +11,13 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
       "require": "./dist/index.cjs.js",
-      "default": "./dist/index.iife.js"
+      "default": "./dist/index.es.js"
     },
     "./style.css": "./dist/style.css",
     "./dist/index.iife.js": "./dist/index.iife.js"
   },
   "unpkg": "./dist/index.iife.js",
+  "jsdelivr": "./dist/index.iife.js",
   "files": [
     "dist",
     "README.md"
