@@ -64,8 +64,6 @@ import ChoroplethMap from './composite/ChoroplethMap';
 import HexagonHeatmap from './composite/HexagonHeatmap';
 import SatelliteLayerDemo from './composite/SatelliteLayer';
 import MarkerCluster from './composite/MarkerCluster';
-import PathLayer from './composite/PathLayer';
-import ArcLayer from './composite/ArcLayer';
 import ArcFlowLayer from './composite/ArcFlowLayer';
 import RouteLayerDemo from './composite/RouteLayer';
 import TiffRasterLayerDemo from './composite/TiffRasterLayer';

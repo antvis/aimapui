@@ -22,13 +22,13 @@ export const docsNav: DocNavGroup[] = [
     ],
   },
   {
-    title: '容器组件',
+    title: 'Container',
     items: [
       { id: 'container/aimap', name: 'AiMap', icon: 'map' },
     ],
   },
   {
-    title: '基础图层',
+    title: 'Base Layers',
     items: [
       { id: 'layers/point-layer', name: 'PointLayer', icon: 'circle' },
       { id: 'layers/line-layer', name: 'LineLayer', icon: 'timeline' },
@@ -39,17 +39,17 @@ export const docsNav: DocNavGroup[] = [
     ],
   },
   {
-    title: '点位标注',
+    title: 'Point Markers',
     items: [
       { id: 'composite-layers/icon-layer', name: 'IconLayer', icon: 'label' },
-      { id: 'composite-layers/builtin-icons', name: '内置图标', icon: 'emoji_symbols' },
+      { id: 'composite-layers/builtin-icons', name: 'Builtin Icons', icon: 'emoji_symbols' },
       { id: 'composite-layers/glyph-layer', name: 'GlyphLayer', icon: 'font_download' },
-      { id: 'composite-layers/builtin-glyphs', name: '内置字体图标', icon: 'text_fields' },
+      { id: 'composite-layers/builtin-glyphs', name: 'Builtin Glyphs', icon: 'text_fields' },
       { id: 'interaction/marker', name: 'Marker', icon: 'location_on' },
     ],
   },
   {
-    title: '复合图层',
+    title: 'Composite Layers',
     items: [
       { id: 'composite-layers/marker-cluster-layer', name: 'MarkerClusterLayer', icon: 'scatter_plot' },
       { id: 'composite-layers/route-layer', name: 'RouteLayer', icon: 'route' },
@@ -63,14 +63,14 @@ export const docsNav: DocNavGroup[] = [
     ],
   },
   {
-    title: '交互组件',
+    title: 'Interaction',
     items: [
       { id: 'interaction/popup', name: 'Popup', icon: 'chat_bubble' },
       { id: 'interaction/tooltip', name: 'Tooltip', icon: 'info' },
     ],
   },
   {
-    title: '控件',
+    title: 'Controls',
     items: [
       { id: 'controls/zoom-control', name: 'ZoomControl', icon: 'zoom_in' },
       { id: 'controls/scale-control', name: 'ScaleControl', icon: 'straighten' },
@@ -83,7 +83,7 @@ export const docsNav: DocNavGroup[] = [
     ],
   },
   {
-    title: '图例',
+    title: 'Legends',
     items: [
       { id: 'legends/legend-categories', name: 'LegendCategories', icon: 'grid_view' },
       { id: 'legends/legend-ramp', name: 'LegendRamp', icon: 'gradient' },
@@ -96,7 +96,7 @@ export const docsNav: DocNavGroup[] = [
     ],
   },
   {
-    title: '移动端',
+    title: 'Mobile',
     items: [
       { id: 'mobile/bottom-sheet', name: 'BottomSheet', icon: 'bottom_navigation' },
       { id: 'mobile/mobile-toolbar', name: 'MobileToolbar', icon: 'toolbar' },
