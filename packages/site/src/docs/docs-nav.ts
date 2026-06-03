@@ -44,6 +44,7 @@ export const docsNav: DocNavGroup[] = [
       { id: 'composite-layers/icon-layer', name: 'IconLayer', icon: 'label' },
       { id: 'composite-layers/builtin-icons', name: '内置图标', icon: 'emoji_symbols' },
       { id: 'composite-layers/glyph-layer', name: 'GlyphLayer', icon: 'font_download' },
+      { id: 'composite-layers/builtin-glyphs', name: '内置字体图标', icon: 'text_fields' },
       { id: 'interaction/marker', name: 'Marker', icon: 'location_on' },
     ],
   },
