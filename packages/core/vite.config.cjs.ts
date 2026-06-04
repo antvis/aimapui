@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
+import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     dts({
       insertTypesEntry: true,
       rollupTypes: true,
@@ -48,7 +50,9 @@ export default defineConfig({
           '@antv/l7-maps': 'L7Maps',
         },
         assetFileNames: (assetInfo) => {
-          if (assetInfo.names?.includes('style.css')) return 'style.css';
+          if (assetInfo.names?.includes('style.css') || assetInfo.names?.includes('aimapui.css') || assetInfo.originalFileNames?.some(f => f.endsWith('.css'))) {
+            return 'style.css';
+          }
           return assetInfo.names?.[0] ?? 'assets/[name]-[hash][extname]';
         },
       },

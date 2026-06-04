@@ -59,7 +59,11 @@ export default defineConfig({
           '@antv/l7-maps': 'L7Maps',
         },
         assetFileNames: (assetInfo) => {
-          if (assetInfo.names?.includes('style.css')) return 'style.css';
+          // Vite lib build 从入口名称生成 CSS（如 aimapui.css），
+          // 统一输出为 style.css，对齐 package.json exports
+          if (assetInfo.names?.includes('style.css') || assetInfo.names?.includes('aimapui.css') || assetInfo.originalFileNames?.some(f => f.endsWith('.css'))) {
+            return 'style.css';
+          }
           return assetInfo.names?.[0] ?? 'assets/[name]-[hash][extname]';
         },
       },
