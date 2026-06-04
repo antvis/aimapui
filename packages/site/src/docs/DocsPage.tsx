@@ -355,34 +355,38 @@ function DemoCodeBlock({ code, isDark, border }: { code: string; isDark: boolean
   );
 }
 
-// ── 复制 Markdown 按钮 ──
-function CopyMarkdownButton({ markdown, isDark }: { markdown: string; isDark: boolean }) {
+// ── Markdown 操作按钮组 ──
+function MarkdownActions({ markdown, isDark }: { markdown: string; isDark: boolean }) {
   const [copied, setCopied] = React.useState(false);
-  const handleCopy = () => {
+
+  const handleViewMarkdown = () => {
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  };
+
+  const handleCopyForLLM = () => {
     navigator.clipboard.writeText(markdown).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     });
   };
+
+  const linkStyle: React.CSSProperties = {
+    cursor: 'pointer', fontSize: 13, fontWeight: 400,
+    color: '#2563eb', background: 'none', border: 'none', padding: 0,
+    transition: 'opacity 150ms',
+  };
+
   return (
-    <button
-      onClick={handleCopy}
-      title="复制 Markdown"
-      style={{
-        display: 'inline-flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', borderRadius: 6,
-        border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
-        background: copied ? (isDark ? 'rgba(22,163,74,0.15)' : 'rgba(22,163,74,0.08)') : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
-        color: copied ? '#16a34a' : (isDark ? '#888' : '#999'),
-        cursor: 'pointer', fontSize: 12, fontWeight: 400,
-        transition: 'all 150ms', flexShrink: 0, whiteSpace: 'nowrap',
-      }}
-    >
-      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-        {copied ? 'check' : 'content_copy'}
-      </span>
-      {copied ? 'Copied' : 'Copy Markdown'}
-    </button>
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
+      <button onClick={handleViewMarkdown} style={linkStyle} onMouseEnter={e => e.currentTarget.style.opacity = '0.7'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+        以 Markdown 格式查看
+      </button>
+      <button onClick={handleCopyForLLM} style={{ ...linkStyle, color: copied ? '#16a34a' : '#2563eb' }} onMouseEnter={e => { if (!copied) e.currentTarget.style.opacity = '0.7'; }} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+        {copied ? '已复制' : '复制给 LLM'}
+      </button>
+    </div>
   );
 }
 
@@ -586,7 +590,7 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
         <>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 4 }}>
             <div style={{ flex: 1 }} />
-            <CopyMarkdownButton markdown={content} isDark={isDark} />
+            <MarkdownActions markdown={content} isDark={isDark} />
           </div>
           <div style={{ color: isDark ? '#e6edf3' : '#1f2328', lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: htmlContent }} />
         </>
