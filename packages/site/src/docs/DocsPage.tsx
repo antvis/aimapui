@@ -366,7 +366,20 @@ function MarkdownActions({ markdown, isDark }: { markdown: string; isDark: boole
   };
 
   const handleCopyForLLM = () => {
-    navigator.clipboard.writeText(markdown).then(() => {
+    const doCopy = (text: string) => {
+      if (navigator.clipboard?.writeText) {
+        return navigator.clipboard.writeText(text);
+      }
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return Promise.resolve();
+    };
+    doCopy(markdown).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     });
