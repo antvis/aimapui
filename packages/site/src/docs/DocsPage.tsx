@@ -355,6 +355,37 @@ function DemoCodeBlock({ code, isDark, border }: { code: string; isDark: boolean
   );
 }
 
+// ── 复制 Markdown 按钮 ──
+function CopyMarkdownButton({ markdown, isDark }: { markdown: string; isDark: boolean }) {
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(markdown).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      title="复制 Markdown"
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4,
+        padding: '4px 10px', borderRadius: 6,
+        border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+        background: copied ? (isDark ? 'rgba(22,163,74,0.15)' : 'rgba(22,163,74,0.08)') : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
+        color: copied ? '#16a34a' : (isDark ? '#888' : '#999'),
+        cursor: 'pointer', fontSize: 12, fontWeight: 400,
+        transition: 'all 150ms', flexShrink: 0, whiteSpace: 'nowrap',
+      }}
+    >
+      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+        {copied ? 'check' : 'content_copy'}
+      </span>
+      {copied ? 'Copied' : 'Copy Markdown'}
+    </button>
+  );
+}
+
 // ── 主组件 ──
 export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavigateDemo, onNavigateDesign, onNavigateBlock, onNavigateSkill, docsMap, demos = [], sourceModules = {} }: DocsPageProps) {
   const isDark = theme === 'dark';
@@ -551,7 +582,15 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
     const demoSource = sourceKey ? (sourceModules[sourceKey]?.default ?? '') : '';
 
     if (!DemoComponent && !multiDemos) {
-      return <div style={{ color: isDark ? '#e6edf3' : '#1f2328', lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: htmlContent }} />;
+      return (
+        <>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 4 }}>
+            <div style={{ flex: 1 }} />
+            <CopyMarkdownButton markdown={content} isDark={isDark} />
+          </div>
+          <div style={{ color: isDark ? '#e6edf3' : '#1f2328', lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: htmlContent }} />
+        </>
+      );
     }
 
     // 在第一个 <h2 之前拆分，插入 Demo 预览
@@ -561,6 +600,12 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
 
     return (
       <>
+        {/* 标题区域 + 复制按钮 */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 4 }}>
+          <div style={{ flex: 1 }} />
+          <CopyMarkdownButton markdown={content} isDark={isDark} />
+        </div>
+
         {/* 标题 + 描述部分 */}
         <div style={{ color: isDark ? '#e6edf3' : '#1f2328', lineHeight: 1.8 }} dangerouslySetInnerHTML={{ __html: beforeProps }} />
 
