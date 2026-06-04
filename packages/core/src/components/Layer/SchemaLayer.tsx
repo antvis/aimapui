@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import * as L7 from '@antv/l7';
 import type { Scene } from '@antv/l7';
 import type { LayerSchema, LayerEventPayload } from '../../schema/types';
 import { adaptPointLayer } from './adapters/point';
@@ -66,10 +67,9 @@ export function createL7Layer(schema: LayerSchema, scene: Scene): L7Layer | null
   return buildLayer(adapter, scene);
 }
 
-async function buildLayer(adapter: LayerAdapter, _scene: Scene): Promise<L7Layer> {
-  const l7 = await import('@antv/l7');
+function buildLayer(adapter: LayerAdapter, _scene: Scene): L7Layer {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const LayerClass = (l7 as Record<string, any>)[adapter.type] as new (...args: any[]) => any;
+  const LayerClass = (L7 as Record<string, any>)[adapter.type] as new (...args: any[]) => any;
 
   if (!LayerClass) {
     throw new Error(`[aimapui] L7 layer class "${adapter.type}" not found`);
@@ -259,13 +259,15 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
   });
 
   useEffect(() => {
+    const layer = createL7Layer(schema, scene);
+    if (!layer) {
+      return;
+    }
     let destroyed = false;
-    createL7Layer(schema, scene)?.then((layer: L7Layer) => {
-      if (destroyed) return;
-      layerRef.current = layer;
+    layerRef.current = layer;
 
-      const layerId = schema.id ?? schema.name ?? `layer-${schema.type}`;
-      const layerEvents = schema.events;
+    const layerId = schema.id ?? schema.name ?? `layer-${schema.type}`;
+    const layerEvents = schema.events;
 
       // ========== 绑定图层事件 ==========
       const popupEnabled = Boolean(layerEvents?.enablePopup);
@@ -368,11 +370,6 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
         // 强制 scene 重绘，修复异步初始化导致图层首帧不可见的问题
         scene.render();
       });
-    }).catch((error: unknown) => {
-      if (!destroyed) {
-        console.error(`[aimapui] Failed to create layer "${schema.id ?? schema.name ?? schema.type}":`, error);
-      }
-    });
 
     return () => {
       destroyed = true;

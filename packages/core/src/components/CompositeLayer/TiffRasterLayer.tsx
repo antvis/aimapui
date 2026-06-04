@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
+import * as L7 from '@antv/l7';
 import { useScene } from '../../context/SceneContext';
 
 /**
@@ -319,36 +320,28 @@ export function TiffRasterLayer({
   useEffect(() => {
     if (!scene || !sourceConfig || !sourceData || !maskReady) return;
 
-    let destroyed = false;
+    // 销毁旧图层（mask 数据变化时重建）
+    if (layerRef.current) {
+      scene.removeLayer(layerRef.current);
+      layerRef.current = null;
+    }
 
-    (async () => {
-      const l7 = await import('@antv/l7');
-      if (destroyed) return;
+    const layerOptions: Record<string, unknown> = { zIndex: 10 };
+    if (mask && maskGeoJSON) {
+      layerOptions.mask = true;
+      layerOptions.maskfence = maskGeoJSON;
+    }
 
-      // 销毁旧图层（mask 数据变化时重建）
-      if (layerRef.current) {
-        scene.removeLayer(layerRef.current);
-        layerRef.current = null;
-      }
+    const layer = new L7.RasterLayer(layerOptions);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    layer.source(sourceData, { parser: sourceConfig.parser } as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    layer.style(layerStyle as any);
 
-      const layerOptions: Record<string, unknown> = { zIndex: 10 };
-      if (mask && maskGeoJSON) {
-        layerOptions.mask = true;
-        layerOptions.maskfence = maskGeoJSON;
-      }
-
-      const layer = new l7.RasterLayer(layerOptions);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      layer.source(sourceData, { parser: sourceConfig.parser } as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      layer.style(layerStyle as any);
-
-      scene.addLayer(layer);
-      layerRef.current = layer;
-    })();
+    scene.addLayer(layer);
+    layerRef.current = layer;
 
     return () => {
-      destroyed = true;
       if (layerRef.current && scene) {
         scene.removeLayer(layerRef.current);
         layerRef.current = null;
