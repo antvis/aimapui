@@ -1,37 +1,5 @@
 @import "tailwindcss";
 
-/* Material Symbols Outlined 图标字体
- * 组件库的 Control、Popup、SearchBar 等组件依赖此字体渲染图标。
- * 通过 Google Fonts CDN 加载字体，组件库 CSS 包含字体名声明和变量轴配置。
- * 离线场景下消费者可自行下载 woff2 并覆盖此 @font-face。
- */
-@font-face {
-  font-family: "Material Symbols Outlined";
-  font-style: normal;
-  font-weight: 100 700;
-  font-display: block;
-  src: url("https://fonts.gstatic.com/s/materialsymbolsoutlined/v19/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oFsI.woff2") format("woff2");
-}
-.material-symbols-outlined {
-  font-family: "Material Symbols Outlined";
-  font-weight: normal;
-  font-style: normal;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: normal;
-  text-transform: none;
-  display: inline-block;
-  white-space: nowrap;
-  word-wrap: normal;
-  direction: ltr;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  font-feature-settings: "liga";
-  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
-  user-select: none;
-}
-
 /* 显式声明源码扫描范围
  * Tailwind v4 默认基于"使用 CSS 的项目根目录"自动扫描，site 项目下不会自动覆盖到 core 的组件源码，
  * 因此 LegendCategories / Popup 等组件使用的 Tailwind 类（包括 hover: / bg-black/30 / size-8 等）
@@ -284,6 +252,38 @@
     font-weight: 600;
     letter-spacing: 0.05em;
   }
+}
+
+/* Material Symbols Outlined 图标字体
+ * 组件库的 Control、Popup、SearchBar 等组件依赖此字体渲染图标。
+ * font-feature-settings: "liga" 是图标渲染的关键——启用连字替换才能将文本名称（如 "dark_mode"）显示为图标字形。
+ * 通过阿里 CDN 加载字体，离线场景下消费者可自行下载 woff2 并覆盖此 @font-face。
+ */
+@font-face {
+  font-family: "Material Symbols Outlined";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url("https://gw.alipayobjects.com/render/p/hitu_npm/material-symbols/0.44.10/material-symbols-outlined.woff2") format("woff2");
+}
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga";
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
 }
 
 /* Glass Panel Effect */
