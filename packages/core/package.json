@@ -3,14 +3,14 @@
   "version": "0.2.1",
   "type": "module",
   "description": "Schema/DSL-driven React map visualization component library powered by L7",
-  "main": "dist/index.cjs.js",
+  "main": "dist/index.cjs",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js",
+      "require": "./dist/index.cjs",
       "default": "./dist/index.es.js"
     },
     "./style.css": "./dist/style.css",
@@ -48,7 +48,6 @@
     "react-dom": ">=18.0.0"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^16.0.3",
     "@tailwindcss/vite": "^4.0.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

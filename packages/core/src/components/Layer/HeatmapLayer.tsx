@@ -17,6 +17,9 @@ export interface HeatmapLayerProps
   onMouseEnter?: (payload: LayerEventPayload) => void;
   /** 鼠标离开事件 */
   onMouseLeave?: (payload: LayerEventPayload) => void;
+  /** L7 图层实例创建回调 */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onLayerCreated?: (layer: any) => void;
 }
 
 /**
@@ -32,6 +35,7 @@ export function HeatmapLayer({
   onMouseMove,
   onMouseEnter,
   onMouseLeave,
+  onLayerCreated,
   ...rest
 }: HeatmapLayerProps) {
   const scene = useScene();
@@ -50,5 +54,5 @@ export function HeatmapLayer({
       ? { onClick, onMouseMove, onMouseEnter, onMouseLeave }
       : undefined;
 
-  return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} />;
+  return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} onLayerCreated={onLayerCreated} />;
 }

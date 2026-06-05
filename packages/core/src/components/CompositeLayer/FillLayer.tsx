@@ -40,6 +40,8 @@ export interface FillLayerProps extends Omit<LayerSchema, 'type' | 'source' | 's
 
   onRegionClick?: (payload: LayerEventPayload) => void;
   onDrilldown?: (feature: Record<string, unknown>) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onLayerCreated?: (layer: any) => void;
 
   showLabel?: boolean;
   labelField?: string;
@@ -78,6 +80,7 @@ export function FillLayer({
   clickZoomDelta = 1.2,
   onRegionClick,
   onDrilldown,
+  onLayerCreated,
   showLabel = false,
   labelField = 'name',
   labelColor = '#0f172a',
@@ -235,6 +238,7 @@ export function FillLayer({
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onLayerCreated={onLayerCreated}
         style={{ opacity: 0.8, ...(style ?? {}) }}
       />
 

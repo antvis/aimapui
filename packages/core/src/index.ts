@@ -152,6 +152,10 @@ export { ExportImageControl } from './components/Control/ExportImageControl';
 export type { ExportImageControlProps } from './components/Control/ExportImageControl';
 export { LayerSwitchControl } from './components/Control/LayerSwitchControl';
 export type { LayerSwitchControlProps, LayerItem } from './components/Control/LayerSwitchControl';
+export { LegendControl } from './components/Control/LegendControl';
+export type { LegendControlProps } from './components/Control/LegendControl';
+export { LogoControl } from './components/Control/LogoControl';
+export type { LogoControlProps, LogoItem } from './components/Control/LogoControl';
 
 // Interaction 组件
 export { Marker } from './components/Interaction/Marker';

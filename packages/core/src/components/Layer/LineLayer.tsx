@@ -13,6 +13,8 @@ export interface LineLayerProps
   onMouseMove?: (payload: LayerEventPayload) => void;
   onMouseEnter?: (payload: LayerEventPayload) => void;
   onMouseLeave?: (payload: LayerEventPayload) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onLayerCreated?: (layer: any) => void;
 }
 
 /**
@@ -32,6 +34,7 @@ export function LineLayer({
   onMouseMove,
   onMouseEnter,
   onMouseLeave,
+  onLayerCreated,
   ...rest
 }: LineLayerProps) {
   const scene = useScene();
@@ -50,5 +53,5 @@ export function LineLayer({
       ? { onClick, onMouseMove, onMouseEnter, onMouseLeave }
       : undefined;
 
-  return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} />;
+  return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} onLayerCreated={onLayerCreated} />;
 }

@@ -154,6 +154,7 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
   const [provinceData, setProvinceData] = useState<GeoJSONFeatureCollection | null>(null);
   const [cityData, setCityData] = useState<GeoJSONFeatureCollection | null>(null);
   const [districtData, setDistrictData] = useState<GeoJSONFeatureCollection | null>(null);
+  const [dashLineData, setDashLineData] = useState<GeoJSONFeatureCollection | null>(null);
 
   // 内部下钻路径
   const [internalDrillPath, setInternalDrillPath] = useState<DrillPathNode[]>([
@@ -210,7 +211,7 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
 
   // 加载远程数据
   useEffect(() => {
-    loadGeoJSON(provinceSource, setProvinceData);
+    loadGeoJSON(provinceSource, setProvinceData, setDashLineData);
   }, [provinceSource]);
 
   useEffect(() => {
@@ -366,6 +367,17 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
         zIndex={zIndex + 3}
       />
 
+      {/* 九段线 */}
+      {dashLineData && currentLevel === 'province' && drillPath.length <= 1 && (
+        <LineLayer
+          source={dashLineData}
+          sourceType="geojson"
+          color="#94a3b8"
+          size={1}
+          zIndex={zIndex + 3}
+        />
+      )}
+
       {/* 文字标签图层 */}
       {showLabel && displayData && (
         <AdminLabelLayer
@@ -429,41 +441,82 @@ function getNextLevel(level: AdministrativeLevel): AdministrativeLevel {
   return 'district';
 }
 
-/** 非行政区 feature 名称黑名单（国界线、九段线等辅助要素） */
+/** 非行政区 feature 名称黑名单（国界线等辅助要素，九段线单独提取绘制） */
 const NON_ADMIN_NAMES = new Set(['境界线', '边界线', '九段线', '十段线']);
+
+function isDashLineFeature(feature: GeoJSONFeatureCollection['features'][number]): boolean {
+  const name = feature.properties?.name;
+  if (typeof name !== 'string') return false;
+  if (name === '九段线' || name === '十段线') return true;
+  // 源数据中九段线常以"境界线"命名，通过南海区域坐标识别
+  if (name === '境界线') {
+    const geomType = feature.geometry?.type as string | undefined;
+    if (geomType !== 'MultiLineString' && geomType !== 'LineString') return false;
+    const coords = feature.geometry?.coordinates as number[][][] | number[][] | undefined;
+    if (!coords) return false;
+    const points = geomType === 'MultiLineString'
+      ? (coords as number[][][]).flat()
+      : coords as number[][];
+    const minLat = Math.min(...points.map((p) => p[1]));
+    if (minLat < 10) return true;
+  }
+  return false;
+}
 
 function isAdminFeature(feature: GeoJSONFeatureCollection['features'][number]): boolean {
   const name = feature.properties?.name;
   if (!name || typeof name !== 'string') return false;
   if (NON_ADMIN_NAMES.has(name)) return false;
-  // 过滤掉 geometry 为 LineString / MultiLineString 的辅助线要素
   const geometryType = feature.geometry?.type as string | undefined;
   if (geometryType === 'LineString' || geometryType === 'MultiLineString') return false;
   return true;
 }
 
-function sanitizeGeoJSON(raw: GeoJSONFeatureCollection): GeoJSONFeatureCollection {
+interface SanitizedResult {
+  admin: GeoJSONFeatureCollection;
+  dashLine: GeoJSONFeatureCollection | null;
+}
+
+function sanitizeGeoJSON(raw: GeoJSONFeatureCollection): SanitizedResult {
+  const adminFeatures: GeoJSONFeatureCollection['features'] = [];
+  const dashLineFeatures: GeoJSONFeatureCollection['features'] = [];
+
+  for (const f of raw.features) {
+    if (isDashLineFeature(f)) {
+      dashLineFeatures.push(f);
+    } else if (isAdminFeature(f)) {
+      adminFeatures.push(f);
+    }
+  }
+
   return {
-    type: 'FeatureCollection',
-    features: raw.features.filter(isAdminFeature),
+    admin: { type: 'FeatureCollection', features: adminFeatures },
+    dashLine: dashLineFeatures.length > 0
+      ? { type: 'FeatureCollection', features: dashLineFeatures }
+      : null,
   };
 }
 
 function loadGeoJSON(
   source: string | Record<string, unknown>,
   setter: (data: GeoJSONFeatureCollection) => void,
+  dashLineSetter?: (data: GeoJSONFeatureCollection | null) => void,
 ) {
   if (typeof source === 'string') {
     fetch(source)
       .then((res) => res.json())
       .then((json) => {
         if (json && json.type === 'FeatureCollection') {
-          setter(sanitizeGeoJSON(json as GeoJSONFeatureCollection));
+          const result = sanitizeGeoJSON(json as GeoJSONFeatureCollection);
+          setter(result.admin);
+          dashLineSetter?.(result.dashLine);
         }
       })
       .catch(() => { /* silently ignore */ });
   } else if (source && (source as unknown as GeoJSONFeatureCollection).type === 'FeatureCollection') {
-    setter(sanitizeGeoJSON(source as unknown as GeoJSONFeatureCollection));
+    const result = sanitizeGeoJSON(source as unknown as GeoJSONFeatureCollection);
+    setter(result.admin);
+    dashLineSetter?.(result.dashLine);
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { AiMapProps } from './types';
 import type { AiMapSchema, MapSchema, LayerSchema, LayerEventPayload, MapEventPayload } from '../../schema/types';
 import { parseSchema } from '../../core/parser';
@@ -16,6 +16,7 @@ import { LegendRenderer } from '../../components/Legend/LegendRenderer';
 import { useResponsive } from '../../context/ResponsiveContext';
 import { MobileToolbar } from '../../components/Mobile/MobileToolbar';
 import { MobileSheetLegend } from '../../components/Mobile/MobileSheetLegend';
+import { useScene } from '../../context/SceneContext';
 import type { Scene } from '@antv/l7';
 
 /**
@@ -89,12 +90,10 @@ export function AiMap({
     onZoom: onMapZoom,
   }), [onMapMove, onMapZoom]);
 
-  // 包装 onSceneReady：autoFit 开启时，自动聚合所有图层 bounds 并调用 fitBounds
+  // 包装 onSceneReady
   const handleSceneReady = useCallback((scene: Scene) => {
     onSceneReady?.(scene);
-    if (!autoFit) return;
-    autoFitAllLayers(scene);
-  }, [onSceneReady, autoFit]);
+  }, [onSceneReady]);
 
   return (
     <ThemeProvider defaultTheme={theme} target="container">
@@ -104,6 +103,7 @@ export function AiMap({
             <AiMapCore
               schema={resolvedSchema}
               isComposableMode={isComposableMode}
+              autoFit={autoFit}
               onSceneReady={handleSceneReady}
               layerEventHandlers={layerEventHandlers}
               mapEventHandlers={mapEventHandlers}
@@ -121,69 +121,110 @@ export function AiMap({
 }
 
 /**
- * 自动缩放到所有已注册图层的数据范围
- *
- * 实现策略：scene.loaded 后启动短间隔轮询（最长 3s），等待所有图层渲染并产生 bounds，
- * 聚合所有图层的外接矩形 → 调用 scene.fitBounds。已有 bounds 缓存，避免重复 fit。
+ * 自动缩放到所有图层数据范围的 effect 组件。
+ * 渲染在 MapSceneRenderer 内部，通过 useScene() 获取 scene。
+ * 监听所有图层的 inited 事件，聚合 source.extent 后调用 fitBounds。
  */
-function autoFitAllLayers(scene: Scene) {
-  let fitted = false;
-  let attempts = 0;
-  const maxAttempts = 30; // 30 * 100ms = 3s
+function AutoFitEffect() {
+  const scene = useScene();
 
-  const tryFit = () => {
-    if (fitted) return;
-    attempts += 1;
+  useEffect(() => {
+    if (!scene) return;
 
-    try {
-      const layers = (scene as unknown as { getLayers?: () => unknown[] }).getLayers?.() ?? [];
-      if (layers.length === 0) {
-        if (attempts < maxAttempts) window.setTimeout(tryFit, 100);
-        return;
-      }
+    let fitted = false;
+    let fitTimer: ReturnType<typeof setTimeout> | null = null;
+    let pollTimer: ReturnType<typeof setTimeout> | null = null;
+    const knownLayers = new Set<unknown>();
 
-      // 聚合所有图层的 bounds（[[minLng, minLat], [maxLng, maxLat]]）
+    const computeAndFit = () => {
+      if (fitted) return;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const layers = (scene as any).getLayers?.() ?? [];
+      if (layers.length === 0) return;
+
       let minLng = Infinity;
       let minLat = Infinity;
       let maxLng = -Infinity;
       let maxLat = -Infinity;
-      let hasValidBounds = false;
+      let hasValid = false;
 
       for (const layer of layers) {
-        const getBounds = (layer as { getBounds?: () => unknown }).getBounds;
-        if (typeof getBounds !== 'function') continue;
         try {
-          const bounds = getBounds.call(layer) as [[number, number], [number, number]] | undefined;
-          if (!bounds || !Array.isArray(bounds) || bounds.length !== 2) continue;
-          const [sw, ne] = bounds;
-          if (!sw || !ne || !isFinite(sw[0]) || !isFinite(sw[1]) || !isFinite(ne[0]) || !isFinite(ne[1])) continue;
-          minLng = Math.min(minLng, sw[0]);
-          minLat = Math.min(minLat, sw[1]);
-          maxLng = Math.max(maxLng, ne[0]);
-          maxLat = Math.max(maxLat, ne[1]);
-          hasValidBounds = true;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const source = (layer as any).getSource?.();
+          const extent: [number, number, number, number] | undefined = source?.extent;
+          if (!extent || !Array.isArray(extent) || extent.length < 4) continue;
+          const [eLngMin, eLatMin, eLngMax, eLatMax] = extent;
+          if (!isFinite(eLngMin) || !isFinite(eLatMin) || !isFinite(eLngMax) || !isFinite(eLatMax)) continue;
+          if (eLngMin >= eLngMax || eLatMin >= eLatMax) continue;
+
+          minLng = Math.min(minLng, eLngMin);
+          minLat = Math.min(minLat, eLatMin);
+          maxLng = Math.max(maxLng, eLngMax);
+          maxLat = Math.max(maxLat, eLatMax);
+          hasValid = true;
         } catch {
-          // 单个图层 getBounds 失败时跳过
+          // skip
         }
       }
 
-      if (!hasValidBounds) {
-        if (attempts < maxAttempts) window.setTimeout(tryFit, 100);
-        return;
+      if (!hasValid || minLng >= maxLng || minLat >= maxLat) return;
+
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (scene as any).fitBounds([[minLng, minLat], [maxLng, maxLat]]);
+        fitted = true;
+      } catch {
+        // fitBounds may throw on unsupported basemaps
+      }
+    };
+
+    const debouncedFit = () => {
+      if (fitted) return;
+      if (fitTimer) clearTimeout(fitTimer);
+      fitTimer = setTimeout(computeAndFit, 200);
+    };
+
+    let attempts = 0;
+    const maxAttempts = 50;
+
+    const poll = () => {
+      if (fitted) return;
+      attempts += 1;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const layers = (scene as any).getLayers?.() ?? [];
+      for (const layer of layers) {
+        if (!knownLayers.has(layer)) {
+          knownLayers.add(layer);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const layerInited = (layer as any).inited;
+          if (layerInited) {
+            debouncedFit();
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if (typeof (layer as any).on === 'function') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (layer as any).on('inited', debouncedFit);
+          }
+        }
       }
 
-      (scene as unknown as { fitBounds: (bounds: [[number, number], [number, number]]) => void }).fitBounds([
-        [minLng, minLat],
-        [maxLng, maxLat],
-      ]);
-      fitted = true;
-    } catch {
-      if (attempts < maxAttempts) window.setTimeout(tryFit, 100);
-    }
-  };
+      if (!fitted && attempts < maxAttempts) {
+        pollTimer = setTimeout(poll, 100);
+      }
+    };
 
-  // 首次延迟 200ms，等首批 addLayer 完成
-  window.setTimeout(tryFit, 200);
+    pollTimer = setTimeout(poll, 100);
+
+    return () => {
+      if (fitTimer) clearTimeout(fitTimer);
+      if (pollTimer) clearTimeout(pollTimer);
+    };
+  }, [scene]);
+
+  return null;
 }
 
 /** 仅对 map 配置应用默认值（组件化模式） */
@@ -226,6 +267,7 @@ interface MapEventHandlers {
 interface AiMapCoreProps {
   schema: AiMapSchema;
   isComposableMode: boolean;
+  autoFit?: boolean;
   onSceneReady?: (scene: Scene) => void;
   layerEventHandlers: LayerEventHandlers;
   mapEventHandlers: MapEventHandlers;
@@ -238,6 +280,7 @@ interface AiMapCoreProps {
 function AiMapCore({
   schema,
   isComposableMode,
+  autoFit,
   onSceneReady,
   layerEventHandlers,
   mapEventHandlers,
@@ -300,6 +343,7 @@ function AiMapCore({
         events={schema.events}
         style={{ width: '100%', height: '100%' }}
       >
+        {autoFit && <AutoFitEffect />}
         {/* Schema 模式：通过 schema.layers 渲染 */}
         {!isComposableMode && effectiveLayers.length > 0 && (
           <LayerRenderer layers={effectiveLayers} eventHandlers={layerEventHandlers} />

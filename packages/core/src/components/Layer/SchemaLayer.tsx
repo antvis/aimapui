@@ -213,9 +213,10 @@ export interface SchemaLayerProps {
   schema: LayerSchema;
   scene: Scene;
   eventHandlers?: LayerEventHandlers;
+  onLayerCreated?: (layer: L7Layer) => void;
 }
 
-export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) {
+export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: SchemaLayerProps) {
   const layerRef = useRef<L7Layer | null>(null);
   const eventBus = useEventBus();
   const eventHandlersRef = useRef(eventHandlers);
@@ -359,13 +360,20 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
 
       // 添加到场景
       scene.addLayer(layer);
+      onLayerCreated?.(layer);
 
       // 图层初始化完成后强制触发一次重绘，确保图层立即可见
       layer.on('inited', () => {
         if (destroyed) return;
         // autoFit
         if (schema.autoFit) {
-          scene.fitBounds(layer.getBounds());
+          const extent = layer.getSource?.()?.extent;
+          if (extent && Array.isArray(extent) && extent.length >= 4) {
+            const [minLng, minLat, maxLng, maxLat] = extent;
+            if (isFinite(minLng) && isFinite(minLat) && isFinite(maxLng) && isFinite(maxLat) && minLng < maxLng && minLat < maxLat) {
+              scene.fitBounds([[minLng, minLat], [maxLng, maxLat]]);
+            }
+          }
         }
         // 强制 scene 重绘，修复异步初始化导致图层首帧不可见的问题
         scene.render();
@@ -398,7 +406,7 @@ export function SchemaLayer({ schema, scene, eventHandlers }: SchemaLayerProps) 
     }
 
     if (schema.zIndex !== undefined) {
-      layerRef.current.zIndex(schema.zIndex);
+      layerRef.current.zIndex = schema.zIndex;
     }
   }, [schema.visible, schema.zIndex]);
 

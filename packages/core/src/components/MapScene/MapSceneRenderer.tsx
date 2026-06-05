@@ -76,6 +76,7 @@ export function MapSceneRenderer({
       const newScene = new Scene({
         id: containerRef.current,
         map: mapInstance as any,
+        logoVisible: false,
       });
 
       sceneRef.current = newScene;

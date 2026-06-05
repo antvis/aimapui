@@ -13,6 +13,8 @@ export interface PolygonLayerProps
   onMouseMove?: (payload: LayerEventPayload) => void;
   onMouseEnter?: (payload: LayerEventPayload) => void;
   onMouseLeave?: (payload: LayerEventPayload) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onLayerCreated?: (layer: any) => void;
 }
 
 /**
@@ -26,6 +28,7 @@ export function PolygonLayer({
   onMouseMove,
   onMouseEnter,
   onMouseLeave,
+  onLayerCreated,
   ...rest
 }: PolygonLayerProps) {
   const scene = useScene();
@@ -44,5 +47,5 @@ export function PolygonLayer({
       ? { onClick, onMouseMove, onMouseEnter, onMouseLeave }
       : undefined;
 
-  return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} />;
+  return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} onLayerCreated={onLayerCreated} />;
 }

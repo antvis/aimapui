@@ -21,6 +21,9 @@ export interface PointLayerProps
   onMouseEnter?: (payload: LayerEventPayload) => void;
   /** 鼠标离开事件 */
   onMouseLeave?: (payload: LayerEventPayload) => void;
+  /** L7 图层实例创建回调 */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onLayerCreated?: (layer: any) => void;
 }
 
 /**
@@ -40,6 +43,7 @@ export function PointLayer({
   onMouseMove,
   onMouseEnter,
   onMouseLeave,
+  onLayerCreated,
   ...rest
 }: PointLayerProps) {
   const scene = useScene();
@@ -58,5 +62,5 @@ export function PointLayer({
       ? { onClick, onMouseMove, onMouseEnter, onMouseLeave }
       : undefined;
 
-  return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} />;
+  return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} onLayerCreated={onLayerCreated} />;
 }

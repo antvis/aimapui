@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import type { LayerEventPayload } from '../../schema/types';
 import { LineLayer } from '../Layer/LineLayer';
 import { PointLayer } from '../Layer/PointLayer';
 import { IconLayer, type IconAnchor } from './IconLayer';
+import { Popup } from '../Interaction/Popup';
 import { Marker, type MarkerColor, type MarkerVariant } from '../Interaction/Marker';
 import { createMakiPinMap } from '../Interaction/maki-icons';
 
@@ -85,6 +86,8 @@ export interface RouteLayerProps {
   stopIconAnchor?: IconAnchor;
 
   // ===== 交互 =====
+  /** 是否在点击途经点时显示 Popup，默认 true */
+  showStopPopup?: boolean;
   /** hover 高亮色 */
   activeColor?: string;
   /** 路径点击 */
@@ -135,6 +138,7 @@ export function RouteLayer({
   stopIconField = 'iconValue',
   stopIconSize = 16,
   stopIconAnchor = 'bottom',
+  showStopPopup = true,
   activeColor = '#fbbf24',
   onPathClick,
   onStopClick,
@@ -168,19 +172,40 @@ export function RouteLayer({
   const hasSegmentColors = segments && segments.some((s) => s.color);
 
   // 途经点数据（增加序号和类型）
+  // 自动补全路径起终点：如果 stops 中没有覆盖 path 的首尾坐标，则自动添加
   const stopsWithIndex = useMemo(() => {
-    return stops.map((stop, idx) => ({
+    const effectivePath = path ?? (segments && segments.length > 0
+      ? [...segments[0].coordinates.slice(0, 1), ...segments[segments.length - 1].coordinates.slice(-1)]
+      : null);
+
+    let merged = [...stops];
+
+    if (effectivePath && effectivePath.length >= 2) {
+      const [startLng, startLat] = effectivePath[0];
+      const [endLng, endLat] = effectivePath[effectivePath.length - 1];
+      const hasStart = stops.some((s) => Math.abs(s.lng - startLng) < 1e-6 && Math.abs(s.lat - startLat) < 1e-6);
+      const hasEnd = stops.some((s) => Math.abs(s.lng - endLng) < 1e-6 && Math.abs(s.lat - endLat) < 1e-6);
+
+      if (!hasStart) {
+        merged = [{ lng: startLng, lat: startLat, name: '起点', type: 'start' as const }, ...merged];
+      }
+      if (!hasEnd) {
+        merged = [...merged, { lng: endLng, lat: endLat, name: '终点', type: 'end' as const }];
+      }
+    }
+
+    return merged.map((stop, idx) => ({
       ...stop,
       index: stop.index ?? idx + 1,
-      type: stop.type ?? (idx === 0 ? 'start' : idx === stops.length - 1 ? 'end' : 'waypoint'),
-      stopColor: (stop.type === 'end' || (!stop.type && idx === stops.length - 1))
+      type: stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint'),
+      stopColor: (stop.type === 'end' || (!stop.type && idx === merged.length - 1))
         ? endColor
         : (stopColor ?? color),
       iconValue: stop.icon ?? 'marker',
       indexLabel: String(stop.index ?? idx + 1),
-      markerColorValue: stop.markerColor ?? resolveMarkerColor(stop.type ?? (idx === 0 ? 'start' : idx === stops.length - 1 ? 'end' : 'waypoint')),
+      markerColorValue: stop.markerColor ?? resolveMarkerColor(stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint')),
     }));
-  }, [stops, color, stopColor, endColor]);
+  }, [stops, path, segments, color, stopColor, endColor]);
 
   const resolvedStopIconMap = useMemo(() => {
     if (stopRenderer !== 'icon') return undefined;
@@ -194,6 +219,25 @@ export function RouteLayer({
       size: Math.max(24, stopIconSize + 8),
     });
   }, [stopRenderer, stopIconMap, stopsWithIndex, stopColor, color, stopIconSize]);
+
+  // 内置 Popup 状态
+  const [popupState, setPopupState] = useState<{
+    visible: boolean; lng: number; lat: number; name: string; index: string;
+  }>({ visible: false, lng: 0, lat: 0, name: '', index: '' });
+
+  const handleStopClickInternal = useCallback((payload: LayerEventPayload) => {
+    onStopClick?.(payload);
+    if (!showStopPopup) return;
+    const feature = payload.feature;
+    if (!feature) return;
+    setPopupState({
+      visible: true,
+      lng: payload.lng,
+      lat: payload.lat,
+      name: String(feature.name ?? ''),
+      index: String(feature.indexLabel ?? feature.index ?? ''),
+    });
+  }, [onStopClick, showStopPopup]);
 
   if (!pathGeoJSON) return null;
 
@@ -225,10 +269,23 @@ export function RouteLayer({
         sizeField={hasSegmentColors ? 'width' : undefined}
         sizeValues={hasSegmentColors ? segments!.map((s) => s.width || lineWidth) : undefined}
         style={{ opacity }}
-        animate={animate ? { enable: true, speed: animateSpeed, trailLength: 0.3, duration: 2000 } : undefined}
         active={activeColor ? { color: activeColor } : false}
         onClick={onPathClick}
       />
+
+      {/* 流动粒子层 — 白色半透明虚线沿路径流动，指示行驶方向 */}
+      {animate && (
+        <LineLayer
+          source={pathGeoJSON}
+          sourceType="geojson"
+          shape="line"
+          color="#ffffff"
+          size={Math.max(1.5, lineWidth * 0.5)}
+          style={{ opacity: 0.6, lineType: 'dash', lineDash: [8, 16] }}
+          animate={{ enable: true, speed: animateSpeed, duration: 1500 }}
+          zIndex={10}
+        />
+      )}
 
       {/* 途经点层 */}
       {stopsWithIndex.length > 0 && stopRenderer === 'point' && (
@@ -245,7 +302,7 @@ export function RouteLayer({
             stroke: '#ffffff',
           }}
           active={activeColor ? { color: activeColor } : false}
-          onClick={onStopClick}
+          onClick={handleStopClickInternal}
         />
       )}
 
@@ -284,7 +341,7 @@ export function RouteLayer({
           labelOffset={[0, stopIconAnchor === 'bottom' ? Math.max(10, Math.round(stopIconSize * 0.6)) : 0]}
           labelHaloColor="rgba(18, 28, 42, 0.35)"
           labelHaloWidth={2}
-          onClick={onStopClick}
+          onClick={handleStopClickInternal}
         />
       )}
 
@@ -304,7 +361,7 @@ export function RouteLayer({
             content={markerContent}
             label={markerContent ? undefined : (showStopIndex ? stop.indexLabel : undefined)}
             onClick={(event) => {
-              onStopClick?.({
+              handleStopClickInternal({
                 layerId: 'route-stop-marker',
                 layerType: 'point',
                 originalEvent: event,
@@ -316,6 +373,17 @@ export function RouteLayer({
           />
         );
       })}
+      {/* 内置 Popup — 点击途经点时展示 */}
+      {showStopPopup && popupState.visible && (
+        <Popup
+          longitude={popupState.lng}
+          latitude={popupState.lat}
+          content={`<div style="min-width:100px"><div style="font-weight:700;font-size:13px;margin-bottom:4px">${popupState.name}</div><div style="font-size:12px;color:#64748b">第 ${popupState.index} 站</div></div>`}
+          closeButton
+          size="compact"
+          onClose={() => setPopupState((prev) => ({ ...prev, visible: false }))}
+        />
+      )}
     </>
   );
 }
