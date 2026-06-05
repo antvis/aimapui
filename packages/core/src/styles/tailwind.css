@@ -1,5 +1,37 @@
 @import "tailwindcss";
 
+/* Material Symbols Outlined 图标字体
+ * 组件库的 Control、Popup、SearchBar 等组件依赖此字体渲染图标。
+ * 通过 Google Fonts CDN 加载字体，组件库 CSS 包含字体名声明和变量轴配置。
+ * 离线场景下消费者可自行下载 woff2 并覆盖此 @font-face。
+ */
+@font-face {
+  font-family: "Material Symbols Outlined";
+  font-style: normal;
+  font-weight: 100 700;
+  font-display: block;
+  src: url("https://fonts.gstatic.com/s/materialsymbolsoutlined/v19/kJF1BvYX7BgnkSrUwT8OhrdQw4oELdPIeeII9v6oFsI.woff2") format("woff2");
+}
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "liga";
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  user-select: none;
+}
+
 /* 显式声明源码扫描范围
  * Tailwind v4 默认基于"使用 CSS 的项目根目录"自动扫描，site 项目下不会自动覆盖到 core 的组件源码，
  * 因此 LegendCategories / Popup 等组件使用的 Tailwind 类（包括 hover: / bg-black/30 / size-8 等）
@@ -252,19 +284,6 @@
     font-weight: 600;
     letter-spacing: 0.05em;
   }
-}
-
-/* Material Symbols Outlined 全局基础样式 */
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  display: inline-block;
-  line-height: 1;
-  text-transform: none;
-  letter-spacing: normal;
-  word-wrap: normal;
-  white-space: nowrap;
-  direction: ltr;
-  user-select: none;
 }
 
 /* Glass Panel Effect */
@@ -1549,18 +1568,19 @@
   font-size: 10px;
 }
 
-/* MouseLocation 控件 — 玻璃态深色版本 */
+/* MouseLocation 控件 */
 .l7-control-mouse-location {
   background-color: #fff;
   border-radius: 2px;
   box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.15);
   padding: 2px 4px;
   min-width: 130px;
+  color: #27313f;
 }
-/* 玻璃态深色风格 */
+/* 玻璃态风格 — 浅色模式与其他控件一致 */
 .l7-control--glass.l7-control-mouse-location {
-  background: var(--color-inverse-surface, #27313f);
-  color: var(--color-inverse-on-surface, #eaf1ff);
+  background: rgba(248, 249, 255, 0.9);
+  color: var(--color-on-surface-variant, #434655);
   border-radius: 8px;
   padding: 6px 12px;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -1575,6 +1595,44 @@
 .l7-control--glass.l7-control-mouse-location .material-symbols-outlined {
   font-size: 16px;
   opacity: 0.7;
+}
+
+/* Logo 控件 */
+.l7-control-logo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(248, 249, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.l7-control-logo-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.85;
+  transition: opacity 0.15s;
+  cursor: pointer;
+  text-decoration: none;
+  line-height: 0;
+}
+.l7-control-logo-link:hover {
+  opacity: 1;
+}
+[data-theme="dark"] .l7-control-logo {
+  background: rgba(22, 32, 48, 0.88);
+  border-color: rgba(180, 197, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] .l7-control-logo-link {
+  opacity: 0.7;
+}
+[data-theme="dark"] .l7-control-logo-link:hover {
+  opacity: 0.95;
 }
 
 /* Popper / Select 控件 */
