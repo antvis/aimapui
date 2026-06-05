@@ -318,6 +318,9 @@ const demos = [
 const componentDemos = demos.filter(d => d.group !== '应用模板');
 const groups = [...new Set(componentDemos.map((d) => d.group))];
 
+// Block 页面的 demos（来自应用模板）
+const blockDemos = demos.filter(d => d.group === '应用模板');
+
 // 从 URL 获取当前页面状态（支持 path 和 hash 两种模式）
 const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design' | 'skill'; demoIndex: number } => {
   // 优先读 pathname（预渲染 SEO 模式），fallback 到 hash（开发兼容）
@@ -340,11 +343,11 @@ const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block'
   if (route === 'docs' || route.startsWith('docs/')) return { page: 'docs', demoIndex: 0 };
   if (route === 'skill' || route === 'skill/') return { page: 'skill', demoIndex: 0 };
 
-  // 支持格式: block/app/MobileApp
+  // 支持格式: block/app/MobileApp — 在 blockDemos 中查找索引
   const blockMatch = route.match(/^block\/(.+)$/);
   if (blockMatch) {
     const blockFile = blockMatch[1];
-    const blockIndex = demos.findIndex((d) => d.file === blockFile);
+    const blockIndex = blockDemos.findIndex((d) => d.file === blockFile);
     if (blockIndex >= 0) return { page: 'block', demoIndex: blockIndex };
   }
   // 支持格式: demo/app/MobileApp 或 app/MobileApp
@@ -356,9 +359,6 @@ const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block'
   );
   return { page: 'demo', demoIndex: index >= 0 ? index : 0 };
 };
-
-// Block 页面的 demos（来自应用模板）
-const blockDemos = demos.filter(d => d.group === '应用模板');
 
 function App() {
   const [currentPage, setCurrentPage] = React.useState<'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design' | 'skill'>(() => getPageFromUrl().page);
@@ -419,7 +419,7 @@ function App() {
     const handleRouteChange = () => {
       const { page, demoIndex } = getPageFromUrl();
       setCurrentPage(page);
-      if (page === 'demo') {
+      if (page === 'demo' || page === 'block') {
         setCurrent(demoIndex);
       }
     };
@@ -456,7 +456,7 @@ function App() {
         <HomePage
           onNavigate={handleNavigateFromHome}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
-          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
@@ -481,7 +481,7 @@ function App() {
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
           onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
-          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
           markdownToHtml={markdownToHtml}
         />
@@ -502,8 +502,10 @@ function App() {
           onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
-          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
+          initialDemoIndex={current}
+          onDemoChange={(idx) => { setCurrent(idx); navigateTo('block/' + blockDemos[idx].file); }}
         />
       </div>
     );
@@ -524,7 +526,7 @@ function App() {
           onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
-          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
           markdownToHtml={markdownToHtml}
         />
@@ -542,7 +544,7 @@ function App() {
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
           onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
-          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
           docsMap={docsMap}
           demos={demos}
@@ -563,7 +565,7 @@ function App() {
           onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
-          onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+          onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
         />
       </div>
     );
@@ -579,7 +581,7 @@ function App() {
         onNavigateDemos={() => {}}
         onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
         onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
-        onNavigateBlock={() => { setCurrentPage('block'); navigateTo('block'); }}
+        onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
         onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
         onToggleTheme={() => setAppTheme((prev) => prev === 'light' ? 'dark' : 'light')}
       />

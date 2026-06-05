@@ -21,12 +21,19 @@ interface BlockPageProps {
   onNavigateDesign: () => void;
   onNavigateBlock: () => void;
   onNavigateSkill?: () => void;
+  initialDemoIndex?: number;
+  onDemoChange?: (index: number) => void;
 }
 
-export default function BlockPage({ demos, theme, sourceModules, onToggleTheme, onNavigateHome, onNavigateDemo, onNavigateDocs, onNavigateDesign, onNavigateSkill }: BlockPageProps) {
+export default function BlockPage({ demos, theme, sourceModules, onToggleTheme, onNavigateHome, onNavigateDemo, onNavigateDocs, onNavigateDesign, onNavigateSkill, initialDemoIndex = 0, onDemoChange }: BlockPageProps) {
   const isDark = theme === 'dark';
-  const [current, setCurrent] = React.useState(0);
+  const [current, setCurrent] = React.useState(initialDemoIndex);
   const [showPanel, setShowPanel] = React.useState(false);
+
+  const handleDemoChange = (idx: number) => {
+    setCurrent(idx);
+    onDemoChange?.(idx);
+  };
 
   const c = {
     bg: isDark ? '#000000' : '#ffffff',
@@ -74,7 +81,7 @@ export default function BlockPage({ demos, theme, sourceModules, onToggleTheme, 
                   return (
                     <div
                       key={d.file}
-                      onClick={() => setCurrent(idx)}
+                      onClick={() => handleDemoChange(idx)}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 10,
                         padding: '9px 16px', margin: '2px 6px', borderRadius: 6,
