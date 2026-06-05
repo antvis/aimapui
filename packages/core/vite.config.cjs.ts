@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import dts from 'vite-plugin-dts';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
@@ -8,10 +7,6 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    dts({
-      insertTypesEntry: true,
-      rollupTypes: true,
-    }),
   ],
   resolve: {
     alias: {
@@ -19,20 +14,26 @@ export default defineConfig({
     },
   },
   build: {
-    emptyOutDir: false, // 不清空输出目录
+    emptyOutDir: false,
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'aimapui',
       formats: ['cjs'],
-      fileName: () => 'index.cjs.js',
+      fileName: () => 'index.cjs',
     },
     rollupOptions: {
       external: [
         'react',
+        /^react\//,
         'react-dom',
+        /^react-dom\//,
+        'ahooks',
+        'clsx',
+        'geotiff',
+        'supercluster',
         '@antv/l7',
-        /^@antv\/l7-maps\//,   // 子路径按需导入: @antv/l7-maps/gaode, /mapbox, etc.
         '@antv/l7-maps',
+        /^@antv\/l7-maps\//,
         '@antv/l7-core',
         /^@antv\/l7-core\//,
         '@antv/l7-layers',
@@ -41,6 +42,12 @@ export default defineConfig({
         /^@antv\/l7-component\//,
         '@antv/l7-source',
         /^@antv\/l7-source\//,
+        '@antv/l7-scene',
+        /^@antv\/l7-scene\//,
+        '@antv/l7-utils',
+        /^@antv\/l7-utils\//,
+        '@antv/l7-map',
+        /^@antv\/l7-map\//,
       ],
       output: {
         globals: {

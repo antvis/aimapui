@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
@@ -21,29 +22,42 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'react',
+        /^react\//,
         'react-dom',
+        /^react-dom\//,
+        'ahooks',
+        'clsx',
+        'geotiff',
+        'supercluster',
         '@antv/l7',
-        /^@antv\/l7-maps\//,
         '@antv/l7-maps',
-        /^@antv\/l7-core\//,
+        /^@antv\/l7-maps\//,
         '@antv/l7-core',
-        /^@antv\/l7-layers\//,
+        /^@antv\/l7-core\//,
         '@antv/l7-layers',
-        /^@antv\/l7-component\//,
+        /^@antv\/l7-layers\//,
         '@antv/l7-component',
-        /^@antv\/l7-source\//,
+        /^@antv\/l7-component\//,
         '@antv/l7-source',
-        /^@antv\/l7-scene\//,
+        /^@antv\/l7-source\//,
         '@antv/l7-scene',
-        /^@antv\/l7-utils\//,
+        /^@antv\/l7-scene\//,
         '@antv/l7-utils',
-        /^@antv\/l7-map\//,
+        /^@antv\/l7-utils\//,
         '@antv/l7-map',
+        /^@antv\/l7-map\//,
       ],
       output: {
         globals: {
           react: 'React',
+          'react/jsx-runtime': 'React',
+          'react/jsx-dev-runtime': 'React',
           'react-dom': 'ReactDOM',
+          'react-dom/client': 'ReactDOM',
+          ahooks: 'ahooks',
+          clsx: 'clsx',
+          geotiff: 'GeoTIFF',
+          supercluster: 'Supercluster',
           '@antv/l7': 'L7',
           '@antv/l7-maps': 'L7Maps',
           '@antv/l7-core': 'L7Core',
@@ -60,9 +74,6 @@ export default defineConfig({
           return assetInfo.names?.[0] ?? 'assets/[name]-[hash][extname]';
         },
       },
-    },
-    commonjsOptions: {
-      extensions: ['.js', '.ts', '.tsx'],
     },
   },
 });
