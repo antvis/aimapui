@@ -45,6 +45,7 @@ export default function GoogleMap() {
     <ErrorBoundary>
       <div style={{ width: '100%', height: '100%', position: 'relative' }}>
         <AiMap
+          autoFit
           map={{
             basemap: 'google',
             token: 'AIzaSyA6U7oKLKbPVUicuCaGQ25_zIMep-zGBcU',

@@ -147,6 +147,7 @@ export default function TravelStatsMap() {
       {/* ========== 地图区域 ========== */}
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <AiMap
+          autoFit
           map={{
             basemap: 'gaode',
             center: [108, 34],

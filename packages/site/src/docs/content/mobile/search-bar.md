@@ -32,7 +32,7 @@ function MapSearch() {
   const [keyword, setKeyword] = useState('')
 
   return (
-    <AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
+    <AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
       <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 40 }}>
         <SearchBar
           placeholder="搜索门店、地址..."
@@ -54,7 +54,7 @@ function MapSearch() {
 ```tsx
 import { AiMap, SearchBar } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
   <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 40 }}>
     <SearchBar
       placeholder="搜索附近美食..."

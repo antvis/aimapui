@@ -126,7 +126,7 @@ const provinces = {
   ]
 }
 
-<AiMap map={{ basemap: 'gaode', center: [105, 35], zoom: 4 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [105, 35], zoom: 4 }}>
   <BubbleLayer
     source={provinces}
     sourceType="geojson"

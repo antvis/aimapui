@@ -65,7 +65,7 @@ function handleToggle(layerId: string, visible: boolean) {
   if (layerId === 'poi') poiLayer.setVisible(visible)
 }
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 11 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 11 }}>
   <LayerSwitchControl
     position="topright"
     layers={layers}
@@ -95,7 +95,7 @@ function handleOpacity(layerId: string, opacity: number) {
   layerMap[layerId]?.setOpacity(opacity)
 }
 
-<AiMap map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 8 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 8 }}>
   <LayerSwitchControl
     position="topright"
     layers={weatherLayers}

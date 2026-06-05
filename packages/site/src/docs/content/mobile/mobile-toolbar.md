@@ -47,7 +47,7 @@ interface MobileToolbarConfig {
 ```tsx
 import { AiMap, MobileToolbar } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
   <MobileToolbar
     config={{
       items: ['zoomIn', 'zoomOut', 'locate'],
@@ -64,7 +64,7 @@ import { AiMap, MobileToolbar } from '@antv/aimapui'
 ```tsx
 import { AiMap, MobileToolbar } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
   <MobileToolbar
     config={{
       items: ['zoomIn', 'zoomOut', 'reset', 'locate'],
@@ -81,7 +81,7 @@ import { AiMap, MobileToolbar } from '@antv/aimapui'
 ```tsx
 import { AiMap, SearchBar, MobileToolbar } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
   {/* 顶部搜索栏 */}
   <div style={{ position: 'absolute', top: 12, left: 12, right: 12, zIndex: 40 }}>
     <SearchBar

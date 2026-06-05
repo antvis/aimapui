@@ -46,6 +46,7 @@ export default function TencentMap() {
     <ErrorBoundary>
       <div style={{ width: '100%', height: '100%', position: 'relative' }}>
         <AiMap
+          autoFit
           map={{
             basemap: 'tencent',
             token: 'VZ2BZ-EZ7KZ-D4RXM-TZQDP-Q3PQH-TVF5L',

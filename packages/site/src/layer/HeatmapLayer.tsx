@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { AiMap, HeatmapLayer, PointLayer, ZoomControl, ScaleControl } from '@antv/aimapui';
+import { AiMap, HeatmapLayer, PointLayer, ZoomControl, ScaleControl, LegendRamp, LegendControl } from '@antv/aimapui';
 import { Tooltip } from '@antv/aimapui';
 import type { LayerEventPayload } from '@antv/aimapui';
 
@@ -20,6 +20,7 @@ export default function Demo12Heatmap() {
   const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; value: number }>({
     visible: false, lng: 0, lat: 0, value: 0,
   });
+  const [legend, setLegend] = useState<{ colors: string[]; labels: string[] } | null>(null);
 
   const handleMouseMove = useCallback((payload: LayerEventPayload) => {
     if (!payload.feature) return;
@@ -28,6 +29,18 @@ export default function Demo12Heatmap() {
 
   const handleMouseLeave = useCallback(() => {
     setTooltipInfo((prev) => ({ ...prev, visible: false }));
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleLayerCreated = useCallback((layer: any) => {
+    layer.on('legend:color', (e: any) => {
+      const items = e?.items ?? [];
+      if (items.length === 0) return;
+      setLegend({
+        colors: items.map((d: any) => d.color),
+        labels: items.map((d: any) => formatValue(d.value)),
+      });
+    });
   }, []);
 
   return (
@@ -58,6 +71,7 @@ export default function Demo12Heatmap() {
           }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
+          onLayerCreated={handleLayerCreated}
         />
         <PointLayer source={centers} color="#F6BD16" size={8} />
         <Tooltip
@@ -70,6 +84,18 @@ export default function Demo12Heatmap() {
         <ZoomControl />
         <ScaleControl />
       </AiMap>
+      {legend && (
+        <div style={{ position: 'absolute', right: 16, bottom: 16, padding: '12px 14px', background: 'rgba(0,0,0,0.75)', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+          <LegendRamp type="ramp" title="热力值" labels={legend.labels} colors={legend.colors} isContinuous />
+        </div>
+      )}
     </div>
   );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function formatValue(v: any): string {
+  if (Array.isArray(v)) return v.map((n: number) => Math.round(n)).join('–');
+  if (typeof v === 'number') return String(Math.round(v));
+  return String(v ?? '');
 }

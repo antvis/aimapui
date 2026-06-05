@@ -11,6 +11,7 @@ export default function MaplibreMap() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'maplibre',
           center: [105, 35],

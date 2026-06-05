@@ -28,6 +28,19 @@ export const docsNav: DocNavGroup[] = [
     ],
   },
   {
+    title: 'Map Engines',
+    items: [
+      { id: 'engines/gaode', name: '高德地图', icon: 'map' },
+      { id: 'engines/maplibre', name: 'MapLibre', icon: 'public' },
+      { id: 'engines/mapbox', name: 'Mapbox', icon: 'travel_explore' },
+      { id: 'engines/tianditu', name: '天地图', icon: 'flag' },
+      { id: 'engines/tencent', name: '腾讯地图', icon: 'chat' },
+      { id: 'engines/baidu', name: '百度地图', icon: 'explore' },
+      { id: 'engines/google', name: 'Google 地图', icon: 'language' },
+      { id: 'engines/independent', name: '独立引擎', icon: 'developer_board' },
+    ],
+  },
+  {
     title: 'Base Layers',
     items: [
       { id: 'layers/point-layer', name: 'PointLayer', icon: 'circle' },

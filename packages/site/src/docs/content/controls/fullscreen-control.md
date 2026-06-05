@@ -40,7 +40,7 @@ type ControlPosition =
 ```tsx
 import { AiMap, FullscreenControl } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
   <FullscreenControl />
 </AiMap>
 ```
@@ -59,7 +59,7 @@ const dashboardRef = useRef<HTMLDivElement>(null)
     {/* 筛选面板、图例等 */}
   </aside>
   <div style={{ flex: 1 }}>
-    <AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 11 }}>
+    <AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 11 }}>
       <FullscreenControl position="topright" container={dashboardRef.current} />
     </AiMap>
   </div>

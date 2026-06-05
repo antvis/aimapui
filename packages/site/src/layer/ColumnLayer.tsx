@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { AiMap, PointLayer, ZoomControl } from '@antv/aimapui';
+import { AiMap, PointLayer, ZoomControl, LegendCategories, LegendControl } from '@antv/aimapui';
 import { Tooltip } from '@antv/aimapui';
 import type { LayerEventPayload } from '@antv/aimapui';
 
@@ -14,6 +14,7 @@ export default function ColumnLayer() {
   const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; name: string; price: number }>({
     visible: false, lng: 0, lat: 0, name: '', price: 0,
   });
+  const [legend, setLegend] = useState<{ colors: string[]; labels: string[] } | null>(null);
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/basement_prod/893d1d5f-11d9-45f3-8322-ee9140d288ae.json')
@@ -35,9 +36,22 @@ export default function ColumnLayer() {
     setTooltipInfo((prev) => ({ ...prev, visible: false }));
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleLayerCreated = useCallback((layer: any) => {
+    layer.on('legend:color', (e: any) => {
+      const items = e?.items ?? [];
+      if (items.length === 0) return;
+      setLegend({
+        colors: items.map((d: any) => d.color),
+        labels: items.map((d: any) => String(d.value ?? '')),
+      });
+    });
+  }, []);
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'gaode',
           center: [121.400257, 31.25287],
@@ -61,6 +75,7 @@ export default function ColumnLayer() {
             active
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
+            onLayerCreated={handleLayerCreated}
           />
         )}
         <Tooltip
@@ -75,6 +90,11 @@ export default function ColumnLayer() {
         />
         <ZoomControl position="bottomright" />
       </AiMap>
+      {legend && (
+        <div style={{ position: 'absolute', right: 16, bottom: 16, padding: '12px 14px', background: 'rgba(0,0,0,0.75)', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+          <LegendCategories type="categories" title="小区名称" labels={legend.labels} colors={legend.colors} swatchShape="circle" />
+        </div>
+      )}
     </div>
   );
 }

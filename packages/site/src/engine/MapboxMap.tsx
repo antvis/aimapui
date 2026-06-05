@@ -11,6 +11,7 @@ export default function MapboxMap() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'mapbox',
           center: [105, 35],

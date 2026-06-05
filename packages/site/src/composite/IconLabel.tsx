@@ -136,7 +136,7 @@ export default function Demo21IconLabel() {
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* 地图 */}
       <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-        <AiMap map={{ basemap: 'gaode', center: [121.434765, 31.256735], zoom: 14.83, style: 'dark' }}>
+        <AiMap autoFit map={{ basemap: 'gaode', center: [121.434765, 31.256735], zoom: 14.83, style: 'dark' }}>
           {data && (
             <IconLayer
               source={data}

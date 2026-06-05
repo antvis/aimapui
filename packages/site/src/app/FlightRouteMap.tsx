@@ -103,6 +103,7 @@ export default function FlightRouteMap() {
       {/* 地图区域 */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: NAV_HEIGHT }}>
         <AiMap
+          autoFit
           map={{
             basemap: 'gaode',
             center: [105, 30],

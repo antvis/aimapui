@@ -110,6 +110,7 @@ const cities = [
 ]
 
 <AiMap
+  autoFit
   map={{ basemap: 'gaode', center: [108, 34], zoom: 4, token: 'YOUR_TOKEN' }}
   theme="dark"
   onSceneReady={(scene) => console.log('场景就绪', scene)}
@@ -129,6 +130,7 @@ const cities = [
 
 ```tsx
 <AiMap
+  autoFit
   schema={{
     map: { basemap: 'gaode', center: [108, 34], zoom: 4, token: 'YOUR_TOKEN' },
     layers: [
@@ -150,6 +152,7 @@ const cities = [
 
 ```tsx
 <AiMap
+  autoFit
   map={{
     basemap: 'gaode',
     center: [116.397, 39.908],
@@ -174,6 +177,7 @@ import { AiMap, PointLayer, ZoomControl, ErrorBoundary } from '@antv/aimapui'
 
 <ErrorBoundary>
   <AiMap
+    autoFit
     map={{
       basemap: 'google',
       token: 'YOUR_GOOGLE_MAPS_API_KEY',
@@ -222,6 +226,7 @@ function GoogleMapWithTheme() {
   return (
     <ErrorBoundary>
       <AiMap
+        autoFit
         map={{
           basemap: 'google',
           token: 'YOUR_GOOGLE_MAPS_API_KEY',
@@ -251,6 +256,7 @@ function GoogleMapWithTheme() {
 
 ```tsx
 <AiMap
+  autoFit
   map={{
     basemap: 'gaode',
     bounds: [[73.5, 18.2], [135.1, 53.6]],  // 中国疆域范围

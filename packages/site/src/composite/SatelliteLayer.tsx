@@ -17,6 +17,7 @@ export default function DemoSatelliteLayer() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'map',
           center: [116.39, 39.9],

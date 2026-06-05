@@ -11,6 +11,7 @@ export default function GaodeMap() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'gaode',
           center: [105, 35],

@@ -163,6 +163,7 @@ export default function AdministrativeMap() {
       </div>
 
       <AiMap
+        autoFit
         map={{
           basemap: 'gaode',
           center: [104.5, 36.5],

@@ -34,6 +34,7 @@ export default function ArcMap() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'gaode',
           center: [-74.0697, 40.7204],

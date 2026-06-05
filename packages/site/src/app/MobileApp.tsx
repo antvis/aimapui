@@ -174,6 +174,7 @@ export default function MobileApp() {
       {/* 全屏地图 */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         <AiMap
+          autoFit
           map={{
             basemap: 'gaode',
             center: [120.13, 30.25],

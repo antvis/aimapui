@@ -47,6 +47,7 @@ export default function TiffRasterLayerDemo() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'gaode',
           center: mapCfg.center,

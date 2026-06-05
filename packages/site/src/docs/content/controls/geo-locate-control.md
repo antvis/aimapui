@@ -40,7 +40,7 @@ type ControlPosition =
 ```tsx
 import { AiMap, GeoLocateControl } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
   <GeoLocateControl />
 </AiMap>
 ```
@@ -60,7 +60,7 @@ async function wgs84ToGcj02(lng: number, lat: number): Promise<[number, number]>
   return [offsetLng, offsetLat]
 }
 
-<AiMap map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 11 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 11 }}>
   <GeoLocateControl
     position="topright"
     transform={async ([lng, lat]) => wgs84ToGcj02(lng, lat)}

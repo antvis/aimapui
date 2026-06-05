@@ -56,6 +56,7 @@ export default function IndependentMap() {
 
   return (
     <AiMap
+      autoFit
       key={activeStyle}
       map={{
         basemap: 'map',

@@ -59,7 +59,7 @@ export default function Demo20BubbleText() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <AiMap map={{ basemap: 'gaode', center: [60.268, 30.3628], zoom: 1.8, style: 'light' }}>
+      <AiMap autoFit map={{ basemap: 'gaode', center: [60.268, 30.3628], zoom: 1.8, style: 'light' }}>
         {data && (
           <BubbleLayer
             source={data}

@@ -60,7 +60,7 @@ type ControlPosition =
 ```tsx
 import { AiMap, MapThemeControl } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 11 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 11 }}>
   <MapThemeControl
     onThemeChange={(value) => console.log('切换到主题：', value)}
   />
@@ -80,7 +80,7 @@ const themes = [
   { text: '卫星', value: 'satellite', preview: 'linear-gradient(135deg, #2d5016, #8baa5c)' },
 ]
 
-<AiMap map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 12 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 12 }}>
   <MapThemeControl
     position="topright"
     options={themes}

@@ -113,7 +113,7 @@ CLI 拷贝过去的组件会自动按 `components.json` 中的 alias 写入，�
 import { AiMap } from '@/components/map/AiMap';
 import { PointLayer } from '@/components/map/PointLayer';
 
-<AiMap map={{ basemap: 'gaode', center: [116.4, 39.9], zoom: 10 /* token: 'YOUR_GAODE_TOKEN' */ }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.4, 39.9], zoom: 10 /* token: 'YOUR_GAODE_TOKEN' */ }}>
   <PointLayer source={data} sourceType="json" sourceConfig={{ x: 'lng', y: 'lat' }} />
 </AiMap>
 ```
@@ -130,6 +130,7 @@ import { AiMap } from '@antv/aimapui';
 export default function BasicMap() {
   return (
     <AiMap
+      autoFit
       map={{
         basemap: 'gaode',
         center: [116.397, 39.908],  // 北京天安门
@@ -158,7 +159,7 @@ const cities = [
   { lng: 113.264, lat: 23.129, name: '广州' },
 ];
 
-<AiMap map={{ basemap: 'gaode', center: [108, 34], zoom: 4 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [108, 34], zoom: 4 }}>
   <PointLayer
     source={cities}
     sourceType="json"
@@ -182,6 +183,7 @@ const cities = [
 
 ```tsx
 <AiMap
+  autoFit
   schema={{
     map: { basemap: 'gaode', center: [108, 34], zoom: 4 },
     layers: [
@@ -212,7 +214,7 @@ Schema 模式特点：
 内置亮色/暗色双主题，`system` 跟随系统偏好：
 
 ```tsx
-<AiMap theme="dark" map={{ ... }}>
+<AiMap autoFit theme="dark" map={{ ... }}>
   ...
 </AiMap>
 ```

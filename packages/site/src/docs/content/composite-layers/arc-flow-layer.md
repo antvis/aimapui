@@ -68,7 +68,7 @@ const data = [
   { fromLng: 116.397, fromLat: 39.908, toLng: 113.264, toLat: 23.129 },
 ];
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 4, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 4, token }}>
   <ArcFlowLayer source={data} color="#2563EB" lineWidth={1.5} />
 </AiMap>
 ```
@@ -76,7 +76,7 @@ const data = [
 ### 渐变弧线 + 流动动画
 
 ```tsx
-<AiMap map={{ basemap: 'gaode', center: [110, 35], zoom: 4, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [110, 35], zoom: 4, token }}>
   <ArcFlowLayer
     source={flowData}
     shape="arc3d"
@@ -95,7 +95,7 @@ const data = [
 ### 字段映射颜色
 
 ```tsx
-<AiMap map={{ basemap: 'gaode', center: [110, 35], zoom: 4, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [110, 35], zoom: 4, token }}>
   <ArcFlowLayer
     source={flowData}
     colorMode="field"

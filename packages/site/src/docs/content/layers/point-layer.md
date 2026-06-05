@@ -149,7 +149,7 @@ const cities = [
   { lng: 114.057, lat: 22.543, name: '深圳', category: '经济特区' },
 ]
 
-<AiMap map={{ basemap: 'gaode', center: [108, 34], zoom: 4 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [108, 34], zoom: 4 }}>
   <PointLayer
     source={cities}
     sourceType="json"

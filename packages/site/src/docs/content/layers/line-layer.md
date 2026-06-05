@@ -87,7 +87,7 @@ LineLayer 继承 [LayerSchema 公共属性](./point-layer#公共属性)，此处
 ```tsx
 import { AiMap, LineLayer } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [108, 34], zoom: 4, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [108, 34], zoom: 4, token }}>
   <LineLayer
     source={provinceBoundaries}
     sourceType="geojson"
@@ -109,7 +109,7 @@ const flows = [
   { fromLng: 121.473, fromLat: 31.230, toLng: 114.057, toLat: 22.543, volume: 280 },
 ]
 
-<AiMap map={{ basemap: 'gaode', center: [112, 30], zoom: 5, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [112, 30], zoom: 5, token }}>
   <LineLayer
     source={flows}
     sourceType="json"
@@ -129,7 +129,7 @@ const flows = [
 `arc3d` 需要地图设置 pitch 倾角才能看到立体效果：
 
 ```tsx
-<AiMap map={{ basemap: 'gaode', center: [105, 35], zoom: 4, pitch: 45, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [105, 35], zoom: 4, pitch: 45, token }}>
   <LineLayer
     source={flightRoutes}
     sourceType="json"

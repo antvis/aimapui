@@ -73,7 +73,7 @@ const stops = [
   { lng: 121.473, lat: 31.230, name: '上海' },
 ];
 
-<AiMap map={{ basemap: 'gaode', center: [118, 36], zoom: 6, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [118, 36], zoom: 6, token }}>
   <RouteLayer path={path} stops={stops} color="#3B82F6" showStopIndex />
 </AiMap>
 ```
@@ -81,7 +81,7 @@ const stops = [
 ### 发光路线 + 流动动画
 
 ```tsx
-<AiMap map={{ basemap: 'gaode', center: [118, 36], zoom: 6, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [118, 36], zoom: 6, token }}>
   <RouteLayer
     path={path}
     stops={stops}
@@ -103,7 +103,7 @@ const segments = [
   { startIndex: 1, endIndex: 2, color: '#F59E0B' },
 ];
 
-<AiMap map={{ basemap: 'gaode', center: [118, 36], zoom: 6, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [118, 36], zoom: 6, token }}>
   <RouteLayer
     path={path}
     stops={stops}

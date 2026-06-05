@@ -80,6 +80,7 @@ export default function TiandituMap() {
 
   return (
     <AiMap
+      autoFit
       map={{
         basemap: 'tianditu',
         token: TDT_TOKEN,

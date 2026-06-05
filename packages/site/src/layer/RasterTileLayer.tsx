@@ -7,6 +7,7 @@ export default function Demo29RasterTileLayer() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'map',
           center: [120.2, 30.25],

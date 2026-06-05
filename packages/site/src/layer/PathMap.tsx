@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { AiMap, LineLayer, ZoomControl } from '@antv/aimapui';
+import { AiMap, LineLayer, ZoomControl, LegendRamp, LegendControl } from '@antv/aimapui';
 import { Tooltip } from '@antv/aimapui';
 import type { LayerEventPayload } from '@antv/aimapui';
 
@@ -14,6 +14,7 @@ export default function PathMap() {
   const [tooltipInfo, setTooltipInfo] = useState<{ visible: boolean; lng: number; lat: number; level: number }>({
     visible: false, lng: 0, lat: 0, level: 0,
   });
+  const [legend, setLegend] = useState<{ colors: string[]; labels: string[] } | null>(null);
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/basement_prod/ee07641d-5490-4768-9826-25862e8019e1.json')
@@ -31,9 +32,22 @@ export default function PathMap() {
     setTooltipInfo((prev) => ({ ...prev, visible: false }));
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleLayerCreated = useCallback((layer: any) => {
+    layer.on('legend:color', (e: any) => {
+      const items = e?.items ?? [];
+      if (items.length === 0) return;
+      setLegend({
+        colors: items.map((d: any) => d.color),
+        labels: items.map((d: any) => formatValue(d.value)),
+      });
+    });
+  }, []);
+
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'gaode',
           center: [103.837, 1.360],
@@ -54,6 +68,7 @@ export default function PathMap() {
             active
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
+            onLayerCreated={handleLayerCreated}
           />
         )}
         <Tooltip
@@ -65,6 +80,18 @@ export default function PathMap() {
         />
         <ZoomControl position="bottomright" />
       </AiMap>
+      {legend && (
+        <div style={{ position: 'absolute', right: 16, bottom: 16, padding: '12px 14px', background: 'rgba(255,255,255,0.92)', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <LegendRamp type="ramp" title="路线等级" labels={legend.labels} colors={legend.colors} />
+        </div>
+      )}
     </div>
   );
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function formatValue(v: any): string {
+  if (Array.isArray(v)) return v.map((n: number) => Math.round(n)).join('–');
+  if (typeof v === 'number') return String(Math.round(v));
+  return String(v ?? '');
 }

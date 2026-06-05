@@ -85,7 +85,7 @@ PolygonLayer 继承 [LayerSchema 公共属性](./point-layer#公共属性)，此
 ```tsx
 import { AiMap, PolygonLayer } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [108, 34], zoom: 4, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [108, 34], zoom: 4, token }}>
   <PolygonLayer
     source={provinces}
     sourceType="geojson"
@@ -102,7 +102,7 @@ import { AiMap, PolygonLayer } from '@antv/aimapui'
 `extrusion` 模式配合 `sizeField` 按数值拉起高度，需要设置地图 pitch：
 
 ```tsx
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 15, pitch: 50, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 15, pitch: 50, token }}>
   <PolygonLayer
     source={buildings}
     sourceType="geojson"

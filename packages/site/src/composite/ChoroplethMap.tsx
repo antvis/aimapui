@@ -63,7 +63,7 @@ export default function Demo32ChoroplethMap() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <AiMap map={{ basemap: 'gaode', center: [116.368652, 39.93866], zoom: 10.07, style: 'light' }}>
+      <AiMap autoFit map={{ basemap: 'gaode', center: [116.368652, 39.93866], zoom: 10.07, style: 'light' }}>
         {data && (
           <FillLayer
             source={data}

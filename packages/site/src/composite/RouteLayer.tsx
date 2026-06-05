@@ -1,9 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { AiMap, ZoomControl } from '@antv/aimapui';
 import { RouteLayer } from '@antv/aimapui';
-import { Tooltip } from '@antv/aimapui';
 import { LegendCategories } from '@antv/aimapui';
-import type { LayerEventPayload } from '@antv/aimapui';
 
 /**
  * 杭州三日游路径地图
@@ -77,24 +75,10 @@ const DAY_COLORS = {
 };
 
 export default function RouteLayerDemo() {
-  const [tooltipInfo, setTooltipInfo] = useState<{
-    visible: boolean; lng: number; lat: number; name: string;
-  }>({ visible: false, lng: 0, lat: 0, name: '' });
-
-  const handleStopClick = useCallback((payload: LayerEventPayload) => {
-    const feature = payload.feature;
-    if (!feature) return;
-    setTooltipInfo({
-      visible: true,
-      lng: payload.lng,
-      lat: payload.lat,
-      name: String(feature.name ?? ''),
-    });
-  }, []);
-
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{
           basemap: 'gaode',
           center: [120.13, 30.25],
@@ -110,9 +94,9 @@ export default function RouteLayerDemo() {
           color={DAY_COLORS.day1}
           lineWidth={2}
           glow
+          animate
           stopSize={8}
           stopRenderer="point"
-          onStopClick={handleStopClick}
         />
 
         {/* Day 2 — 灵隐-西溪 */}
@@ -126,7 +110,6 @@ export default function RouteLayerDemo() {
           endColor={DAY_COLORS.day2}
           stopRenderer="marker"
           stopMarkerVariant="circle"
-          onStopClick={handleStopClick}
         />
 
         {/* Day 3 — 钱塘江-滨江 */}
@@ -140,15 +123,6 @@ export default function RouteLayerDemo() {
           endColor={DAY_COLORS.day3}
           stopRenderer="icon"
           stopIconSize={28}
-          onStopClick={handleStopClick}
-        />
-
-        <Tooltip
-          longitude={tooltipInfo.lng}
-          latitude={tooltipInfo.lat}
-          variant="glass"
-          visible={tooltipInfo.visible}
-          content={tooltipInfo.name}
         />
 
         <ZoomControl position="bottomright" />

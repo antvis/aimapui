@@ -44,7 +44,7 @@ type ControlPosition =
 ```tsx
 import { AiMap, ZoomControl } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
   <ZoomControl />
 </AiMap>
 ```

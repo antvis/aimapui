@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { AiMap, PointLayer, LineLayer, HeatmapLayer, ZoomControl } from '@antv/aimapui';
+import { AiMap, PointLayer, LineLayer, HeatmapLayer, ZoomControl, LegendRamp, LegendControl } from '@antv/aimapui';
 import { Tooltip } from '@antv/aimapui';
 import type { LayerEventPayload } from '@antv/aimapui';
 const cities = [
@@ -46,7 +46,26 @@ export default function Demo13MultiLayer() {
     visible: false, lng: 0, lat: 0, items: [],
   });
 
+  const [legend, setLegend] = useState<{ colors: string[]; labels: string[] } | null>(null);
+
   const toggle = (key: LayerKey) => setVisible((v) => ({ ...v, [key]: !v[key] }));
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handlePointLayerCreated = useCallback((layer: any) => {
+    layer.on('legend:color', (e: any) => {
+      const items = e?.items ?? [];
+      if (items.length === 0) return;
+      setLegend({
+        colors: items.map((d: any) => d.color),
+        labels: items.map((d: any) => {
+          const v = d.value;
+          if (Array.isArray(v)) return v.map((n: number) => Math.round(n)).join('–');
+          if (typeof v === 'number') return String(Math.round(v));
+          return String(v ?? '');
+        }),
+      });
+    });
+  }, []);
 
   const handlePointMouseMove = useCallback((payload: LayerEventPayload) => {
     if (!payload.feature) return;
@@ -70,6 +89,7 @@ export default function Demo13MultiLayer() {
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
+        autoFit
         map={{ basemap: 'gaode', center: [108, 32], zoom: 4, style: visible.heatmap ? 'dark' : 'light' }}
       >
         {visible.points && (
@@ -82,6 +102,7 @@ export default function Demo13MultiLayer() {
             active={{ color: '#fff' }}
             onMouseMove={handlePointMouseMove}
             onMouseLeave={handleMouseLeave}
+            onLayerCreated={handlePointLayerCreated}
           />
         )}
         {visible.lines && (
@@ -109,6 +130,11 @@ export default function Demo13MultiLayer() {
       </AiMap>
 
       {/* 控制面板 */}
+      {legend && visible.points && (
+        <div style={{ position: 'absolute', right: 16, bottom: 16, padding: '12px 14px', background: 'rgba(255,255,255,0.92)', borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <LegendRamp type="ramp" title="人口 (万)" labels={legend.labels} colors={legend.colors} isContinuous />
+        </div>
+      )}
       </div>
   );
 }

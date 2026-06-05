@@ -89,7 +89,7 @@ import { Popup } from '@antv/aimapui'
 ```tsx
 import { AiMap, Popup } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10, token }}>
   <Popup longitude={116.397} latitude={39.908} content="北京天安门" />
 </AiMap>
 ```
@@ -101,7 +101,7 @@ import { AiMap, Popup } from '@antv/aimapui'
 ```tsx
 const [popup, setPopup] = useState<{ lng: number; lat: number; name: string } | null>(null)
 
-<AiMap map={{ basemap: 'gaode', center: [108, 34], zoom: 4, token }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [108, 34], zoom: 4, token }}>
   <PointLayer
     source={cities}
     sourceType="json"

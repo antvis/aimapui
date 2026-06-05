@@ -47,7 +47,7 @@ const pois = [
   { name: '全季酒店', distance: '450m', rating: 4.7 },
 ]
 
-<AiMap map={{ basemap: 'gaode', center: [116.461, 39.908], zoom: 15 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.461, 39.908], zoom: 15 }}>
   <BottomSheet defaultSnap="half">
     <div style={{ padding: '0 16px' }}>
       <h3 style={{ margin: '0 0 12px' }}>附近推荐</h3>
@@ -74,7 +74,7 @@ function MapWithSheet() {
   const [snap, setSnap] = useState<'collapsed' | 'half' | 'expanded'>('half')
 
   return (
-    <AiMap map={{ basemap: 'gaode', center: [116.461, 39.908], zoom: 15 }}>
+    <AiMap autoFit map={{ basemap: 'gaode', center: [116.461, 39.908], zoom: 15 }}>
       {snap !== 'expanded' && (
         <MobileToolbar config={{ items: ['zoomIn', 'zoomOut', 'locate'], position: 'bottom' }} />
       )}

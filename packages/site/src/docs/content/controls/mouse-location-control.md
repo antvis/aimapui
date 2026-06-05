@@ -41,7 +41,7 @@ type ControlPosition =
 ```tsx
 import { AiMap, MouseLocationControl } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 14 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 14 }}>
   <MouseLocationControl />
 </AiMap>
 ```
@@ -60,7 +60,7 @@ function toDms([lng, lat]: [number, number]): [number, number] {
   return [Number(dLng), Number(dLat)]
 }
 
-<AiMap map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 11 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 11 }}>
   <MouseLocationControl
     position="bottomleft"
     precision={4}

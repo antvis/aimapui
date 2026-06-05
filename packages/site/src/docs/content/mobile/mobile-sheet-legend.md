@@ -85,7 +85,7 @@ const legends = [
   },
 ]
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 10 }}>
   <MobileSheetLegend legends={legends} />
 </AiMap>
 ```
@@ -112,7 +112,7 @@ function MapWithLegend() {
   ]
 
   return (
-    <AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
+    <AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 12 }}>
       {/* 图层渲染... */}
       <MobileSheetLegend
         legends={legends}

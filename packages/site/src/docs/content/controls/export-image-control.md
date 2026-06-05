@@ -41,7 +41,7 @@ type ControlPosition =
 ```tsx
 import { AiMap, ExportImageControl } from '@antv/aimapui'
 
-<AiMap map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 11 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.397, 39.908], zoom: 11 }}>
   <ExportImageControl />
 </AiMap>
 ```
@@ -55,7 +55,7 @@ import { AiMap, ExportImageControl } from '@antv/aimapui'
 
 const reportId = 'rpt-20260527-001'
 
-<AiMap map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 12 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [121.473, 31.230], zoom: 12 }}>
   <ExportImageControl
     position="topright"
     format="jpg"

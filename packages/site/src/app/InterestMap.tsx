@@ -357,6 +357,7 @@ export default function InterestMap() {
       {/* ========== 地图区域 ========== */}
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
         <AiMap
+          autoFit
           map={{
             basemap: 'gaode',
             center: [116.338, 39.985],

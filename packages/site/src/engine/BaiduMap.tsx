@@ -44,6 +44,7 @@ export default function BaiduMap() {
     <ErrorBoundary>
       <div style={{ width: '100%', height: '100%', position: 'relative' }}>
         <AiMap
+          autoFit
           map={{
             basemap: 'baidu',
             token: 'ShSrOHgrilK8rvaXV6kHC8vwxgnvF3CV',

@@ -178,6 +178,7 @@ export default function CheckInMap() {
       {/* ── 全屏地图 ── */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
         <AiMap
+          autoFit
           map={{
             basemap: 'gaode',
             center: [116.397, 39.918],

@@ -84,7 +84,7 @@ const bikePoints = [
   { lng: 121.503, lat: 31.240, count: 33 },
 ]
 
-<AiMap map={{ basemap: 'gaode', center: [116.4, 39.9], zoom: 11 }}>
+<AiMap autoFit map={{ basemap: 'gaode', center: [116.4, 39.9], zoom: 11 }}>
   <HeatmapLayer
     source={bikePoints}
     sourceType="json"
@@ -119,7 +119,7 @@ const bikePoints = [
 深色底图 + additive 混合模式效果最佳：
 
 ```tsx
-<AiMap theme="dark" map={{ basemap: 'gaode', style: 'dark', center: [116.4, 39.9], zoom: 11 }}>
+<AiMap autoFit theme="dark" map={{ basemap: 'gaode', style: 'dark', center: [116.4, 39.9], zoom: 11 }}>
   <HeatmapLayer
     source={crimeData}
     sourceType="json"

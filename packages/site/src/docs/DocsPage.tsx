@@ -64,6 +64,14 @@ const docToDemoMap: Record<string, string> = {
   'controls/scale-control': 'control/ScaleControl',
   // 容器 & 地图引擎
   'container/map-scene': 'engine/MaplibreMap',
+  'engines/gaode': 'engine/GaodeMap',
+  'engines/maplibre': 'engine/MaplibreMap',
+  'engines/mapbox': 'engine/MapboxMap',
+  'engines/tianditu': 'engine/TiandituMap',
+  'engines/tencent': 'engine/TencentMap',
+  'engines/baidu': 'engine/BaiduMap',
+  'engines/google': 'engine/GoogleMap',
+  'engines/independent': 'engine/IndependentMap',
   // 图例
   'legends/legend-categories': 'layer/LegendCategoriesDemo',
   'legends/legend-ramp': 'layer/LegendRampDemo',
@@ -620,7 +628,7 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
         {/* 标题区域 + 复制按钮 */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 4 }}>
           <div style={{ flex: 1 }} />
-          <CopyMarkdownButton markdown={content} isDark={isDark} />
+          <MarkdownActions markdown={content} isDark={isDark} />
         </div>
 
         {/* 标题 + 描述部分 */}

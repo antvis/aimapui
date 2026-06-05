@@ -452,6 +452,7 @@ export default function PcApp() {
         }}
       >
         <AiMap
+          autoFit
           map={{
             basemap: 'gaode',
             center: [121.47, 31.23],

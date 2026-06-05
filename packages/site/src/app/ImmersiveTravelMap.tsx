@@ -57,6 +57,7 @@ export default function ImmersiveTravelMap() {
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', fontFamily: "'Inter', system-ui, sans-serif" }}>
       {/* 地图主体 — 全屏沉浸 */}
       <AiMap
+        autoFit
         map={{
           basemap: 'gaode',
           center: [20, 30],
