@@ -49,6 +49,7 @@ import { AiMap } from '@antv/aimapui';
 | `map` | `MapSchema` | — | 地图配置（组件化模式） |
 | `schema` | `AiMapSchema` | — | 完整 Schema（JSON/AI 模式） |
 | `theme` | `'light' \| 'dark' \| 'system'` | `'light'` | 主题模式 |
+| `autoFit` | `boolean` | — | 自动缩放至所有图层数据范围（覆盖 center/zoom） |
 | `onSceneReady` | `(scene: Scene) => void` | — | L7 Scene 就绪回调 |
 | `onLayerClick` | `(payload: LayerEventPayload) => void` | — | 全局图层点击 |
 | `onLayerMouseMove` | `(payload) => void` | — | 全局图层鼠标移动 |
@@ -60,6 +61,18 @@ import { AiMap } from '@antv/aimapui';
 | `children` | `ReactNode` | — | 子组件（组件化模式） |
 | `className` | `string` | — | 容器 CSS 类名 |
 | `style` | `CSSProperties` | — | 容器内联样式 |
+
+### autoFit 说明
+
+开启 `autoFit` 后，地图与所有图层就绪后自动调用 `scene.fitBounds`，将视野适配到全部图层数据的外接矩形。适合数据范围未知或需要"打开页面即看到全部数据"的场景。
+
+```tsx
+<AiMap map={{ basemap: 'gaode' }} autoFit>
+  <PointLayer source={data} sourceConfig={{ x: 'lng', y: 'lat' }} />
+</AiMap>
+```
+
+> 底图必须支持 `fitBounds`（高德 / Maplibre / Mapbox / 天地图均支持）。
 
 ## MapSchema 配置
 

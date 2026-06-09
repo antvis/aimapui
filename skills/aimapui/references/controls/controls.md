@@ -121,6 +121,61 @@ import { MapThemeControl, GAODE_THEME_PRESETS, OPENFREEMAP_THEME_PRESETS } from 
 | `layers` | `LayerItem[]` | **必填** | `{ id, name, visible? }` |
 | `onLayerToggle` | `(id: string, visible: boolean) => void` | — | 显隐切换回调 |
 
+## LegendControl — 图例控件
+
+将 Legend 组件嵌入地图控件区域，随控件位置系统自动排列。
+
+默认位置：`bottomleft`
+
+```tsx
+import { LegendControl, LegendCategories } from '@antv/aimapui';
+
+<LegendControl position="bottomleft" className="my-legend">
+  <LegendCategories title="类型" labels={['住宅', '商业']} colors={['#2563eb', '#f59e0b']} />
+</LegendControl>
+```
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'bottomleft'` | 控件位置 |
+| `className` | `string` | — | 额外 CSS 类名 |
+| `style` | `CSSProperties` | — | 额外内联样式 |
+| `children` | `ReactNode` | — | Legend 子组件（不传则不渲染） |
+
+## LogoControl — Logo 控件
+
+在地图上展示一个或多个品牌 Logo，支持点击跳转。
+
+默认位置：`bottomleft`
+
+```tsx
+import { LogoControl } from '@antv/aimapui';
+
+<LogoControl
+  position="bottomleft"
+  logos={[
+    { src: '/logo.png', alt: 'AntV', href: 'https://antv.antgroup.com', width: 32 },
+    { src: '/partner.png', alt: 'Partner' },
+  ]}
+/>
+```
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'bottomleft'` | 控件位置 |
+| `logos` | `LogoItem[]` | **必填** | Logo 列表 |
+| `className` | `string` | — | 额外 CSS 类名 |
+| `style` | `CSSProperties` | — | 额外内联样式 |
+
+**LogoItem:**
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `src` | `string` | **必填** | 图片地址 |
+| `alt` | `string` | — | 图片 alt 文本 |
+| `href` | `string` | — | 点击跳转链接 |
+| `width` | `number` | `24` | 图片宽度（px） |
+
 ## ControlContainer — 控件容器
 
 组件化模式下自动包裹，也可以手动使用：

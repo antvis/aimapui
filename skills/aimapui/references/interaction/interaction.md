@@ -155,3 +155,72 @@ import { Tooltip } from '@antv/aimapui';
 
 - [aimap-container.md](../core/aimap-container.md) — AiMap 主容器
 - [controls.md](../controls/controls.md) — 控件组件
+
+---
+
+## Maki Icon Utilities — 内置地图图标
+
+内置 200+ Maki 矢量图标（POI 地图常用），可生成 SVG data URL 直接用于 `IconLayer` 或 `Marker`。
+
+```tsx
+import {
+  MAKI_ICONS,           // Record<string, string> — 图标名 → SVG path data
+  MAKI_ICON_NAMES,      // string[] — 所有可用图标名列表
+  makiIconUrl,          // 单个图标 → SVG data URL
+  makiPinUrl,           // 单个图标 → 带水滴底座的 Pin SVG data URL
+  createMakiIconMap,    // 批量生成 { name: dataUrl } 映射
+  createMakiPinMap,     // 批量生成 Pin 版本映射
+} from '@antv/aimapui';
+```
+
+### makiIconUrl(icon, opts?)
+
+生成指定 Maki 图标的 SVG data URL。
+
+```ts
+const url = makiIconUrl('cafe', { size: 32, fill: '#333' });
+// → 'data:image/svg+xml,...'
+```
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `icon` | `string` | **必填** | Maki 图标名（如 `'cafe'`、`'bus'`） |
+| `opts.size` | `number` | `32` | SVG 尺寸 |
+| `opts.fill` | `string` | `'#333'` | 填充颜色 |
+
+### makiPinUrl(icon, opts?)
+
+生成带水滴形底座的 Pin 图标 SVG data URL（适合 Marker 场景）。
+
+```ts
+const pinUrl = makiPinUrl('restaurant', { size: 40, fill: '#2563eb' });
+```
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `icon` | `string` | **必填** | Maki 图标名 |
+| `opts.size` | `number` | `40` | SVG 尺寸 |
+| `opts.fill` | `string` | `'#2563eb'` | Pin 底座填充颜色 |
+
+### createMakiIconMap(names, opts?)
+
+批量生成 `{ name: dataUrl }` 映射表，直接传给 `IconLayer.iconValues`。
+
+```tsx
+const iconMap = createMakiIconMap(['cafe', 'bus', 'hospital'], { size: 32, fill: '#333' });
+// → { cafe: 'data:...', bus: 'data:...', hospital: 'data:...' }
+
+<IconLayer iconField="type" iconValues={iconMap} />
+```
+
+### createMakiPinMap(names, opts?)
+
+同上，但生成 Pin 样式版本。
+
+```tsx
+const pinMap = createMakiPinMap(['cafe', 'bus'], { fill: '#10b981' });
+```
+
+### 常用图标名
+
+`airport`, `bus`, `cafe`, `restaurant`, `hospital`, `hotel`, `parking`, `school`, `shop`, `bank`, `bar`, `bicycle`, `car`, `cinema`, `fire-station`, `fuel`, `garden`, `library`, `museum`, `park`, `pharmacy`, `police`, `post`, `swimming`, `theatre`, `toilet`, `marker`...

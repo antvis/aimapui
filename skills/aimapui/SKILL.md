@@ -3,11 +3,11 @@ name: aimapui
 description: >
   Build React map visualizations with @antv/aimapui, a Schema-driven component library on L7.
   Use when: (1) Creating map applications with AiMap container, (2) Adding layers (Point/Line/Polygon/Heatmap/Raster/Image),
-  (3) Using composite layers (Bubble/Route/Icon/Glyph/Choropleth/3DBar/Flow),
+  (3) Using composite layers (Bubble/Route/ArcFlow/Icon/Glyph/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster),
   (4) Configuring visual mappings (color/size/shape), (5) Adding controls, legends, interactions (Marker/Popup/Tooltip),
-  (6) Schema/JSON-driven map generation for AI, (7) Mobile-responsive map layouts.
-  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React".
-version: "0.1.0"
+  (6) Schema/JSON-driven map generation for AI, (7) Mobile-responsive map layouts, (8) Maki icon utilities for map markers.
+  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向".
+version: "0.2.2"
 ---
 
 # aimapui
@@ -16,8 +16,8 @@ React map visualization library built on L7. Supports both JSX component mode an
 
 ## Version
 
-- **@antv/aimapui**: `0.1.0`
-- **@antv/aimapui-cli**: `0.1.0`
+- **@antv/aimapui**: `0.2.2`
+- **@antv/aimapui-cli**: `0.2.2`
 
 ## Install
 
@@ -29,13 +29,22 @@ pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
 
 > **注意:** 使用组件前必须引入样式文件 `import '@antv/aimapui/style.css'`，否则控件、弹窗、图例等样式不生效。
 
+### CDN 引用（IIFE）
+
+```html
+<script src="https://unpkg.com/@antv/l7"></script>
+<script src="https://unpkg.com/@antv/l7-maps"></script>
+<script src="https://unpkg.com/@antv/aimapui/dist/index.iife.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@antv/aimapui/dist/style.css" />
+```
+
 ## Quick Start
 
 ```tsx
 import { AiMap, PointLayer } from '@antv/aimapui';
 import '@antv/aimapui/style.css';
 
-<AiMap map={{ basemap: 'gaode', center: [121.4, 31.2], zoom: 12, style: 'dark' }}>
+<AiMap map={{ basemap: 'gaode', center: [121.4, 31.2], zoom: 12, style: 'dark' }} autoFit>
   <PointLayer
     source={data}
     sourceType="json"
@@ -49,13 +58,14 @@ import '@antv/aimapui/style.css';
 
 ## Architecture
 
-- **AiMap** — Container component, manages Scene/Map lifecycle
+- **AiMap** — Container component, manages Scene/Map lifecycle; supports `autoFit` for automatic viewport fitting
 - **Layers** — 6 base types: `PointLayer`, `LineLayer`, `PolygonLayer`, `HeatmapLayer`, `RasterLayer`, `ImageLayer`
-- **Composite Layers** — Business-ready: `BubbleLayer`, `RouteLayer`, `IconLayer`, `GlyphLayer`, `ChoroplethLayer`, `ColumnLayer`, `FlowLayer`, etc.
-- **Controls** — `ZoomControl`, `ScaleControl`, `FullscreenControl`, etc. (8 types, 12 positions)
-- **Interactions** — `Marker`, `Popup`, `Tooltip`
-- **Legends** — `CategoriesLegend`, `RampLegend`, `SizeLegend`, etc. (8 types)
+- **Composite Layers** — Business-ready (11 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`
+- **Controls** — `ZoomControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl` (10 types, 12 positions)
+- **Interactions** — `Marker`, `Popup`, `Tooltip` + Maki icon utilities (`makiIconUrl`, `makiPinUrl`, `createMakiIconMap`, `createMakiPinMap`)
+- **Legends** — `LegendCategories`, `LegendRamp`, `LegendDiverging`, `LegendThreshold`, `LegendSize`, `LegendLineWidth`, `LegendProportion`, `LegendIcon` (8 types)
 - **Schema Mode** — Render entire map from a single `AiMapSchema` JSON object
+- **Build Formats** — ESM, CJS, IIFE (CDN), TypeScript declarations
 
 ## Reference Docs (load as needed)
 
@@ -90,14 +100,17 @@ const schema = { map: { basemap: 'gaode', center: [121,31], zoom: 12 }, layers: 
 <AiMap schema={schema} />
 ```
 
-### Composite Layer (Icon)
+### Composite Layer (Icon with Maki)
 
 ```tsx
+import { IconLayer, createMakiIconMap } from '@antv/aimapui';
+
 <IconLayer
   source={data} sourceConfig={{ x: 'lng', y: 'lat' }}
-  iconField="type" iconMap={{ shop: 'shop.svg', cafe: 'cafe.svg' }}
-  iconSize={20} iconAnchor="bottom"
-  labelAnchor="top" labelOffset={[0, -10]}
+  iconField="type"
+  iconValues={createMakiIconMap(['cafe', 'restaurant', 'bus'], { size: 32, fill: '#2563eb' })}
+  iconAnchor="bottom"
+  labelField="name" labelAnchor="top" labelOffset={[0, -10]}
   labelColor="#333" labelSize={12}
 />
 ```
@@ -111,6 +124,23 @@ const schema = { map: { basemap: 'gaode', center: [121,31], zoom: 12 }, layers: 
   iconColor="#06b6d4" iconSize={20}
   labelAnchor="top" labelOffset={[0, -20]}
   labelField="name" labelColor="#e2e8f0" labelSize={11}
+/>
+```
+
+### Composite Layer (ArcFlow — OD 弧线流向图)
+
+```tsx
+import { ArcFlowLayer } from '@antv/aimapui';
+
+<ArcFlowLayer
+  source={odData}
+  sourceConfig={{ x: 'fromLng', y: 'fromLat', x1: 'toLng', y1: 'toLat' }}
+  color="#5B8FF9"
+  colorMode="gradient"
+  gradientColors={['#2563eb', '#10b981']}
+  lineWidth={2}
+  animate animateSpeed={1} animateTrailLength={0.3}
+  showNodes
 />
 ```
 
@@ -133,4 +163,33 @@ const schema = { map: { basemap: 'gaode', center: [121,31], zoom: 12 }, layers: 
   }}
   color="#10b981" glow animate
 />
+```
+
+### Controls (LegendControl + LogoControl)
+
+```tsx
+import { LegendControl, LogoControl, LegendCategories } from '@antv/aimapui';
+
+<AiMap map={{ basemap: 'gaode', center: [116, 39], zoom: 10 }}>
+  <LegendControl position="bottomleft">
+    <LegendCategories title="类型" labels={['A', 'B']} colors={['#f00', '#00f']} />
+  </LegendControl>
+  <LogoControl position="bottomleft" logos={[{ src: '/logo.png', alt: 'Logo', href: '/' }]} />
+</AiMap>
+```
+
+### Maki Icon Utilities
+
+```tsx
+import { MAKI_ICON_NAMES, makiIconUrl, makiPinUrl, createMakiIconMap, createMakiPinMap } from '@antv/aimapui';
+
+// 单个图标 SVG data URL
+const cafeUrl = makiIconUrl('cafe', { size: 32, fill: '#333' });
+
+// Pin 样式（带水滴底座）
+const cafePinUrl = makiPinUrl('cafe', { size: 40, fill: '#2563eb' });
+
+// 批量生成 { name: dataUrl } 映射表（用于 IconLayer.iconValues）
+const iconMap = createMakiIconMap(['cafe', 'bus', 'hospital']);
+const pinMap = createMakiPinMap(['cafe', 'bus', 'hospital'], { fill: '#10b981' });
 ```
