@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { LayerEventPayload } from '../../schema/types';
 import { LineLayer } from '../Layer/LineLayer';
 import { PointLayer } from '../Layer/PointLayer';
@@ -41,6 +41,29 @@ export interface RouteSegment {
   width?: number;
 }
 
+/** 路径类型 */
+export type RouteType = 'straight' | 'arc' | 'walking' | 'cycling' | 'driving' | 'transit';
+
+/** 交通路线查询参数 */
+export interface RouteQueryParams {
+  origin: [number, number];
+  destination: [number, number];
+  waypoints?: [number, number][];
+  routeType: 'walking' | 'cycling' | 'driving' | 'transit';
+}
+
+/** 交通路线查询结果 */
+export interface RouteQueryResult {
+  /** 完整路径坐标 */
+  path: [number, number][];
+  /** 分段路径（可选，如返回多段路况着色路径） */
+  segments?: RouteSegment[];
+  /** 途中补充站点（可选，如公交换乘站） */
+  stops?: RouteStop[];
+  /** 路线信息 */
+  info?: { distance?: number; duration?: number; description?: string };
+}
+
 export interface RouteLayerProps {
   /** 路径坐标 — 完整线坐标或分段 */
   path?: [number, number][];
@@ -48,6 +71,14 @@ export interface RouteLayerProps {
   segments?: RouteSegment[];
   /** 途经点列表 */
   stops?: RouteStop[];
+
+  // ===== 路径模式 =====
+  /** 路径类型，默认 'straight' */
+  routeType?: RouteType;
+  /** 路线查询回调 — routeType 为 walking/cycling/driving/transit 时使用 */
+  onRouteQuery?: (params: RouteQueryParams) => Promise<RouteQueryResult>;
+  /** 路线查询完成回调 */
+  onRouteResult?: (result: RouteQueryResult) => void;
 
   // ===== 路径视觉 =====
   /** 路径颜色，默认 '#2563eb' */
@@ -122,6 +153,9 @@ export function RouteLayer({
   path,
   segments,
   stops = [],
+  routeType = 'straight',
+  onRouteQuery,
+  onRouteResult,
   color = '#2563eb',
   lineWidth = 4,
   opacity = 0.9,
@@ -143,46 +177,84 @@ export function RouteLayer({
   onPathClick,
   onStopClick,
 }: RouteLayerProps) {
+  // 交通路线查询结果
+  const [routeQueryResult, setRouteQueryResult] = useState<RouteQueryResult | null>(null);
+  const queryVersionRef = useRef(0);
+
+  const isTransportMode = routeType === 'walking' || routeType === 'cycling' || routeType === 'driving' || routeType === 'transit';
+
+  useEffect(() => {
+    if (!isTransportMode || !onRouteQuery || stops.length < 2) {
+      setRouteQueryResult(null);
+      return;
+    }
+    const origin: [number, number] = [stops[0].lng, stops[0].lat];
+    const destination: [number, number] = [stops[stops.length - 1].lng, stops[stops.length - 1].lat];
+    const waypoints: [number, number][] = stops.length > 2
+      ? stops.slice(1, -1).map((s) => [s.lng, s.lat])
+      : [];
+
+    const version = ++queryVersionRef.current;
+    onRouteQuery({ origin, destination, waypoints: waypoints.length > 0 ? waypoints : undefined, routeType })
+      .then((result) => {
+        if (queryVersionRef.current !== version) return;
+        setRouteQueryResult(result);
+        onRouteResult?.(result);
+      })
+      .catch(() => {
+        if (queryVersionRef.current !== version) return;
+        setRouteQueryResult(null);
+      });
+  }, [isTransportMode, onRouteQuery, stops, routeType]);
+
+  // 实际使用的路径和分段数据
+  const effectivePath = isTransportMode && routeQueryResult ? routeQueryResult.path : path;
+  const effectiveSegments = isTransportMode && routeQueryResult?.segments ? routeQueryResult.segments : segments;
+  const extraStops = isTransportMode && routeQueryResult?.stops ? routeQueryResult.stops : [];
+
+  // 线形状：arc 模式用 'arc'，其余用 'line'
+  const lineShape = routeType === 'arc' ? 'arc' : 'line';
+
   // 构建路径 GeoJSON
   const pathGeoJSON = useMemo(() => {
-    if (segments && segments.length > 0) {
+    if (effectiveSegments && effectiveSegments.length > 0) {
       return {
         type: 'FeatureCollection' as const,
-        features: segments.map((seg, idx) => ({
+        features: effectiveSegments.map((seg, idx) => ({
           type: 'Feature' as const,
           properties: { color: seg.color || color, width: seg.width || lineWidth, index: idx },
           geometry: { type: 'LineString' as const, coordinates: seg.coordinates },
         })),
       };
     }
-    if (path && path.length > 1) {
+    if (effectivePath && effectivePath.length > 1) {
       return {
         type: 'FeatureCollection' as const,
         features: [{
           type: 'Feature' as const,
           properties: { color, width: lineWidth },
-          geometry: { type: 'LineString' as const, coordinates: path },
+          geometry: { type: 'LineString' as const, coordinates: effectivePath },
         }],
       };
     }
     return null;
-  }, [path, segments, color, lineWidth]);
+  }, [effectivePath, effectiveSegments, color, lineWidth]);
 
   // 发光层 GeoJSON（同路径但宽度更大）
-  const hasSegmentColors = segments && segments.some((s) => s.color);
+  const hasSegmentColors = effectiveSegments && effectiveSegments.some((s) => s.color);
 
   // 途经点数据（增加序号和类型）
   // 自动补全路径起终点：如果 stops 中没有覆盖 path 的首尾坐标，则自动添加
   const stopsWithIndex = useMemo(() => {
-    const effectivePath = path ?? (segments && segments.length > 0
-      ? [...segments[0].coordinates.slice(0, 1), ...segments[segments.length - 1].coordinates.slice(-1)]
+    const effectivePathForStops = effectivePath ?? (effectiveSegments && effectiveSegments.length > 0
+      ? [...effectiveSegments[0].coordinates.slice(0, 1), ...effectiveSegments[effectiveSegments.length - 1].coordinates.slice(-1)]
       : null);
 
-    let merged = [...stops];
+    let merged = [...stops, ...extraStops];
 
-    if (effectivePath && effectivePath.length >= 2) {
-      const [startLng, startLat] = effectivePath[0];
-      const [endLng, endLat] = effectivePath[effectivePath.length - 1];
+    if (effectivePathForStops && effectivePathForStops.length >= 2) {
+      const [startLng, startLat] = effectivePathForStops[0];
+      const [endLng, endLat] = effectivePathForStops[effectivePathForStops.length - 1];
       const hasStart = stops.some((s) => Math.abs(s.lng - startLng) < 1e-6 && Math.abs(s.lat - startLat) < 1e-6);
       const hasEnd = stops.some((s) => Math.abs(s.lng - endLng) < 1e-6 && Math.abs(s.lat - endLat) < 1e-6);
 
@@ -205,7 +277,7 @@ export function RouteLayer({
       indexLabel: String(stop.index ?? idx + 1),
       markerColorValue: stop.markerColor ?? resolveMarkerColor(stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint')),
     }));
-  }, [stops, path, segments, color, stopColor, endColor]);
+  }, [stops, extraStops, effectivePath, effectiveSegments, color, stopColor, endColor]);
 
   const resolvedStopIconMap = useMemo(() => {
     if (stopRenderer !== 'icon') return undefined;
@@ -248,10 +320,10 @@ export function RouteLayer({
         <LineLayer
           source={pathGeoJSON}
           sourceType="geojson"
-          shape="line"
+          shape={lineShape}
           color={hasSegmentColors ? undefined : color}
           colorField={hasSegmentColors ? 'color' : undefined}
-          colorValues={hasSegmentColors ? segments!.map((s) => s.color || color) : undefined}
+          colorValues={hasSegmentColors ? effectiveSegments!.map((s) => s.color || color) : undefined}
           size={lineWidth * 2.5}
           style={{ opacity: 0.15 }}
         />
@@ -261,13 +333,13 @@ export function RouteLayer({
       <LineLayer
         source={pathGeoJSON}
         sourceType="geojson"
-        shape="line"
+        shape={lineShape}
         color={hasSegmentColors ? undefined : color}
         colorField={hasSegmentColors ? 'color' : undefined}
-        colorValues={hasSegmentColors ? segments!.map((s) => s.color || color) : undefined}
+        colorValues={hasSegmentColors ? effectiveSegments!.map((s) => s.color || color) : undefined}
         size={hasSegmentColors ? undefined : lineWidth}
         sizeField={hasSegmentColors ? 'width' : undefined}
-        sizeValues={hasSegmentColors ? segments!.map((s) => s.width || lineWidth) : undefined}
+        sizeValues={hasSegmentColors ? effectiveSegments!.map((s) => s.width || lineWidth) : undefined}
         style={{ opacity }}
         active={activeColor ? { color: activeColor } : false}
         onClick={onPathClick}

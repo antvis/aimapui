@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import type { LayerSchema, LayerEventPayload, AnimateConfig } from '../../schema/types';
 import { LineLayer } from '../Layer/LineLayer';
 import { PointLayer } from '../Layer/PointLayer';
+import { Tooltip } from '../Interaction/Tooltip';
+import { Popup } from '../Interaction/Popup';
 
 /**
  * 弧线形态
@@ -100,6 +102,10 @@ export interface ArcFlowLayerProps {
   nodePulse?: boolean;
 
   // ===== 交互 =====
+  /** 是否在 hover 弧线时显示 Tooltip，默认 true */
+  showTooltip?: boolean;
+  /** 是否在点击节点时显示 Popup，默认 true */
+  showNodePopup?: boolean;
   /** hover 高亮色 */
   activeColor?: string;
   /** 弧线 hover 事件 */
@@ -162,6 +168,8 @@ export function ArcFlowLayer({
   nodeSize = 4,
   nodeSizeRange,
   nodePulse = false,
+  showTooltip = true,
+  showNodePopup = true,
   activeColor = '#FFD93D',
   onArcHover,
   onArcClick,
@@ -247,6 +255,49 @@ export function ArcFlowLayer({
   // 节点颜色
   const resolvedNodeColor = nodeColor ?? color;
 
+  // 内置 Tooltip 状态（hover 弧线）
+  const [tooltipState, setTooltipState] = useState<{
+    visible: boolean; lng: number; lat: number; from: string; to: string; weight: number;
+  }>({ visible: false, lng: 0, lat: 0, from: '', to: '', weight: 0 });
+
+  const handleArcHoverInternal = useCallback((payload: LayerEventPayload) => {
+    onArcHover?.(payload);
+    if (!showTooltip) return;
+    const f = payload.feature;
+    if (!f) return;
+    setTooltipState({
+      visible: true,
+      lng: payload.lng,
+      lat: payload.lat,
+      from: String(f.fromName ?? ''),
+      to: String(f.toName ?? ''),
+      weight: Number(f[weightField] ?? 0),
+    });
+  }, [onArcHover, showTooltip, weightField]);
+
+  const handleArcMouseLeave = useCallback(() => {
+    setTooltipState((prev) => ({ ...prev, visible: false }));
+  }, []);
+
+  // 内置 Popup 状态（点击节点）
+  const [popupState, setPopupState] = useState<{
+    visible: boolean; lng: number; lat: number; name: string; degree: number;
+  }>({ visible: false, lng: 0, lat: 0, name: '', degree: 0 });
+
+  const handleNodeClickInternal = useCallback((payload: LayerEventPayload) => {
+    onNodeClick?.(payload);
+    if (!showNodePopup) return;
+    const f = payload.feature;
+    if (!f) return;
+    setPopupState({
+      visible: true,
+      lng: payload.lng,
+      lat: payload.lat,
+      name: String(f.name ?? ''),
+      degree: Number(f.degree ?? 0),
+    });
+  }, [onNodeClick, showNodePopup]);
+
   return (
     <>
       {/* 弧线层 */}
@@ -264,7 +315,8 @@ export function ArcFlowLayer({
         animate={animateConfig}
         active={activeColor ? { color: activeColor } : false}
         style={arcStyle}
-        onMouseMove={onArcHover}
+        onMouseMove={handleArcHoverInternal}
+        onMouseLeave={handleArcMouseLeave}
         onClick={onArcClick}
       />
 
@@ -285,7 +337,34 @@ export function ArcFlowLayer({
           }}
           animate={nodePulse ? { enable: true, speed: 0.6 } : undefined}
           active={activeColor ? { color: activeColor } : false}
-          onClick={onNodeClick}
+          onClick={handleNodeClickInternal}
+        />
+      )}
+
+      {/* 内置 Tooltip — hover 弧线时展示 */}
+      {showTooltip && tooltipState.visible && (
+        <Tooltip
+          longitude={tooltipState.lng}
+          latitude={tooltipState.lat}
+          visible
+          variant="dark"
+          items={[
+            { label: '起点', value: tooltipState.from },
+            { label: '终点', value: tooltipState.to },
+            { label: '流量', value: tooltipState.weight },
+          ]}
+        />
+      )}
+
+      {/* 内置 Popup — 点击节点时展示 */}
+      {showNodePopup && popupState.visible && (
+        <Popup
+          longitude={popupState.lng}
+          latitude={popupState.lat}
+          content={`<div style="min-width:80px"><div style="font-weight:700;font-size:13px;margin-bottom:4px">${popupState.name || '节点'}</div><div style="font-size:12px;color:#64748b">连接数: ${popupState.degree}</div></div>`}
+          closeButton
+          size="compact"
+          onClose={() => setPopupState((prev) => ({ ...prev, visible: false }))}
         />
       )}
     </>

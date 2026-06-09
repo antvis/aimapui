@@ -50,11 +50,12 @@ import { BubbleLayer, BUBBLE_SIZE_LEVELS } from '@antv/aimapui';
 
 ## RouteLayer — 路径地图
 
-序列化途经点 + 发光效果 + 分段着色 + 流动动画。
+序列化途经点 + 发光效果 + 分段着色 + 流动动画 + 多路径模式（直线/弧线/交通路线）。
 
 ```tsx
 import { RouteLayer } from '@antv/aimapui';
 
+// 基础用法：静态路径
 <RouteLayer
   path={[[120.15, 30.28], [120.17, 30.25], [120.20, 30.22]]}
   stops={[
@@ -69,9 +70,66 @@ import { RouteLayer } from '@antv/aimapui';
   endColor="#10b981"
   onPathClick={(p) => console.log(p)}
 />
+
+// 弧线模式
+<RouteLayer
+  path={[[116.4, 39.9], [121.5, 31.2]]}
+  stops={[
+    { lng: 116.4, lat: 39.9, name: '北京' },
+    { lng: 121.5, lat: 31.2, name: '上海' },
+  ]}
+  routeType="arc"
+  color="#8b5cf6"
+/>
+
+// 交通路线查询（驾车）
+<RouteLayer
+  stops={[
+    { lng: 116.397, lat: 39.909, name: '天安门' },
+    { lng: 116.427, lat: 39.903, name: '王府井' },
+    { lng: 116.474, lat: 39.877, name: '国贸' },
+  ]}
+  routeType="driving"
+  onRouteQuery={async (params) => {
+    // 调用高德/MapNova 等路径规划 API
+    const result = await fetchDrivingRoute(params.origin, params.destination, params.waypoints);
+    return { path: result.coordinates };
+  }}
+  onRouteResult={(result) => console.log('路线信息', result.info)}
+  color="#10b981"
+/>
 ```
 
-**专有属性：** `path`, `segments`, `stops`, `color`, `lineWidth`, `opacity`, `glow`, `animate`, `animateSpeed`, `stopSize`, `stopColor`, `endColor`, `showStopIndex`, `activeColor`, `onPathClick`, `onStopClick`
+**路径模式（routeType）：**
+
+| 值 | 说明 |
+|------|------|
+| `'straight'` | 直线连接坐标点（默认） |
+| `'arc'` | 弧线连接，适合长距离路线（如航线） |
+| `'walking'` | 步行路线，需配合 `onRouteQuery` |
+| `'cycling'` | 骑行路线，需配合 `onRouteQuery` |
+| `'driving'` | 驾车路线，需配合 `onRouteQuery` |
+| `'transit'` | 公交路线，需配合 `onRouteQuery` |
+
+**交通路线查询回调：**
+
+```ts
+interface RouteQueryParams {
+  origin: [number, number];
+  destination: [number, number];
+  waypoints?: [number, number][];
+  routeType: 'walking' | 'cycling' | 'driving' | 'transit';
+}
+
+interface RouteQueryResult {
+  path: [number, number][];
+  segments?: RouteSegment[];   // 可选：分段路径（路况着色）
+  stops?: RouteStop[];         // 可选：途中补充站点（如换乘站）
+  info?: { distance?: number; duration?: number; description?: string };
+}
+```
+
+**专有属性：** `path`, `segments`, `stops`, `routeType`, `onRouteQuery`, `onRouteResult`, `color`, `lineWidth`, `opacity`, `glow`, `animate`, `animateSpeed`, `stopSize`, `stopColor`, `endColor`, `showStopIndex`, `stopRenderer`, `activeColor`, `onPathClick`, `onStopClick`
 
 **RouteStop:** `{ lng, lat, name, index?, type?: 'start' | 'end' | 'waypoint' }`
 

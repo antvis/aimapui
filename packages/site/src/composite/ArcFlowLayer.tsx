@@ -1,9 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { AiMap, ZoomControl } from '@antv/aimapui';
 import { ArcFlowLayer } from '@antv/aimapui';
-import { Tooltip } from '@antv/aimapui';
 import { LegendCategories } from '@antv/aimapui';
-import type { LayerEventPayload } from '@antv/aimapui';
 
 const odData = [
   { fromLng: 116.4, fromLat: 39.9, toLng: 121.5, toLat: 31.2, weight: 95, fromName: '北京', toName: '上海' },
@@ -24,23 +22,6 @@ const odData = [
  * 弧线流向复合图层 Demo — 使用 ArcFlowLayer 组件
  */
 export default function ArcFlowLayerDemo() {
-  const [tooltipInfo, setTooltipInfo] = useState<{
-    visible: boolean; lng: number; lat: number; from: string; to: string; weight: number;
-  }>({ visible: false, lng: 0, lat: 0, from: '', to: '', weight: 0 });
-
-  const handleArcHover = useCallback((payload: LayerEventPayload) => {
-    const feature = payload.feature;
-    if (!feature) return;
-    setTooltipInfo({
-      visible: true,
-      lng: payload.lng,
-      lat: payload.lat,
-      from: String(feature.fromName ?? ''),
-      to: String(feature.toName ?? ''),
-      weight: Number(feature.weight ?? 0),
-    });
-  }, []);
-
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
@@ -64,19 +45,6 @@ export default function ArcFlowLayerDemo() {
           nodeColor="#60a5fa"
           nodeSizeRange={[4, 10]}
           activeColor="#fbbf24"
-          onArcHover={handleArcHover}
-        />
-
-        <Tooltip
-          longitude={tooltipInfo.lng}
-          latitude={tooltipInfo.lat}
-          variant="glass"
-          visible={tooltipInfo.visible}
-          items={[
-            { label: '起点', value: tooltipInfo.from },
-            { label: '终点', value: tooltipInfo.to },
-            { label: '流量', value: tooltipInfo.weight },
-          ]}
         />
 
         <ZoomControl position="bottomright" />

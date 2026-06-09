@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState } from 'react';
 
 /**
  * 内置字体图标库展示 Demo
@@ -38,8 +38,6 @@ const MATERIAL_SYMBOLS_CATEGORIES: Record<string, { color: string; icons: string
   },
 };
 
-const MATERIAL_SYMBOLS_LINK = 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0';
-
 const MS_TAB_LIST = ['全部', ...Object.keys(MATERIAL_SYMBOLS_CATEGORIES)] as const;
 type MsTabName = typeof MS_TAB_LIST[number];
 
@@ -48,18 +46,6 @@ export default function BuiltinGlyphsDemo() {
   const [filter, setFilter] = useState('');
   const [iconSize, setIconSize] = useState(24);
   const [fillColor, setFillColor] = useState('#2563eb');
-  const fontLoadedRef = useRef(false);
-
-  // 动态加载 Material Symbols 字体
-  useEffect(() => {
-    if (!fontLoadedRef.current && !document.querySelector(`link[href*="Material+Symbols"]`)) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = MATERIAL_SYMBOLS_LINK;
-      document.head.appendChild(link);
-      fontLoadedRef.current = true;
-    }
-  }, []);
 
   // Material Symbols 可见图标列表
   const visibleMsIcons = useMemo(() => {

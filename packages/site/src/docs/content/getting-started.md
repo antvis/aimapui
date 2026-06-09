@@ -12,9 +12,15 @@ AiMapUI 提供两种使用方式，按需选择：
 ### 方式一：npm 包安装（推荐）
 
 ```bash
-npm install @antv/aimapui @antv/l7 @antv/l7-maps
+npm install @antv/aimapui @antv/l7 @antv/l7-maps material-symbols
 # 或
-pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
+pnpm add @antv/aimapui @antv/l7 @antv/l7-maps material-symbols
+```
+
+安装完成后，在入口文件引入样式（图标字体已通过 CDN 内置，无需额外安装）：
+
+```tsx
+import '@antv/aimapui/style.css';
 ```
 
 之后从 `@antv/aimapui` 直接 import：

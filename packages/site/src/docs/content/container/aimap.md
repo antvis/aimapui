@@ -7,7 +7,10 @@ AiMapUI 的根容器组件，所有地图内容必须包裹在 `AiMap` 内。支
 ## 导入
 
 ```tsx
-import { AiMap } from '@antv/aimapui'
+import { AiMap } from '@antv/aimapui';
+
+// 别忘了在入口文件引入样式（只需引入一次，图标字体已内置 CDN）
+import '@antv/aimapui/style.css';
 ```
 
 ## Props

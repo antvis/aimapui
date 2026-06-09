@@ -131,7 +131,7 @@ export type { SatelliteLayerProps, SatelliteProvider } from './components/Compos
 export { ArcFlowLayer } from './components/CompositeLayer/ArcFlowLayer';
 export type { ArcFlowLayerProps, ArcFlowDataItem, ArcShape, ArcColorMode } from './components/CompositeLayer/ArcFlowLayer';
 export { RouteLayer } from './components/CompositeLayer/RouteLayer';
-export type { RouteLayerProps, RouteStop, RouteSegment } from './components/CompositeLayer/RouteLayer';
+export type { RouteLayerProps, RouteStop, RouteSegment, RouteType, RouteQueryParams, RouteQueryResult } from './components/CompositeLayer/RouteLayer';
 export { TiffRasterLayer } from './components/CompositeLayer/TiffRasterLayer';
 export type { TiffRasterLayerProps, RampColors, RasterRenderMode } from './components/CompositeLayer/TiffRasterLayer';
 

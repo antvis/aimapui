@@ -27,10 +27,13 @@ npm install @antv/aimapui @antv/l7 @antv/l7-maps
 pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
 ```
 
+> **注意:** 使用组件前必须引入样式文件 `import '@antv/aimapui/style.css'`，否则控件、弹窗、图例等样式不生效。
+
 ## Quick Start
 
 ```tsx
 import { AiMap, PointLayer } from '@antv/aimapui';
+import '@antv/aimapui/style.css';
 
 <AiMap map={{ basemap: 'gaode', center: [121.4, 31.2], zoom: 12, style: 'dark' }}>
   <PointLayer
@@ -108,5 +111,26 @@ const schema = { map: { basemap: 'gaode', center: [121,31], zoom: 12 }, layers: 
   iconColor="#06b6d4" iconSize={20}
   labelAnchor="top" labelOffset={[0, -20]}
   labelField="name" labelColor="#e2e8f0" labelSize={11}
+/>
+```
+
+### Composite Layer (Route — 多路径模式)
+
+```tsx
+// 静态路径（直线/弧线）
+<RouteLayer path={coords} stops={stops} routeType="arc" color="#8b5cf6" glow animate />
+
+// 交通路线查询（驾车/步行/骑行/公交）
+<RouteLayer
+  stops={[
+    { lng: 116.397, lat: 39.909, name: '起点' },
+    { lng: 116.474, lat: 39.877, name: '终点' },
+  ]}
+  routeType="driving"
+  onRouteQuery={async ({ origin, destination, waypoints, routeType }) => {
+    const res = await fetchRoute(origin, destination, routeType);
+    return { path: res.coordinates, info: { distance: res.distance, duration: res.duration } };
+  }}
+  color="#10b981" glow animate
 />
 ```
