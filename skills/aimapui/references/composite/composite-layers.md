@@ -137,29 +137,98 @@ interface RouteQueryResult {
 
 ## ArcFlowLayer — 弧线流向图
 
-OD 数据弧线动画。
+OD 数据弧线动画，支持 3 种弧线形态、3 种颜色模式、权重映射、节点脉冲动画。
 
 ```tsx
 import { ArcFlowLayer } from '@antv/aimapui';
 
+// 单色模式
 <ArcFlowLayer
   source={odData}
   sourceConfig={{ x: 'fromLng', y: 'fromLat', x1: 'toLng', y1: 'toLat' }}
   color="#5B8FF9"
-  size={2}
-  curvature={0.5}
-  animate={{ enable: true, speed: 1, duration: 2000, trailLength: 0.3 }}
+  lineWidth={2}
+  animate animateSpeed={1} animateTrailLength={0.3}
+  showNodes nodePulse
+/>
+
+// 渐变模式
+<ArcFlowLayer
+  source={odData}
+  sourceConfig={{ x: 'fromLng', y: 'fromLat', x1: 'toLng', y1: 'toLat' }}
+  colorMode="gradient"
+  gradientColors={['#2563eb', '#10b981']}
+  lineWidthRange={[1, 5]}
+  weightField="flow"
+  animate
+/>
+
+// 字段映射色板
+<ArcFlowLayer
+  source={odData}
+  sourceConfig={{ x: 'fromLng', y: 'fromLat', x1: 'toLng', y1: 'toLat' }}
+  colorMode="field"
+  colorField="category"
+  colorValues={['#f59e0b', '#2563eb', '#10b981']}
+  shape="arc3d"
 />
 ```
 
-**专有属性：** `curvature`, `colorMode`, `ArcFlowDataItem`
+**ArcShape:** `'arc'` | `'arc3d'` | `'greatcircle'`
+
+**ArcColorMode:** `'single'` | `'gradient'` | `'field'`
+
+**ArcFlowDataItem:**
+```ts
+interface ArcFlowDataItem {
+  fromLng: number; fromLat: number;
+  toLng: number; toLat: number;
+  weight?: number;
+  fromName?: string; toName?: string;
+  [key: string]: unknown;
+}
+```
+
+**专有属性：**
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `source` | `ArcFlowDataItem[] \| string` | **必填** | OD 数据源 |
+| `sourceType` | `'json' \| 'csv'` | `'json'` | 数据类型 |
+| `sourceConfig` | `{ x?, y?, x1?, y1? }` | — | 字段映射 |
+| `shape` | `ArcShape` | `'arc'` | 弧线形态 |
+| `color` | `string` | `'#2563EB'` | 单色模式颜色 |
+| `colorMode` | `ArcColorMode` | `'single'` | 颜色模式 |
+| `gradientColors` | `[string, string]` | — | 渐变起终色 |
+| `colorField` | `string` | — | 字段映射色板字段名 |
+| `colorValues` | `string[]` | — | 字段映射色板值 |
+| `lineWidth` | `number` | `1.5` | 弧线宽度 |
+| `lineWidthRange` | `[number, number]` | — | 按权重映射宽度范围 |
+| `weightField` | `string` | `'weight'` | 权重字段名 |
+| `opacity` | `number` | `0.8` | 弧线透明度 |
+| `blur` | `number` | `0.6` | 弧线模糊度 |
+| `animate` | `boolean` | `false` | 是否启用流动动画 |
+| `animateSpeed` | `number` | `1` | 动画速度 |
+| `animateTrailLength` | `number` | `0.3` | 尾迹长度 0~1 |
+| `animateDuration` | `number` | `2000` | 动画持续时间(ms) |
+| `showNodes` | `boolean` | `true` | 显示起终点节点 |
+| `nodeColor` | `string` | — | 节点颜色（默认跟随弧线） |
+| `nodeSize` | `number` | `4` | 节点大小 |
+| `nodeSizeRange` | `[number, number]` | — | 按权重映射节点大小 |
+| `nodePulse` | `boolean` | `false` | 节点呼吸脉冲动画 |
+| `showTooltip` | `boolean` | `true` | hover 弧线显示 Tooltip |
+| `showNodePopup` | `boolean` | `true` | 点击节点显示 Popup |
+| `activeColor` | `string` | — | hover 高亮色 |
+| `onArcHover` | `(payload) => void` | — | 弧线 hover 事件 |
+| `onArcClick` | `(payload) => void` | — | 弧线点击事件 |
+| `onNodeClick` | `(payload) => void` | — | 节点点击事件 |
 
 ## GlyphLayer — 图标字体图层
 
 Material Symbols 图标标注。
 
 ```tsx
-import { GlyphLayer, BUILTIN_ICON_FONTS } from '@antv/aimapui';
+import { GlyphLayer } from '@antv/aimapui';
 
 <GlyphLayer
   source={poiData}
@@ -170,6 +239,8 @@ import { GlyphLayer, BUILTIN_ICON_FONTS } from '@antv/aimapui';
   labelAnchor="top"
 />
 ```
+
+> **注意：** `BUILTIN_ICON_FONTS` 已移除，图标字体由组件内部自动管理（内嵌 Material Symbols Outlined @font-face）。
 
 ## IconLayer — 图标图片图层
 
@@ -189,24 +260,63 @@ import { IconLayer } from '@antv/aimapui';
 
 ## ChinaDistrict — 行政区划下钻
 
-省市区三级下钻。
+省市区三级下钻 + 业务数据关联色阶映射。通过 Join 字段将业务数据与区划形状绑定。
 
 ```tsx
-import { ChinaDistrict, DEFAULT_PROVINCE_SOURCE } from '@antv/aimapui';
+import { ChinaDistrict, ADMIN_SEQUENTIAL_COLORS } from '@antv/aimapui';
 
+// 按名称匹配业务数据
 <ChinaDistrict
-  level="province"    // 'province' | 'city' | 'district'
-  source={DEFAULT_PROVINCE_SOURCE}
-  colorField="value"
-  colorValues={['#f0f9e8', '#bae4bc', '#7bccc4', '#43a2ca', '#0868ac']}
-  onDrillDown={(node) => console.log('下钻:', node)}
-  onDrillUp={() => console.log('上钻')}
+  data={[
+    { name: '广东省', value: 145847 },
+    { name: '江苏省', value: 128222 },
+  ]}
+  joinField="name"          // GeoJSON feature.properties 中的匹配字段
+  dataJoinField="name"      // 业务数据中的匹配字段
+  valueField="value"        // 用于色阶映射的数值字段
+  colors={['#DBEAFE', '#3B82F6', '#1E3A8A']}
+  onRegionClick={(feature, level) => console.log(feature, level)}
+/>
+
+// 按行政区划编码匹配
+<ChinaDistrict
+  data={[{ code: '440000', amount: 8900 }]}
+  joinField="adcode"
+  dataJoinField="code"
+  valueField="amount"
 />
 ```
 
-**内置数据源：** `DEFAULT_PROVINCE_SOURCE`, `DEFAULT_CITY_SOURCE`, `DEFAULT_DISTRICT_SOURCE`
+**业务数据绑定机制：**
 
-**DrillPathNode:** `{ code, name, level, parentCode? }`
+| Prop | 默认值 | 作用 |
+|------|--------|------|
+| `joinField` | `'name'` | GeoJSON feature.properties 中用于匹配的字段 |
+| `dataJoinField` | `'name'` | 业务数据中用于匹配的字段 |
+| `valueField` | `'value'` | 业务数据中用于色阶映射的数值字段 |
+
+**内置 GeoJSON properties 可用匹配字段：**
+
+| 字段 | 格式 | 示例 |
+|------|------|------|
+| `name` | 中文全称 | `"广东省"` / `"深圳市"` / `"南山区"` |
+| `gb` | 9位国标码 | `"156440000"`（"156" + 6位行政编码） |
+
+> 使用 `adcode` 匹配时，组件自动处理 "156" 前缀，传 6 位码（如 `"440000"`）即可。
+
+**BusinessDataItem:**
+```ts
+interface BusinessDataItem {
+  name?: string;            // 匹配用名称
+  adcode?: string | number; // 匹配用行政编码
+  value?: number;           // 色阶数值
+  [key: string]: unknown;   // 可扩展
+}
+```
+
+**内置数据源：** `DEFAULT_PROVINCE_SOURCE`（34省）, `DEFAULT_CITY_SOURCE`（375市）, `DEFAULT_DISTRICT_SOURCE`（2891区县）
+
+**DrillPathNode:** `{ level: 'province' | 'city' | 'district', name: string, adcode?: string | number }`
 
 ## MarkerClusterLayer — 聚合标注
 
