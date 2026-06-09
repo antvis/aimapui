@@ -6,7 +6,7 @@ description: >
   (3) Using composite layers (Bubble/Route/ArcFlow/Icon/Glyph/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster),
   (4) Configuring visual mappings (color/size/shape), (5) Adding controls, legends, interactions (Marker/Popup/Tooltip),
   (6) Schema/JSON-driven map generation for AI, (7) Mobile-responsive map layouts, (8) Maki icon utilities for map markers.
-  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向".
+  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向", "行政区划", "ChinaDistrict".
 version: "0.2.2"
 ---
 
@@ -126,6 +126,48 @@ import { IconLayer, createMakiIconMap } from '@antv/aimapui';
   labelField="name" labelColor="#e2e8f0" labelSize={11}
 />
 ```
+
+### Composite Layer (ChinaDistrict — 行政区划 + 业务数据绑定)
+
+```tsx
+import { ChinaDistrict } from '@antv/aimapui';
+import type { BusinessDataItem } from '@antv/aimapui';
+
+// 按名称匹配（最常用）
+const GDP_DATA: BusinessDataItem[] = [
+  { name: '广东省', value: 145847 },
+  { name: '江苏省', value: 128222 },
+  { name: '山东省', value: 92069 },
+];
+
+<ChinaDistrict
+  data={GDP_DATA}
+  joinField="name"          // GeoJSON feature.properties 中的匹配字段
+  dataJoinField="name"      // 业务数据中的匹配字段
+  valueField="value"        // 用于色阶映射的数值字段
+  colors={['#DBEAFE', '#3B82F6', '#1E3A8A']}
+/>
+
+// 按行政区划编码匹配（更精确）
+<ChinaDistrict
+  data={[{ code: '440000', amount: 8900 }, { code: '320000', amount: 7600 }]}
+  joinField="adcode"        // 组件自动处理 gb→adcode 转换
+  dataJoinField="code"
+  valueField="amount"
+/>
+
+// 业务字段名与 GeoJSON 不同
+<ChinaDistrict
+  data={[{ province: '广东省', revenue: 999 }]}
+  joinField="name"           // GeoJSON 里的字段
+  dataJoinField="province"   // 业务数据里的字段
+  valueField="revenue"       // 色阶用 revenue
+/>
+```
+
+> **内置 GeoJSON 可匹配字段：** `name`（中文全称如"广东省"）、`gb`（9位国标码如"156440000"）。
+> 使用 adcode 匹配时传 6 位码即可（如 "440000"），组件自动去除 "156" 前缀。
+> 内置数据源：`DEFAULT_PROVINCE_SOURCE`（34省）、`DEFAULT_CITY_SOURCE`（375市）、`DEFAULT_DISTRICT_SOURCE`（2891区县）。
 
 ### Composite Layer (ArcFlow — OD 弧线流向图)
 
