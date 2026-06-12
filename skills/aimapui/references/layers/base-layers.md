@@ -100,9 +100,9 @@
 
 | 图层 | 可用 Shape |
 |------|-----------|
-| PointLayer | `circle` (默认) / `square` / `triangle` / `text` / `image` / `cylinder` |
-| LineLayer | `line` (默认) / `arc` / `arc3d` / `greatcircle` / `wall` / `flowline` / `dash` |
-| PolygonLayer | `fill` (默认) / `extrude` / `water` |
+| PointLayer | `circle` (默认) / `square` / `triangle` / `diamond` / `text` / `cylinder` |
+| LineLayer | `line` (默认) / `arc` / `arc3d` / `greatcircle` |
+| PolygonLayer | `fill` (默认) / `extrusion` |
 
 ## 视觉映射
 

@@ -64,3 +64,15 @@ import { Tooltip } from '@antv/aimapui'
   offset={12}
 />
 ```
+
+## 注意事项
+
+- `longitude`/`latitude` 和 `targetElement` 二选一：前者将 Tooltip 定位在地图坐标上（随平移缩放移动），后者定位在固定 DOM 元素旁
+- `trigger='hover'` 时 Tooltip 会在鼠标离开后自动隐藏；`trigger='click'` 时需再次点击或设 `visible={false}` 关闭
+- `visible` 受控模式下，内部不再自动切换显隐，需由外部状态完全控制
+- `variant='glass'` 使用 `backdrop-filter: blur()`，在不支持该属性的浏览器中会退化为半透明背景
+
+## 相关组件
+
+- [Popup](./popup) — 弹出框，适合展示更丰富的详情内容
+- [Marker](./marker) — 标记点组件，可配合 Tooltip 使用

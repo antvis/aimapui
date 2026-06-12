@@ -1,40 +1,32 @@
 # GlyphLayer
 
-字体图标标注图层，支持 Material Symbols Outlined 图标（158+个）和自定义字体，带三级缩放适配策略。
+字体图标（Glyph）+ 文字标签组合标注图层。基于 SDF 文本渲染矢量图标，支持 Google Material Symbols 及任意自定义字体，**任意缩放下边缘锐利**、可数据驱动着色。
+
+> 完整文档请参阅 [GlyphLayer](./glyph-layer)。
 
 ## 导入
 
 ```tsx
-import { GlyphLayer } from '@antv/aimapui'
+import { GlyphLayer } from '@antv/aimapui';
+```
+
+## 快速示例
+
+```tsx
+<GlyphLayer
+  source={pois}
+  sourceType="json"
+  sourceConfig={{ x: 'lng', y: 'lat' }}
+  iconField="icon"
+  iconFontFamily="material-symbols"
+  iconColor="#3B82F6"
+  iconSize={20}
+  showLabel
+  labelField="name"
+  zoomAdaption
+/>
 ```
 
 ## Props
 
-| 属性 | 类型 | 默认值 | 说明 |
-|------|------|-------|------|
-| `source` | `any` | - | 数据源（必填） |
-| `iconField` | `string` | - | 图标字段名（必填） |
-| `iconFontFamily` | `'material-symbols' \| string` | `'material-symbols'` | 字体图标族 |
-| `iconFontPath` | `string` | - | 自定义字体文件路径 |
-| `iconFontMap` | `object` | - | 图标名称到 Unicode 映射 |
-| `iconColor` | `string` | - | 图标颜色 |
-| `iconSize` | `number` | - | 图标大小 |
-| `iconHaloColor` | `string` | - | 图标光晕颜色 |
-| `iconHaloWidth` | `number` | - | 图标光晕宽度 |
-| `showLabel` | `boolean` | `true` | 是否显示标签 |
-| `labelField` | `string` | - | 标签取值字段 |
-| `labelColor` | `string` | - | 标签颜色 |
-| `labelSize` | `number` | - | 标签字号 |
-| `labelAnchor` | `LabelAnchor` | - | 标签锚点位置 |
-| `textAllowOverlap` | `boolean` | - | 文字是否允许重叠 |
-| `iconAllowOverlap` | `boolean` | - | 图标是否允许重叠 |
-| `zoomAdaption` | `boolean` | `true` | 是否跟随缩放自适应 |
-| `style` | `object` | - | 自定义样式 |
-| `active` | `object` | - | 激活态样式 |
-| `visible` | `boolean` | `true` | 是否可见 |
-
-## 示例
-
-```tsx
-<GlyphLayer source={pois} iconField="icon" iconFontFamily="material-symbols" iconColor="#3B82F6" iconSize={20} showLabel labelField="name" zoomAdaption />
-```
+详细 Props 说明请参阅 [GlyphLayer 完整文档](./glyph-layer#props)。

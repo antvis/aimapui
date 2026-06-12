@@ -86,9 +86,9 @@ const layer: LayerSchema = {
 
 | 类别   | Shape 值                                                            |
 | ------ | ------------------------------------------------------------------- |
-| 基础   | `circle`, `square`, `triangle`, `hexagon`, `diamond`, `cross`       |
-| 图标   | `icon` (需配合 iconField + iconValues)                              |
-| 文字   | `text` (需配合 textField + textValues)                              |
+| 基础   | `circle`, `square`, `triangle`, `diamond`                           |
+| 3D     | `cylinder` (需开启地图 pitch)                                        |
+| 文字   | `text` (需配合 shapeField 指定文本字段)                               |
 
 ### LineLayer 可用 Shape
 
@@ -98,14 +98,13 @@ const layer: LayerSchema = {
 | `arc`          | 弧线       |
 | `arc3d`        | 3D 弧线    |
 | `greatcircle`  | 大圆航线   |
-| `flow`         | 流动线(动画) |
 
 ### PolygonLayer 可用 Shape
 
-| Shape    | 说明   |
-| -------- | ------ |
-| `fill`   | 填充   |
-| `extrude`| 3D 挤出|
+| Shape      | 说明   |
+| ---------- | ------ |
+| `fill`     | 填充   |
+| `extrusion`| 3D 拉起|
 
 ### HeatmapLayer 可用 Shape
 

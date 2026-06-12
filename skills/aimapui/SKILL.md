@@ -62,8 +62,11 @@ import '@antv/aimapui/style.css';
 - **Layers** — 6 base types: `PointLayer`, `LineLayer`, `PolygonLayer`, `HeatmapLayer`, `RasterLayer`, `ImageLayer`
 - **Composite Layers** — Business-ready (11 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`
 - **Controls** — `ZoomControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl` (10 types, 12 positions)
-- **Interactions** — `Marker`, `Popup`, `Tooltip` + Maki icon utilities (`makiIconUrl`, `makiPinUrl`, `createMakiIconMap`, `createMakiPinMap`)
+- **Interactions** — `Marker`, `Popup`, `Tooltip` + Maki icon utilities (`makiIconUrl`, `makiPinUrl`, `createMakiIconMap`, `createMakiPinMap`, `MAKI_ICONS`, `MAKI_ICON_NAMES`)
 - **Legends** — `LegendCategories`, `LegendRamp`, `LegendDiverging`, `LegendThreshold`, `LegendSize`, `LegendLineWidth`, `LegendProportion`, `LegendIcon` (8 types)
+- **Mobile** — `BottomSheet`, `MobileToolbar`, `MobileSheetLegend`, `SearchBar`
+- **Hooks** — `useResponsive`, `useScene`, `useMapPosition`, `useEventBus`, `useTheme`
+- **Utilities** — `ErrorBoundary`, `ResponsiveProvider`, `ThemeProvider`, `EventBus`
 - **Schema Mode** — Render entire map from a single `AiMapSchema` JSON object
 - **Build Formats** — ESM, CJS, IIFE (CDN), TypeScript declarations
 
@@ -72,6 +75,7 @@ import '@antv/aimapui/style.css';
 | Topic | File | When to load |
 |-------|------|-------------|
 | AiMap container & MapSchema | [aimap-container.md](references/core/aimap-container.md) | Creating/configuring map |
+| Basemap factory | [basemap-factory.md](references/core/basemap-factory.md) | Custom basemap providers |
 | EventBus | [event-bus.md](references/core/event-bus.md) | Cross-component events |
 | Schema system | [schema-system.md](references/schema/schema-system.md) | Schema/AI-driven maps |
 | Data sources | [data-source.md](references/data/data-source.md) | JSON/GeoJSON/CSV/Raster data |
@@ -108,7 +112,7 @@ import { IconLayer, createMakiIconMap } from '@antv/aimapui';
 <IconLayer
   source={data} sourceConfig={{ x: 'lng', y: 'lat' }}
   iconField="type"
-  iconValues={createMakiIconMap(['cafe', 'restaurant', 'bus'], { size: 32, fill: '#2563eb' })}
+  iconMap={createMakiIconMap(['cafe', 'restaurant', 'bus'], { size: 32, fill: '#2563eb' })}
   iconAnchor="bottom"
   labelField="name" labelAnchor="top" labelOffset={[0, -10]}
   labelColor="#333" labelSize={12}
@@ -231,7 +235,7 @@ const cafeUrl = makiIconUrl('cafe', { size: 32, fill: '#333' });
 // Pin 样式（带水滴底座）
 const cafePinUrl = makiPinUrl('cafe', { size: 40, fill: '#2563eb' });
 
-// 批量生成 { name: dataUrl } 映射表（用于 IconLayer.iconValues）
+// 批量生成 { name: dataUrl } 映射表（用于 IconLayer.iconMap）
 const iconMap = createMakiIconMap(['cafe', 'bus', 'hospital']);
 const pinMap = createMakiPinMap(['cafe', 'bus', 'hospital'], { fill: '#10b981' });
 ```

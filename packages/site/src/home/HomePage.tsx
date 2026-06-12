@@ -22,9 +22,9 @@ const showcaseCards = [
   { title: '移动端应用', description: '开箱即用的移动地图模板', icon: 'smartphone', demoFile: 'app/MobileApp' },
   { title: '气泡图', description: '数据驱动的可视化气泡标注', icon: 'bubble_chart', demoFile: 'composite/BubbleLayer' },
   { title: '分级统计图', description: '行政区域数据映射渲染', icon: 'stacked_bar_chart', demoFile: 'composite/ChoroplethMap' },
-  { title: 'PC 端应用', description: '完整的桌面端地图应用模板', icon: 'desktop_windows', demoFile: 'app/PcApp' },
-  { title: '蜂窝热力图', description: '六边形聚合空间热力可视化', icon: 'hexagon', demoFile: 'composite/HexagonHeatmap' },
   { title: '弧线流向图', description: 'OD 弧线数据流向可视化', icon: 'south_east', demoFile: 'composite/ArcFlowLayer' },
+  { title: '图标标注', description: '内置 Maki 矢量图标标注', icon: 'label', demoFile: 'composite/IconLabel' },
+  { title: '中国行政区划', description: '省市区三级下钻专题地图', icon: 'public', demoFile: 'layer/AdministrativeMap' },
 ];
 
 const features = [
@@ -330,10 +330,12 @@ export default function HomePage({ onNavigate, onNavigateDesign, onNavigateBlock
             { group: '应用模板', icon: 'apps' },
             { group: '点位标注', icon: 'location_on' },
             { group: '复合图层', icon: 'layers' },
+            { group: '专题地图', icon: 'public' },
             { group: '交互组件', icon: 'gesture' },
-            { group: '控件', icon: 'tune' },
-            { group: '地图引擎', icon: 'public' },
             { group: '基础图层', icon: 'map' },
+            { group: '地图引擎', icon: 'language' },
+            { group: '图例', icon: 'label' },
+            { group: '移动端', icon: 'smartphone' },
           ].map((cat) => {
             const count = demos.filter((d) => d.group === cat.group).length;
             return (

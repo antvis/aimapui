@@ -181,7 +181,7 @@ const cities = [
 组合模式特点：
 - 子组件自动按类型分发到图层/控件/交互等插槽
 - 支持 React 状态驱动的响应式更新
-- 与 [Popup](interaction/popup)、[Tooltip](interaction/tooltip) 等交互组件松耦合
+- 与 [Popup](./interaction/popup)、[Tooltip](./interaction/tooltip) 等交互组件松耦合
 
 ### Schema 模式 — 适合 AI 生成和服务端下发
 
@@ -260,7 +260,7 @@ Schema 模式特点：
 
 ## 下一步
 
-- [AiMap 容器](container/aimap) — 完整的地图配置 API
-- [PointLayer](layers/point-layer) — 最常用的散点图层
-- [ArcFlowLayer](composite-layers/arc-flow-layer) — OD 弧线可视化
-- [Popup](interaction/popup) — 数据弹窗交互
+- [AiMap 容器](./container/aimap) — 完整的地图配置 API
+- [PointLayer](./layers/point-layer) — 最常用的散点图层
+- [ArcFlowLayer](./composite-layers/arc-flow-layer) — OD 弧线可视化
+- [Popup](./interaction/popup) — 数据弹窗交互

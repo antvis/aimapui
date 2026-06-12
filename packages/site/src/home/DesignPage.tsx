@@ -1,6 +1,53 @@
 import React from 'react';
 import NavBar from './NavBar';
 
+function MarkdownActions({ markdown, isDark }: { markdown: string; isDark: boolean }) {
+  const [copied, setCopied] = React.useState(false);
+
+  const handleViewMarkdown = () => {
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  };
+
+  const handleCopyForLLM = () => {
+    const doCopy = (text: string) => {
+      if (navigator.clipboard?.writeText) {
+        return navigator.clipboard.writeText(text);
+      }
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      return Promise.resolve();
+    };
+    doCopy(markdown).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  const linkStyle: React.CSSProperties = {
+    cursor: 'pointer', fontSize: 12, fontWeight: 400,
+    color: '#2563eb', background: 'none', border: 'none', padding: 0,
+    transition: 'opacity 150ms',
+  };
+
+  return (
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+      <button onClick={handleViewMarkdown} style={linkStyle} onMouseEnter={e => e.currentTarget.style.opacity = '0.7'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+        以 Markdown 格式查看
+      </button>
+      <button onClick={handleCopyForLLM} style={{ ...linkStyle, color: copied ? '#16a34a' : '#2563eb' }} onMouseEnter={e => { if (!copied) e.currentTarget.style.opacity = '0.7'; }} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+        {copied ? '已复制' : '复制给 LLM'}
+      </button>
+    </div>
+  );
+}
+
 interface DesignDoc {
   id: string;
   name: string;
@@ -184,6 +231,7 @@ export default function DesignPage({ docs, groups, theme, initialDocIndex = 0, o
               <span className="material-symbols-outlined" style={{ fontSize: 14, color: c.fg }}>description</span>
               <span style={{ fontSize: 11, fontWeight: 600, color: c.fg, letterSpacing: 0.3 }}>设计规范</span>
               <div style={{ flex: 1 }} />
+              <MarkdownActions markdown={selectedDoc.content} isDark={isDark} />
               <button
                 onClick={() => setShowSource(false)}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 24, height: 24, borderRadius: 6, border: 'none', background: 'transparent', color: c.muted, cursor: 'pointer', transition: 'all 150ms' }}

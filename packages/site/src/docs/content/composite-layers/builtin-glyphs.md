@@ -1,6 +1,6 @@
 # 内置字体图标
 
-GlyphLayer 内置 **Material Symbols Outlined** 字体图标库，涵盖 140+ 个常用图标，覆盖天气、交通出行、地点定位、城市生活、活动运动、地图功能、通用 7 大分类。
+GlyphLayer 内置 **Material Symbols Outlined** 字体图标库，涵盖 **130** 个常用图标，覆盖天气、交通出行、地点定位、城市生活、活动运动、地图功能、通用 7 大分类。
 
 ## 特性
 

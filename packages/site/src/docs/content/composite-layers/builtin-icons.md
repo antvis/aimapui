@@ -183,9 +183,9 @@ const medicalIcons = createMakiIconMap(['hospital', 'pharmacy'], { fill: '#ef444
 
 ### 4. 找不到合适的图标？
 
-如果 190 个内置图标无法满足需求，可以考虑：
+如果 210+ 个内置图标无法满足需求，可以考虑：
 
-- **[GlyphLayer](./glyph-layer)**：使用 Material Symbols Outlined 字体图标（158+ 个），支持更多抽象概念图标
+- **[GlyphLayer](./glyph-layer)**：使用 Material Symbols Outlined 字体图标（130 个），支持更多抽象概念图标
 - **自定义图片**：通过 `iconMap` 传入自定义 PNG/SVG URL
 
 ## 相关文档
