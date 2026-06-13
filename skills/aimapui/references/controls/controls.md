@@ -176,6 +176,43 @@ import { LogoControl } from '@antv/aimapui';
 | `href` | `string` | — | 点击跳转链接 |
 | `width` | `number` | `24` | 图片宽度（px） |
 
+## DrawControl — 绘制控件
+
+默认位置：`topright`，支持交互式绘制和编辑地理要素。
+
+```tsx
+import { DrawControl } from '@antv/aimapui';
+
+<DrawControl
+  position="topright"
+  modes={['point', 'polyline', 'polygon', 'rectangle', 'circle', 'edit']}
+  onDrawCreate={(features) => console.log('创建:', features)}
+  onDrawUpdate={(feature) => console.log('更新:', feature)}
+  onDrawDelete={(feature) => console.log('删除:', feature)}
+  onDrawSelect={(feature) => console.log('选中:', feature)}
+  onModeChange={(mode) => console.log('模式:', mode)}
+/>
+```
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'topright'` | 控件位置 |
+| `defaultFeatures` | `DrawFeature[]` | `[]` | 初始要素（非受控） |
+| `features` | `DrawFeature[]` | — | 受控要素 |
+| `modes` | `DrawToolMode[]` | 全部 | 工具栏显示的模式 |
+| `showDelete` | `boolean` | `true` | 显示删除/清除按钮 |
+| `styles` | `DrawStyleConfig` | — | 自定义样式 |
+| `onDrawCreate` | `(features: DrawFeature[]) => void` | — | 创建要素回调 |
+| `onDrawUpdate` | `(feature: DrawFeature) => void` | — | 更新要素回调 |
+| `onDrawDelete` | `(feature: DrawFeature) => void` | — | 删除要素回调 |
+| `onDrawSelect` | `(feature: DrawFeature \| null) => void` | — | 选中/取消选中回调 |
+| `onModeChange` | `(mode: DrawMode) => void` | — | 模式切换回调 |
+| `onChange` | `(features: DrawFeature[]) => void` | — | 要素集合变化回调 |
+
+绘制模式：`point`（点）、`polyline`（折线）、`polygon`（多边形）、`rectangle`（矩形）、`circle`（圆形）、`edit`（编辑）。
+
+Schema 模式：`{ type: 'draw', position: 'topright', options: { modes: ['point', 'polygon', 'edit'], showDelete: true } }`
+
 ## ControlContainer — 控件容器
 
 组件化模式下自动包裹，也可以手动使用：

@@ -10,6 +10,9 @@ import { MapThemeControl } from './MapThemeControl';
 import { MouseLocationControl } from './MouseLocationControl';
 import { ExportImageControl } from './ExportImageControl';
 import { LayerSwitchControl } from './LayerSwitchControl';
+import { DrawControl } from './DrawControl';
+import type { DrawToolMode } from './DrawControl';
+import { ImageCalibrationControl } from './ImageCalibrationControl';
 
 export interface ControlRendererProps {
   controls: ControlSchema[];
@@ -95,6 +98,22 @@ function ControlItem({
             visible: l.visible,
           }))}
           onToggle={onLayerToggle ?? (() => {})}
+        />
+      );
+    case 'draw':
+      return (
+        <DrawControl
+          position={position ?? 'topright'}
+          modes={control.options?.modes as DrawToolMode[] | undefined}
+          showDelete={control.options?.showDelete as boolean | undefined}
+        />
+      );
+    case 'imageCalibration':
+      return (
+        <ImageCalibrationControl
+          position={position ?? 'topright'}
+          opacity={control.options?.opacity as number | undefined}
+          imageSource={control.options?.imageSource as string | undefined}
         />
       );
     default:

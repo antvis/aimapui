@@ -10,7 +10,7 @@ import { resolve } from 'path';
 export default defineConfig({
   server: {
     host: 'dev.alipay.net',
-    port: 5173,
+    port: 5174,
   },
   plugins: [
     react(),

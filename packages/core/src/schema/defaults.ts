@@ -99,6 +99,7 @@ const CONTROL_DEFAULT_POSITIONS: Record<string, ControlSchema['position']> = {
   mouseLocation: 'bottomright',
   exportImage: 'topright',
   layerSwitch: 'topright',
+  draw: 'topright',
 };
 
 export function applyControlDefaults(control: ControlSchema): ControlSchema {

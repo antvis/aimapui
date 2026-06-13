@@ -138,7 +138,9 @@ export type ControlType =
   | 'mapTheme'
   | 'mouseLocation'
   | 'exportImage'
-  | 'layerSwitch';
+  | 'layerSwitch'
+  | 'draw'
+  | 'imageCalibration';
 
 export type ControlPosition =
   | 'topleft'

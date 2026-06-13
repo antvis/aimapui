@@ -2333,3 +2333,78 @@
 [data-theme="dark"] .aimapui-legend-group > .aimapui-legend-section + .aimapui-legend-section {
   border-top-color: rgba(180, 197, 255, 0.1);
 }
+
+/* ============================================================
+   DrawControl 绘制控件
+   ============================================================ */
+
+/* 绘制控件容器 */
+.l7-control.l7-control-draw {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  padding: 2px;
+}
+
+/* 绘制工具按钮活跃状态 */
+.l7-control--glass .l7-button-control.l7-button-control--active {
+  background-color: var(--color-surface-container-high, #dee9fc);
+  border-radius: 6px;
+}
+.l7-control--glass .l7-button-control.l7-button-control--active .material-symbols-outlined {
+  color: var(--color-primary, #004ac6);
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.l7-control--glass .l7-button-control.l7-button-control--active svg {
+  fill: var(--color-primary, #004ac6);
+  color: var(--color-primary, #004ac6);
+}
+
+/* 非玻璃态下的活跃状态 */
+.l7-button-control.l7-button-control--active {
+  background-color: var(--color-surface-container-high, #dee9fc);
+  color: var(--color-primary, #004ac6);
+  border-radius: 6px;
+}
+.l7-button-control.l7-button-control--active .material-symbols-outlined {
+  color: var(--color-primary, #004ac6);
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* 绘制控件分隔线 */
+.l7-draw-separator {
+  width: 1px;
+  height: 20px;
+  background-color: var(--color-outline-variant, #c4c6d0);
+  margin: 0 2px;
+  align-self: center;
+  flex-shrink: 0;
+}
+
+/* 绘制模式光标 */
+.l7-draw-cursor-crosshair .amap-container,
+.l7-draw-cursor-crosshair .mapboxgl-canvas,
+.l7-draw-cursor-crosshair .maplibregl-canvas,
+.l7-draw-cursor-crosshair canvas {
+  cursor: crosshair !important;
+}
+
+/* 编辑模式光标 */
+.l7-draw-cursor-move .amap-container,
+.l7-draw-cursor-move .mapboxgl-canvas,
+.l7-draw-cursor-move .maplibregl-canvas,
+.l7-draw-cursor-move canvas {
+  cursor: move !important;
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .l7-button-control.l7-button-control--active {
+  background-color: rgba(180, 197, 255, 0.2);
+}
+[data-theme="dark"] .l7-control--glass .l7-button-control.l7-button-control--active {
+  background-color: rgba(180, 197, 255, 0.2);
+}
+[data-theme="dark"] .l7-draw-separator {
+  background-color: rgba(180, 197, 255, 0.2);
+}

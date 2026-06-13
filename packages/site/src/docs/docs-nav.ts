@@ -93,6 +93,7 @@ export const docsNav: DocNavGroup[] = [
       { id: 'controls/mouse-location-control', name: 'MouseLocationControl', icon: 'pin_drop' },
       { id: 'controls/export-image-control', name: 'ExportImageControl', icon: 'photo_camera' },
       { id: 'controls/layer-switch-control', name: 'LayerSwitchControl', icon: 'layers' },
+      { id: 'controls/draw-control', name: 'DrawControl', icon: 'edit' },
     ],
   },
   {

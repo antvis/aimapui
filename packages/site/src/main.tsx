@@ -33,6 +33,8 @@ import BaiduMap from './engine/BaiduMap';
 import GoogleMap from './engine/GoogleMap';
 // ── 控件 ──
 import MapControlsDemo from './control/MapControls';
+import DrawControlDemo from './control/DrawControlDemo';
+import ImageCalibrationDemo from './control/ImageCalibrationDemo';
 // ── 点位标注 / 交互 ──
 import Marker from './marker/Marker';
 import MarkerDrag from './marker/MarkerDrag';
@@ -260,6 +262,8 @@ const demos = [
   { name: 'Popup 弹窗', icon: 'chat_bubble', component: Popup, group: '交互组件', file: 'marker/Popup' },
   { name: 'Tooltip 轻提示', icon: 'info', component: TooltipDemo, group: '交互组件', file: 'marker/Tooltip' },
   { name: '地图控件', icon: 'tune', component: MapControlsDemo, group: '交互组件', file: 'control/MapControls' },
+  { name: '绘制控件', icon: 'edit', component: DrawControlDemo, group: '交互组件', file: 'control/DrawControlDemo' },
+  { name: '图片配准', icon: 'image', component: ImageCalibrationDemo, group: '交互组件', file: 'control/ImageCalibrationDemo' },
 
   // ── 地图引擎 ──────────────────────────────
   { name: '高德地图', icon: 'public', component: GaodeMap, group: '地图引擎', file: 'engine/GaodeMap' },
