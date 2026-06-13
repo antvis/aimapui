@@ -430,6 +430,7 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
 
     // 编辑模式：顶点拖拽
     if (mode === 'edit' && state.isDragging && state.selectedFeatureId && state.dragVertexIndex !== null && lastDragLngLatRef.current) {
+      console.log('[Drag] vertex move:', state.dragVertexIndex, lng, lat);
       const feature = featuresRef.current.find((f) => f.id === state.selectedFeatureId);
       if (feature) {
         const updated = moveVertex(feature, state.dragVertexIndex, lng, lat);
@@ -488,6 +489,8 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     }
 
     // 编辑模式：在要素体上按下鼠标（非顶点）→ 开始整体移动
+    // 注意：vertex 图层的 mousedown 会先触发 handleVertexClick（设置 isDragging=true + dragVertexIndex=具体索引）
+    // 如果 isDragging 已经为 true（vertex 已抢先处理），则不进入整体移动逻辑
     if (mode === 'edit' && state.selectedFeatureId && !state.isDragging) {
       // 检查是否按在顶点上 — 如果是，由 vertexClick 处理
       // 这里处理的是按在要素体上
