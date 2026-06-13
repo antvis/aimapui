@@ -368,6 +368,9 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     const [lng, lat] = lngLat;
     const manager = layerManagerRef.current;
     const mode = modeRef.current as DrawMode;
+    const origEvent = e.originalEvent as MouseEvent | undefined;
+
+    state.mousePoint = [lng, lat];
 
     // 诊断：编辑模式下的拖拽状态
     if (mode === 'edit' && state.isDragging) {
@@ -378,11 +381,6 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
         lng, lat,
       });
     }
-
-    const mode = modeRef.current as DrawMode;
-    const origEvent = e.originalEvent as MouseEvent | undefined;
-
-    state.mousePoint = [lng, lat];
 
     // 鼠标跟随提示（遵循 GeoEditor Pro 规范：含 ESC 标签）
     if (origEvent && manager) {
