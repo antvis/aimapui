@@ -64,6 +64,7 @@ export class DrawLayerManager {
 
   // 事件回调
   private onFeatureClick: ((featureId: string) => void) | null = null;
+  private onFeatureMouseDown: ((featureId: string) => void) | null = null;
   private onVertexClick: ((vertexIndex: number) => void) | null = null;
   private onVertexRightClick: ((vertexIndex: number) => void) | null = null;
   private onEmptyClick: (() => void) | null = null;
@@ -504,12 +505,14 @@ export class DrawLayerManager {
     onEmptyClick: () => void,
     onVertexRightClick?: (vertexIndex: number) => void,
     onMidpointClick?: (edgeIndex: number, coord: [number, number]) => void,
+    onFeatureMouseDown?: (featureId: string) => void,
   ): void {
     this.onFeatureClick = onFeatureClick;
     this.onVertexClick = onVertexClick;
     this.onEmptyClick = onEmptyClick;
     this.onVertexRightClick = onVertexRightClick ?? null;
     this.onMidpointClick = onMidpointClick ?? null;
+    this.onFeatureMouseDown = onFeatureMouseDown ?? null;
     this.editClickHandlersBound = true;
     this.rebindEditClickHandlers();
   }
@@ -526,10 +529,26 @@ export class DrawLayerManager {
       }
     };
 
+    const featureMouseDownHandler = (e: Record<string, unknown>) => {
+      const feature = e.feature as Record<string, unknown> | undefined;
+      if (feature) {
+        const id = (feature.properties as Record<string, unknown>)?.id ?? (feature as Record<string, unknown>).id;
+        if (id && this.onFeatureMouseDown) {
+          this.onFeatureMouseDown(String(id));
+        }
+      }
+    };
+
     this.featurePointLayer?.on('click', featureClickHandler);
     this.featureLineLayer?.on('click', featureClickHandler);
     this.featurePolygonLayer?.on('click', featureClickHandler);
     this.featurePolygonOutlineLayer?.on('click', featureClickHandler);
+
+    // feature 图层 mousedown — 整体移动（vertex zIndex=16 更高，会先触发）
+    this.featurePointLayer?.on('mousedown', featureMouseDownHandler);
+    this.featureLineLayer?.on('mousedown', featureMouseDownHandler);
+    this.featurePolygonLayer?.on('mousedown', featureMouseDownHandler);
+    this.featurePolygonOutlineLayer?.on('mousedown', featureMouseDownHandler);
 
     // vertex/midpoint 事件绑定
     this.rebindVertexAndMidpointEvents();

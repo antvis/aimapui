@@ -497,39 +497,11 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
       return;
     }
 
-    // 编辑模式：在要素体上按下鼠标 → 可能是整体移动或顶点拖拽
-    // DOM mousedown 先于 L7 图层事件触发，无法立即区分
-    // 使用 requestAnimationFrame 延迟一帧：如果 vertex mousedown 在此帧内设置了 dragVertexIndex，
-    // 则跳过整体移动；否则进入整体移动逻辑
-    if (mode === 'edit' && state.selectedFeatureId && !state.isDragging) {
-      const pendingClientX = e.clientX;
-      const pendingClientY = e.clientY;
-      requestAnimationFrame(() => {
-        // vertex mousedown 已在同一帧内执行，如果设置了 dragVertexIndex 则跳过整体移动
-        const currentState = stateRef.current;
-        if (currentState.isDragging && currentState.dragVertexIndex !== null) {
-          // 顶点拖拽已被 vertex mousedown 处理，无需整体移动
-          return;
-        }
-
-        // 进入整体移动模式
-        currentState.isDragging = true;
-        currentState.dragVertexIndex = null;
-
-        const container = mapsService.getContainer?.();
-        if (container) {
-          const rect = container.getBoundingClientRect();
-          const x = pendingClientX - rect.left;
-          const y = pendingClientY - rect.top;
-          const lngLat = mapsService.containerToLngLat?.([x, y]);
-          if (lngLat) {
-            lastDragLngLatRef.current = [lngLat.lng, lngLat.lat];
-          }
-        }
-        mapsService.setMapStatus({ dragEnable: false, zoomEnable: false });
-      });
-      return;
-    }
+    // 编辑模式：不在 DOM 层面启动拖拽
+    // 拖拽启动完全由 L7 图层事件驱动：
+    // - vertex mousedown → 顶点拖拽（zIndex=16，优先触发）
+    // - feature mousedown → 整体移动（zIndex=10）
+    // DOM mousedown 先于 L7 事件执行，无法区分两者，因此跳过
   }, [mapsService]);
 
   const handleDocumentMouseUp = useCallback((e: MouseEvent) => {
@@ -616,6 +588,24 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
 
     state.isDragging = true;
     state.dragVertexIndex = vertexIndex;
+    mapsService.setMapStatus({ dragEnable: false, zoomEnable: false });
+  }, [mapsService]);
+
+  // feature 图层 mousedown — 启动整体移动
+  // vertex zIndex=16 > feature zIndex=10~12，vertex mousedown 先触发
+  // 如果 vertex 已设置 isDragging=true，则整体移动不启动
+  const handleFeatureMouseDown = useCallback((featureId: string) => {
+    if (modeRef.current !== 'edit') return;
+    const state = stateRef.current;
+    // vertex mousedown 先触发（zIndex更高），如果已经设置了 isDragging，则跳过
+    if (state.isDragging) return;
+
+    const feature = featuresRef.current.find((f) => f.id === featureId);
+    if (!feature) return;
+
+    state.isDragging = true;
+    state.dragVertexIndex = null; // null = 整体移动
+    lastDragLngLatRef.current = null;
     mapsService.setMapStatus({ dragEnable: false, zoomEnable: false });
   }, [mapsService]);
 
@@ -780,7 +770,7 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
 
     // 进入新模式
     if (newMode === 'edit') {
-      manager?.setupEditClickHandlers(handleFeatureClick, handleVertexClick, handleMapClickForEdit, handleVertexRightClick, handleMidpointClick);
+      manager?.setupEditClickHandlers(handleFeatureClick, handleVertexClick, handleMapClickForEdit, handleVertexRightClick, handleMidpointClick, handleFeatureMouseDown);
       // 编辑态图层在 updateSelectionHighlight/updateVertexHandles 中按需创建
       if (mapsService) {
         mapsService.setMapStatus({ doubleClickZoom: false });
