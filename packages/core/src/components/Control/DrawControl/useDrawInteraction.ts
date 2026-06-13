@@ -367,6 +367,17 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     if (!lngLat) return;
     const [lng, lat] = lngLat;
     const manager = layerManagerRef.current;
+    const mode = modeRef.current as DrawMode;
+
+    // 诊断：编辑模式下的拖拽状态
+    if (mode === 'edit' && state.isDragging) {
+      console.log('[MouseMove] edit drag:', {
+        featureId: state.selectedFeatureId,
+        dragVertexIndex: state.dragVertexIndex,
+        hasLastDrag: !!lastDragLngLatRef.current,
+        lng, lat,
+      });
+    }
 
     const mode = modeRef.current as DrawMode;
     const origEvent = e.originalEvent as MouseEvent | undefined;
