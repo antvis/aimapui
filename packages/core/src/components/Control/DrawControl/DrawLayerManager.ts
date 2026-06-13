@@ -239,43 +239,6 @@ export class DrawLayerManager {
     startPoint: [number, number] | null,
   ): void {
     if (!this.scene) return;
-
-    // === 诊断：检查 Scene 渲染管线状态 ===
-    if (currentVertices.length > 0 && !(this as any)._diagDone) {
-      (this as any)._diagDone = true;
-      const s = this.scene as any;
-      const container = s.getContainer?.();
-      const canvases = container?.querySelectorAll?.('canvas');
-      console.log('[DIAG] scene.loaded:', s.loaded);
-      console.log('[DIAG] scene.rendererService:', !!s.rendererService);
-      console.log('[DIAG] scene.layerService:', !!s.layerService);
-      console.log('[DIAG] container:', container?.tagName, container?.id, container?.className);
-      console.log('[DIAG] container size:', container?.offsetWidth, 'x', container?.offsetHeight);
-      console.log('[DIAG] canvas count:', canvases?.length);
-      canvases?.forEach((c: HTMLCanvasElement, i: number) => {
-        console.log(`[DIAG] canvas[${i}]:`, c.width, 'x', c.height, 'zIndex:', c.style.zIndex, 'display:', getComputedStyle(c).display, 'visibility:', getComputedStyle(c).visibility, 'opacity:', getComputedStyle(c).opacity);
-      });
-      console.log('[DIAG] scene.map:', !!s.map, 'map type:', s.map?.constructor?.name);
-      console.log('[DIAG] layers:', s.getLayers?.()?.map((l: any) => `${l.name}(${l.type})`).join(', '));
-      console.log('[DIAG] layerService:', !!s.layerService, 'layerService.layers:', s.layerService?.layers?.length);
-      console.log('[DIAG] rendererService:', !!s.rendererService, 'renderer type:', s.rendererService?.constructor?.name);
-      // 尝试直接通过 layerService 添加
-      // 用 SchemaLayer 完全相同的方式创建测试图层
-      const testLayer3 = new L7.PointLayer({ name: 'draw-test-schema-style', zIndex: 99 });
-      testLayer3.source([{ lng: currentVertices[0][0], lat: currentVertices[0][1] }], { parser: { type: 'json', x: 'lng', y: 'lat' } });
-      testLayer3.shape('circle');
-      testLayer3.color('#00ff00');
-      testLayer3.size(30);
-      s.addLayer(testLayer3);
-      testLayer3.on('inited', () => {
-        console.log('[DIAG] schema-style test layer inited!');
-        try { s.render(); } catch { /* */ }
-      });
-      console.log('[DIAG] schema-style test layer added, getLayers:', s.getLayers?.()?.length);
-    }
-
-    // 销毁旧 drawing 图层
-
     if (mode === 'point') return;
 
     const s = this.styles;
@@ -325,31 +288,44 @@ export class DrawLayerManager {
       pointData = currentVertices.map(([lng, lat], i) => ({ lng, lat, vertexIndex: i, isFirst: i === 0 }));
     }
 
-    // 重建线图层
-    this.drawingLineLayer = new L7.LineLayer({ name: `${PREFIX}drawing-line`, zIndex: 13 })
-      .source(lineData).shape('line').color(s.drawing.stroke!).size(s.drawing.strokeWidth!).style({ opacity: 1 });
-    this.addLayerWithRender(this.drawingLineLayer);
+    // 首次创建或更新 drawing 图层（避免频繁 destroy+rebuild 导致视觉累积）
+    if (!this.drawingLineLayer) {
+      this.drawingLineLayer = new L7.LineLayer({ name: `${PREFIX}drawing-line`, zIndex: 13 })
+        .source(lineData).shape('line').color(s.drawing.stroke!).size(s.drawing.strokeWidth!).style({ opacity: 1 });
+      this.addLayerWithRender(this.drawingLineLayer);
+    } else {
+      this.drawingLineLayer.setData(lineData);
+    }
 
-    // 重建虚线图层
     const dashArray = s.drawing.dashArray ?? [4, 4];
     const dashStroke = s.drawing.dashStroke ?? s.drawing.stroke!;
     const dashWidth = s.drawing.dashWidth ?? 1.5;
-    this.drawingDashLineLayer = new L7.LineLayer({ name: `${PREFIX}drawing-dash-line`, zIndex: 14 })
-      .source(dashData).shape('line').color(dashStroke).size(dashWidth)
-      .style({ opacity: 1, lineType: 'dash', dashArray });
-    this.addLayerWithRender(this.drawingDashLineLayer);
+    if (!this.drawingDashLineLayer) {
+      this.drawingDashLineLayer = new L7.LineLayer({ name: `${PREFIX}drawing-dash-line`, zIndex: 14 })
+        .source(dashData).shape('line').color(dashStroke).size(dashWidth)
+        .style({ opacity: 1, lineType: 'dash', dashArray });
+      this.addLayerWithRender(this.drawingDashLineLayer);
+    } else {
+      this.drawingDashLineLayer.setData(dashData);
+    }
 
-    // 重建面图层
-    this.drawingPolygonLayer = new L7.PolygonLayer({ name: `${PREFIX}drawing-polygon`, zIndex: 13 })
-      .source(polyData).shape('fill').color(s.drawing.fill!).style({ opacity: s.drawing.fillOpacity! });
-    this.addLayerWithRender(this.drawingPolygonLayer);
+    if (!this.drawingPolygonLayer) {
+      this.drawingPolygonLayer = new L7.PolygonLayer({ name: `${PREFIX}drawing-polygon`, zIndex: 13 })
+        .source(polyData).shape('fill').color(s.drawing.fill!).style({ opacity: s.drawing.fillOpacity! });
+      this.addLayerWithRender(this.drawingPolygonLayer);
+    } else {
+      this.drawingPolygonLayer.setData(polyData);
+    }
 
-    // 重建点图层
-    this.drawingPointLayer = new L7.PointLayer({ name: `${PREFIX}drawing-point`, zIndex: 15 })
-      .source(pointData, { parser: { type: 'json', x: 'lng', y: 'lat' } })
-      .shape('circle').color(s.vertex.color!).size(s.vertex.size!)
-      .style({ stroke: s.vertex.strokeColor!, strokeWidth: s.vertex.strokeWidth! });
-    this.addLayerWithRender(this.drawingPointLayer);
+    if (!this.drawingPointLayer) {
+      this.drawingPointLayer = new L7.PointLayer({ name: `${PREFIX}drawing-point`, zIndex: 15 })
+        .source(pointData, { parser: { type: 'json', x: 'lng', y: 'lat' } })
+        .shape('circle').color(s.vertex.color!).size(s.vertex.size!)
+        .style({ stroke: s.vertex.strokeColor!, strokeWidth: s.vertex.strokeWidth! });
+      this.addLayerWithRender(this.drawingPointLayer);
+    } else {
+      this.drawingPointLayer.setData(pointData);
+    }
   }
 
   clearDrawingFeedback(): void {
