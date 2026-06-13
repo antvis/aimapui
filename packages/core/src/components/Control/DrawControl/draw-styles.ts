@@ -53,11 +53,11 @@ export const DEFAULT_DRAW_STYLES: Required<DrawStyleConfig> = {
   },
   vertex: {
     color: '#ffffff',
-    size: 3,
+    size: 9,
     strokeColor: '#3f51b5',
-    strokeWidth: 1,
+    strokeWidth: 2,
     activeColor: '#ffb95f',
-    activeSize: 5,
+    activeSize: 12,
   },
 };
 
