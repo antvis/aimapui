@@ -476,6 +476,11 @@ export class DrawLayerManager {
     } else {
       this.midpointLayer = null;
     }
+
+    // vertex/midpoint 图层每次 destroy+rebuild，事件会丢失，需要重新绑定
+    if (this.editClickHandlersBound) {
+      this.rebindVertexAndMidpointEvents();
+    }
   }
 
   clearVertexHandles(): void {
@@ -526,12 +531,21 @@ export class DrawLayerManager {
     this.featurePolygonLayer?.on('click', featureClickHandler);
     this.featurePolygonOutlineLayer?.on('click', featureClickHandler);
 
+    // vertex/midpoint 事件绑定
+    this.rebindVertexAndMidpointEvents();
+  }
+
+  /** 重新绑定 vertex/midpoint 图层事件（每次 rebuild 后调用） */
+  private rebindVertexAndMidpointEvents(): void {
     this.vertexLayer?.on('mousedown', (e: Record<string, unknown>) => {
+      console.log('[DrawLayerManager] vertex mousedown triggered');
       const feature = e.feature as Record<string, unknown> | undefined;
       if (feature && this.onVertexClick) {
         const props = feature.properties as Record<string, unknown> | undefined;
         const vertexIndex = props?.vertexIndex as number | undefined;
         if (vertexIndex !== undefined) {
+          // 同步禁用地图拖拽，防止地图抢先开始平移
+          this.mapsService?.setMapStatus?.({ dragEnable: false, zoomEnable: false });
           (e.originalEvent as Event)?.stopPropagation?.();
           this.onVertexClick(vertexIndex);
         }
