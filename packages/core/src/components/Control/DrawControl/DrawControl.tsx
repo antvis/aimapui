@@ -35,11 +35,11 @@ interface ToolButton {
 
 const DRAW_TOOLS: ToolButton[] = [
   { mode: 'point', icon: 'location_on', title: '绘制点', label: '点' },
-  { mode: 'polyline', icon: 'polyline', title: '绘制折线', label: '线' },
+  { mode: 'polyline', icon: 'timeline', title: '绘制折线', label: '线' },
   { mode: 'polygon', icon: 'pentagon', title: '绘制多边形', label: '面' },
+  { mode: 'circle', icon: 'radio_button_unchecked', title: '绘制圆形', label: '圆形' },
   { mode: 'rectangle', icon: 'crop_square', title: '绘制矩形', label: '矩形' },
-  { mode: 'circle', icon: 'circle', title: '绘制圆形', label: '圆形' },
-  { mode: 'edit', icon: 'near_me', title: '编辑要素', label: '编辑' },
+  { mode: 'edit', icon: 'edit_square', title: '编辑要素', label: '编辑' },
 ];
 
 // ============================================================

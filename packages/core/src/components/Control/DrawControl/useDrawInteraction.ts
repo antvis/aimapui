@@ -373,35 +373,35 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
 
     state.mousePoint = [lng, lat];
 
-    // 鼠标跟随提示
+    // 鼠标跟随提示（遵循 GeoEditor Pro 规范：含 ESC 标签）
     if (origEvent && manager) {
       if (mode === 'point') {
-        manager.showTooltip('单击添加点', origEvent.clientX, origEvent.clientY);
+        manager.showTooltip('单击添加点', origEvent.clientX, origEvent.clientY, 'ESC');
       } else if (mode === 'polyline') {
         if (!state.isDrawing) {
-          manager.showTooltip('单击开始绘制线', origEvent.clientX, origEvent.clientY);
+          manager.showTooltip('单击开始绘制线', origEvent.clientX, origEvent.clientY, 'ESC');
         } else {
-          manager.showTooltip('单击继续，双击完成', origEvent.clientX, origEvent.clientY);
+          manager.showTooltip('单击继续，双击完成', origEvent.clientX, origEvent.clientY, 'ESC');
         }
       } else if (mode === 'polygon') {
         if (!state.isDrawing) {
-          manager.showTooltip('单击开始绘制面', origEvent.clientX, origEvent.clientY);
+          manager.showTooltip('单击开始绘制面', origEvent.clientX, origEvent.clientY, 'ESC');
         } else if (state.currentVertices.length < 3) {
-          manager.showTooltip('单击继续添加顶点', origEvent.clientX, origEvent.clientY);
+          manager.showTooltip('单击继续添加顶点', origEvent.clientX, origEvent.clientY, 'ESC');
         } else {
-          manager.showTooltip('单击继续，双击闭合', origEvent.clientX, origEvent.clientY);
+          manager.showTooltip('单击继续，双击闭合', origEvent.clientX, origEvent.clientY, 'ESC');
         }
       } else if (mode === 'rectangle') {
         if (!state.isDragging) {
-          manager.showTooltip('按住拖拽绘制矩形', origEvent.clientX, origEvent.clientY);
+          manager.showTooltip('按住拖拽绘制矩形', origEvent.clientX, origEvent.clientY, 'ESC');
         }
       } else if (mode === 'circle') {
         if (!state.startPoint) {
-          manager.showTooltip('单击设定圆心', origEvent.clientX, origEvent.clientY);
+          manager.showTooltip('单击设定圆心', origEvent.clientX, origEvent.clientY, 'ESC');
         } else {
           const radius = haversineDistance(state.startPoint, [lng, lat]);
           const label = radius > 1000 ? `${(radius / 1000).toFixed(1)} km` : `${Math.round(radius)} m`;
-          manager.showTooltip(`半径 ${label}，单击完成`, origEvent.clientX, origEvent.clientY);
+          manager.showTooltip(`半径 ${label}，单击完成`, origEvent.clientX, origEvent.clientY, 'ESC');
         }
       } else if (mode === 'edit') {
         if (!state.isDragging) {

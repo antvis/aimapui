@@ -106,25 +106,41 @@ export class DrawLayerManager {
   // ============================================================
 
   private initTooltip(): void {
-    // 注意：不能修改 L7 容器的 style.position 或往容器内直接插入 DOM，
+    // 不能修改 L7 容器的 style.position 或往容器内直接插入 DOM，
     // 否则会破坏 L7 的 canvas 定位和渲染管线。
-    // 因此 tooltip 使用固定定位（fixed），直接挂到 document.body 上。
+    // tooltip 使用固定定位（fixed），直接挂到 document.body 上。
+    // 遵循 GeoEditor Pro 规范：JetBrains Mono 11px，含 ESC 标签
     const el = document.createElement('div');
     el.style.cssText = [
       'position:fixed', 'pointer-events:none', 'z-index:9999',
-      'padding:4px 8px', 'border-radius:3px', 'background:rgba(0,0,0,0.75)',
-      'color:#fff', 'font:11px Inter,JetBrains Mono,monospace',
-      'white-space:nowrap', 'display:none',
+      'display:flex', 'align-items:center', 'gap:6px',
+      'padding:4px 10px', 'border-radius:4px',
+      'background:#2f3037', 'color:#f2eff9',
+      'font:500 11px/14px "JetBrains Mono",monospace',
+      'letter-spacing:0.02em', 'white-space:nowrap', 'display:none',
     ].join(';');
     document.body.appendChild(el);
     this.tooltipEl = el;
     this.containerEl = null;
   }
 
-  showTooltip(text: string, clientX: number, clientY: number): void {
+  showTooltip(text: string, clientX: number, clientY: number, escLabel?: string): void {
     if (!this.tooltipEl) return;
-    this.tooltipEl.textContent = text;
-    this.tooltipEl.style.display = 'block';
+    // 主文本
+    const textSpan = document.createElement('span');
+    textSpan.textContent = text;
+    // ESC 标签（可选）
+    if (escLabel) {
+      const escSpan = document.createElement('span');
+      escSpan.textContent = escLabel;
+      escSpan.style.cssText = 'font-size:8px;background:rgba(196,196,210,0.3);padding:1px 4px;border-radius:2px;';
+      this.tooltipEl.innerHTML = '';
+      this.tooltipEl.appendChild(textSpan);
+      this.tooltipEl.appendChild(escSpan);
+    } else {
+      this.tooltipEl.textContent = text;
+    }
+    this.tooltipEl.style.display = 'flex';
     this.tooltipEl.style.left = `${clientX + 14}px`;
     this.tooltipEl.style.top = `${clientY - 10}px`;
   }
@@ -455,7 +471,7 @@ export class DrawLayerManager {
       this.midpointLayer = new L7.PointLayer({ name: `${PREFIX}midpoint-handles`, zIndex: 16 })
         .source(midpointData, { parser: { type: 'json', x: 'lng', y: 'lat' } })
         .shape('circle').color(s.vertex.strokeColor!).size(s.vertex.size! - 1)
-        .style({ stroke: s.vertex.strokeColor!, strokeWidth: 0.5, opacity: 0.4 });
+        .style({ stroke: s.vertex.strokeColor!, strokeWidth: 0.5, opacity: 0.5 });
       this.addLayerWithRender(this.midpointLayer);
     } else {
       this.midpointLayer = null;
