@@ -510,12 +510,15 @@ export class DrawLayerManager {
     this.featurePolygonLayer?.on('click', featureClickHandler);
     this.featurePolygonOutlineLayer?.on('click', featureClickHandler);
 
-    this.vertexLayer?.on('click', (e: Record<string, unknown>) => {
+    this.vertexLayer?.on('mousedown', (e: Record<string, unknown>) => {
       const feature = e.feature as Record<string, unknown> | undefined;
       if (feature && this.onVertexClick) {
         const props = feature.properties as Record<string, unknown> | undefined;
         const vertexIndex = props?.vertexIndex as number | undefined;
-        if (vertexIndex !== undefined) this.onVertexClick(vertexIndex);
+        if (vertexIndex !== undefined) {
+          (e.originalEvent as Event)?.stopPropagation?.();
+          this.onVertexClick(vertexIndex);
+        }
       }
     });
 

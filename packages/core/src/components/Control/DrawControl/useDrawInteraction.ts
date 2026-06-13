@@ -674,6 +674,31 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     }
   }, [updateFeatures]);
 
+  // 中点点击添加顶点
+  const handleMidpointClick = useCallback((edgeIndex: number, coord: [number, number]) => {
+    if (modeRef.current !== 'edit') return;
+    if (!selectedIdRef.current) return;
+
+    const feature = featuresRef.current.find((f) => f.id === selectedIdRef.current);
+    if (!feature) return;
+
+    let updated: DrawFeature | null = null;
+
+    if (feature.geometry.type === 'LineString') {
+      updated = insertVertexOnLine(feature, edgeIndex, coord);
+    } else if (feature.geometry.type === 'Polygon') {
+      updated = insertVertexOnPolygon(feature, edgeIndex, coord);
+    }
+
+    if (updated) {
+      const newFeatures = featuresRef.current.map((f) => (f.id === updated!.id ? updated! : f));
+      updateFeatures(newFeatures);
+      callbacksRef.current.onDrawUpdate?.(updated);
+      layerManagerRef.current?.updateVertexHandles(updated);
+      layerManagerRef.current?.updateSelectionHighlight(updated);
+    }
+  }, [updateFeatures]);
+
   const handleMapClickForEdit = useCallback(() => {
     if (modeRef.current === 'edit' && selectedIdRef.current) {
       updateSelectedId(null);
@@ -734,7 +759,7 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
 
     // 进入新模式
     if (newMode === 'edit') {
-      manager?.setupEditClickHandlers(handleFeatureClick, handleVertexClick, handleMapClickForEdit, handleVertexRightClick);
+      manager?.setupEditClickHandlers(handleFeatureClick, handleVertexClick, handleMapClickForEdit, handleVertexRightClick, handleMidpointClick);
       // 编辑态图层在 updateSelectionHighlight/updateVertexHandles 中按需创建
       if (mapsService) {
         mapsService.setMapStatus({ doubleClickZoom: false });
