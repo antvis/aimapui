@@ -2398,6 +2398,22 @@
   cursor: move !important;
 }
 
+/* 编辑模式：悬停顶点时手型光标 */
+.l7-draw-cursor-pointer .amap-container,
+.l7-draw-cursor-pointer .mapboxgl-canvas,
+.l7-draw-cursor-pointer .maplibregl-canvas,
+.l7-draw-cursor-pointer canvas {
+  cursor: pointer !important;
+}
+
+/* 编辑模式：悬停要素体时抓取光标 */
+.l7-draw-cursor-grab .amap-container,
+.l7-draw-cursor-grab .mapboxgl-canvas,
+.l7-draw-cursor-grab .maplibregl-canvas,
+.l7-draw-cursor-grab canvas {
+  cursor: grab !important;
+}
+
 /* 暗色主题适配 */
 [data-theme="dark"] .l7-button-control.l7-button-control--active {
   background-color: rgba(180, 197, 255, 0.2);

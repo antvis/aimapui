@@ -404,36 +404,42 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
       if (isDrawingMode && snapResult?.snapped && snapResult.type !== 'none') {
         manager.showSnapTooltip(snapResult.type, snapResult.lng, snapResult.lat, clientX, clientY);
       } else if (mode === 'point') {
-        manager.showTooltip('Click to add point', clientX, clientY, ['[ESC] Cancel']);
+        manager.showTooltip('单击放置点', clientX, clientY, ['[ESC] 取消']);
       } else if (mode === 'polyline') {
         if (!state.isDrawing) {
-          manager.showTooltip('Click to start drawing line', clientX, clientY, ['[ESC] Cancel']);
+          manager.showTooltip('单击开始绘制线', clientX, clientY, ['[ESC] 取消']);
         } else {
-          manager.showTooltip('Click to add vertex', clientX, clientY, ['[ENTER] Done', '[ESC] Cancel']);
+          manager.showTooltip('单击添加顶点，双击结束', clientX, clientY, ['[ESC] 取消']);
         }
       } else if (mode === 'polygon') {
         if (!state.isDrawing) {
-          manager.showTooltip('Click to start drawing polygon', clientX, clientY, ['[ESC] Cancel']);
+          manager.showTooltip('单击开始绘制面', clientX, clientY, ['[ESC] 取消']);
         } else if (state.currentVertices.length < 3) {
-          manager.showTooltip('Click to add vertex', clientX, clientY, ['[ESC] Cancel']);
+          manager.showTooltip('单击添加顶点', clientX, clientY, ['[ESC] 取消']);
         } else {
-          manager.showTooltip('Click to add vertex | Double-click to finish', clientX, clientY, ['[ENTER] Done', '[ESC] Cancel']);
+          manager.showTooltip('单击继续，双击闭合', clientX, clientY, ['[ESC] 取消']);
         }
       } else if (mode === 'rectangle') {
         if (!state.isDragging) {
-          manager.showTooltip('Drag to define area', clientX, clientY, ['[SHIFT] Square', '[ESC] Cancel']);
+          manager.showTooltip('按住拖拽绘制矩形', clientX, clientY, ['[SHIFT] 正方形', '[ESC] 取消']);
         }
       } else if (mode === 'circle') {
         if (!state.startPoint) {
-          manager.showTooltip('Click center to start', clientX, clientY, ['[ESC] Cancel']);
+          manager.showTooltip('单击设定圆心', clientX, clientY, ['[ESC] 取消']);
         } else {
           const radius = haversineDistance(state.startPoint, [lng, lat]);
           const label = radius > 1000 ? `${(radius / 1000).toFixed(1)} km` : `${Math.round(radius)} m`;
-          manager.showTooltip(`Radius: ${label} — Click to finish`, clientX, clientY, ['[ESC] Cancel']);
+          manager.showTooltip(`半径 ${label}，单击完成`, clientX, clientY, ['[ESC] 取消']);
         }
       } else if (mode === 'edit') {
-        if (!state.isDragging) {
-          manager.hideTooltip();
+        if (state.isDragging && state.dragVertexIndex !== null) {
+          manager.showTooltip('拖拽移动顶点', clientX, clientY);
+        } else if (state.isDragging && state.dragVertexIndex === null) {
+          manager.showTooltip('拖拽移动要素', clientX, clientY);
+        } else if (state.selectedFeatureId) {
+          manager.showTooltip('拖拽移动，右键删除顶点', clientX, clientY, ['[DEL] 删除要素', '[ESC] 取消选中']);
+        } else {
+          manager.showTooltip('单击选中要素进行编辑', clientX, clientY);
         }
       } else {
         manager.hideTooltip();
@@ -783,6 +789,7 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
       manager?.removeSelectionLayers();
       manager?.removeVertexLayer();
       manager?.removeEditClickHandlers();
+      manager?.clearEditCursors();
       manager?.hideTooltip();
       if (mapsService) {
         mapsService.setMapStatus({ doubleClickZoom: true });

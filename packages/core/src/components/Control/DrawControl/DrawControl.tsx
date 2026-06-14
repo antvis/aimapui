@@ -34,12 +34,12 @@ interface ToolButton {
 }
 
 const DRAW_TOOLS: ToolButton[] = [
-  { mode: 'point', icon: 'location_on', title: 'Point — Click to place', label: '点' },
-  { mode: 'polyline', icon: 'timeline', title: 'Line — Click vertices, double-click to finish', label: '线' },
-  { mode: 'polygon', icon: 'pentagon', title: 'Polygon — Click vertices, double-click to close', label: '面' },
-  { mode: 'circle', icon: 'radio_button_unchecked', title: 'Circle — Click center, then click radius', label: '圆形' },
-  { mode: 'rectangle', icon: 'crop_square', title: 'Rectangle — Drag to define area', label: '矩形' },
-  { mode: 'edit', icon: 'edit_square', title: 'Edit — Select and modify features', label: '编辑' },
+  { mode: 'point', icon: 'location_on', title: '点 — 单击放置', label: '点' },
+  { mode: 'polyline', icon: 'timeline', title: '线 — 单击添加顶点，双击结束', label: '线' },
+  { mode: 'polygon', icon: 'pentagon', title: '面 — 单击添加顶点，双击闭合', label: '面' },
+  { mode: 'circle', icon: 'radio_button_unchecked', title: '圆 — 单击圆心，再单击确定半径', label: '圆形' },
+  { mode: 'rectangle', icon: 'crop_square', title: '矩形 — 按住拖拽绘制', label: '矩形' },
+  { mode: 'edit', icon: 'edit_square', title: '编辑 — 选中要素后拖拽移动或编辑顶点', label: '编辑' },
 ];
 
 // ============================================================

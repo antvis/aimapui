@@ -618,10 +618,28 @@ export class DrawLayerManager {
     this.featurePolygonLayer?.on('mousedown', featureMouseDownHandler);
     this.featurePolygonOutlineLayer?.on('mousedown', featureMouseDownHandler);
 
+    // 要素 hover → 抓取光标
+    const featureHoverIn = () => { this.setCursorClass('l7-draw-cursor-grab'); };
+    const featureHoverOut = () => { this.clearEditCursors(); };
+    this.featurePointLayer?.on('mouseenter', featureHoverIn);
+    this.featurePointLayer?.on('mouseleave', featureHoverOut);
+    this.featureLineLayer?.on('mouseenter', featureHoverIn);
+    this.featureLineLayer?.on('mouseleave', featureHoverOut);
+    this.featurePolygonLayer?.on('mouseenter', featureHoverIn);
+    this.featurePolygonLayer?.on('mouseleave', featureHoverOut);
+    this.featurePolygonOutlineLayer?.on('mouseenter', featureHoverIn);
+    this.featurePolygonOutlineLayer?.on('mouseleave', featureHoverOut);
+
     // 选中态图层也需要 mousedown（选中后原要素从静态图层隐藏，显示在选中图层上）
     this.selectionPolygonLayer?.on('mousedown', featureMouseDownHandler);
     this.selectionLineLayer?.on('mousedown', featureMouseDownHandler);
     this.selectionPointLayer?.on('mousedown', featureMouseDownHandler);
+    this.selectionPolygonLayer?.on('mouseenter', featureHoverIn);
+    this.selectionPolygonLayer?.on('mouseleave', featureHoverOut);
+    this.selectionLineLayer?.on('mouseenter', featureHoverIn);
+    this.selectionLineLayer?.on('mouseleave', featureHoverOut);
+    this.selectionPointLayer?.on('mouseenter', featureHoverIn);
+    this.selectionPointLayer?.on('mouseleave', featureHoverOut);
 
     // vertex/midpoint 事件绑定
     this.rebindVertexAndMidpointEvents();
@@ -634,8 +652,31 @@ export class DrawLayerManager {
     return feature[key];
   }
 
+  // ============================================================
+  // 编辑模式光标管理
+  // ============================================================
+
+  private setCursorClass(cls: string): void {
+    const container = this.mapsService?.getContainer?.() as HTMLElement | undefined;
+    if (!container) return;
+    container.classList.remove('l7-draw-cursor-pointer', 'l7-draw-cursor-grab', 'l7-draw-cursor-move');
+    if (cls) container.classList.add(cls);
+  }
+
+  clearEditCursors(): void {
+    const container = this.mapsService?.getContainer?.() as HTMLElement | undefined;
+    if (!container) return;
+    container.classList.remove('l7-draw-cursor-pointer', 'l7-draw-cursor-grab', 'l7-draw-cursor-move');
+  }
+
   /** 重新绑定 vertex/midpoint 图层事件（每次 rebuild 后调用） */
   private rebindVertexAndMidpointEvents(): void {
+    // 顶点 hover → 手型光标
+    this.vertexLayer?.on('mouseenter', () => { this.setCursorClass('l7-draw-cursor-pointer'); });
+    this.vertexLayer?.on('mouseleave', () => { this.clearEditCursors(); });
+    this.midpointLayer?.on('mouseenter', () => { this.setCursorClass('l7-draw-cursor-pointer'); });
+    this.midpointLayer?.on('mouseleave', () => { this.clearEditCursors(); });
+
     this.vertexLayer?.on('mousedown', (e: Record<string, unknown>) => {
       const feature = e.feature as Record<string, unknown> | undefined;
       if (feature && this.onVertexClick) {
