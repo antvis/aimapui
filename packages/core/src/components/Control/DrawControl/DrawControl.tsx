@@ -8,8 +8,8 @@
  * - Material Design 3 玻璃态风格
  *
  * 工具栏拆分为两个独立组件：
- * - DrawBasicToolbar: 基础绘制工具（点/线/面/圆/矩形）
- * - DrawAdvancedToolbar: 高级GIS操作（编辑/合并/切分 + 删除/清除）
+ * - DrawBasicToolbar: 基础绘制+编辑工具（点/线/面/圆/矩形/编辑 + 删除/清除）
+ * - DrawAdvancedToolbar: 高级GIS操作（合并/切分）
  *
  * ```tsx
  * <AiMap map={{ basemap: 'gaode' }}>
@@ -108,16 +108,16 @@ export const DrawControl = forwardRef<DrawControlHandle, DrawControlProps>(funct
         activeMode={activeMode}
         onModeChange={handleModeChange}
         modes={modes}
-      />
-      <DrawAdvancedToolbar
-        activeMode={activeMode}
-        onModeChange={handleModeChange}
-        modes={modes}
         showDelete={showDelete}
         hasSelection={hasSelection}
         hasFeatures={hasFeatures}
         onDeleteSelected={handleDeleteSelected}
         onClearAll={handleClearAll}
+      />
+      <DrawAdvancedToolbar
+        activeMode={activeMode}
+        onModeChange={handleModeChange}
+        modes={modes}
       />
     </>
   );

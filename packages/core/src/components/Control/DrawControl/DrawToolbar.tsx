@@ -23,18 +23,18 @@ interface ToolButton {
   label: string;
 }
 
-/** 基础绘制工具 — 产生几何要素 */
+/** 基础绘制+编辑工具 — 产生几何要素 + 选中编辑 */
 const BASIC_TOOLS: ToolButton[] = [
   { mode: 'point', icon: 'location_on', title: '点 — 单击放置', label: '点' },
   { mode: 'polyline', icon: 'timeline', title: '线 — 单击添加顶点，双击结束', label: '线' },
   { mode: 'polygon', icon: 'pentagon', title: '面 — 单击添加顶点，双击闭合', label: '面' },
   { mode: 'circle', icon: 'radio_button_unchecked', title: '圆 — 单击圆心，再单击确定半径', label: '圆形' },
   { mode: 'rectangle', icon: 'crop_square', title: '矩形 — 按住拖拽绘制', label: '矩形' },
+  { mode: 'edit', icon: 'edit_square', title: '编辑 — 选中要素后拖拽移动或编辑顶点', label: '编辑' },
 ];
 
-/** 高级 GIS 操作工具 — 对已有要素进行操作 */
+/** 高级 GIS 操作工具 — 合并/切分 */
 const ADVANCED_TOOLS: ToolButton[] = [
-  { mode: 'edit', icon: 'edit_square', title: '编辑 — 选中要素后拖拽移动或编辑顶点', label: '编辑' },
   { mode: 'merge', icon: 'call_merge', title: '合并 — 选中2+要素合并为一个', label: '合并' },
   { mode: 'split', icon: 'content_cut', title: '切分 — 绘制切线将要素分割', label: '切分' },
 ];
@@ -163,11 +163,30 @@ function renderToolButtons(
 // DrawBasicToolbar — 基础绘制工具栏
 // ============================================================
 
-/** 基础绘制工具栏 — 点/线/面/圆/矩形 */
-export const DrawBasicToolbar: React.FC<ToolbarProps> = ({
+/** 基础绘制+编辑工具栏 Props */
+interface BasicToolbarProps extends ToolbarProps {
+  /** 是否有选中要素（控制删除按钮显示） */
+  hasSelection?: boolean;
+  /** 是否有要素（控制清除按钮显示） */
+  hasFeatures?: boolean;
+  /** 是否显示删除/清除按钮，默认 true */
+  showDelete?: boolean;
+  /** 删除选中要素回调 */
+  onDeleteSelected?: () => void;
+  /** 清除所有要素回调 */
+  onClearAll?: () => void;
+}
+
+/** 基础绘制+编辑工具栏 — 点/线/面/圆/矩形/编辑 + 删除/清除 */
+export const DrawBasicToolbar: React.FC<BasicToolbarProps> = ({
   activeMode,
   onModeChange,
   modes,
+  showDelete = true,
+  hasSelection = false,
+  hasFeatures = false,
+  onDeleteSelected,
+  onClearAll,
   className,
   style,
 }) => {
@@ -190,60 +209,6 @@ export const DrawBasicToolbar: React.FC<ToolbarProps> = ({
       aria-label="基础绘制工具"
     >
       {renderToolButtons(availableModes, activeMode, handleModeClick, showTooltip, hideTooltip, 'l7-draw-tool-btn')}
-    </div>
-  );
-};
-
-// ============================================================
-// DrawAdvancedToolbar — 高级GIS操作工具栏
-// ============================================================
-
-/** 高级GIS操作工具栏 Props */
-interface AdvancedToolbarProps extends ToolbarProps {
-  /** 是否有选中要素（控制删除按钮显示） */
-  hasSelection?: boolean;
-  /** 是否有要素（控制清除按钮显示） */
-  hasFeatures?: boolean;
-  /** 是否显示删除/清除按钮，默认 true */
-  showDelete?: boolean;
-  /** 删除选中要素回调 */
-  onDeleteSelected?: () => void;
-  /** 清除所有要素回调 */
-  onClearAll?: () => void;
-}
-
-/** 高级GIS操作工具栏 — 编辑/合并/切分 + 删除/清除 */
-export const DrawAdvancedToolbar: React.FC<AdvancedToolbarProps> = ({
-  activeMode,
-  onModeChange,
-  modes,
-  showDelete = true,
-  hasSelection = false,
-  hasFeatures = false,
-  onDeleteSelected,
-  onClearAll,
-  className,
-  style,
-}) => {
-  const { showTooltip, hideTooltip } = useToolbarTooltip();
-
-  const availableModes = React.useMemo(() => {
-    if (!modes) return ADVANCED_TOOLS;
-    return ADVANCED_TOOLS.filter((tool) => modes!.includes(tool.mode));
-  }, [modes]);
-
-  const handleModeClick = useCallback((mode: DrawToolMode) => {
-    onModeChange(activeMode === mode ? 'none' : mode);
-  }, [activeMode, onModeChange]);
-
-  return (
-    <div
-      className={`l7-control l7-control-draw l7-control--glass${className ? ` ${className}` : ''}`}
-      style={style}
-      role="toolbar"
-      aria-label="高级操作工具"
-    >
-      {renderToolButtons(availableModes, activeMode, handleModeClick, showTooltip, hideTooltip, 'l7-draw-advanced-btn')}
 
       {showDelete && activeMode === 'edit' && hasSelection && onDeleteSelected && (
         <>
@@ -271,6 +236,41 @@ export const DrawAdvancedToolbar: React.FC<AdvancedToolbarProps> = ({
           <span className="material-symbols-outlined">delete_sweep</span>
         </button>
       )}
+    </div>
+  );
+};
+
+// ============================================================
+// DrawAdvancedToolbar — 高级GIS操作工具栏
+// ============================================================
+
+/** 高级GIS操作工具栏 — 合并/切分 */
+export const DrawAdvancedToolbar: React.FC<ToolbarProps> = ({
+  activeMode,
+  onModeChange,
+  modes,
+  className,
+  style,
+}) => {
+  const { showTooltip, hideTooltip } = useToolbarTooltip();
+
+  const availableModes = React.useMemo(() => {
+    if (!modes) return ADVANCED_TOOLS;
+    return ADVANCED_TOOLS.filter((tool) => modes!.includes(tool.mode));
+  }, [modes]);
+
+  const handleModeClick = useCallback((mode: DrawToolMode) => {
+    onModeChange(activeMode === mode ? 'none' : mode);
+  }, [activeMode, onModeChange]);
+
+  return (
+    <div
+      className={`l7-control l7-control-draw l7-control--glass${className ? ` ${className}` : ''}`}
+      style={style}
+      role="toolbar"
+      aria-label="高级操作工具"
+    >
+      {renderToolButtons(availableModes, activeMode, handleModeClick, showTooltip, hideTooltip, 'l7-draw-advanced-btn')}
     </div>
   );
 };
