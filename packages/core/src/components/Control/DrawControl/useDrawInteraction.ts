@@ -432,15 +432,8 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
           manager.showTooltip(`半径 ${label}，单击完成`, clientX, clientY, ['[ESC] 取消']);
         }
       } else if (mode === 'edit') {
-        if (state.isDragging && state.dragVertexIndex !== null) {
-          manager.showTooltip('拖拽移动顶点', clientX, clientY);
-        } else if (state.isDragging && state.dragVertexIndex === null) {
-          manager.showTooltip('拖拽移动要素', clientX, clientY);
-        } else if (state.selectedFeatureId) {
-          manager.showTooltip('拖拽移动，右键删除顶点', clientX, clientY, ['[DEL] 删除要素', '[ESC] 取消选中']);
-        } else {
-          manager.showTooltip('单击选中要素进行编辑', clientX, clientY);
-        }
+        // 编辑模式 tooltip 由图层 hover 事件（vertex/midpoint/feature mouseenter/leave）驱动
+        // mousemove 中不主动设置，避免与图层事件冲突导致闪烁
       } else {
         manager.hideTooltip();
       }
