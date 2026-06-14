@@ -392,35 +392,40 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
 
     state.mousePoint = [lng, lat];
 
-    // 鼠标跟随提示（遵循 GeoEditor Pro 规范：含 ESC 标签）
+    // 鼠标跟随提示（GeoEditor Pro Tooltip Spec v2.0）
     if (origEvent && manager) {
-      if (mode === 'point') {
-        manager.showTooltip('单击添加点', origEvent.clientX, origEvent.clientY, 'ESC');
+      // 吸附态优先显示吸附提示
+      const snapResult = lastSnapRef.current;
+      const isDrawingMode = mode === 'point' || mode === 'polyline' || mode === 'polygon' || mode === 'circle' || mode === 'rectangle';
+      if (isDrawingMode && snapResult?.snapped && snapResult.type !== 'none') {
+        manager.showSnapTooltip(snapResult.type, snapResult.lng, snapResult.lat, origEvent.clientX, origEvent.clientY);
+      } else if (mode === 'point') {
+        manager.showTooltip('Click to add point', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
       } else if (mode === 'polyline') {
         if (!state.isDrawing) {
-          manager.showTooltip('单击开始绘制线', origEvent.clientX, origEvent.clientY, 'ESC');
+          manager.showTooltip('Click to start drawing line', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
         } else {
-          manager.showTooltip('单击继续，双击完成', origEvent.clientX, origEvent.clientY, 'ESC');
+          manager.showTooltip('Click to add vertex', origEvent.clientX, origEvent.clientY, ['[ENTER] Done', '[ESC] Cancel']);
         }
       } else if (mode === 'polygon') {
         if (!state.isDrawing) {
-          manager.showTooltip('单击开始绘制面', origEvent.clientX, origEvent.clientY, 'ESC');
+          manager.showTooltip('Click to start drawing polygon', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
         } else if (state.currentVertices.length < 3) {
-          manager.showTooltip('单击继续添加顶点', origEvent.clientX, origEvent.clientY, 'ESC');
+          manager.showTooltip('Click to add vertex', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
         } else {
-          manager.showTooltip('单击继续，双击闭合', origEvent.clientX, origEvent.clientY, 'ESC');
+          manager.showTooltip('Click to add vertex | Double-click to finish', origEvent.clientX, origEvent.clientY, ['[ENTER] Done', '[ESC] Cancel']);
         }
       } else if (mode === 'rectangle') {
         if (!state.isDragging) {
-          manager.showTooltip('按住拖拽绘制矩形', origEvent.clientX, origEvent.clientY, 'ESC');
+          manager.showTooltip('Drag to define area', origEvent.clientX, origEvent.clientY, ['[SHIFT] Square', '[ESC] Cancel']);
         }
       } else if (mode === 'circle') {
         if (!state.startPoint) {
-          manager.showTooltip('单击设定圆心', origEvent.clientX, origEvent.clientY, 'ESC');
+          manager.showTooltip('Click center to start', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
         } else {
           const radius = haversineDistance(state.startPoint, [lng, lat]);
           const label = radius > 1000 ? `${(radius / 1000).toFixed(1)} km` : `${Math.round(radius)} m`;
-          manager.showTooltip(`半径 ${label}，单击完成`, origEvent.clientX, origEvent.clientY, 'ESC');
+          manager.showTooltip(`Radius: ${label} — Click to finish`, origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
         }
       } else if (mode === 'edit') {
         if (!state.isDragging) {

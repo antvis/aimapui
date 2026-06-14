@@ -106,47 +106,84 @@ export class DrawLayerManager {
   }
 
   // ============================================================
-  // 鼠标跟随提示
+  // 鼠标跟随提示 (GeoEditor Pro Tooltip Spec v2.0)
   // ============================================================
 
   private initTooltip(): void {
-    // 不能修改 L7 容器的 style.position 或往容器内直接插入 DOM，
-    // 否则会破坏 L7 的 canvas 定位和渲染管线。
-    // tooltip 使用固定定位（fixed），直接挂到 document.body 上。
-    // 遵循 GeoEditor Pro 规范：JetBrains Mono 11px，含 ESC 标签
     const el = document.createElement('div');
     el.style.cssText = [
       'position:fixed', 'pointer-events:none', 'z-index:9999',
-      'display:flex', 'align-items:center', 'gap:6px',
-      'padding:4px 10px', 'border-radius:4px',
-      'background:#2f3037', 'color:#f2eff9',
-      'font:500 11px/14px "JetBrains Mono",monospace',
-      'letter-spacing:0.02em', 'white-space:nowrap', 'display:none',
+      'padding:6px 10px', 'border-radius:4px',
+      'background:rgba(26,27,34,0.92)', 'color:#f2eff9',
+      'font:500 11px/16px "JetBrains Mono",monospace',
+      'letter-spacing:0.02em', 'white-space:nowrap',
+      'display:none', 'flex-direction:column', 'gap:2px',
+      'box-shadow:0 2px 8px rgba(0,0,0,0.3)',
     ].join(';');
     document.body.appendChild(el);
     this.tooltipEl = el;
     this.containerEl = null;
   }
 
-  showTooltip(text: string, clientX: number, clientY: number, escLabel?: string): void {
+  /**
+   * 显示绘制提示 — 遵循 GeoEditor Pro Tooltip Spec
+   * @param primary  主指令文本（白色）
+   * @param shortcuts 快捷键提示数组，如 ['[ENTER] Done', '[ESC] Cancel']
+   * @param clientX  鼠标 clientX
+   * @param clientY  鼠标 clientY
+   */
+  showTooltip(primary: string, clientX: number, clientY: number, shortcuts?: string[]): void {
     if (!this.tooltipEl) return;
-    // 主文本
-    const textSpan = document.createElement('span');
-    textSpan.textContent = text;
-    // ESC 标签（可选）
-    if (escLabel) {
-      const escSpan = document.createElement('span');
-      escSpan.textContent = escLabel;
-      escSpan.style.cssText = 'font-size:8px;background:rgba(196,196,210,0.3);padding:1px 4px;border-radius:2px;';
-      this.tooltipEl.innerHTML = '';
-      this.tooltipEl.appendChild(textSpan);
-      this.tooltipEl.appendChild(escSpan);
-    } else {
-      this.tooltipEl.textContent = text;
+    this.tooltipEl.innerHTML = '';
+
+    // 主文本行
+    const mainLine = document.createElement('div');
+    mainLine.textContent = primary;
+    mainLine.style.cssText = 'color:#f2eff9;font-size:11px;line-height:16px;';
+    this.tooltipEl.appendChild(mainLine);
+
+    // 快捷键行（warning yellow #ffc107）
+    if (shortcuts && shortcuts.length > 0) {
+      const shortcutLine = document.createElement('div');
+      shortcutLine.style.cssText = 'display:flex;gap:8px;';
+      for (const sc of shortcuts) {
+        const badge = document.createElement('span');
+        badge.textContent = sc;
+        badge.style.cssText = 'font-size:9px;line-height:12px;color:#ffc107;font-weight:600;';
+        shortcutLine.appendChild(badge);
+      }
+      this.tooltipEl.appendChild(shortcutLine);
     }
+
     this.tooltipEl.style.display = 'flex';
-    this.tooltipEl.style.left = `${clientX + 14}px`;
-    this.tooltipEl.style.top = `${clientY - 10}px`;
+    this.tooltipEl.style.left = `${clientX + 16}px`;
+    this.tooltipEl.style.top = `${clientY - 8}px`;
+  }
+
+  /**
+   * 显示吸附提示 — 琥珀色 snap type + 坐标
+   */
+  showSnapTooltip(type: 'vertex' | 'edge', lng: number, lat: number, clientX: number, clientY: number): void {
+    if (!this.tooltipEl) return;
+    this.tooltipEl.innerHTML = '';
+
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:6px;align-items:center;';
+
+    const typeBadge = document.createElement('span');
+    typeBadge.textContent = type === 'vertex' ? 'Vertex' : 'Edge';
+    typeBadge.style.cssText = 'color:#ffc107;font-weight:700;font-size:10px;';
+    row.appendChild(typeBadge);
+
+    const coords = document.createElement('span');
+    coords.textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    coords.style.cssText = 'color:rgba(242,239,249,0.6);font-size:10px;';
+    row.appendChild(coords);
+
+    this.tooltipEl.appendChild(row);
+    this.tooltipEl.style.display = 'flex';
+    this.tooltipEl.style.left = `${clientX + 16}px`;
+    this.tooltipEl.style.top = `${clientY - 8}px`;
   }
 
   hideTooltip(): void {
