@@ -372,16 +372,6 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
 
     state.mousePoint = [lng, lat];
 
-    // 诊断：编辑模式下的拖拽状态
-    if (mode === 'edit' && state.isDragging) {
-      console.log('[MouseMove] edit drag:', {
-        featureId: state.selectedFeatureId,
-        dragVertexIndex: state.dragVertexIndex,
-        hasLastDrag: !!lastDragLngLatRef.current,
-        lng, lat,
-      });
-    }
-
     // 鼠标跟随提示（遵循 GeoEditor Pro 规范：含 ESC 标签）
     if (origEvent && manager) {
       if (mode === 'point') {
@@ -439,7 +429,6 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
 
     // 编辑模式：顶点拖拽
     if (mode === 'edit' && state.isDragging && state.selectedFeatureId && state.dragVertexIndex !== null && lastDragLngLatRef.current) {
-      console.log('[Drag] vertex move:', state.dragVertexIndex, lng, lat);
       const feature = featuresRef.current.find((f) => f.id === state.selectedFeatureId);
       if (feature) {
         const updated = moveVertex(feature, state.dragVertexIndex, lng, lat);
@@ -594,7 +583,7 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
   // feature 图层 mousedown — 启动整体移动
   // vertex zIndex=16 > feature zIndex=10~12，vertex mousedown 先触发
   // 如果 vertex 已设置 isDragging=true，则整体移动不启动
-  const handleFeatureMouseDown = useCallback((featureId: string) => {
+  const handleFeatureMouseDown = useCallback((featureId: string, lngLat: [number, number]) => {
     if (modeRef.current !== 'edit') return;
     const state = stateRef.current;
     // vertex mousedown 先触发（zIndex更高），如果已经设置了 isDragging，则跳过
@@ -603,9 +592,12 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     const feature = featuresRef.current.find((f) => f.id === featureId);
     if (!feature) return;
 
+    // 必须先选中要素才能拖拽
+    if (state.selectedFeatureId !== featureId) return;
+
     state.isDragging = true;
     state.dragVertexIndex = null; // null = 整体移动
-    lastDragLngLatRef.current = null;
+    lastDragLngLatRef.current = lngLat;
     mapsService.setMapStatus({ dragEnable: false, zoomEnable: false });
   }, [mapsService]);
 

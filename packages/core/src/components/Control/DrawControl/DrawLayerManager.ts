@@ -64,7 +64,7 @@ export class DrawLayerManager {
 
   // 事件回调
   private onFeatureClick: ((featureId: string) => void) | null = null;
-  private onFeatureMouseDown: ((featureId: string) => void) | null = null;
+  private onFeatureMouseDown: ((featureId: string, lngLat: [number, number]) => void) | null = null;
   private onVertexClick: ((vertexIndex: number) => void) | null = null;
   private onVertexRightClick: ((vertexIndex: number) => void) | null = null;
   private onEmptyClick: (() => void) | null = null;
@@ -408,6 +408,28 @@ export class DrawLayerManager {
         .style({ opacity: 1, lineType: 'dash', dashArray: selDash });
       this.addLayerWithRender(this.selectionLineLayer);
     }
+
+    // 选中态图层重建后需要绑定 mousedown 以支持整体拖拽
+    if (this.editClickHandlersBound && this.onFeatureMouseDown) {
+      const handler = (e: Record<string, unknown>) => {
+        const feat = e.feature as Record<string, unknown> | undefined;
+        if (feat && this.onFeatureMouseDown) {
+          const id = (feat.properties as Record<string, unknown>)?.id ?? feat.id;
+          if (id) {
+            const lngLatObj = e.lngLat ?? e.lnglat;
+            let lngLat: [number, number] = [0, 0];
+            if (lngLatObj && typeof lngLatObj === 'object') {
+              const obj = lngLatObj as Record<string, number>;
+              lngLat = [obj.lng ?? obj.x ?? 0, obj.lat ?? obj.y ?? 0];
+            }
+            this.onFeatureMouseDown(String(id), lngLat);
+          }
+        }
+      };
+      this.selectionPolygonLayer?.on('mousedown', handler);
+      this.selectionLineLayer?.on('mousedown', handler);
+      this.selectionPointLayer?.on('mousedown', handler);
+    }
   }
 
   clearSelectionHighlight(): void {
@@ -505,7 +527,7 @@ export class DrawLayerManager {
     onEmptyClick: () => void,
     onVertexRightClick?: (vertexIndex: number) => void,
     onMidpointClick?: (edgeIndex: number, coord: [number, number]) => void,
-    onFeatureMouseDown?: (featureId: string) => void,
+    onFeatureMouseDown?: (featureId: string, lngLat: [number, number]) => void,
   ): void {
     this.onFeatureClick = onFeatureClick;
     this.onVertexClick = onVertexClick;
@@ -534,7 +556,13 @@ export class DrawLayerManager {
       if (feature) {
         const id = (feature.properties as Record<string, unknown>)?.id ?? (feature as Record<string, unknown>).id;
         if (id && this.onFeatureMouseDown) {
-          this.onFeatureMouseDown(String(id));
+          const lngLatObj = e.lngLat ?? e.lnglat;
+          let lngLat: [number, number] = [0, 0];
+          if (lngLatObj && typeof lngLatObj === 'object') {
+            const obj = lngLatObj as Record<string, number>;
+            lngLat = [obj.lng ?? obj.x ?? 0, obj.lat ?? obj.y ?? 0];
+          }
+          this.onFeatureMouseDown(String(id), lngLat);
         }
       }
     };
@@ -550,20 +578,29 @@ export class DrawLayerManager {
     this.featurePolygonLayer?.on('mousedown', featureMouseDownHandler);
     this.featurePolygonOutlineLayer?.on('mousedown', featureMouseDownHandler);
 
+    // 选中态图层也需要 mousedown（选中后原要素从静态图层隐藏，显示在选中图层上）
+    this.selectionPolygonLayer?.on('mousedown', featureMouseDownHandler);
+    this.selectionLineLayer?.on('mousedown', featureMouseDownHandler);
+    this.selectionPointLayer?.on('mousedown', featureMouseDownHandler);
+
     // vertex/midpoint 事件绑定
     this.rebindVertexAndMidpointEvents();
+  }
+
+  /** 从 L7 事件 feature 中提取指定属性（兼容 GeoJSON properties 和 JSON parser 直出） */
+  private extractFeatureProp(feature: Record<string, unknown>, key: string): unknown {
+    const props = feature.properties as Record<string, unknown> | undefined;
+    if (props && props[key] !== undefined) return props[key];
+    return feature[key];
   }
 
   /** 重新绑定 vertex/midpoint 图层事件（每次 rebuild 后调用） */
   private rebindVertexAndMidpointEvents(): void {
     this.vertexLayer?.on('mousedown', (e: Record<string, unknown>) => {
-      console.log('[DrawLayerManager] vertex mousedown triggered');
       const feature = e.feature as Record<string, unknown> | undefined;
       if (feature && this.onVertexClick) {
-        const props = feature.properties as Record<string, unknown> | undefined;
-        const vertexIndex = props?.vertexIndex as number | undefined;
+        const vertexIndex = this.extractFeatureProp(feature, 'vertexIndex') as number | undefined;
         if (vertexIndex !== undefined) {
-          // 同步禁用地图拖拽，防止地图抢先开始平移
           this.mapsService?.setMapStatus?.({ dragEnable: false, zoomEnable: false });
           (e.originalEvent as Event)?.stopPropagation?.();
           this.onVertexClick(vertexIndex);
@@ -574,8 +611,7 @@ export class DrawLayerManager {
     this.vertexLayer?.on('contextmenu', (e: Record<string, unknown>) => {
       const feature = e.feature as Record<string, unknown> | undefined;
       if (feature && this.onVertexRightClick) {
-        const props = feature.properties as Record<string, unknown> | undefined;
-        const vertexIndex = props?.vertexIndex as number | undefined;
+        const vertexIndex = this.extractFeatureProp(feature, 'vertexIndex') as number | undefined;
         if (vertexIndex !== undefined) {
           (e.originalEvent as Event)?.preventDefault?.();
           this.onVertexRightClick(vertexIndex);
@@ -586,10 +622,9 @@ export class DrawLayerManager {
     this.midpointLayer?.on('click', (e: Record<string, unknown>) => {
       const feature = e.feature as Record<string, unknown> | undefined;
       if (feature && this.onMidpointClick) {
-        const props = feature.properties as Record<string, unknown> | undefined;
-        const edgeIndex = props?.edgeIndex as number | undefined;
-        const lng = props?.lng as number | undefined;
-        const lat = props?.lat as number | undefined;
+        const edgeIndex = this.extractFeatureProp(feature, 'edgeIndex') as number | undefined;
+        const lng = this.extractFeatureProp(feature, 'lng') as number | undefined;
+        const lat = this.extractFeatureProp(feature, 'lat') as number | undefined;
         if (edgeIndex !== undefined && lng !== undefined && lat !== undefined) {
           this.onMidpointClick(edgeIndex, [lng, lat]);
         }
