@@ -57,6 +57,12 @@ export class DrawLayerManager {
   // 吸附指示图层
   private snapIndicatorLayer: L7Layer | null = null;
 
+  // merge/split 高亮图层
+  private mergeHighlightLayer: L7Layer | null = null;
+  private mergeHighlightOutlineLayer: L7Layer | null = null;
+  private splitHighlightLayer: L7Layer | null = null;
+  private splitHighlightOutlineLayer: L7Layer | null = null;
+
   // 鼠标跟随提示 DOM
   private tooltipEl: HTMLDivElement | null = null;
   private containerEl: HTMLElement | null = null;
@@ -483,6 +489,98 @@ export class DrawLayerManager {
 
   removeSelectionLayers(): void {
     this.clearSelectionHighlight();
+  }
+
+  // ============================================================
+  // merge/split 高亮
+  // ============================================================
+
+  highlightMergeSelected(selectedIds: string[], allFeatures: DrawFeature[]): void {
+    if (!this.scene) return;
+    const s = this.styles;
+
+    this.removeAndDestroy(this.mergeHighlightLayer);
+    this.removeAndDestroy(this.mergeHighlightOutlineLayer);
+    this.mergeHighlightLayer = null;
+    this.mergeHighlightOutlineLayer = null;
+
+    if (selectedIds.length === 0) return;
+
+    const selectedFeatures = allFeatures.filter((f) => selectedIds.includes(f.id));
+    if (selectedFeatures.length === 0) return;
+
+    const fc: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: selectedFeatures as GeoJSON.Feature[],
+    };
+
+    // 选中面填充
+    this.mergeHighlightLayer = new L7.PolygonLayer({ name: `${PREFIX}merge-highlight`, zIndex: 15 })
+      .source(fc).shape('fill').color(s.selected.fill!).style({ opacity: s.selected.fillOpacity! });
+    this.addLayerWithRender(this.mergeHighlightLayer);
+
+    // 选中面边框虚线
+    const outlineFeatures: GeoJSON.Feature[] = selectedFeatures
+      .filter((f) => f.geometry.type === 'Polygon')
+      .map((f) => ({
+        type: 'Feature',
+        geometry: { type: 'LineString', coordinates: (f.geometry as GeoJSON.Polygon).coordinates[0] },
+        properties: {},
+      }));
+    if (outlineFeatures.length > 0) {
+      const outlineFC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: outlineFeatures };
+      this.mergeHighlightOutlineLayer = new L7.LineLayer({ name: `${PREFIX}merge-highlight-outline`, zIndex: 15 })
+        .source(outlineFC).shape('line').color(s.selected.stroke!).size(s.selected.strokeWidth!)
+        .style({ opacity: 1, lineType: 'dash', dashArray: s.selected.dashArray ?? [6, 3] });
+      this.addLayerWithRender(this.mergeHighlightOutlineLayer);
+    }
+  }
+
+  clearMergeHighlight(): void {
+    this.removeAndDestroy(this.mergeHighlightLayer);
+    this.removeAndDestroy(this.mergeHighlightOutlineLayer);
+    this.mergeHighlightLayer = null;
+    this.mergeHighlightOutlineLayer = null;
+  }
+
+  highlightSplitTarget(targetId: string, allFeatures: DrawFeature[]): void {
+    if (!this.scene) return;
+    const s = this.styles;
+
+    this.removeAndDestroy(this.splitHighlightLayer);
+    this.removeAndDestroy(this.splitHighlightOutlineLayer);
+    this.splitHighlightLayer = null;
+    this.splitHighlightOutlineLayer = null;
+
+    const target = allFeatures.find((f) => f.id === targetId);
+    if (!target) return;
+
+    const fc: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [target as GeoJSON.Feature],
+    };
+
+    // 目标面填充
+    this.splitHighlightLayer = new L7.PolygonLayer({ name: `${PREFIX}split-highlight`, zIndex: 15 })
+      .source(fc).shape('fill').color(s.selected.fill!).style({ opacity: s.selected.fillOpacity! });
+    this.addLayerWithRender(this.splitHighlightLayer);
+
+    // 目标面边框虚线
+    const outlineFC: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', geometry: { type: 'LineString', coordinates: (target.geometry as GeoJSON.Polygon).coordinates[0] }, properties: {} }],
+    };
+    this.splitHighlightOutlineLayer = new L7.LineLayer({ name: `${PREFIX}split-highlight-outline`, zIndex: 15 })
+      .source(outlineFC).shape('line').color(s.selected.stroke!).size(s.selected.strokeWidth!)
+      .style({ opacity: 1, lineType: 'dash', dashArray: s.selected.dashArray ?? [6, 3] });
+    this.addLayerWithRender(this.splitHighlightOutlineLayer);
+  }
+
+  clearSplitHighlight(): void {
+    this.removeAndDestroy(this.splitHighlightLayer);
+    this.removeAndDestroy(this.splitHighlightOutlineLayer);
+    this.splitHighlightLayer = null;
+    this.splitHighlightOutlineLayer = null;
   }
 
   // ============================================================

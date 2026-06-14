@@ -178,7 +178,9 @@ import { LogoControl } from '@antv/aimapui';
 
 ## DrawControl — 绘制控件
 
-默认位置：`topright`，支持交互式绘制和编辑地理要素。
+默认位置：`topright`，支持交互式绘制和编辑地理要素（点/线/面/矩形/圆形），支持编辑模式下的移动、顶点编辑、合并、切分等高级 GIS 操作。
+
+**详细文档：** [draw-control.md](draw-control.md)
 
 ```tsx
 import { DrawControl } from '@antv/aimapui';
@@ -202,6 +204,7 @@ import { DrawControl } from '@antv/aimapui';
 | `modes` | `DrawToolMode[]` | 全部 | 工具栏显示的模式 |
 | `showDelete` | `boolean` | `true` | 显示删除/清除按钮 |
 | `styles` | `DrawStyleConfig` | — | 自定义样式 |
+| `snap` | `DrawSnapConfig \| boolean` | `true` | 吸附配置 |
 | `onDrawCreate` | `(features: DrawFeature[]) => void` | — | 创建要素回调 |
 | `onDrawUpdate` | `(feature: DrawFeature) => void` | — | 更新要素回调 |
 | `onDrawDelete` | `(feature: DrawFeature) => void` | — | 删除要素回调 |
@@ -209,9 +212,39 @@ import { DrawControl } from '@antv/aimapui';
 | `onModeChange` | `(mode: DrawMode) => void` | — | 模式切换回调 |
 | `onChange` | `(features: DrawFeature[]) => void` | — | 要素集合变化回调 |
 
-绘制模式：`point`（点）、`polyline`（折线）、`polygon`（多边形）、`rectangle`（矩形）、`circle`（圆形）、`edit`（编辑）。
+绘制模式：`point`（点）、`polyline`（折线）、`polygon`（多边形）、`rectangle`（矩形）、`circle`（圆形）、`edit`（编辑）、`merge`（合并）、`split`（切分）。
 
 Schema 模式：`{ type: 'draw', position: 'topright', options: { modes: ['point', 'polygon', 'edit'], showDelete: true } }`
+
+## ImageCalibrationControl — 图片配准控件
+
+默认位置：`topright`，上传图片并通过拖拽 4 个角点进行地理配准，输出配准坐标和变换后的图片。支持单图导出和网格切片导出。
+
+**详细文档：** [image-calibration-control.md](image-calibration-control.md)
+
+```tsx
+import { ImageCalibrationControl } from '@antv/aimapui';
+
+<ImageCalibrationControl
+  position="topright"
+  onCalibrate={(result) => console.log('配准结果:', result)}
+  onExport={(result) => console.log('导出结果:', result)}
+/>
+```
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'topright'` | 控件位置 |
+| `corners` | `GeoCorners` | — | 受控模式：外部传入角点 |
+| `defaultCorners` | `GeoCorners` | — | 非受控模式：初始角点 |
+| `imageSource` | `string \| File` | — | 图片来源（URL/base64/File） |
+| `opacity` | `number` | `0.7` | 覆盖层透明度 0-1 |
+| `accept` | `string` | `'image/*'` | 接受的文件类型 |
+| `onCornersChange` | `(corners: GeoCorners) => void` | — | 角点变化回调 |
+| `onCalibrate` | `(result: CalibrationResult) => void` | — | 确认配准回调 |
+| `onExport` | `(result: ExportResult) => void` | — | 导出完成回调 |
+| `onImageLoad` | `(dims: { width, height }) => void` | — | 图片加载完成回调 |
+| `onClear` | `() => void` | — | 清除回调 |
 
 ## ControlContainer — 控件容器
 

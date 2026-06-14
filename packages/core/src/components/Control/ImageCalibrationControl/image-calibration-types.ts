@@ -1,0 +1,129 @@
+import type { ControlPosition } from '../../../hooks/useMapControl';
+
+/** 4个角点地理坐标 [topLeft, topRight, bottomRight, bottomLeft]，每项 [lng, lat] */
+export type GeoCorners = [
+  [number, number],
+  [number, number],
+  [number, number],
+  [number, number],
+];
+
+/** 配准阶段 */
+export type CalibrationPhase = 'idle' | 'calibrating' | 'confirmed';
+
+/** 角点索引 */
+export type CornerIndex = 0 | 1 | 2 | 3;
+
+/** 图片来源 */
+export type ImageSource = string | File;
+
+/** 配准结果 */
+export interface CalibrationResult {
+  corners: GeoCorners;
+  extent: [number, number, number, number]; // [minLng, minLat, maxLng, maxLat]
+}
+
+/** 导出选项（向后兼容） */
+export interface ExportOptions {
+  maxWidth?: number;
+  format?: string;
+  quality?: number;
+}
+
+/** 导出配置 */
+export interface ExportConfig {
+  /** 输出图片总宽度(px)，默认原图宽度 */
+  outputWidth?: number;
+  /** 输出图片总高度(px)，默认原图高度 */
+  outputHeight?: number;
+  /** 切片列数，默认 1（不切分） */
+  cols?: number;
+  /** 切片行数，默认 1（不切分） */
+  rows?: number;
+  /** 图片格式 */
+  format?: string;
+  /** 图片质量 0-1 */
+  quality?: number;
+}
+
+/** 单个切片结果 */
+export interface TileResult {
+  blob: Blob;
+  previewUrl: string;
+  /** 切片在网格中的行位置（从0开始） */
+  row: number;
+  /** 切片在网格中的列位置（从0开始） */
+  col: number;
+  /** 该切片对应的地理范围 [minLng, minLat, maxLng, maxLat] */
+  extent: [number, number, number, number];
+  /** 四角地理坐标 [TL, TR, BR, BL] */
+  corners: GeoCorners;
+  /** 切片像素宽度 */
+  width: number;
+  /** 切片像素高度 */
+  height: number;
+}
+
+/** 导出结果 */
+export interface ExportResult {
+  /** 切片列表 */
+  tiles: TileResult[];
+  /** 完整图片的总 extent */
+  extent: [number, number, number, number];
+  /** 完整图片的预览 URL */
+  previewUrl: string;
+  /** 完整图片 Blob */
+  blob: Blob;
+  /** 输出尺寸 */
+  outputWidth: number;
+  outputHeight: number;
+}
+
+/** ImageCalibrationControl 组件 Props */
+export interface ImageCalibrationControlProps {
+  /** 控件位置 */
+  position?: ControlPosition;
+  /** 受控模式：外部传入角点 */
+  corners?: GeoCorners;
+  /** 非受控模式：初始角点 */
+  defaultCorners?: GeoCorners;
+  /** 图片来源 (URL/base64/File) */
+  imageSource?: ImageSource;
+  /** 覆盖层透明度 0-1，默认 0.7 */
+  opacity?: number;
+  /** 接受的文件类型，默认 'image/*' */
+  accept?: string;
+  /** 额外 className */
+  className?: string;
+  /** 额外 style */
+  style?: React.CSSProperties;
+  /** 角点变化回调 */
+  onCornersChange?: (corners: GeoCorners) => void;
+  /** 确认配准回调 */
+  onCalibrate?: (result: CalibrationResult) => void;
+  /** 导出完成回调 */
+  onExport?: (result: ExportResult) => void;
+  /** 图片加载完成回调 */
+  onImageLoad?: (dimensions: { width: number; height: number }) => void;
+  /** 清除回调 */
+  onClear?: () => void;
+}
+
+/** 命令式 Handle */
+export interface ImageCalibrationHandle {
+  getCorners(): GeoCorners | null;
+  setCorners(corners: GeoCorners): void;
+  setImage(source: ImageSource): void;
+  exportImage(config?: ExportConfig): Promise<ExportResult>;
+  clear(): void;
+}
+
+/** 内部状态 */
+export interface CalibrationState {
+  phase: CalibrationPhase;
+  imageUrl: string | null;
+  imageDimensions: { width: number; height: number } | null;
+  corners: GeoCorners | null;
+  draggingCorner: CornerIndex | null;
+  opacity: number;
+}

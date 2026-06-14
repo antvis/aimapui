@@ -5,8 +5,10 @@ description: >
   Use when: (1) Creating map applications with AiMap container, (2) Adding layers (Point/Line/Polygon/Heatmap/Raster/Image),
   (3) Using composite layers (Bubble/Route/ArcFlow/Icon/Glyph/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster),
   (4) Configuring visual mappings (color/size/shape), (5) Adding controls, legends, interactions (Marker/Popup/Tooltip),
-  (6) Schema/JSON-driven map generation for AI, (7) Mobile-responsive map layouts, (8) Maki icon utilities for map markers.
-  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向", "行政区划", "ChinaDistrict".
+  (6) Schema/JSON-driven map generation for AI, (7) Mobile-responsive map layouts, (8) Maki icon utilities for map markers,
+  (9) Interactive drawing/editing with DrawControl (point/line/polygon/rectangle/circle),
+  (10) Image georeferencing with ImageCalibrationControl.
+  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向", "行政区划", "ChinaDistrict", "DrawControl", "绘制控件", "ImageCalibrationControl", "图片配准".
 version: "0.2.2"
 ---
 
@@ -61,7 +63,7 @@ import '@antv/aimapui/style.css';
 - **AiMap** — Container component, manages Scene/Map lifecycle; supports `autoFit` for automatic viewport fitting
 - **Layers** — 6 base types: `PointLayer`, `LineLayer`, `PolygonLayer`, `HeatmapLayer`, `RasterLayer`, `ImageLayer`
 - **Composite Layers** — Business-ready (11 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`
-- **Controls** — `ZoomControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl`, `DrawControl` (11 types, 12 positions)
+- **Controls** — `ZoomControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl`, `DrawControl`, `ImageCalibrationControl` (12 types, 12 positions)
 - **Interactions** — `Marker`, `Popup`, `Tooltip` + Maki icon utilities (`makiIconUrl`, `makiPinUrl`, `createMakiIconMap`, `createMakiPinMap`, `MAKI_ICONS`, `MAKI_ICON_NAMES`)
 - **Legends** — `LegendCategories`, `LegendRamp`, `LegendDiverging`, `LegendThreshold`, `LegendSize`, `LegendLineWidth`, `LegendProportion`, `LegendIcon` (8 types)
 - **Mobile** — `BottomSheet`, `MobileToolbar`, `MobileSheetLegend`, `SearchBar`
@@ -85,6 +87,8 @@ import '@antv/aimapui/style.css';
 | Style config | [style.md](references/visual/style.md) | Opacity/blend/style passthrough |
 | Marker/Popup/Tooltip | [interaction.md](references/interaction/interaction.md) | Interactive overlays |
 | Controls | [controls.md](references/controls/controls.md) | Zoom/Scale/Fullscreen/etc. |
+| DrawControl | [draw-control.md](references/controls/draw-control.md) | Interactive drawing/editing (point/line/polygon/rectangle/circle) |
+| ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | Image georeferencing with corner handles |
 | Legends | [legend-components.md](references/legend/legend-components.md) | Map legends |
 | Mobile components | [mobile-components.md](references/mobile/mobile-components.md) | Mobile-responsive UI |
 

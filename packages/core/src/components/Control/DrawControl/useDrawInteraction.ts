@@ -30,6 +30,8 @@ import {
   moveVertex,
   extractLngLatFromEvent,
   getVertices,
+  mergePolygons,
+  splitPolygonWithLine,
 } from './draw-geometry';
 import type { DrawSnapConfig } from './draw-types';
 import { findSnapTarget, resolveSnapConfig, type SnapResult } from './draw-snap';
@@ -68,6 +70,110 @@ export interface UseDrawInteractionResult {
 
 /** 最小像素距离阈值 */
 const MIN_PIXEL_DISTANCE = 5;
+
+/** 从地图事件中提取客户端坐标 */
+function clientX_fromEvent(e: Record<string, unknown>): number {
+  const origEvent = (e.originalEvent ?? e.originEvent ?? e.e) as MouseEvent | undefined;
+  return origEvent?.clientX ?? (e.x as number | undefined) ?? 0;
+}
+function clientY_fromEvent(e: Record<string, unknown>): number {
+  const origEvent = (e.originalEvent ?? e.originEvent ?? e.e) as MouseEvent | undefined;
+  return origEvent?.clientY ?? (e.y as number | undefined) ?? 0;
+}
+
+/** 从地图事件中检测点击位置最近的要素（使用像素距离判定） */
+function findFeatureAtPixel(
+  e: Record<string, unknown>,
+  features: DrawFeature[],
+  lngLatToPixel: (lngLat: [number, number]) => { x: number; y: number } | null,
+): DrawFeature | null {
+  const lngLat = extractLngLatFromEvent(e);
+  if (!lngLat) return null;
+
+  const clickPixel = lngLatToPixel(lngLat);
+  if (!clickPixel) {
+    // 无法获取像素坐标时，降级使用经纬度判定（仅用于 Polygon 射线法检测）
+    for (const f of features) {
+      if (f.geometry.type === 'Polygon') {
+        if (isPointInPolygon(lngLat, f.geometry.coordinates[0] as [number, number][])) return f;      }
+    }
+    return null;
+  }
+
+  const HIT_TOLERANCE_PX = 8; // 像素命中容差
+
+  for (const f of features) {
+    if (f.geometry.type === 'Polygon') {
+      // 面要素：优先用射线法判断点在面内，再用像素距离判断是否靠近边界
+      if (isPointInPolygon(lngLat, f.geometry.coordinates[0] as [number, number][])) return f;      // 点不在面内时，检测是否靠近面的边界线段
+      const ring = f.geometry.coordinates[0] as [number, number][];
+      for (let i = 0; i < ring.length - 1; i++) {
+        const distPx = pixelDistToSegment(clickPixel, ring[i], ring[i + 1], lngLatToPixel);
+        if (distPx <= HIT_TOLERANCE_PX) return f;
+      }
+    } else if (f.geometry.type === 'Point') {
+      const pt = f.geometry.coordinates as [number, number];
+      const ptPixel = lngLatToPixel(pt);
+      if (ptPixel) {
+        const dx = ptPixel.x - clickPixel.x;
+        const dy = ptPixel.y - clickPixel.y;
+        if (Math.sqrt(dx * dx + dy * dy) <= HIT_TOLERANCE_PX) return f;
+      }
+    } else if (f.geometry.type === 'LineString') {
+      const coords = f.geometry.coordinates as [number, number][];
+      for (let i = 0; i < coords.length - 1; i++) {
+        const distPx = pixelDistToSegment(clickPixel, coords[i], coords[i + 1], lngLatToPixel);
+        if (distPx <= HIT_TOLERANCE_PX) return f;
+      }
+    }
+  }
+  return null;
+}
+
+/** 计算点到线段的像素距离（将线段端点转为像素后计算） */
+function pixelDistToSegment(
+  clickPixel: { x: number; y: number },
+  segA: [number, number],
+  segB: [number, number],
+  lngLatToPixel: (lngLat: [number, number]) => { x: number; y: number } | null,
+): number {
+  const aPixel = lngLatToPixel(segA);
+  const bPixel = lngLatToPixel(segB);
+  if (!aPixel || !bPixel) return Infinity;
+
+  // 线段为零长度时直接返回点到端点的距离
+  const dx = bPixel.x - aPixel.x;
+  const dy = bPixel.y - aPixel.y;
+  const lenSq = dx * dx + dy * dy;
+  if (lenSq === 0) {
+    const d0x = clickPixel.x - aPixel.x;
+    const d0y = clickPixel.y - aPixel.y;
+    return Math.sqrt(d0x * d0x + d0y * d0y);
+  }
+
+  // 投影参数 t，限制在 [0,1] 内
+  const t = Math.max(0, Math.min(1,
+    ((clickPixel.x - aPixel.x) * dx + (clickPixel.y - aPixel.y) * dy) / lenSq));
+  const projX = aPixel.x + t * dx;
+  const projY = aPixel.y + t * dy;
+  const ddx = clickPixel.x - projX;
+  const ddy = clickPixel.y - projY;
+  return Math.sqrt(ddx * ddx + ddy * ddy);
+}
+
+/** 判断点是否在多边形内（射线法） */
+function isPointInPolygon(point: [number, number], ring: [number, number][]): boolean {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    if (((yi > point[1]) !== (yj > point[1])) &&
+        (point[0] < (xj - xi) * (point[1] - yi) / (yj - yi) + xi)) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
 
 /**
  * 找到线段上距离指定点最近的点（投影点），返回投影坐标和在线段上的参数 t
@@ -321,11 +427,68 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
       return;
     }
 
+    if (mode === 'merge') {
+      // 合并模式：点击面要素累积选中
+      // 检查是否点击了已有的面要素
+      const clickedFeature = findFeatureAtPixel(e, featuresRef.current, lngLatToPixel);
+      if (clickedFeature && (clickedFeature.geometry.type === 'Polygon' || clickedFeature.properties.drawType === 'circle')) {
+        const id = clickedFeature.id;
+        const selectedIds = [...state.mergeSelectedIds];
+        const existingIndex = selectedIds.indexOf(id);
+        if (existingIndex >= 0) {
+          // 已选中则取消选中
+          selectedIds.splice(existingIndex, 1);
+        } else {
+          // 未选中则加入
+          selectedIds.push(id);
+        }
+        state.mergeSelectedIds = selectedIds;
+        manager.highlightMergeSelected(selectedIds, featuresRef.current);
+        if (selectedIds.length >= 2) {
+          manager.showTooltip(`已选中 ${selectedIds.length} 个面，双击合并`, clientX_fromEvent(e), clientY_fromEvent(e), ['[ESC] 取消']);
+        } else if (selectedIds.length === 1) {
+          manager.showTooltip('继续点击选中更多面', clientX_fromEvent(e), clientY_fromEvent(e), ['[ESC] 取消']);
+        }
+      } else {
+        // 点击空白区域，取消所有选中
+        state.mergeSelectedIds = [];
+        manager.highlightMergeSelected([], featuresRef.current);
+        manager.showTooltip('点击面要素选中', clientX_fromEvent(e), clientY_fromEvent(e), ['[ESC] 取消']);
+      }
+      return;
+    }
+
+    if (mode === 'split') {
+      // 切分模式：先选目标面，然后绘制切线
+      if (!state.splitTargetId) {
+        // 还未选择目标面，点击选择
+        const clickedFeature = findFeatureAtPixel(e, featuresRef.current, lngLatToPixel);
+        if (clickedFeature && (clickedFeature.geometry.type === 'Polygon' || clickedFeature.properties.drawType === 'circle')) {
+          state.splitTargetId = clickedFeature.id;
+          manager.highlightSplitTarget(clickedFeature.id, featuresRef.current);
+          manager.showTooltip('已选目标面，单击绘制切线起点', clientX_fromEvent(e), clientY_fromEvent(e), ['[ESC] 取消']);
+        } else {
+          manager.showTooltip('先点击选择要切分的面', clientX_fromEvent(e), clientY_fromEvent(e), ['[ESC] 取消']);
+        }
+        return;
+      }
+      // 已选中目标面，绘制切线（类似 polyline）
+      state.currentVertices.push([lng, lat]);
+      state.isDrawing = true;
+      manager.showDrawingFeedback(state.currentVertices, state.mousePoint, 'polyline', state.startPoint);
+      if (state.currentVertices.length === 1) {
+        manager.showTooltip('单击继续绘制切线，双击完成切分', clientX_fromEvent(e), clientY_fromEvent(e), ['[ESC] 取消']);
+      } else {
+        manager.showTooltip(`切线 ${state.currentVertices.length} 个顶点，双击完成切分`, clientX_fromEvent(e), clientY_fromEvent(e), ['[ESC] 取消']);
+      }
+      return;
+    }
+
     if (mode === 'edit') {
       // 编辑模式下的点击由图层事件和空白检测处理
       return;
     }
-  }, [updateFeatures]);
+  }, [updateFeatures, lngLatToPixel]);
 
   const handleMapDblClick = useCallback((e: Record<string, unknown>) => {
     const state = stateRef.current;
@@ -345,6 +508,50 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     if (e.originalEvent) {
       (e.originalEvent as Event).preventDefault?.();
       (e.originalEvent as Event).stopPropagation?.();
+    }
+
+    // merge 模式：双击执行合并
+    if (mode === 'merge') {
+      if (state.mergeSelectedIds.length >= 2) {
+        const selectedFeatures = featuresRef.current.filter((f) => state.mergeSelectedIds.includes(f.id));
+        const merged = mergePolygons(selectedFeatures);
+        if (merged) {
+          // 删除原始要素，添加合并后的要素
+          const remaining = featuresRef.current.filter((f) => !state.mergeSelectedIds.includes(f.id));
+          const newFeatures = [...remaining, merged];
+          updateFeatures(newFeatures);
+          callbacksRef.current.onDrawCreate?.([merged]);
+          callbacksRef.current.onDrawDelete?.(selectedFeatures[0]);
+        }
+        state.mergeSelectedIds = [];
+        manager.highlightMergeSelected([], featuresRef.current);
+        manager.hideTooltip();
+      }
+      return;
+    }
+
+    // split 模式：双击完成切线绘制，执行分割
+    if (mode === 'split' && state.splitTargetId && state.currentVertices.length >= 2) {
+      const targetFeature = featuresRef.current.find((f) => f.id === state.splitTargetId);
+      if (targetFeature) {
+        const results = splitPolygonWithLine(targetFeature, state.currentVertices as [number, number][]);
+        if (results) {
+          // 删除原始面要素，添加分割后的两个面要素
+          const remaining = featuresRef.current.filter((f) => f.id !== state.splitTargetId);
+          const newFeatures = [...remaining, ...results];
+          updateFeatures(newFeatures);
+          callbacksRef.current.onDrawCreate?.(results);
+          callbacksRef.current.onDrawDelete?.(targetFeature);
+        }
+      }
+      state.currentVertices = [];
+      state.isDrawing = false;
+      state.mousePoint = null;
+      state.splitTargetId = null;
+      manager.clearDrawingFeedback();
+      manager.clearSplitHighlight();
+      manager.hideTooltip();
+      return;
     }
 
     if (mode === 'polyline' && state.currentVertices.length >= 2) {
@@ -430,6 +637,22 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
           const radius = haversineDistance(state.startPoint, [lng, lat]);
           const label = radius > 1000 ? `${(radius / 1000).toFixed(1)} km` : `${Math.round(radius)} m`;
           manager.showTooltip(`半径 ${label}，单击完成`, clientX, clientY, ['[ESC] 取消']);
+        }
+      } else if (mode === 'merge') {
+        if (state.mergeSelectedIds.length >= 2) {
+          manager.showTooltip(`已选中 ${state.mergeSelectedIds.length} 个面，双击合并`, clientX, clientY, ['[ESC] 取消']);
+        } else if (state.mergeSelectedIds.length === 1) {
+          manager.showTooltip('继续点击选中更多面', clientX, clientY, ['[ESC] 取消']);
+        } else {
+          manager.showTooltip('点击面要素选中', clientX, clientY, ['[ESC] 取消']);
+        }
+      } else if (mode === 'split') {
+        if (!state.splitTargetId) {
+          manager.showTooltip('先点击选择要切分的面', clientX, clientY, ['[ESC] 取消']);
+        } else if (!state.isDrawing) {
+          manager.showTooltip('单击绘制切线起点', clientX, clientY, ['[ESC] 取消']);
+        } else {
+          manager.showTooltip(`切线 ${state.currentVertices.length} 个顶点，双击完成切分`, clientX, clientY, ['[ESC] 取消']);
         }
       } else if (mode === 'edit') {
         // 编辑模式 tooltip 由图层 hover 事件（vertex/midpoint/feature mouseenter/leave）驱动
@@ -773,6 +996,21 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
       manager?.removeDrawingLayers();
     }
 
+    // 退出 merge/split 模式
+    if (prevMode === 'merge') {
+      state.mergeSelectedIds = [];
+      manager?.clearMergeHighlight();
+      manager?.hideTooltip();
+    }
+    if (prevMode === 'split') {
+      state.splitTargetId = null;
+      state.currentVertices = [];
+      state.isDrawing = false;
+      manager?.clearDrawingFeedback();
+      manager?.clearSplitHighlight();
+      manager?.hideTooltip();
+    }
+
     // 退出编辑模式
     if (prevMode === 'edit') {
       updateSelectedId(null);
@@ -789,8 +1027,8 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
       }
     }
 
-    // 退出绘制模式
-    if (prevMode !== 'edit' && prevMode !== 'none') {
+    // 退出绘制模式（merge/split 有专用退出分支，这里只处理纯绘制模式）
+    if (prevMode !== 'edit' && prevMode !== 'none' && prevMode !== 'merge' && prevMode !== 'split') {
       manager?.removeDrawingLayers();
       manager?.hideTooltip();
       if (mapsService) {
@@ -806,7 +1044,24 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     state.mode = newMode;
 
     // 进入新模式
-    if (newMode === 'edit') {
+    if (newMode === 'merge') {
+      state.mergeSelectedIds = [];
+      const container = mapsService?.getContainer?.();
+      if (container) {
+        container.classList.add('l7-draw-cursor-crosshair');
+      }
+    } else if (newMode === 'split') {
+      state.splitTargetId = null;
+      state.currentVertices = [];
+      state.isDrawing = false;
+      if (mapsService) {
+        mapsService.setMapStatus({ doubleClickZoom: false });
+      }
+      const container = mapsService?.getContainer?.();
+      if (container) {
+        container.classList.add('l7-draw-cursor-crosshair');
+      }
+    } else if (newMode === 'edit') {
       manager?.setupEditClickHandlers(handleFeatureClick, handleVertexClick, handleMapClickForEdit, handleVertexRightClick, handleMidpointClick, handleFeatureMouseDown);
       // 编辑态图层在 updateSelectionHighlight/updateVertexHandles 中按需创建
       if (mapsService) {

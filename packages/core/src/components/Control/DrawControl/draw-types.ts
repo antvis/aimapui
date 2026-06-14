@@ -191,6 +191,10 @@ export interface DrawState {
   dragVertexIndex: number | null;
   /** 是否正在拖拽 */
   isDragging: boolean;
+  /** 合并模式：已选中的要素 ID 列表 */
+  mergeSelectedIds: string[];
+  /** 切分模式：切割目标要素 ID */
+  splitTargetId: string | null;
 }
 
 /** 创建初始绘制状态 */
@@ -205,5 +209,7 @@ export function createInitialDrawState(features?: DrawFeature[]): DrawState {
     mousePoint: null,
     dragVertexIndex: null,
     isDragging: false,
+    mergeSelectedIds: [],
+    splitTargetId: null,
   };
 }
