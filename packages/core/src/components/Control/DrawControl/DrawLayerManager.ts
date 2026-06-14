@@ -652,7 +652,30 @@ export class DrawLayerManager {
   /** 从 L7 事件中提取 clientX/clientY */
   private extractClientXY(e: Record<string, unknown>): [number, number] {
     const orig = (e.originalEvent ?? e.originEvent ?? e.e) as MouseEvent | undefined;
-    return [orig?.clientX ?? (e.x as number) ?? 0, orig?.clientY ?? (e.y as number) ?? 0];
+    // 优先使用 DOM MouseEvent 的 clientX/clientY（相对于视口）
+    if (orig && typeof orig.clientX === 'number' && typeof orig.clientY === 'number') {
+      return [orig.clientX, orig.clientY];
+    }
+    // fallback: L7 内部像素坐标 e.x/e.y 是相对于 canvas 的，需要加上 canvas 偏移
+    const px = e.x as number | undefined;
+    const py = e.y as number | undefined;
+    if (px !== undefined && py !== undefined) {
+      const container = this.mapsService?.getContainer?.() as HTMLElement | undefined;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        return [px + rect.left, py + rect.top];
+      }
+    }
+    // pixel 对象
+    const pixel = e.pixel as Record<string, number> | undefined;
+    if (pixel) {
+      const container = this.mapsService?.getContainer?.() as HTMLElement | undefined;
+      if (container) {
+        const rect = container.getBoundingClientRect();
+        return [(pixel.x ?? 0) + rect.left, (pixel.y ?? 0) + rect.top];
+      }
+    }
+    return [0, 0];
   }
 
   /** 从 L7 事件 feature 中提取指定属性（兼容 GeoJSON properties 和 JSON parser 直出） */
