@@ -16,7 +16,7 @@
  * </AiMap>
  * ```
  */
-import React, { useCallback, useMemo, useState, useImperativeHandle, forwardRef } from 'react';
+import React, { useCallback, useMemo, useState, useImperativeHandle, forwardRef, useRef } from 'react';
 import { useMapControl, type ControlPosition } from '../../../hooks/useMapControl';
 import { useControlContainer, ControlRegistry } from '../ControlContainer';
 import { useDrawInteraction, type UseDrawInteractionResult } from './useDrawInteraction';
@@ -34,12 +34,12 @@ interface ToolButton {
 }
 
 const DRAW_TOOLS: ToolButton[] = [
-  { mode: 'point', icon: 'location_on', title: '绘制点', label: '点' },
-  { mode: 'polyline', icon: 'timeline', title: '绘制折线', label: '线' },
-  { mode: 'polygon', icon: 'pentagon', title: '绘制多边形', label: '面' },
-  { mode: 'circle', icon: 'radio_button_unchecked', title: '绘制圆形', label: '圆形' },
-  { mode: 'rectangle', icon: 'crop_square', title: '绘制矩形', label: '矩形' },
-  { mode: 'edit', icon: 'edit_square', title: '编辑要素', label: '编辑' },
+  { mode: 'point', icon: 'location_on', title: 'Point — Click to place', label: '点' },
+  { mode: 'polyline', icon: 'timeline', title: 'Line — Click vertices, double-click to finish', label: '线' },
+  { mode: 'polygon', icon: 'pentagon', title: 'Polygon — Click vertices, double-click to close', label: '面' },
+  { mode: 'circle', icon: 'radio_button_unchecked', title: 'Circle — Click center, then click radius', label: '圆形' },
+  { mode: 'rectangle', icon: 'crop_square', title: 'Rectangle — Drag to define area', label: '矩形' },
+  { mode: 'edit', icon: 'edit_square', title: 'Edit — Select and modify features', label: '编辑' },
 ];
 
 // ============================================================
@@ -129,6 +129,46 @@ export const DrawControl = forwardRef<DrawControlHandle, DrawControlProps>(funct
   // 是否有要素
   const hasFeatures = draw.features.length > 0;
 
+  // 工具栏按钮 hover tooltip（原生 title 太慢且不统一，使用自定义实现）
+  const toolbarTooltipRef = useRef<HTMLDivElement | null>(null);
+
+  const handleToolMouseEnter = useCallback((e: React.MouseEvent, tool: ToolButton) => {
+    if (!toolbarTooltipRef.current) {
+      const el = document.createElement('div');
+      el.style.cssText = [
+        'position:fixed', 'pointer-events:none', 'z-index:9999',
+        'padding:5px 10px', 'border-radius:4px',
+        'background:rgba(26,27,34,0.92)', 'color:#f2eff9',
+        'font:500 11px/16px "JetBrains Mono",monospace',
+        'white-space:nowrap', 'box-shadow:0 2px 8px rgba(0,0,0,0.3)',
+      ].join(';');
+      document.body.appendChild(el);
+      toolbarTooltipRef.current = el;
+    }
+    const el = toolbarTooltipRef.current;
+    el.textContent = tool.title;
+    el.style.display = 'block';
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    el.style.left = `${rect.right + 8}px`;
+    el.style.top = `${rect.top + rect.height / 2 - 12}px`;
+  }, []);
+
+  const handleToolMouseLeave = useCallback(() => {
+    if (toolbarTooltipRef.current) {
+      toolbarTooltipRef.current.style.display = 'none';
+    }
+  }, []);
+
+  // 组件卸载时清理
+  React.useEffect(() => {
+    return () => {
+      if (toolbarTooltipRef.current) {
+        toolbarTooltipRef.current.parentElement?.removeChild(toolbarTooltipRef.current);
+        toolbarTooltipRef.current = null;
+      }
+    };
+  }, []);
+
   const controlContent = (
     <div
       className={`l7-control l7-control-draw l7-control--glass${className ? ` ${className}` : ''}`}
@@ -141,7 +181,8 @@ export const DrawControl = forwardRef<DrawControlHandle, DrawControlProps>(funct
           key={tool.mode}
           className={`l7-button-control l7-draw-tool-btn${activeMode === tool.mode ? ' l7-button-control--active' : ''}`}
           onClick={() => handleModeClick(tool.mode)}
-          title={tool.title}
+          onMouseEnter={(e) => handleToolMouseEnter(e, tool)}
+          onMouseLeave={handleToolMouseLeave}
           aria-label={tool.title}
           aria-pressed={activeMode === tool.mode}
         >

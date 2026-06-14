@@ -388,44 +388,48 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     const [lng, lat] = lngLat;
     const manager = layerManagerRef.current;
     const mode = modeRef.current as DrawMode;
-    const origEvent = e.originalEvent as MouseEvent | undefined;
+
+    // 获取鼠标像素位置（L7 事件可能叫 originalEvent、originEvent 或 e）
+    const origEvent = (e.originalEvent ?? e.originEvent ?? e.e) as MouseEvent | undefined;
+    const clientX = origEvent?.clientX ?? (e.x as number | undefined) ?? 0;
+    const clientY = origEvent?.clientY ?? (e.y as number | undefined) ?? 0;
 
     state.mousePoint = [lng, lat];
 
     // 鼠标跟随提示（GeoEditor Pro Tooltip Spec v2.0）
-    if (origEvent && manager) {
+    if (manager && (clientX || clientY)) {
       // 吸附态优先显示吸附提示
       const snapResult = lastSnapRef.current;
       const isDrawingMode = mode === 'point' || mode === 'polyline' || mode === 'polygon' || mode === 'circle' || mode === 'rectangle';
       if (isDrawingMode && snapResult?.snapped && snapResult.type !== 'none') {
-        manager.showSnapTooltip(snapResult.type, snapResult.lng, snapResult.lat, origEvent.clientX, origEvent.clientY);
+        manager.showSnapTooltip(snapResult.type, snapResult.lng, snapResult.lat, clientX, clientY);
       } else if (mode === 'point') {
-        manager.showTooltip('Click to add point', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
+        manager.showTooltip('Click to add point', clientX, clientY, ['[ESC] Cancel']);
       } else if (mode === 'polyline') {
         if (!state.isDrawing) {
-          manager.showTooltip('Click to start drawing line', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
+          manager.showTooltip('Click to start drawing line', clientX, clientY, ['[ESC] Cancel']);
         } else {
-          manager.showTooltip('Click to add vertex', origEvent.clientX, origEvent.clientY, ['[ENTER] Done', '[ESC] Cancel']);
+          manager.showTooltip('Click to add vertex', clientX, clientY, ['[ENTER] Done', '[ESC] Cancel']);
         }
       } else if (mode === 'polygon') {
         if (!state.isDrawing) {
-          manager.showTooltip('Click to start drawing polygon', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
+          manager.showTooltip('Click to start drawing polygon', clientX, clientY, ['[ESC] Cancel']);
         } else if (state.currentVertices.length < 3) {
-          manager.showTooltip('Click to add vertex', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
+          manager.showTooltip('Click to add vertex', clientX, clientY, ['[ESC] Cancel']);
         } else {
-          manager.showTooltip('Click to add vertex | Double-click to finish', origEvent.clientX, origEvent.clientY, ['[ENTER] Done', '[ESC] Cancel']);
+          manager.showTooltip('Click to add vertex | Double-click to finish', clientX, clientY, ['[ENTER] Done', '[ESC] Cancel']);
         }
       } else if (mode === 'rectangle') {
         if (!state.isDragging) {
-          manager.showTooltip('Drag to define area', origEvent.clientX, origEvent.clientY, ['[SHIFT] Square', '[ESC] Cancel']);
+          manager.showTooltip('Drag to define area', clientX, clientY, ['[SHIFT] Square', '[ESC] Cancel']);
         }
       } else if (mode === 'circle') {
         if (!state.startPoint) {
-          manager.showTooltip('Click center to start', origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
+          manager.showTooltip('Click center to start', clientX, clientY, ['[ESC] Cancel']);
         } else {
           const radius = haversineDistance(state.startPoint, [lng, lat]);
           const label = radius > 1000 ? `${(radius / 1000).toFixed(1)} km` : `${Math.round(radius)} m`;
-          manager.showTooltip(`Radius: ${label} — Click to finish`, origEvent.clientX, origEvent.clientY, ['[ESC] Cancel']);
+          manager.showTooltip(`Radius: ${label} — Click to finish`, clientX, clientY, ['[ESC] Cancel']);
         }
       } else if (mode === 'edit') {
         if (!state.isDragging) {
