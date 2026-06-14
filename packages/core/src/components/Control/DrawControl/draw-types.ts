@@ -110,6 +110,18 @@ export interface DrawStyleConfig {
   vertex?: DrawVertexStyle;
 }
 
+/** 吸附配置 */
+export interface DrawSnapConfig {
+  /** 是否启用吸附，默认 true */
+  enabled?: boolean;
+  /** 吸附像素阈值，默认 8px */
+  threshold?: number;
+  /** 是否启用顶点吸附，默认 true */
+  vertex?: boolean;
+  /** 是否启用边吸附，默认 true */
+  edge?: boolean;
+}
+
 // ============================================================
 // DrawControl Props
 // ============================================================
@@ -128,6 +140,8 @@ export interface DrawControlProps {
   showDelete?: boolean;
   /** 自定义样式配置 */
   styles?: DrawStyleConfig;
+  /** 吸附配置 */
+  snap?: DrawSnapConfig | boolean;
   className?: string;
   style?: React.CSSProperties;
   /** 创建要素回调 */

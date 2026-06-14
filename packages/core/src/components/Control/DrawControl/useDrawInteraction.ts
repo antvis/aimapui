@@ -31,6 +31,8 @@ import {
   extractLngLatFromEvent,
   getVertices,
 } from './draw-geometry';
+import type { DrawSnapConfig } from './draw-types';
+import { findSnapTarget, resolveSnapConfig, type SnapResult } from './draw-snap';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MapsService = any;
@@ -39,6 +41,7 @@ export interface UseDrawInteractionParams {
   scene: ReturnType<typeof import('../../../context/SceneContext').useScene>;
   mapsService: MapsService;
   styles?: DrawStyleConfig;
+  snap?: DrawSnapConfig | boolean;
   defaultFeatures?: DrawFeature[];
   features?: DrawFeature[];
   onDrawCreate?: (features: DrawFeature[]) => void;
@@ -190,6 +193,7 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     scene,
     mapsService,
     styles,
+    snap,
     defaultFeatures,
     features: controlledFeatures,
     onDrawCreate,
@@ -203,6 +207,7 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
   const stateRef = useRef<DrawState>(createInitialDrawState(defaultFeatures));
   const layerManagerRef = useRef<DrawLayerManager | null>(null);
   const mergedStyles = useMemo(() => mergeDrawStyles(styles), [styles]);
+  const snapConfig = useMemo(() => resolveSnapConfig(snap), [snap]);
   const callbacksRef = useRef({ onDrawCreate, onDrawUpdate, onDrawDelete, onDrawSelect, onModeChange, onChange });
   callbacksRef.current = { onDrawCreate, onDrawUpdate, onDrawDelete, onDrawSelect, onModeChange, onChange };
 
@@ -215,6 +220,17 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
   // 拖拽时记录上一帧的鼠标经纬度，用于计算要素平移增量
   const lastDragLngLatRef = useRef<[number, number] | null>(null);
   const dragStartPixelRef = useRef<{ x: number; y: number } | null>(null);
+  const lastSnapRef = useRef<SnapResult | null>(null);
+
+  // 吸附辅助：经纬度转像素
+  const lngLatToPixel = useCallback((lngLat: [number, number]): { x: number; y: number } | null => {
+    if (!mapsService) return null;
+    try {
+      const pixel = mapsService.lngLatToContainer?.([lngLat[0], lngLat[1]]);
+      if (pixel) return { x: pixel.x ?? pixel[0], y: pixel.y ?? pixel[1] };
+    } catch { /* */ }
+    return null;
+  }, [mapsService]);
 
   // ---- 内部状态更新辅助 ----
 
@@ -253,9 +269,13 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
     const state = stateRef.current;
     const lngLat = extractLngLatFromEvent(e);
     if (!lngLat) return;
-    const [lng, lat] = lngLat;
     const manager = layerManagerRef.current;
     if (!manager) return;
+
+    // 使用吸附结果（如果有）
+    const snap = lastSnapRef.current;
+    const lng = snap?.snapped ? snap.lng : lngLat[0];
+    const lat = snap?.snapped ? snap.lat : lngLat[1];
 
     const mode = modeRef.current as DrawMode;
 
@@ -409,6 +429,22 @@ export function useDrawInteraction(params: UseDrawInteractionParams): UseDrawInt
       } else {
         manager.hideTooltip();
       }
+    }
+
+    // 吸附检测（绘制模式下）
+    const isDrawingMode = mode === 'point' || mode === 'polyline' || mode === 'polygon' || mode === 'circle';
+    if (isDrawingMode && snapConfig.enabled && manager) {
+      const snapResult = findSnapTarget([lng, lat], featuresRef.current, snapConfig, lngLatToPixel);
+      lastSnapRef.current = snapResult;
+      if (snapResult.snapped && snapResult.type !== 'none') {
+        manager.showSnapIndicator(snapResult.lng, snapResult.lat, snapResult.type);
+        state.mousePoint = [snapResult.lng, snapResult.lat];
+      } else {
+        manager.hideSnapIndicator();
+      }
+    } else {
+      lastSnapRef.current = null;
+      manager?.hideSnapIndicator();
     }
 
     // 绘制模式 rubber-band

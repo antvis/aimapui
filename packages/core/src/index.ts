@@ -155,7 +155,7 @@ export type { LayerSwitchControlProps, LayerItem } from './components/Control/La
 export { LegendControl } from './components/Control/LegendControl';
 export type { LegendControlProps } from './components/Control/LegendControl';
 export { DrawControl } from './components/Control/DrawControl';
-export type { DrawControlHandle, DrawControlProps, DrawMode, DrawToolMode, DrawFeature, DrawStyleConfig } from './components/Control/DrawControl';
+export type { DrawControlHandle, DrawControlProps, DrawMode, DrawToolMode, DrawFeature, DrawStyleConfig, DrawSnapConfig } from './components/Control/DrawControl';
 export { ImageCalibrationControl } from './components/Control/ImageCalibrationControl';
 export type { ImageCalibrationHandle, ImageCalibrationControlProps, GeoCorners, CalibrationPhase, CalibrationResult, ExportOptions, ExportConfig, ExportResult, TileResult } from './components/Control/ImageCalibrationControl';
 export { LogoControl } from './components/Control/LogoControl';

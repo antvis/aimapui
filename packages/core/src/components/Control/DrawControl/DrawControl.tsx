@@ -54,6 +54,7 @@ export const DrawControl = forwardRef<DrawControlHandle, DrawControlProps>(funct
     modes,
     showDelete = true,
     styles,
+    snap,
     className,
     style,
     onDrawCreate,
@@ -73,6 +74,7 @@ export const DrawControl = forwardRef<DrawControlHandle, DrawControlProps>(funct
     scene,
     mapsService,
     styles,
+    snap,
     defaultFeatures,
     features: controlledFeatures,
     onDrawCreate,
@@ -202,4 +204,4 @@ export interface DrawControlHandle {
 }
 
 // 重新导出类型
-export type { DrawControlProps, DrawMode, DrawToolMode, DrawFeature, DrawStyleConfig } from './draw-types';
+export type { DrawControlProps, DrawMode, DrawToolMode, DrawFeature, DrawStyleConfig, DrawSnapConfig } from './draw-types';

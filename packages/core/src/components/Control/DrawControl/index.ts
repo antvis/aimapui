@@ -11,6 +11,7 @@ export type {
   DrawSelectedStyle,
   DrawVertexStyle,
   DrawStyleConfig,
+  DrawSnapConfig,
   DrawControlProps,
   DrawState,
 } from './draw-types';

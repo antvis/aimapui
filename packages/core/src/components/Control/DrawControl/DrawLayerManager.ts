@@ -54,6 +54,9 @@ export class DrawLayerManager {
   private vertexLayer: L7Layer | null = null;
   private midpointLayer: L7Layer | null = null;
 
+  // 吸附指示图层
+  private snapIndicatorLayer: L7Layer | null = null;
+
   // 鼠标跟随提示 DOM
   private tooltipEl: HTMLDivElement | null = null;
   private containerEl: HTMLElement | null = null;
@@ -642,6 +645,30 @@ export class DrawLayerManager {
   }
 
   // ============================================================
+  // 吸附指示器
+  // ============================================================
+
+  showSnapIndicator(lng: number, lat: number, type: 'vertex' | 'edge'): void {
+    if (!this.scene) return;
+    const color = '#ffc107';
+    const size = type === 'vertex' ? 8 : 6;
+
+    this.removeAndDestroy(this.snapIndicatorLayer);
+    this.snapIndicatorLayer = new L7.PointLayer({ name: `${PREFIX}snap-indicator`, zIndex: 20 })
+      .source([{ lng, lat }], { parser: { type: 'json', x: 'lng', y: 'lat' } })
+      .shape('square')
+      .color(color)
+      .size(size)
+      .style({ stroke: color, strokeWidth: 1.5, opacity: 0.9 });
+    this.addLayerWithRender(this.snapIndicatorLayer);
+  }
+
+  hideSnapIndicator(): void {
+    this.removeAndDestroy(this.snapIndicatorLayer);
+    this.snapIndicatorLayer = null;
+  }
+
+  // ============================================================
   // 销毁
   // ============================================================
 
@@ -656,6 +683,7 @@ export class DrawLayerManager {
       this.drawingPolygonLayer, this.drawingPointLayer,
       this.selectionPolygonLayer, this.selectionLineLayer, this.selectionPointLayer,
       this.vertexLayer, this.midpointLayer,
+      this.snapIndicatorLayer,
     ];
 
     for (const layer of layersToRemove) {
@@ -675,5 +703,6 @@ export class DrawLayerManager {
     this.selectionPointLayer = null;
     this.vertexLayer = null;
     this.midpointLayer = null;
+    this.snapIndicatorLayer = null;
   }
 }
