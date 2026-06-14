@@ -618,16 +618,13 @@ export class DrawLayerManager {
     this.featurePolygonLayer?.on('mousedown', featureMouseDownHandler);
     this.featurePolygonOutlineLayer?.on('mousedown', featureMouseDownHandler);
 
-    // 要素 hover → 抓取光标 + tooltip
-    const featureHoverIn = (e: Record<string, unknown>) => {
-      this.setCursorClass('l7-draw-cursor-grab');
+    // 要素 hover → 抓取光标 + tooltip 跟随
+    const featureHoverIn = () => { this.setCursorClass('l7-draw-cursor-grab'); };
+    const featureHoverMove = (e: Record<string, unknown>) => {
       const [cx, cy] = this.extractClientXY(e);
       if (cx || cy) this.showTooltip('单击选中，拖拽移动', cx, cy);
     };
-    const featureHoverOut = () => {
-      this.clearEditCursors();
-      this.hideTooltip();
-    };
+    const featureHoverOut = () => { this.clearEditCursors(); this.hideTooltip(); };
     this.featurePointLayer?.on('mouseenter', featureHoverIn);
     this.featurePointLayer?.on('mouseleave', featureHoverOut);
     this.featureLineLayer?.on('mouseenter', featureHoverIn);
@@ -684,27 +681,21 @@ export class DrawLayerManager {
 
   /** 重新绑定 vertex/midpoint 图层事件（每次 rebuild 后调用） */
   private rebindVertexAndMidpointEvents(): void {
-    // 顶点 hover → 手型光标 + tooltip
-    this.vertexLayer?.on('mouseenter', (e: Record<string, unknown>) => {
-      this.setCursorClass('l7-draw-cursor-pointer');
+    // 顶点 hover → 手型光标 + tooltip 跟随
+    this.vertexLayer?.on('mouseenter', () => { this.setCursorClass('l7-draw-cursor-pointer'); });
+    this.vertexLayer?.on('mousemove', (e: Record<string, unknown>) => {
       const [cx, cy] = this.extractClientXY(e);
       if (cx || cy) this.showTooltip('拖拽移动顶点，右键删除', cx, cy);
     });
-    this.vertexLayer?.on('mouseleave', () => {
-      this.clearEditCursors();
-      this.hideTooltip();
-    });
+    this.vertexLayer?.on('mouseleave', () => { this.clearEditCursors(); this.hideTooltip(); });
 
-    // 中点 hover → 手型光标 + tooltip
-    this.midpointLayer?.on('mouseenter', (e: Record<string, unknown>) => {
-      this.setCursorClass('l7-draw-cursor-pointer');
+    // 中点 hover → 手型光标 + tooltip 跟随
+    this.midpointLayer?.on('mouseenter', () => { this.setCursorClass('l7-draw-cursor-pointer'); });
+    this.midpointLayer?.on('mousemove', (e: Record<string, unknown>) => {
       const [cx, cy] = this.extractClientXY(e);
       if (cx || cy) this.showTooltip('单击添加新顶点', cx, cy);
     });
-    this.midpointLayer?.on('mouseleave', () => {
-      this.clearEditCursors();
-      this.hideTooltip();
-    });
+    this.midpointLayer?.on('mouseleave', () => { this.clearEditCursors(); this.hideTooltip(); });
 
     this.vertexLayer?.on('mousedown', (e: Record<string, unknown>) => {
       const feature = e.feature as Record<string, unknown> | undefined;
