@@ -10,14 +10,23 @@ import type { ControlPosition } from '../../../hooks/useMapControl';
 // 绘制模式
 // ============================================================
 
-/** 绘制模式：point-点, polyline-折线, polygon-多边形, rectangle-矩形, circle-圆形, edit-编辑, none-无 */
-export type DrawMode = 'point' | 'polyline' | 'polygon' | 'rectangle' | 'circle' | 'edit' | 'none';
+/** 绘制模式 */
+export type DrawMode =
+  | 'point' | 'polyline' | 'polygon' | 'rectangle' | 'circle'
+  | 'edit' | 'split' | 'merge'
+  | 'none';
+
+/** 基础绘制模式（产生要素的模式） */
+export type DrawBasicMode = 'point' | 'polyline' | 'polygon' | 'rectangle' | 'circle';
+
+/** 高级操作模式（GIS 操作） */
+export type DrawAdvancedMode = 'edit' | 'split' | 'merge';
 
 /** 工具栏显示的绘制模式（不含 none） */
 export type DrawToolMode = Exclude<DrawMode, 'none'>;
 
-/** 绘制模式对应的绘制类型（不含 edit 和 none，仅产生要素的模式） */
-export type DrawGeometryMode = 'point' | 'polyline' | 'polygon' | 'rectangle' | 'circle';
+/** 绘制模式对应的绘制类型（仅产生要素的模式） */
+export type DrawGeometryMode = DrawBasicMode;
 
 // ============================================================
 // 绘制要素

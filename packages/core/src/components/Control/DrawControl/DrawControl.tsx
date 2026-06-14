@@ -20,7 +20,7 @@ import React, { useCallback, useMemo, useState, useImperativeHandle, forwardRef,
 import { useMapControl, type ControlPosition } from '../../../hooks/useMapControl';
 import { useControlContainer, ControlRegistry } from '../ControlContainer';
 import { useDrawInteraction, type UseDrawInteractionResult } from './useDrawInteraction';
-import type { DrawControlProps, DrawMode, DrawToolMode, DrawFeature, DrawStyleConfig } from './draw-types';
+import type { DrawControlProps, DrawMode, DrawToolMode, DrawBasicMode, DrawAdvancedMode, DrawFeature, DrawStyleConfig } from './draw-types';
 
 // ============================================================
 // 工具栏按钮配置
@@ -33,13 +33,20 @@ interface ToolButton {
   label: string;
 }
 
-const DRAW_TOOLS: ToolButton[] = [
+/** 基础绘制工具 — 产生几何要素 */
+const BASIC_TOOLS: ToolButton[] = [
   { mode: 'point', icon: 'location_on', title: '点 — 单击放置', label: '点' },
   { mode: 'polyline', icon: 'timeline', title: '线 — 单击添加顶点，双击结束', label: '线' },
   { mode: 'polygon', icon: 'pentagon', title: '面 — 单击添加顶点，双击闭合', label: '面' },
   { mode: 'circle', icon: 'radio_button_unchecked', title: '圆 — 单击圆心，再单击确定半径', label: '圆形' },
   { mode: 'rectangle', icon: 'crop_square', title: '矩形 — 按住拖拽绘制', label: '矩形' },
+];
+
+/** 高级 GIS 操作工具 — 对已有要素进行操作 */
+const ADVANCED_TOOLS: ToolButton[] = [
   { mode: 'edit', icon: 'edit_square', title: '编辑 — 选中要素后拖拽移动或编辑顶点', label: '编辑' },
+  { mode: 'merge', icon: 'call_merge', title: '合并 — 选中2+要素合并为一个', label: '合并' },
+  { mode: 'split', icon: 'content_cut', title: '切分 — 绘制切线将要素分割', label: '切分' },
 ];
 
 // ============================================================
@@ -89,9 +96,14 @@ export const DrawControl = forwardRef<DrawControlHandle, DrawControlProps>(funct
   const [activeMode, setActiveMode] = useState<DrawMode>('none');
 
   // 可用的工具模式
-  const availableModes = useMemo(() => {
-    if (!modes) return DRAW_TOOLS;
-    return DRAW_TOOLS.filter((tool) => modes!.includes(tool.mode));
+  const availableBasicModes = useMemo(() => {
+    if (!modes) return BASIC_TOOLS;
+    return BASIC_TOOLS.filter((tool) => modes!.includes(tool.mode));
+  }, [modes]);
+
+  const availableAdvancedModes = useMemo(() => {
+    if (!modes) return ADVANCED_TOOLS;
+    return ADVANCED_TOOLS.filter((tool) => modes!.includes(tool.mode));
   }, [modes]);
 
   // 暴露命令式 API
@@ -176,10 +188,31 @@ export const DrawControl = forwardRef<DrawControlHandle, DrawControlProps>(funct
       role="toolbar"
       aria-label="绘制工具栏"
     >
-      {availableModes.map((tool) => (
+      {/* 基础绘制工具 */}
+      {availableBasicModes.map((tool) => (
         <button
           key={tool.mode}
           className={`l7-button-control l7-draw-tool-btn${activeMode === tool.mode ? ' l7-button-control--active' : ''}`}
+          onClick={() => handleModeClick(tool.mode)}
+          onMouseEnter={(e) => handleToolMouseEnter(e, tool)}
+          onMouseLeave={handleToolMouseLeave}
+          aria-label={tool.title}
+          aria-pressed={activeMode === tool.mode}
+        >
+          <span className="material-symbols-outlined">{tool.icon}</span>
+        </button>
+      ))}
+
+      {/* 分隔线：基础 ↔ 高级 */}
+      {availableAdvancedModes.length > 0 && (
+        <div className="l7-draw-separator" />
+      )}
+
+      {/* 高级 GIS 操作工具 */}
+      {availableAdvancedModes.map((tool) => (
+        <button
+          key={tool.mode}
+          className={`l7-button-control l7-draw-advanced-btn${activeMode === tool.mode ? ' l7-button-control--active' : ''}`}
           onClick={() => handleModeClick(tool.mode)}
           onMouseEnter={(e) => handleToolMouseEnter(e, tool)}
           onMouseLeave={handleToolMouseLeave}
@@ -207,12 +240,12 @@ export const DrawControl = forwardRef<DrawControlHandle, DrawControlProps>(funct
       {showDelete && hasFeatures && (
         <button
           className="l7-button-control l7-draw-action-btn"
-          onClick={handleClearAll}
-          title="清除所有要素"
-          aria-label="清除所有要素"
-        >
-          <span className="material-symbols-outlined">delete_sweep</span>
-        </button>
+            onClick={handleClearAll}
+            title="清除所有要素"
+            aria-label="清除所有要素"
+          >
+            <span className="material-symbols-outlined">delete_sweep</span>
+          </button>
       )}
     </div>
   );
