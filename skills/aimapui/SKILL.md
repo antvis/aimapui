@@ -7,8 +7,8 @@ description: >
   (4) Configuring visual mappings (color/size/shape), (5) Adding controls, legends, interactions (Marker/Popup/Tooltip),
   (6) Schema/JSON-driven map generation for AI, (7) Mobile-responsive map layouts, (8) Maki icon utilities for map markers,
   (9) Interactive drawing/editing with DrawControl (point/line/polygon/rectangle/circle),
-  (10) Image georeferencing with ImageCalibrationControl.
-  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向", "行政区划", "ChinaDistrict", "DrawControl", "绘制控件", "ImageCalibrationControl", "图片配准".
+  (10) Image georeferencing with ImageCalibrationControl (upload, corner drag, perspective transform, tile export, ZIP download).
+  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向", "行政区划", "ChinaDistrict", "DrawControl", "绘制控件", "ImageCalibrationControl", "图片配准", "地图校准", "georeferencing", "image calibration", "切片导出", "tile export".
 version: "0.2.2"
 ---
 
@@ -88,7 +88,7 @@ import '@antv/aimapui/style.css';
 | Marker/Popup/Tooltip | [interaction.md](references/interaction/interaction.md) | Interactive overlays |
 | Controls | [controls.md](references/controls/controls.md) | Zoom/Scale/Fullscreen/etc. |
 | DrawControl | [draw-control.md](references/controls/draw-control.md) | Interactive drawing/editing (point/line/polygon/rectangle/circle) |
-| ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | Image georeferencing with corner handles |
+| ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | Image georeferencing: upload, corner drag, perspective transform, tile export, ZIP download |
 | Legends | [legend-components.md](references/legend/legend-components.md) | Map legends |
 | Mobile components | [mobile-components.md](references/mobile/mobile-components.md) | Mobile-responsive UI |
 
