@@ -227,96 +227,96 @@ function markdownToHtml(md: string): string {
 
 const demos = [
   // ── 应用模板（移动端 + 桌面端） ─────────────────────────
-  { name: '移动端应用', icon: 'smartphone', component: MobileApp, group: '应用模板', file: 'app/MobileApp', device: 'mobile' },
-  { name: '打卡地图', icon: 'location_on', component: CheckInMap, group: '应用模板', file: 'app/CheckInMap', device: 'mobile' },
-  { name: '足迹地图', icon: 'explore', component: FootprintMap, group: '应用模板', file: 'app/FootprintMap', device: 'mobile' },
-  { name: 'PC 端应用', icon: 'desktop_windows', component: PcApp, group: '应用模板', file: 'app/PcApp', device: 'desktop' },
-  { name: '沉浸式旅游足迹', icon: 'photo_camera', component: ImmersiveTravelMap, group: '应用模板', file: 'app/ImmersiveTravelMap', device: 'desktop' },
-  { name: '兴趣地图', icon: 'interests', component: InterestMap, group: '应用模板', file: 'app/InterestMap', device: 'mobile' },
-  { name: '航线地图', icon: 'flight', component: FlightRouteMap, group: '应用模板', file: 'app/FlightRouteMap', device: 'mobile' },
+  { name: 'MobileApp 移动端应用', icon: 'smartphone', component: MobileApp, group: '应用模板', file: 'app/MobileApp', device: 'mobile' },
+  { name: 'CheckInMap 打卡地图', icon: 'location_on', component: CheckInMap, group: '应用模板', file: 'app/CheckInMap', device: 'mobile' },
+  { name: 'FootprintMap 足迹地图', icon: 'explore', component: FootprintMap, group: '应用模板', file: 'app/FootprintMap', device: 'mobile' },
+  { name: 'PcApp PC端应用', icon: 'desktop_windows', component: PcApp, group: '应用模板', file: 'app/PcApp', device: 'desktop' },
+  { name: 'ImmersiveTravelMap 沉浸式旅游', icon: 'photo_camera', component: ImmersiveTravelMap, group: '应用模板', file: 'app/ImmersiveTravelMap', device: 'desktop' },
+  { name: 'InterestMap 兴趣地图', icon: 'interests', component: InterestMap, group: '应用模板', file: 'app/InterestMap', device: 'mobile' },
+  { name: 'FlightRouteMap 航线地图', icon: 'flight', component: FlightRouteMap, group: '应用模板', file: 'app/FlightRouteMap', device: 'mobile' },
 
 
   // ── 点位标注 ──────────────────────────────
   // 排序原则：默认方案优先、再到按需方案
-  { name: 'Marker 标注', icon: 'location_on', component: Marker, group: '点位标注', file: 'marker/Marker' },
-  { name: '图标标注', icon: 'label', component: IconLabel, group: '点位标注', file: 'composite/IconLabel' },
-  { name: '字体标注', icon: 'font_download', component: IconFontLabel, group: '点位标注', file: 'composite/IconFontLabel' },
-  { name: 'Marker 可拖拽', icon: 'push_pin', component: MarkerDrag, group: '点位标注', file: 'marker/MarkerDrag' },
-  { name: 'Marker 聚合图', icon: 'scatter_plot', component: MarkerCluster, group: '点位标注', file: 'composite/MarkerCluster' },
-  { name: '图像图标', icon: 'emoji_symbols', component: BuiltinIconsDemo, group: '点位标注', file: 'composite/BuiltinIconsDemo' },
-  { name: '字体图标', icon: 'text_fields', component: BuiltinGlyphsDemo, group: '点位标注', file: 'composite/BuiltinGlyphsDemo' },
+  { name: 'Marker 标记点', icon: 'location_on', component: Marker, group: '点位标注', file: 'marker/Marker' },
+  { name: 'IconLabel 图标标注', icon: 'label', component: IconLabel, group: '点位标注', file: 'composite/IconLabel' },
+  { name: 'IconFontLabel 字体标注', icon: 'font_download', component: IconFontLabel, group: '点位标注', file: 'composite/IconFontLabel' },
+  { name: 'MarkerDrag 拖拽标记', icon: 'push_pin', component: MarkerDrag, group: '点位标注', file: 'marker/MarkerDrag' },
+  { name: 'MarkerCluster 聚合标注', icon: 'scatter_plot', component: MarkerCluster, group: '点位标注', file: 'composite/MarkerCluster' },
+  { name: 'BuiltinIcons 内置图标', icon: 'emoji_symbols', component: BuiltinIconsDemo, group: '点位标注', file: 'composite/BuiltinIconsDemo' },
+  { name: 'BuiltinGlyphs 内置字形', icon: 'text_fields', component: BuiltinGlyphsDemo, group: '点位标注', file: 'composite/BuiltinGlyphsDemo' },
 
   // ── 复合图层 ──────────────────────────────
-  { name: '气泡地图', icon: 'bubble_chart', component: BubbleLayer, group: '复合图层', file: 'composite/BubbleLayer' },
-  { name: '热力图-蜂窝', icon: 'hexagon', component: HexagonHeatmap, group: '复合图层', file: 'composite/HexagonHeatmap' },
-  { name: '路径地图', icon: 'route', component: RouteLayerDemo, group: '复合图层', file: 'composite/RouteLayer' },
-  { name: '弧线地图', icon: 'south_east', component: ArcFlowLayer, group: '复合图层', file: 'composite/ArcFlowLayer' },
-  { name: '填充地图', icon: 'stacked_bar_chart', component: ChoroplethMap, group: '复合图层', file: 'composite/ChoroplethMap' },
-  { name: '栅格-数据', icon: 'satellite_alt', component: TiffRasterLayerDemo, group: '复合图层', file: 'composite/TiffRasterLayer' },
+  { name: 'BubbleLayer 气泡图', icon: 'bubble_chart', component: BubbleLayer, group: '复合图层', file: 'composite/BubbleLayer' },
+  { name: 'HexagonHeatmap 蜂窝热力', icon: 'hexagon', component: HexagonHeatmap, group: '复合图层', file: 'composite/HexagonHeatmap' },
+  { name: 'RouteLayer 路径地图', icon: 'route', component: RouteLayerDemo, group: '复合图层', file: 'composite/RouteLayer' },
+  { name: 'ArcFlowLayer 弧线流向', icon: 'south_east', component: ArcFlowLayer, group: '复合图层', file: 'composite/ArcFlowLayer' },
+  { name: 'ChoroplethMap 分级统计', icon: 'stacked_bar_chart', component: ChoroplethMap, group: '复合图层', file: 'composite/ChoroplethMap' },
+  { name: 'TiffRasterLayer TIFF栅格', icon: 'satellite_alt', component: TiffRasterLayerDemo, group: '复合图层', file: 'composite/TiffRasterLayer' },
 
   // ── 专题地图 ──────────────────────────────
-  { name: '卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '专题地图', file: 'composite/SatelliteLayer' },
-  { name: '中国行政区划图', icon: 'public', component: AdministrativeMap, group: '专题地图', file: 'layer/AdministrativeMap' },
+  { name: 'SatelliteLayer 卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '专题地图', file: 'composite/SatelliteLayer' },
+  { name: 'AdministrativeMap 行政区划', icon: 'public', component: AdministrativeMap, group: '专题地图', file: 'layer/AdministrativeMap' },
 
   // ── 交互组件 ──────────────────────────────
   { name: 'Popup 弹窗', icon: 'chat_bubble', component: Popup, group: '交互组件', file: 'marker/Popup' },
-  { name: 'Tooltip 轻提示', icon: 'info', component: TooltipDemo, group: '交互组件', file: 'marker/Tooltip' },
-  { name: '地图控件', icon: 'tune', component: MapControlsDemo, group: '交互组件', file: 'control/MapControls' },
-  { name: '绘制控件', icon: 'edit', component: DrawControlDemo, group: '交互组件', file: 'control/DrawControlDemo' },
-  { name: '图片配准', icon: 'image', component: ImageCalibrationDemo, group: '交互组件', file: 'control/ImageCalibrationDemo' },
+  { name: 'Tooltip 提示框', icon: 'info', component: TooltipDemo, group: '交互组件', file: 'marker/Tooltip' },
+  { name: 'MapControls 地图控件', icon: 'tune', component: MapControlsDemo, group: '交互组件', file: 'control/MapControls' },
+  { name: 'DrawControl 绘制控件', icon: 'edit', component: DrawControlDemo, group: '交互组件', file: 'control/DrawControlDemo' },
+  { name: 'ImageCalibration 图片配准', icon: 'image', component: ImageCalibrationDemo, group: '交互组件', file: 'control/ImageCalibrationDemo' },
 
   // ── 地图引擎 ──────────────────────────────
-  { name: '高德地图', icon: 'public', component: GaodeMap, group: '地图引擎', file: 'engine/GaodeMap' },
-  { name: 'Maplibre 地图', icon: 'language', component: MaplibreMap, group: '地图引擎', file: 'engine/MaplibreMap' },
-  { name: 'Mapbox 地图', icon: 'travel_explore', component: MapboxMap, group: '地图引擎', file: 'engine/MapboxMap' },
-  { name: '天地图', icon: 'terrain', component: TiandituMap, group: '地图引擎', file: 'engine/TiandituMap' },
-  { name: '腾讯地图', icon: 'map', component: TencentMap, group: '地图引擎', file: 'engine/TencentMap' },
-  { name: '百度地图', icon: 'explore', component: BaiduMap, group: '地图引擎', file: 'engine/BaiduMap' },
-  { name: 'Google 地图', icon: 'g_translate', component: GoogleMap, group: '地图引擎', file: 'engine/GoogleMap' },
-  { name: '独立 Map', icon: 'inventory_2', component: IndependentMap, group: '地图引擎', file: 'engine/IndependentMap' },
+  { name: 'GaodeMap 高德地图', icon: 'public', component: GaodeMap, group: '地图引擎', file: 'engine/GaodeMap' },
+  { name: 'MaplibreMap Maplibre', icon: 'language', component: MaplibreMap, group: '地图引擎', file: 'engine/MaplibreMap' },
+  { name: 'MapboxMap Mapbox', icon: 'travel_explore', component: MapboxMap, group: '地图引擎', file: 'engine/MapboxMap' },
+  { name: 'TiandituMap 天地图', icon: 'terrain', component: TiandituMap, group: '地图引擎', file: 'engine/TiandituMap' },
+  { name: 'TencentMap 腾讯地图', icon: 'map', component: TencentMap, group: '地图引擎', file: 'engine/TencentMap' },
+  { name: 'BaiduMap 百度地图', icon: 'explore', component: BaiduMap, group: '地图引擎', file: 'engine/BaiduMap' },
+  { name: 'GoogleMap 谷歌地图', icon: 'g_translate', component: GoogleMap, group: '地图引擎', file: 'engine/GoogleMap' },
+  { name: 'IndependentMap 独立引擎', icon: 'inventory_2', component: IndependentMap, group: '地图引擎', file: 'engine/IndependentMap' },
 
   // ── 基础图层 ──────────────────────────────
   // 点
-  { name: '点-基础', icon: 'circle', component: PointLayer, group: '基础图层', file: 'layer/PointLayer' },
-  { name: '点-形状', icon: 'hexagon', component: GeometricPoint, group: '基础图层', file: 'layer/GeometricPoint' },
-  { name: '点-3D柱图', icon: 'bar_chart', component: ColumnLayer, group: '基础图层', file: 'layer/ColumnLayer' },
-  { name: '点-颜色映射', icon: 'gradient', component: ColorMapping, group: '基础图层', file: 'layer/ColorMapping' },
-  { name: '点-大小映射', icon: 'resize', component: SizeMapping, group: '基础图层', file: 'layer/SizeMapping' },
+  { name: 'PointLayer 点图层', icon: 'circle', component: PointLayer, group: '基础图层', file: 'layer/PointLayer' },
+  { name: 'GeometricPoint 几何点位', icon: 'hexagon', component: GeometricPoint, group: '基础图层', file: 'layer/GeometricPoint' },
+  { name: 'ColumnLayer 3D柱图', icon: 'bar_chart', component: ColumnLayer, group: '基础图层', file: 'layer/ColumnLayer' },
+  { name: 'ColorMapping 颜色映射', icon: 'gradient', component: ColorMapping, group: '基础图层', file: 'layer/ColorMapping' },
+  { name: 'SizeMapping 大小映射', icon: 'resize', component: SizeMapping, group: '基础图层', file: 'layer/SizeMapping' },
   // 线
-  { name: '线-基础', icon: 'timeline', component: LineLayer, group: '基础图层', file: 'layer/LineLayer' },
-  { name: '线-路径', icon: 'route', component: PathMap, group: '基础图层', file: 'layer/PathMap' },
-  { name: '线-动画', icon: 'flight', component: LineAnimate, group: '基础图层', file: 'layer/LineAnimate' },
-  { name: '线-弧线', icon: 'south_east', component: ArcMap, group: '基础图层', file: 'layer/ArcMap' },
-  { name: '线-流向', icon: 'swap_calls', component: FlowMap, group: '基础图层', file: 'layer/FlowMap' },
-  { name: '线-等值线', icon: 'waves', component: IsolineMap, group: '基础图层', file: 'layer/IsolineMap' },
+  { name: 'LineLayer 线图层', icon: 'timeline', component: LineLayer, group: '基础图层', file: 'layer/LineLayer' },
+  { name: 'PathMap 路径地图', icon: 'route', component: PathMap, group: '基础图层', file: 'layer/PathMap' },
+  { name: 'LineAnimate 线动画', icon: 'flight', component: LineAnimate, group: '基础图层', file: 'layer/LineAnimate' },
+  { name: 'ArcMap 弧线地图', icon: 'south_east', component: ArcMap, group: '基础图层', file: 'layer/ArcMap' },
+  { name: 'FlowMap 流向图', icon: 'swap_calls', component: FlowMap, group: '基础图层', file: 'layer/FlowMap' },
+  { name: 'IsolineMap 等值线', icon: 'waves', component: IsolineMap, group: '基础图层', file: 'layer/IsolineMap' },
   // 面
-  { name: '面-填充', icon: 'format_shapes', component: FillLayer, group: '基础图层', file: 'layer/FillLayer' },
-  { name: '面-3D填充', icon: 'location_city', component: Fill3DLayer, group: '基础图层', file: 'layer/Fill3DLayer' },
+  { name: 'FillLayer 填充图层', icon: 'format_shapes', component: FillLayer, group: '基础图层', file: 'layer/FillLayer' },
+  { name: 'Fill3DLayer 3D填充', icon: 'location_city', component: Fill3DLayer, group: '基础图层', file: 'layer/Fill3DLayer' },
   // 热力图
-  { name: '热力图-经典', icon: 'local_fire_department', component: HeatmapLayer, group: '基础图层', file: 'layer/HeatmapLayer' },
+  { name: 'HeatmapLayer 热力图', icon: 'local_fire_department', component: HeatmapLayer, group: '基础图层', file: 'layer/HeatmapLayer' },
   // 图片图层
-  { name: '图片图层', icon: 'image', component: ImageLayer, group: '基础图层', file: 'layer/ImageLayer' },
+  { name: 'ImageLayer 图片图层', icon: 'image', component: ImageLayer, group: '基础图层', file: 'layer/ImageLayer' },
   // 栅格图层
-  { name: '栅格-瓦片', icon: 'grid_view', component: RasterTileLayer, group: '基础图层', file: 'layer/RasterTileLayer' },
+  { name: 'RasterTileLayer 栅格瓦片', icon: 'grid_view', component: RasterTileLayer, group: '基础图层', file: 'layer/RasterTileLayer' },
 
   // ── 图例 ──────────────────────────────────
-  { name: '分类图例', icon: 'category', component: LegendCategoriesDemo, group: '图例', file: 'layer/LegendCategoriesDemo' },
-  { name: '色带图例', icon: 'gradient', component: LegendRampDemo, group: '图例', file: 'layer/LegendRampDemo' },
-  { name: '发散图例', icon: 'swap_horiz', component: LegendDivergingDemo, group: '图例', file: 'layer/LegendDivergingDemo' },
-  { name: '阈值图例', icon: 'stairs', component: LegendThresholdDemo, group: '图例', file: 'layer/LegendThresholdDemo' },
-  { name: '大小图例', icon: 'bubble_chart', component: LegendSizeDemo, group: '图例', file: 'layer/LegendSizeDemo' },
-  { name: '线宽图例', icon: 'horizontal_rule', component: LegendLineWidthDemo, group: '图例', file: 'layer/LegendLineWidthDemo' },
-  { name: '比例图例', icon: 'bar_chart', component: LegendProportionDemo, group: '图例', file: 'layer/LegendProportionDemo' },
-  { name: '图标图例', icon: 'emoji_symbols', component: LegendIconDemo, group: '图例', file: 'layer/LegendIconDemo' },
+  { name: 'LegendCategories 分类图例', icon: 'category', component: LegendCategoriesDemo, group: '图例', file: 'layer/LegendCategoriesDemo' },
+  { name: 'LegendRamp 渐变图例', icon: 'gradient', component: LegendRampDemo, group: '图例', file: 'layer/LegendRampDemo' },
+  { name: 'LegendDiverging 发散图例', icon: 'swap_horiz', component: LegendDivergingDemo, group: '图例', file: 'layer/LegendDivergingDemo' },
+  { name: 'LegendThreshold 阈值图例', icon: 'stairs', component: LegendThresholdDemo, group: '图例', file: 'layer/LegendThresholdDemo' },
+  { name: 'LegendSize 尺寸图例', icon: 'bubble_chart', component: LegendSizeDemo, group: '图例', file: 'layer/LegendSizeDemo' },
+  { name: 'LegendLineWidth 线宽图例', icon: 'horizontal_rule', component: LegendLineWidthDemo, group: '图例', file: 'layer/LegendLineWidthDemo' },
+  { name: 'LegendProportion 比例图例', icon: 'bar_chart', component: LegendProportionDemo, group: '图例', file: 'layer/LegendProportionDemo' },
+  { name: 'LegendIcon 图标图例', icon: 'emoji_symbols', component: LegendIconDemo, group: '图例', file: 'layer/LegendIconDemo' },
 
   // ── Hooks ────────────────────────────────
-  { name: 'useResponsive', icon: 'devices', component: UseResponsiveDemo, group: 'Hooks', file: 'layer/UseResponsiveDemo' },
+  { name: 'useResponsive 响应式钩子', icon: 'devices', component: UseResponsiveDemo, group: 'Hooks', file: 'layer/UseResponsiveDemo' },
 
   // ── 移动端 ────────────────────────────────
-  { name: '底部抽屉', icon: 'expand_less', component: BottomSheetDemo, group: '移动端', file: 'app/BottomSheetDemo', device: 'mobile' },
-  { name: '搜索栏', icon: 'search', component: SearchBarDemo, group: '移动端', file: 'app/SearchBarDemo', device: 'mobile' },
-  { name: '工具栏', icon: 'apps', component: MobileToolbarDemo, group: '移动端', file: 'app/MobileToolbarDemo', device: 'mobile' },
-  { name: '弹出式图例', icon: 'label', component: MobileSheetLegendDemo, group: '移动端', file: 'app/MobileSheetLegendDemo', device: 'mobile' },
+  { name: 'BottomSheet 底部面板', icon: 'expand_less', component: BottomSheetDemo, group: '移动端', file: 'app/BottomSheetDemo', device: 'mobile' },
+  { name: 'SearchBar 搜索栏', icon: 'search', component: SearchBarDemo, group: '移动端', file: 'app/SearchBarDemo', device: 'mobile' },
+  { name: 'MobileToolbar 移动端工具栏', icon: 'apps', component: MobileToolbarDemo, group: '移动端', file: 'app/MobileToolbarDemo', device: 'mobile' },
+  { name: 'MobileSheetLegend 移动端图例', icon: 'label', component: MobileSheetLegendDemo, group: '移动端', file: 'app/MobileSheetLegendDemo', device: 'mobile' },
 ];
 
 const componentDemos = demos.filter(d => d.group !== '应用模板');

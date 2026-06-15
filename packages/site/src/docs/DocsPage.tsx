@@ -536,7 +536,7 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
   }, [htmlContent, currentDoc]);
 
   const renderSidebar = () => (
-    <aside style={{ width: 200, minWidth: 200, flexShrink: 0, padding: '20px 0', userSelect: 'none' }}>
+    <aside style={{ width: 260, minWidth: 260, flexShrink: 0, padding: '20px 0', userSelect: 'none' }}>
       {docsNav.map((group: DocNavGroup) => (
         <div key={group.title} style={{ marginBottom: 4 }}>
           <div style={{ padding: '8px 12px 4px', fontSize: 10, fontWeight: 600, color: c.muted, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{group.title}</div>
