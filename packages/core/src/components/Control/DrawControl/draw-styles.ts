@@ -19,10 +19,10 @@ import type { DrawStyleConfig } from './draw-types';
 /** 绘制控件默认样式 — GeoEditor Pro v1.2.0 规范 */
 export const DEFAULT_DRAW_STYLES: Required<DrawStyleConfig> = {
   point: {
-    color: '#ffffff',
-    size: 6,
-    strokeColor: '#3f51b5',
-    strokeWidth: 1,
+    color: '#3f51b5',
+    size: 8,
+    strokeColor: '#ffffff',
+    strokeWidth: 2,
   },
   line: {
     color: '#3f51b5',
