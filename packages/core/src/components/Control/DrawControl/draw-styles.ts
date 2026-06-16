@@ -20,7 +20,7 @@ import type { DrawStyleConfig } from './draw-types';
 export const DEFAULT_DRAW_STYLES: Required<DrawStyleConfig> = {
   point: {
     color: '#3f51b5',
-    size: 8,
+    size: 6,
     strokeColor: '#ffffff',
     strokeWidth: 2,
   },
@@ -52,10 +52,10 @@ export const DEFAULT_DRAW_STYLES: Required<DrawStyleConfig> = {
     dashArray: [6, 3],
   },
   vertex: {
-    color: '#ffffff',
-    size: 5,
-    strokeColor: '#3f51b5',
-    strokeWidth: 1,
+    color: '#3f51b5',
+    size: 6,
+    strokeColor: '#ffffff',
+    strokeWidth: 2,
     activeColor: '#ffb95f',
     activeSize: 6,
   },
