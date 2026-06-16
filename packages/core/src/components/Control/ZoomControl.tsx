@@ -64,16 +64,22 @@ export function ZoomControl({
   }, [mapsService]);
 
   const handleZoomIn = () => {
-    if (!mapsService) return;
-    if (mapsService.getZoom() < mapsService.getMaxZoom()) {
-      mapsService.zoomIn();
+    if (!mapsService || !scene) return;
+    const currentZoom = mapsService.getZoom();
+    const maxZoom = mapsService.getMaxZoom();
+    if (currentZoom < maxZoom) {
+      const newZoom = Math.min(currentZoom + 1, maxZoom);
+      scene.setZoom(newZoom);
     }
   };
 
   const handleZoomOut = () => {
-    if (!mapsService) return;
-    if (mapsService.getZoom() > mapsService.getMinZoom()) {
-      mapsService.zoomOut();
+    if (!mapsService || !scene) return;
+    const currentZoom = mapsService.getZoom();
+    const minZoom = mapsService.getMinZoom();
+    if (currentZoom > minZoom) {
+      const newZoom = Math.max(currentZoom - 1, minZoom);
+      scene.setZoom(newZoom);
     }
   };
 
