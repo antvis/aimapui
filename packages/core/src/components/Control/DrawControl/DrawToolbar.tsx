@@ -25,6 +25,7 @@ interface ToolButton {
 
 /** 基础绘制+编辑工具 — 产生几何要素 + 选中编辑 */
 const BASIC_TOOLS: ToolButton[] = [
+  { mode: 'none', icon: 'pan_tool', title: '手型 — 关闭绘制态，恢复地图交互', label: '手型' },
   { mode: 'point', icon: 'location_on', title: '点 — 单击放置', label: '点' },
   { mode: 'polyline', icon: 'timeline', title: '线 — 单击添加顶点，双击结束', label: '线' },
   { mode: 'polygon', icon: 'pentagon', title: '面 — 单击添加顶点，双击闭合', label: '面' },
@@ -198,7 +199,12 @@ export const DrawBasicToolbar: React.FC<BasicToolbarProps> = ({
   }, [modes]);
 
   const handleModeClick = useCallback((mode: DrawToolMode) => {
-    onModeChange(activeMode === mode ? 'none' : mode);
+    // 手型按钮（none 模式）始终将模式设为 none，不需要 toggle
+    if (mode === 'none') {
+      onModeChange('none');
+    } else {
+      onModeChange(activeMode === mode ? 'none' : mode);
+    }
   }, [activeMode, onModeChange]);
 
   return (
@@ -260,7 +266,12 @@ export const DrawAdvancedToolbar: React.FC<ToolbarProps> = ({
   }, [modes]);
 
   const handleModeClick = useCallback((mode: DrawToolMode) => {
-    onModeChange(activeMode === mode ? 'none' : mode);
+    // 手型按钮（none 模式）始终将模式设为 none，不需要 toggle
+    if (mode === 'none') {
+      onModeChange('none');
+    } else {
+      onModeChange(activeMode === mode ? 'none' : mode);
+    }
   }, [activeMode, onModeChange]);
 
   return (
