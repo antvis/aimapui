@@ -2440,3 +2440,411 @@
 [data-theme="dark"] .l7-draw-separator {
   background-color: rgba(180, 197, 255, 0.2);
 }
+
+/* ============================================================
+ * AnnotationControl — 标注控件样式
+ * ============================================================ */
+
+.l7-control.l7-control-annotation {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+}
+
+/* 标注 DOM Overlay */
+.aimapui-annotation-item {
+  transition: filter 0.15s ease;
+}
+.aimapui-annotation-item:hover {
+  filter: brightness(1.05) drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+}
+.aimapui-annotation-item--selected {
+  filter: drop-shadow(0 0 0 2px var(--color-primary, #004ac6)) drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+  z-index: 5 !important;
+}
+
+/* Marker 标注 */
+.aimapui-annotation-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.aimapui-annotation-marker-label {
+  margin-top: 2px;
+  font: 500 11px/14px system-ui, sans-serif;
+  color: var(--color-on-surface, #121c2a);
+  background: rgba(255,255,255,0.9);
+  padding: 1px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* Text 标注 */
+.aimapui-annotation-text {
+  font: 600 14px/1.4 system-ui, sans-serif;
+  text-shadow: 0 0 3px rgba(255,255,255,0.9), 0 0 6px rgba(255,255,255,0.7);
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: move;
+}
+
+/* Note 标注 */
+.aimapui-annotation-note {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  border-left: 3px solid var(--color-primary, #3f51b5);
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  pointer-events: auto;
+  cursor: move;
+}
+.aimapui-annotation-note-title {
+  font: 600 13px/1.3 system-ui, sans-serif;
+  color: var(--color-on-surface, #121c2a);
+  margin-bottom: 4px;
+}
+.aimapui-annotation-note-body {
+  font: 400 12px/1.4 system-ui, sans-serif;
+  color: var(--color-on-surface-variant, #44474e);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* Link 标注 */
+.aimapui-annotation-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 4px 12px 4px 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  font: 500 12px/1.3 system-ui, sans-serif;
+  color: var(--link-color, var(--color-primary, #3f51b5));
+  pointer-events: auto;
+  cursor: pointer;
+}
+.aimapui-annotation-link:hover {
+  text-decoration: underline;
+}
+.aimapui-annotation-link-title {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Image 标注 */
+.aimapui-annotation-image {
+  position: relative;
+  pointer-events: auto;
+  cursor: move;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  overflow: visible;
+  background: rgba(255,255,255,0.95);
+}
+.aimapui-annotation-image img {
+  display: block;
+  border-radius: 8px;
+}
+.aimapui-annotation-image-resize-handle {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 14px;
+  height: 14px;
+  background: white;
+  border: 2px solid var(--color-primary, #004ac6);
+  border-radius: 3px;
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 2;
+}
+.aimapui-annotation-item--selected .aimapui-annotation-image-resize-handle,
+.aimapui-annotation-image:hover .aimapui-annotation-image-resize-handle {
+  opacity: 1;
+}
+.aimapui-annotation-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 60px;
+  background: rgba(255,255,255,0.95);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  pointer-events: auto;
+  cursor: move;
+}
+
+/* Video 标注 */
+.aimapui-annotation-video {
+  position: relative;
+  pointer-events: auto;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  background: #000;
+}
+.aimapui-annotation-video-thumb {
+  display: block;
+  width: 100%;
+  object-fit: cover;
+}
+.aimapui-annotation-video-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 80px;
+  color: rgba(255,255,255,0.7);
+}
+.aimapui-annotation-video-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.aimapui-annotation-video-title {
+  font: 500 11px/1.3 system-ui, sans-serif;
+  color: white;
+  padding: 4px 8px;
+  background: rgba(0,0,0,0.6);
+}
+
+/* 编辑器浮层 */
+.aimapui-annotation-editor {
+  min-width: 240px;
+  max-width: 320px;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+.aimapui-annotation-editor-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  font: 500 12px/1.3 system-ui, sans-serif;
+  color: var(--color-on-surface, #121c2a);
+}
+.aimapui-annotation-editor-form {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aimapui-annotation-editor-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--color-outline-variant, #c3c6d7);
+  border-radius: 6px;
+  font: 400 13px/1.4 system-ui, sans-serif;
+  color: var(--color-on-surface, #121c2a);
+  background: transparent;
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+.aimapui-annotation-editor-input:focus {
+  border-color: var(--color-primary, #004ac6);
+}
+.aimapui-annotation-editor-textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--color-outline-variant, #c3c6d7);
+  border-radius: 6px;
+  font: 400 13px/1.4 system-ui, sans-serif;
+  color: var(--color-on-surface, #121c2a);
+  background: transparent;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+.aimapui-annotation-editor-textarea:focus {
+  border-color: var(--color-primary, #004ac6);
+}
+.aimapui-annotation-editor-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.aimapui-annotation-editor-btn {
+  padding: 4px 12px;
+  border: 1px solid var(--color-outline-variant, #c3c6d7);
+  border-radius: 6px;
+  font: 500 12px/1.3 system-ui, sans-serif;
+  color: var(--color-on-surface, #121c2a);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+}
+.aimapui-annotation-editor-btn:hover {
+  background: rgba(0,0,0,0.04);
+}
+.aimapui-annotation-editor-btn--primary {
+  background: var(--color-primary, #004ac6);
+  color: white;
+  border-color: transparent;
+}
+.aimapui-annotation-editor-btn--primary:hover {
+  background: var(--color-primary, #004ac6);
+  filter: brightness(1.1);
+}
+.aimapui-annotation-editor-upload {
+  display: flex;
+  align-items: center;
+}
+.aimapui-annotation-editor-preview {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* 暗色主题 */
+[data-theme="dark"] .aimapui-annotation-note {
+  background: rgba(30,32,40,0.95);
+}
+[data-theme="dark"] .aimapui-annotation-link {
+  background: rgba(30,32,40,0.95);
+}
+[data-theme="dark"] .aimapui-annotation-marker-label {
+  background: rgba(30,32,40,0.9);
+  color: var(--color-on-surface, #e0e2ed);
+}
+[data-theme="dark"] .aimapui-annotation-editor {
+  background: rgba(30,32,40,0.96);
+}
+[data-theme="dark"] .aimapui-annotation-image-placeholder {
+  background: rgba(30,32,40,0.95);
+}
+
+/* ============================================================
+ * AnnotationControl — 样式面板 (topleft)
+ * ============================================================ */
+
+.aimapui-style-panel {
+  min-width: 200px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(255,255,255,0.96);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1), 0 0 1px rgba(0,0,0,0.08);
+}
+.aimapui-style-panel-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.aimapui-style-panel-label {
+  font: 500 11px/1 system-ui, sans-serif;
+  color: var(--color-on-surface-variant, #44474e);
+  min-width: 36px;
+  flex-shrink: 0;
+}
+.aimapui-style-panel-swatches {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.aimapui-style-panel-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+  padding: 0;
+  outline: none;
+}
+.aimapui-style-panel-swatch:hover {
+  transform: scale(1.15);
+}
+.aimapui-style-panel-swatch--active {
+  border-color: var(--color-on-surface, #121c2a);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
+}
+.aimapui-style-panel-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--color-outline-variant, #c3c6d7);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.aimapui-style-panel-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-primary, #004ac6);
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+.aimapui-style-panel-value {
+  font: 500 11px/1 "JetBrains Mono", monospace;
+  color: var(--color-on-surface, #121c2a);
+  min-width: 30px;
+  text-align: right;
+}
+
+/* ============================================================
+ * AnnotationControl — Inline 输入 (text/link 直接地图上编辑)
+ * ============================================================ */
+
+.aimapui-annotation-inline-input {
+  background: transparent;
+  border: none;
+  outline: none;
+  font: 600 14px/1.4 system-ui, sans-serif;
+  min-width: 120px;
+  max-width: 320px;
+  padding: 4px 2px;
+  text-shadow: 0 0 3px rgba(255,255,255,0.9), 0 0 6px rgba(255,255,255,0.7);
+  caret-color: var(--color-primary, #004ac6);
+  cursor: text;
+}
+.aimapui-annotation-inline-input::placeholder {
+  color: rgba(200, 80, 80, 0.5);
+  font-weight: 500;
+}
+
+/* 暗色主题 */
+[data-theme="dark"] .aimapui-style-panel {
+  background: rgba(30,32,40,0.96);
+}
+[data-theme="dark"] .aimapui-style-panel-swatch--active {
+  border-color: var(--color-on-surface, #e0e2ed);
+}
+[data-theme="dark"] .aimapui-annotation-inline-input {
+  text-shadow: 0 0 3px rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.5);
+}

@@ -22,6 +22,11 @@ export async function createBasemap(schema: MapSchema) {
     rotateEnable: schema.gestureConfig?.dragRotate ?? true,
   };
 
+  // 外部注入的引擎构造函数 — 跳过动态 import
+  if (schema.engine) {
+    return new schema.engine({ ...commonOptions, style, token });
+  }
+
   switch (basemap) {
     case 'gaode': {
       const { GaodeMap } = await import('@antv/l7-maps/gaode');

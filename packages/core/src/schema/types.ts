@@ -18,7 +18,10 @@ export interface GestureConfig {
 }
 
 export interface MapSchema {
-  basemap: BasemapType;
+  /** 底图类型（与 engine 二选一，传 engine 时可省略） */
+  basemap?: BasemapType;
+  /** 外部注入的地图引擎构造函数，跳过动态 import */
+  engine?: new (opts: Record<string, unknown>) => unknown;
   token?: string;
   style?: MapStylePreset | string;
   center?: [number, number];

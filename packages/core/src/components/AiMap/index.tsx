@@ -65,6 +65,10 @@ export function AiMap({
     }
     // 组件化模式：map prop 生成最小 schema，layers/controls 等由子组件提供
     const mapConfig = map ?? { basemap: 'gaode' as const };
+    // engine 存在时不强制 basemap 默认值
+    if (!mapConfig.basemap && !mapConfig.engine) {
+      mapConfig.basemap = 'gaode';
+    }
     return {
       map: applyMapOnlyDefaults(mapConfig),
       layers: [], // 子组件自行添加
@@ -236,7 +240,8 @@ function applyMapOnlyDefaults(map: MapSchema): MapSchema & {
   rotation: NonNullable<MapSchema['rotation']>;
 } {
   return {
-    basemap: map.basemap ?? 'gaode',
+    basemap: map.basemap ?? (map.engine ? undefined : 'gaode'),
+    engine: map.engine,
     token: map.token,
     style: map.style,
     center: map.center ?? [105, 35],
@@ -247,7 +252,7 @@ function applyMapOnlyDefaults(map: MapSchema): MapSchema & {
     maxZoom: map.maxZoom,
     bounds: map.bounds,
     gestureConfig: map.gestureConfig,
-  };
+  } as any;
 }
 
 // ===== 内部组件 =====

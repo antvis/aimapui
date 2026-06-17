@@ -81,7 +81,7 @@ function validateMapSchema(map: MapSchema): ValidationError[] {
   const errors: ValidationError[] = [];
 
   const validBasemaps = ['gaode', 'mapbox', 'maplibre', 'tianditu', 'tencent', 'baidu', 'google', 'map'];
-  if (!validBasemaps.includes(map.basemap)) {
+  if (map.basemap && !validBasemaps.includes(map.basemap)) {
     errors.push({
       path: 'map.basemap',
       message: `Invalid basemap "${map.basemap}". Valid values: ${validBasemaps.join(', ')}`,
@@ -116,7 +116,7 @@ function validateMapSchema(map: MapSchema): ValidationError[] {
   }
 
   // 需要 Token 的底图
-  if (['gaode', 'mapbox', 'tianditu', 'tencent', 'baidu', 'google'].includes(map.basemap) && !map.token) {
+  if (map.basemap && ['gaode', 'mapbox', 'tianditu', 'tencent', 'baidu', 'google'].includes(map.basemap) && !map.token) {
     errors.push({
       path: 'map.token',
       message: `basemap "${map.basemap}" requires a token`,

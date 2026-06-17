@@ -70,7 +70,8 @@ export function MapSceneRenderer({
 
     const config = applyMapDefaults(mapSchema);
 
-    createBasemap(config).then((mapInstance) => {
+    // engine 注入时同步创建，否则走异步动态 import
+    const initScene = (mapInstance: unknown) => {
       if (destroyed || !containerRef.current) return;
 
       const newScene = new Scene({
@@ -90,7 +91,6 @@ export function MapSceneRenderer({
         }
       });
 
-      // 设置初始边界
       if (config.bounds) {
         newScene.on('loaded', () => {
           try {
@@ -101,7 +101,25 @@ export function MapSceneRenderer({
           }
         });
       }
-    });
+    };
+
+    if (config.engine) {
+      // 同步路径 — 外部注入的引擎构造函数
+      const commonOptions = {
+        center: config.center,
+        zoom: config.zoom,
+        pitch: config.pitch,
+        rotation: config.rotation,
+        minZoom: config.minZoom,
+        maxZoom: config.maxZoom,
+        style: config.style ?? 'normal',
+        token: config.token ?? '',
+      };
+      const mapInstance = new config.engine(commonOptions as Record<string, unknown>);
+      initScene(mapInstance);
+    } else {
+      createBasemap(config).then(initScene);
+    }
 
     function bindMapEvents(s: Scene) {
       // 地图移动事件
@@ -147,9 +165,9 @@ export function MapSceneRenderer({
       }
       setScene(null);
     };
-    // 只在首次挂载和底图类型变化时重新创建
+    // 只在首次挂载和底图类型/引擎变化时重新创建
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapSchema.basemap, applyGestureConfig]);
+  }, [mapSchema.basemap, mapSchema.engine, applyGestureConfig]);
 
   // 同步地图属性变化（不重建场景）
   // 使用 JSON.stringify 稳定化数组/对象类型的依赖，避免对象字面量每次 render 产生新引用导致 effect 重复执行

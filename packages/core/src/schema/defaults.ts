@@ -31,6 +31,7 @@ export type ResolvedMapSchema = MapSchema & {
 export function applyMapDefaults(map: MapSchema): ResolvedMapSchema {
   return {
     basemap: map.basemap ?? DEFAULT_MAP.basemap,
+    engine: map.engine,
     token: map.token,
     style: map.style,
     center: map.center ?? [...DEFAULT_MAP.center] as [number, number],

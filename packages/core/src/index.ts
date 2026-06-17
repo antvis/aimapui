@@ -157,6 +157,8 @@ export { LegendControl } from './components/Control/LegendControl';
 export type { LegendControlProps } from './components/Control/LegendControl';
 export { DrawControl } from './components/Control/DrawControl';
 export type { DrawControlHandle, DrawControlProps, DrawMode, DrawToolMode, DrawFeature, DrawStyleConfig, DrawSnapConfig } from './components/Control/DrawControl';
+export { AnnotationControl } from './components/Control/AnnotationControl';
+export type { AnnotationControlHandle, AnnotationControlProps, AnnotationMode, AnnotationToolMode, AnnotationFeature, AnnotationProperties, AnnotationStyleConfig } from './components/Control/AnnotationControl';
 export { ImageCalibrationControl } from './components/Control/ImageCalibrationControl';
 export type { ImageCalibrationHandle, ImageCalibrationControlProps, GeoCorners, CalibrationPhase, CalibrationResult, ExportOptions, ExportConfig, ExportResult, TileResult } from './components/Control/ImageCalibrationControl';
 export { LogoControl } from './components/Control/LogoControl';
