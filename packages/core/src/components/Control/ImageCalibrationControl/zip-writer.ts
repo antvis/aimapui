@@ -95,7 +95,7 @@ export class ZipWriter {
     ev.setUint32(16, offset, true);                    // central dir offset
     ev.setUint16(20, 0, true);                         // comment length
 
-    return new Blob([...localHeaders, ...centralHeaders, eocd], { type: 'application/zip' });
+    return new Blob([...localHeaders, ...centralHeaders, eocd] as BlobPart[], { type: 'application/zip' });
   }
 }
 

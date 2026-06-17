@@ -10,7 +10,7 @@ import {
 } from '@antv/aimapui';
 
 /**
- * 图片配准控件演示 — 左侧工具条形式，支持上传图片、缩放定位、校准、导出
+ * 图片配准控件演示 — 支持图片裁剪和初始坐标输入
  */
 export default function ImageCalibrationDemo() {
   const [corners, setCorners] = useState<GeoCorners | null>(null);
@@ -18,7 +18,7 @@ export default function ImageCalibrationDemo() {
   const controlRef = useRef<ImageCalibrationHandle>(null);
 
   const addLog = useCallback((msg: string) => {
-    setLog((prev) => [msg, ...prev].slice(0, 6));
+    setLog((prev) => [msg, ...prev].slice(0, 8));
   }, []);
 
   const handleCornersChange = useCallback((newCorners: GeoCorners) => {
@@ -32,6 +32,12 @@ export default function ImageCalibrationDemo() {
   const handleExport = useCallback((result: ExportResult) => {
     const sizeMB = (result.blob.size / 1024 / 1024).toFixed(2);
     addLog(`导出 ${result.tiles.length} 切片, ${result.outputWidth}×${result.outputHeight}px, ${sizeMB} MB`);
+  }, [addLog]);
+
+  const handlePreprocess = useCallback((result: { croppedDimensions: { width: number; height: number }; initialCorners: GeoCorners | null }) => {
+    const { croppedDimensions, initialCorners } = result;
+    const cornersInfo = initialCorners ? '含初始坐标' : '自动计算坐标';
+    addLog(`预处理完成 ${croppedDimensions.width}×${croppedDimensions.height}px, ${cornersInfo}`);
   }, [addLog]);
 
   const handleClear = useCallback(() => {
@@ -53,9 +59,12 @@ export default function ImageCalibrationDemo() {
           ref={controlRef}
           position="topleft"
           opacity={0.7}
+          enableCrop={true}
+          enableInitialCoords={true}
           onCornersChange={handleCornersChange}
           onCalibrate={handleCalibrate}
           onExport={handleExport}
+          onPreprocess={handlePreprocess}
           onClear={handleClear}
         />
         <ZoomControl position="bottomright" />

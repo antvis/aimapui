@@ -1711,6 +1711,22 @@
   left: auto;
   right: 0;
 }
+/* top + end 组合 → 上方弹出且右对齐 */
+.l7-popper.l7-popper-top.l7-popper-end {
+  top: auto;
+  bottom: 100%;
+  left: auto;
+  right: 0;
+  margin-top: 0;
+  margin-bottom: 4px;
+}
+/* bottom + end 组合 → 下方弹出且右对齐 */
+.l7-popper.l7-popper-bottom.l7-popper-end {
+  top: 100%;
+  left: auto;
+  right: 0;
+  margin-top: 4px;
+}
 
 /* Select（下拉选择）控件样式 */
 .l7-select-control--normal {

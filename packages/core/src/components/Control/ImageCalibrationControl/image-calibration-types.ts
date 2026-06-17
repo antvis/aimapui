@@ -17,6 +17,28 @@ export type CornerIndex = 0 | 1 | 2 | 3;
 /** 图片来源 */
 export type ImageSource = string | File;
 
+/** 裁剪区域（像素坐标，相对于原图） */
+export interface CropRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** 裁剪前的预处理结果 */
+export interface PreprocessResult {
+  /** 裁剪后的图片 Blob */
+  croppedBlob: Blob;
+  /** 裁剪后的图片 URL (ObjectURL) */
+  croppedUrl: string;
+  /** 裁剪后图片尺寸 */
+  croppedDimensions: { width: number; height: number };
+  /** 用户指定的初始坐标（可为空，则使用自动计算） */
+  initialCorners: GeoCorners | null;
+  /** 裁剪区域的 revokeUrl */
+  revokeUrl: () => void;
+}
+
 /** 配准结果 */
 export interface CalibrationResult {
   corners: GeoCorners;
@@ -83,6 +105,8 @@ export interface ExportResult {
 export interface ImageCalibrationControlProps {
   /** 控件位置 */
   position?: ControlPosition;
+  /** 布局方向，默认 vertical */
+  layout?: 'vertical' | 'horizontal';
   /** 受控模式：外部传入角点 */
   corners?: GeoCorners;
   /** 非受控模式：初始角点 */
@@ -93,6 +117,10 @@ export interface ImageCalibrationControlProps {
   opacity?: number;
   /** 接受的文件类型，默认 'image/*' */
   accept?: string;
+  /** 是否启用图片裁剪功能，默认 true */
+  enableCrop?: boolean;
+  /** 是否启用初始坐标输入功能，默认 true */
+  enableInitialCoords?: boolean;
   /** 额外 className */
   className?: string;
   /** 额外 style */
@@ -105,6 +133,8 @@ export interface ImageCalibrationControlProps {
   onExport?: (result: ExportResult) => void;
   /** 图片加载完成回调 */
   onImageLoad?: (dimensions: { width: number; height: number }) => void;
+  /** 裁剪预处理完成回调，返回裁剪后的尺寸和可选的初始坐标 */
+  onPreprocess?: (result: { croppedDimensions: { width: number; height: number }; initialCorners: GeoCorners | null }) => void;
   /** 清除回调 */
   onClear?: () => void;
 }

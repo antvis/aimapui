@@ -19,11 +19,14 @@ import { useMapControl, type ControlPosition } from '../../../hooks/useMapContro
 import { useControlContainer, ControlRegistry } from '../ControlContainer';
 import { useImageCalibration } from './useImageCalibration';
 import { CornerHandles } from './CornerHandles';
-import { cornersToExtent } from './image-calibration-utils';
+import { ImageCropModal } from './ImageCropModal';
+import { cornersToExtent, cropImage, loadImageSource } from './image-calibration-utils';
 import { ZipWriter } from './zip-writer';
 import type {
   ImageCalibrationControlProps,
   ImageCalibrationHandle,
+  CropRegion,
+  GeoCorners,
 } from './image-calibration-types';
 
 /** 带 tooltip 的工具条按钮 */
@@ -77,17 +80,21 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
   function ImageCalibrationControl(
     {
       position = 'topright',
+      layout = 'vertical',
       corners: controlledCorners,
       defaultCorners,
       imageSource,
       opacity = 0.7,
       accept = 'image/*',
+      enableCrop = true,
+      enableInitialCoords = true,
       className,
       style,
       onCornersChange,
       onCalibrate,
       onExport,
       onImageLoad,
+      onPreprocess,
       onClear,
     },
     ref,
@@ -119,16 +126,81 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
     }));
 
     const handleFileChange = useCallback(
-      (e: React.ChangeEvent<HTMLInputElement>) => {
+      async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-          setImage(file);
-        }
+        if (!file) return;
         // 重置 input 以允许重新选择同一文件
         e.target.value = '';
+
+        if (enableCrop || enableInitialCoords) {
+          // 加载图片信息，弹出裁剪+坐标输入弹窗
+          try {
+            const info = await loadImageSource(file);
+            setPendingImageInfo({ url: info.url, dimensions: { width: info.width, height: info.height }, revokeUrl: info.revokeUrl ?? null });
+          } catch (err) {
+            console.error('Failed to load image for crop:', err);
+          }
+        } else {
+          // 不启用裁剪，直接设置图片
+          setImage(file);
+        }
       },
-      [setImage],
+      [enableCrop, enableInitialCoords, setImage],
     );
+
+    // 裁剪弹窗状态
+    const [pendingImageInfo, setPendingImageInfo] = useState<{
+      url: string;
+      dimensions: { width: number; height: number };
+      revokeUrl: (() => void) | null;
+    } | null>(null);
+
+    const handleCropConfirm = useCallback(
+      async (cropRegion: CropRegion, initialCorners: GeoCorners | null) => {
+        if (!pendingImageInfo) return;
+
+        try {
+          // 判断是否需要裁剪（裁剪区域与原图不同才裁剪）
+          const needsCrop =
+            cropRegion.x !== 0 ||
+            cropRegion.y !== 0 ||
+            cropRegion.width !== pendingImageInfo.dimensions.width ||
+            cropRegion.height !== pendingImageInfo.dimensions.height;
+
+          if (needsCrop) {
+            const cropped = await cropImage(pendingImageInfo.url, cropRegion);
+            // 清理之前的 URL
+            pendingImageInfo.revokeUrl?.();
+            // 用裁剪后的图片进入配准
+            setImage(cropped.url, initialCorners);
+            // 裁剪产生的 URL 需要在后续 clear 时释放，暂存
+            croppedRevokeUrlRef.current = cropped.revokeUrl;
+            onPreprocess?.({ croppedDimensions: { width: cropped.width, height: cropped.height }, initialCorners });
+            onImageLoad?.({ width: cropped.width, height: cropped.height });
+          } else {
+            // 不裁剪，直接使用原图
+            setImage(pendingImageInfo.url, initialCorners);
+            onPreprocess?.({ croppedDimensions: pendingImageInfo.dimensions, initialCorners });
+            onImageLoad?.(pendingImageInfo.dimensions);
+          }
+        } catch (err) {
+          console.error('Crop/setImage failed:', err);
+        }
+
+        setPendingImageInfo(null);
+      },
+      [pendingImageInfo, setImage, onPreprocess, onImageLoad],
+    );
+
+    const handleCropCancel = useCallback(() => {
+      if (pendingImageInfo) {
+        pendingImageInfo.revokeUrl?.();
+        setPendingImageInfo(null);
+      }
+    }, [pendingImageInfo]);
+
+    // 额外需要释放裁剪产生的 ObjectURL
+    const croppedRevokeUrlRef = useRef<(() => void) | null>(null);
 
     const handleConfirm = useCallback(() => {
       const corners = getCorners();
@@ -213,6 +285,8 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
 
     const handleClear = useCallback(() => {
       clear();
+      croppedRevokeUrlRef.current?.();
+      croppedRevokeUrlRef.current = null;
       onClear?.();
     }, [clear, onClear]);
 
@@ -276,10 +350,11 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
           )
         : null;
 
-    // 竖排工具条 UI
+    // 工具条 UI（支持 vertical/horizontal 布局）
+    const isHorizontal = layout === 'horizontal';
     const controlContent = (
       <div
-        className={`l7-control l7-control--glass l7-control-image-calibration ${className ?? ''}`}
+        className={`l7-control l7-control--glass l7-control-image-calibration ${isHorizontal ? 'l7-control-image-calibration--horizontal' : ''} ${className ?? ''}`}
         style={{ position: 'relative', ...style }}
       >
         <TipButton
@@ -324,9 +399,10 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
             className="l7-control--glass"
             style={{
               position: 'absolute',
-              left: '100%',
-              top: 0,
-              marginLeft: 6,
+              left: isHorizontal ? 0 : '100%',
+              top: isHorizontal ? '100%' : 0,
+              marginLeft: isHorizontal ? 0 : 6,
+              marginTop: isHorizontal ? 6 : 0,
               padding: '8px 10px',
               borderRadius: 6,
               display: 'flex',
@@ -363,6 +439,20 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
 
         {/* 覆盖层 Portal */}
         {overlayPortal}
+
+        {/* 图片裁剪 + 初始坐标弹窗 */}
+        {pendingImageInfo && (enableCrop || enableInitialCoords) && createPortal(
+          <ImageCropModal
+            imageUrl={pendingImageInfo.url}
+            imageDimensions={pendingImageInfo.dimensions}
+            mapCenter={mapsService ? [mapsService.getCenter().lng, mapsService.getCenter().lat] : null}
+            mapZoom={mapsService ? mapsService.getZoom() : null}
+            showInitialCoords={enableInitialCoords}
+            onConfirm={handleCropConfirm}
+            onCancel={handleCropCancel}
+          />,
+          document.body,
+        )}
 
         {/* 导出设置弹框 */}
         {showExportDialog && createPortal(

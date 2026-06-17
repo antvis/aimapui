@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useMapControl, type ControlPosition } from '../../hooks/useMapControl';
+import { usePopperPosition } from '../../hooks/usePopperPosition';
 import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
@@ -74,6 +75,8 @@ export function MapThemeControl({
   const [options, setOptions] = useState<ThemeOption[]>(propOptions ?? []);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const { popperRef, popperClass } = usePopperPosition(position, open, containerRef);
+
   // 自动获取地图样式选项
   useEffect(() => {
     if (propOptions && propOptions.length > 0) {
@@ -87,7 +90,6 @@ export function MapThemeControl({
         const opts = Object.entries(styleConfig)
           .filter(([, value]) => typeof value === 'string')
           .map(([key, value]) => {
-            // 尝试匹配内置预览色
             const preset = GAODE_THEME_PRESETS.find((p) => p.value === value);
             return {
               text: key,
@@ -103,7 +105,6 @@ export function MapThemeControl({
     } catch {
       // 某些底图可能不支持
     }
-    // 降级：使用预设
     setOptions(GAODE_THEME_PRESETS);
   }, [mapsService, propOptions]);
 
@@ -148,9 +149,6 @@ export function MapThemeControl({
     onThemeChange?.(value);
   }, [mapsService, onThemeChange]);
 
-  // 计算 popper 方向
-  const popperClass = getPopperDirection(position);
-
   const controlContent = (
     <div
       ref={containerRef}
@@ -166,7 +164,7 @@ export function MapThemeControl({
         <span className="material-symbols-outlined">palette</span>
       </button>
       {open && options.length > 0 && (
-        <div className={`l7-popper ${popperClass}`}>
+        <div ref={popperRef} className={`l7-popper ${popperClass}`}>
           <div className="l7-popper-content l7-theme-panel">
             <div className="l7-theme-panel__title">
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>palette</span>
@@ -212,23 +210,6 @@ export function MapThemeControl({
       {controlContent}
     </div>
   );
-}
-
-/**
- * 根据 position 计算弹出方向，与 L7 PopperPlacementMap 一致
- */
-function getPopperDirection(pos: ControlPosition): string {
-  switch (pos) {
-    case 'topleft': return 'l7-popper-right l7-popper-start';
-    case 'topright': return 'l7-popper-left l7-popper-start';
-    case 'bottomleft': return 'l7-popper-right l7-popper-end';
-    case 'bottomright': return 'l7-popper-left l7-popper-end';
-    case 'lefttop': return 'l7-popper-bottom l7-popper-start';
-    case 'leftbottom': return 'l7-popper-top l7-popper-start';
-    case 'righttop': return 'l7-popper-bottom l7-popper-end';
-    case 'rightbottom': return 'l7-popper-top l7-popper-end';
-    default: return 'l7-popper-bottom';
-  }
 }
 
 // 注册为控件类型，供 ControlContainer 识别

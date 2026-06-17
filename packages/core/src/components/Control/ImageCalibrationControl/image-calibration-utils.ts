@@ -1,4 +1,4 @@
-import type { GeoCorners, ImageSource } from './image-calibration-types';
+import type { GeoCorners, ImageSource, CropRegion } from './image-calibration-types';
 
 export interface ImageInfo {
   url: string;
@@ -49,6 +49,67 @@ export function loadImage(url: string): Promise<HTMLImageElement> {
     img.crossOrigin = 'anonymous';
     img.src = url;
   });
+}
+
+/**
+ * 裁剪图片：根据 CropRegion 从原图裁剪出指定区域，返回裁剪后的 Blob 和 URL
+ */
+export async function cropImage(
+  imageUrl: string,
+  cropRegion: CropRegion,
+  format = 'image/png',
+  quality = 0.92,
+): Promise<{ blob: Blob; url: string; revokeUrl: () => void; width: number; height: number }> {
+  const img = await loadImage(imageUrl);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(cropRegion.width);
+  canvas.height = Math.round(cropRegion.height);
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D context unavailable');
+
+  ctx.drawImage(
+    img,
+    Math.round(cropRegion.x),
+    Math.round(cropRegion.y),
+    Math.round(cropRegion.width),
+    Math.round(cropRegion.height),
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  );
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (b) => b ? resolve(b) : reject(new Error('Canvas toBlob failed')),
+      format,
+      quality,
+    );
+  });
+
+  const url = URL.createObjectURL(blob);
+  const revokeUrl = () => URL.revokeObjectURL(url);
+
+  return {
+    blob,
+    url,
+    revokeUrl,
+    width: canvas.width,
+    height: canvas.height,
+  };
+}
+
+/**
+ * 将裁剪区域约束在图片范围内
+ */
+export function clampCropRegion(region: CropRegion, imageWidth: number, imageHeight: number): CropRegion {
+  const x = Math.max(0, Math.min(region.x, imageWidth - region.width));
+  const y = Math.max(0, Math.min(region.y, imageHeight - region.height));
+  const width = Math.max(1, Math.min(region.width, imageWidth - x));
+  const height = Math.max(1, Math.min(region.height, imageHeight - y));
+  return { x, y, width, height };
 }
 
 /**

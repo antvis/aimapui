@@ -1,6 +1,6 @@
 {
   "name": "@antv/aimapui-cli",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "type": "module",
   "description": "CLI for adding @antv/aimapui components to your project (shadcn/ui style)",
   "bin": {

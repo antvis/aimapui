@@ -27,7 +27,8 @@ export interface UseImageCalibrationOptions {
 export interface UseImageCalibrationResult {
   state: CalibrationState;
   screenPositions: [Point2D, Point2D, Point2D, Point2D] | null;
-  setImage: (source: ImageSource) => void;
+  /** 设置图片源，可传入自定义初始坐标（用于裁剪预处理后的场景） */
+  setImage: (source: ImageSource, initialCorners?: GeoCorners | null) => void;
   setPhase: (phase: CalibrationPhase) => void;
   setOpacity: (opacity: number) => void;
   startDrag: (corner: CornerIndex) => void;
@@ -230,9 +231,9 @@ export function useImageCalibration({
     [mapsService, isControlled, updateScreenPositions],
   );
 
-  // 设置图片
+  // 设置图片 — 支持 initialCorners 参数，用于裁剪预处理后传入自定义初始坐标
   const handleSetImage = useCallback(
-    async (source: ImageSource) => {
+    async (source: ImageSource, initialCornersOverride?: GeoCorners | null) => {
       // 清理之前的 blob URL
       revokeUrlRef.current?.();
       revokeUrlRef.current = null;
@@ -241,8 +242,8 @@ export function useImageCalibration({
         const info = await loadImageSource(source);
         revokeUrlRef.current = info.revokeUrl ?? null;
 
-        // 如果没有初始角点，根据地图视口计算
-        let initialCorners = cornersRef.current;
+        // 优先使用传入的 initialCornersOverride，否则根据地图视口计算
+        let initialCorners = initialCornersOverride ?? cornersRef.current;
         if (!initialCorners && mapsService) {
           const center = mapsService.getCenter();
           const zoom = mapsService.getZoom();

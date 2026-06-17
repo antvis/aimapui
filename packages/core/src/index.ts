@@ -80,6 +80,7 @@ export { useMapPosition } from './hooks/useMapPosition';
 export type { ScreenPosition } from './hooks/useMapPosition';
 export { useMapControl } from './hooks/useMapControl';
 export type { ControlPosition as L7ControlPosition, ControlProps } from './hooks/useMapControl';
+export { usePopperPosition, getPopperDirection } from './hooks/usePopperPosition';
 
 // 底图工厂（内部使用，不推荐直接调用）
 /** @internal */

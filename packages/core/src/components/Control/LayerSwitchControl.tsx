@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMapControl } from '../../hooks/useMapControl';
 import type { ControlPosition } from '../../hooks/useMapControl';
+import { usePopperPosition } from '../../hooks/usePopperPosition';
 import { useControlContainer, ControlRegistry } from './ControlContainer';
 
 /**
@@ -66,6 +67,8 @@ export function LayerSwitchControl({
   const { positionClassName } = useMapControl(position);
   const isInContainer = useControlContainer();
 
+  const { popperRef, popperClass } = usePopperPosition(position, open, containerRef);
+
   // 点击外部关闭
   useEffect(() => {
     if (!open) return;
@@ -79,8 +82,6 @@ export function LayerSwitchControl({
   }, [open]);
 
   if (!layers.length) return null;
-
-  const popperClass = getPopperDirection(position);
 
   const handleOpacityChange = (layerId: string, value: number) => {
     setOpacities((prev) => ({ ...prev, [layerId]: value }));
@@ -102,7 +103,7 @@ export function LayerSwitchControl({
         <span className="material-symbols-outlined">layers</span>
       </button>
       {open && (
-        <div className={`l7-popper ${popperClass}`}>
+        <div ref={popperRef} className={`l7-popper ${popperClass}`}>
           <div className="l7-popper-content l7-layer-panel">
             <div className="l7-layer-panel__title">
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>layers</span>
@@ -165,20 +166,6 @@ export function LayerSwitchControl({
       {controlContent}
     </div>
   );
-}
-
-function getPopperDirection(pos: ControlPosition): string {
-  switch (pos) {
-    case 'topleft': return 'l7-popper-right l7-popper-start';
-    case 'topright': return 'l7-popper-left l7-popper-start';
-    case 'bottomleft': return 'l7-popper-right l7-popper-end';
-    case 'bottomright': return 'l7-popper-left l7-popper-end';
-    case 'lefttop': return 'l7-popper-bottom l7-popper-start';
-    case 'leftbottom': return 'l7-popper-top l7-popper-start';
-    case 'righttop': return 'l7-popper-bottom l7-popper-end';
-    case 'rightbottom': return 'l7-popper-top l7-popper-end';
-    default: return 'l7-popper-bottom';
-  }
 }
 
 // 注册为控件类型，供 ControlContainer 识别
