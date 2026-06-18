@@ -17,7 +17,7 @@ import type { DrawMode, DrawToolMode, DrawBasicMode, DrawAdvancedMode } from './
 // ============================================================
 
 interface ToolButton {
-  mode: DrawToolMode;
+  mode: DrawMode;
   icon: string;
   title: string;
   label: string;
@@ -140,7 +140,7 @@ function useToolbarTooltip() {
 function renderToolButtons(
   tools: ToolButton[],
   activeMode: DrawMode,
-  onModeClick: (mode: DrawToolMode) => void,
+  onModeClick: (mode: DrawMode) => void,
   showTooltip: (e: React.MouseEvent, title: string) => void,
   hideTooltip: () => void,
   btnClassName: string,
@@ -195,10 +195,10 @@ export const DrawBasicToolbar: React.FC<BasicToolbarProps> = ({
 
   const availableModes = React.useMemo(() => {
     if (!modes) return BASIC_TOOLS;
-    return BASIC_TOOLS.filter((tool) => modes!.includes(tool.mode));
+    return BASIC_TOOLS.filter((tool) => tool.mode === 'none' || modes!.includes(tool.mode as DrawToolMode));
   }, [modes]);
 
-  const handleModeClick = useCallback((mode: DrawToolMode) => {
+  const handleModeClick = useCallback((mode: DrawMode) => {
     // 手型按钮（none 模式）始终将模式设为 none，不需要 toggle
     if (mode === 'none') {
       onModeChange('none');
@@ -262,10 +262,10 @@ export const DrawAdvancedToolbar: React.FC<ToolbarProps> = ({
 
   const availableModes = React.useMemo(() => {
     if (!modes) return ADVANCED_TOOLS;
-    return ADVANCED_TOOLS.filter((tool) => modes!.includes(tool.mode));
+    return ADVANCED_TOOLS.filter((tool) => tool.mode === 'none' || modes!.includes(tool.mode as DrawToolMode));
   }, [modes]);
 
-  const handleModeClick = useCallback((mode: DrawToolMode) => {
+  const handleModeClick = useCallback((mode: DrawMode) => {
     // 手型按钮（none 模式）始终将模式设为 none，不需要 toggle
     if (mode === 'none') {
       onModeChange('none');

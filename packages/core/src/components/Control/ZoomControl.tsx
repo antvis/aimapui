@@ -37,7 +37,7 @@ export function ZoomControl({
   className,
   style,
 }: ZoomControlProps) {
-  const { mapsService, positionClassName } = useMapControl(position);
+  const { scene, mapsService, positionClassName } = useMapControl(position);
   const isInContainer = useControlContainer();
   const [zoom, setZoom] = useState<number>(0);
   const [canZoomIn, setCanZoomIn] = useState(true);
