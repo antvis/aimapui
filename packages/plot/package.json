@@ -1,6 +1,6 @@
 {
   "name": "@antv/aimapui-plot",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "description": "Tactical plot/bindtype component for @antv/aimapui — bindtype, bindtype, bindtype, bindtype arrows",
   "main": "dist/index.cjs",
