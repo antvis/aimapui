@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { ActiveConfig, LayerSchema, SelectConfig, LayerEventPayload } from '../../schema/types';
 import { PointLayer } from '../Layer/PointLayer';
 
@@ -32,8 +32,6 @@ export interface BubbleLayerProps extends Omit<LayerSchema, 'type' | 'source' | 
   labelColor?: string;
   labelSize?: number;
   showLabel?: boolean;
-  /** 文本标签触发方式：'always' 始终显示 | 'hover' 鼠标划过时显示，默认 'always' */
-  labelTrigger?: 'always' | 'hover';
   /** 文本偏移量，默认根据气泡最大半径自动计算 */
   labelOffset?: [number, number];
   /** sizeField 为离散值时，对应每个 sizeValues 的域值顺序（默认 1..N） */
@@ -88,7 +86,6 @@ export function BubbleLayer({
   labelColor = '#0b3b8c',
   labelSize = 12,
   showLabel = true,
-  labelTrigger = 'always',
   labelOffset,
   sizeDomain,
   bubbleAnchor = 'bottom',
@@ -128,23 +125,6 @@ export function BubbleLayer({
     ? (sizeValues ?? [...BUBBLE_SIZE_LEVELS])
     : sizeValues;
 
-  // hover 模式下标签的显隐状态
-  const [labelVisible, setLabelVisible] = useState(labelTrigger === 'always');
-
-  const handleMouseEnter = useCallback((payload: LayerEventPayload) => {
-    if (labelTrigger === 'hover') {
-      setLabelVisible(true);
-    }
-    onMouseEnter?.(payload);
-  }, [labelTrigger, onMouseEnter]);
-
-  const handleMouseLeave = useCallback((payload: LayerEventPayload) => {
-    if (labelTrigger === 'hover') {
-      setLabelVisible(false);
-    }
-    onMouseLeave?.(payload);
-  }, [labelTrigger, onMouseLeave]);
-
   const defaultActive: ActiveConfig = { color: '#60a5fa' };
   const defaultSelect: SelectConfig = { color: '#1d4ed8' };
 
@@ -166,7 +146,7 @@ export function BubbleLayer({
     return () => cancelAnimationFrame(timer);
   }, []);
 
-  const shouldShowLabel = showLabel && labelVisible && bubbleReady;
+  const shouldShowLabel = showLabel && bubbleReady;
 
   // 气泡圆图层的 size 配置：当有 sizeField 时不传固定 size 避免冲突
   const bubbleSizeProps = sizeField
@@ -195,8 +175,8 @@ export function BubbleLayer({
         name={rest.name ?? 'bubble-circle'}
         onClick={onClick}
         onMouseMove={onMouseMove}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
         style={{
           stroke: color ?? '#004ac6',
           strokeWidth: 2,
