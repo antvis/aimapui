@@ -40,7 +40,6 @@ export function MapSceneRenderer({
   const eventBus = useEventBus();
 
   const applyGestureConfig = useCallback((targetScene: Scene, mapConfig: MapSchema) => {
-    // 独立 Map 引擎自带完整交互，不需要额外配置
     if (mapConfig.basemap === 'map') return;
 
     const dragPan = mapConfig.gestureConfig?.dragPan ?? true;
@@ -48,7 +47,7 @@ export function MapSceneRenderer({
     const dragRotate = mapConfig.gestureConfig?.dragRotate ?? true;
 
     try {
-      const mapService = (targetScene as unknown as { mapService?: { setMapStatus?: (s: Record<string, boolean>) => void } }).mapService;
+      const mapService = (targetScene as unknown as { mapService?: { setMapStatus?: (s: Record<string, boolean>) => void; map?: any } }).mapService;
       if (mapService && typeof mapService.setMapStatus === 'function') {
         mapService.setMapStatus({
           dragEnable: dragPan,
@@ -56,6 +55,23 @@ export function MapSceneRenderer({
           rotateEnable: dragRotate,
           doubleClickZoom: pinchZoom,
         });
+      }
+
+      // Google Maps: setMapStatus 会重新打开原生 zoomControl，
+      // 在它之后强制关闭所有原生 UI 控件
+      if (mapConfig.basemap === 'google' && mapService?.map) {
+        const nativeMap = mapService.map;
+        if (typeof nativeMap.setOptions === 'function') {
+          nativeMap.setOptions({
+            zoomControl: false,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+            scaleControl: false,
+            rotateControl: false,
+            panControl: false,
+          });
+        }
       }
     } catch {
       // ignore

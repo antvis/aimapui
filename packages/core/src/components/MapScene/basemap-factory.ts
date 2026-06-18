@@ -220,12 +220,12 @@ function suppressGoogleNativeControls(instance: unknown): void {
 
   if (tryPatch()) return;
 
-  // 原生 Map 尚未创建，轮询等待（init 通常 < 2s 完成）
+  // 原生 Map 尚未创建，轮询等待
   let attempts = 0;
   const timer = setInterval(() => {
     attempts += 1;
-    if (tryPatch() || attempts > 40) {
+    if (tryPatch() || attempts > 100) {
       clearInterval(timer);
     }
-  }, 100);
+  }, 50);
 }

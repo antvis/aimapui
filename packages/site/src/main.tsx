@@ -36,6 +36,7 @@ import MapControlsDemo from './control/MapControls';
 import DrawControlDemo from './control/DrawControlDemo';
 import ImageCalibrationDemo from './control/ImageCalibrationDemo';
 import AnnotationControlDemo from './control/AnnotationControlDemo';
+import PlotControlDemo from './control/PlotControlDemo';
 // ── 点位标注 / 交互 ──
 import Marker from './marker/Marker';
 import MarkerDrag from './marker/MarkerDrag';
@@ -265,6 +266,7 @@ const demos = [
   { name: 'MapControls 地图控件', icon: 'tune', component: MapControlsDemo, group: '交互组件', file: 'control/MapControls' },
   { name: 'DrawControl 绘制控件', icon: 'edit', component: DrawControlDemo, group: '交互组件', file: 'control/DrawControlDemo' },
   { name: 'AnnotationControl 标注控件', icon: 'edit_note', component: AnnotationControlDemo, group: '交互组件', file: 'control/AnnotationControlDemo' },
+  { name: 'PlotControl 态势标绘', icon: 'military_tech', component: PlotControlDemo, group: '交互组件', file: 'control/PlotControlDemo' },
   { name: 'ImageCalibration 图片配准', icon: 'image', component: ImageCalibrationDemo, group: '交互组件', file: 'control/ImageCalibrationDemo' },
 
   // ── 地图引擎 ──────────────────────────────

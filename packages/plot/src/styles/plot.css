@@ -1,0 +1,10 @@
+/* ============================================================
+ * @antv/aimapui-plot — 标绘控件样式
+ * ============================================================ */
+
+.l7-control.l7-control-plot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+}
