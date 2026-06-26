@@ -152,7 +152,7 @@ export function MapThemeControl({
   const controlContent = (
     <div
       ref={containerRef}
-      className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`}
+      className={`l7-control l7-control--glass${open ? ' l7-control--popper-open' : ''}${className ? ` ${className}` : ''}`}
       style={style}
     >
       <button
@@ -166,33 +166,22 @@ export function MapThemeControl({
       {open && options.length > 0 && (
         <div ref={popperRef} className={`l7-popper ${popperClass}`}>
           <div className="l7-popper-content l7-theme-panel">
-            <div className="l7-theme-panel__title">
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>palette</span>
-              Map Themes
-            </div>
-            <div className="l7-theme-panel__grid">
+            <div className="l7-theme-chips">
               {options.map((opt) => {
                 const isActive = currentValue === opt.value;
-                const previewBg = opt.preview ?? 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)';
+                const dotBg = opt.preview ?? 'linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%)';
                 return (
                   <button
                     key={opt.value}
-                    className={`l7-theme-card${isActive ? ' l7-theme-card--active' : ''}`}
+                    className={`l7-theme-chip${isActive ? ' l7-theme-chip--active' : ''}`}
                     onClick={() => handleSelect(opt.value)}
                     title={opt.text}
                   >
-                    <div
-                      className="l7-theme-card__preview"
-                      style={{ background: previewBg }}
+                    <span
+                      className="l7-theme-chip__dot"
+                      style={{ background: dotBg }}
                     />
-                    {isActive && (
-                      <span className="material-symbols-outlined l7-theme-card__check"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        check_circle
-                      </span>
-                    )}
-                    <span className="l7-theme-card__label">{opt.text}</span>
+                    <span className="l7-theme-chip__label">{opt.text}</span>
                   </button>
                 );
               })}

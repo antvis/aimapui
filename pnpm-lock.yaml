@@ -45,6 +45,9 @@ importers:
       geotiff:
         specifier: ^3.0.5
         version: 3.0.5
+      h3-js:
+        specifier: ^4.4.0
+        version: 4.4.0
       supercluster:
         specifier: ^8.0.1
         version: 8.0.1
@@ -1428,6 +1431,10 @@ packages:
 
   grid-index@1.1.0:
     resolution: {integrity: sha512-HZRwumpOGUrHyxO5bqKZL0B0GlUpwtCAzZ42sgxUPniu33R1LSFH5yrIcBCHjkctCAh3mtWKcKd9J4vDDdeVHA==}
+
+  h3-js@4.4.0:
+    resolution: {integrity: sha512-DvJh07MhGgY2KcC4OeZc8SSyA+ZXpdvoh6uCzGpoKvWtZxJB+g6VXXC1+eWYkaMIsLz7J/ErhOalHCpcs1KYog==}
+    engines: {node: '>=4', npm: '>=3', yarn: '>=1.3.0'}
 
   hammerjs@2.0.8:
     resolution: {integrity: sha512-tSQXBXS/MWQOn/RKckawJ61vvsDpCom87JgxiYdGwHdOa0ht0vzUWDlfioofFCRU0L+6NGDt6XzbgoJvZkMeRQ==}
@@ -3228,6 +3235,8 @@ snapshots:
   graceful-fs@4.2.11: {}
 
   grid-index@1.1.0: {}
+
+  h3-js@4.4.0: {}
 
   hammerjs@2.0.8: {}
 

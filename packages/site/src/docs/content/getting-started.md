@@ -29,7 +29,7 @@ import '@antv/aimapui/style.css';
 import { AiMap, PointLayer } from '@antv/aimapui';
 ```
 
-> **底图按需加载：** AiMapUI 内部对各底图引擎（高德、Mapbox、百度等）采用动态 `import()` 子路径加载，只有在 `map.basemap` 指定某底图时才会加载对应的引擎代码，不会将所有底图打包进产物。
+> **底图按需加载：** AiMapUI 内部对各底图引擎（高德、Mapbox、百度等）采用动态 `import()` 子路径加载，只有在 `map.basemap` 指定某底图时才会加载对应的引擎代码，不会将所有底图打包进产物。也可以通过 `map.engine` 直接传入引擎构造函数来跳过动态加载，详见下方"地图加载方式"章节。
 
 > **Node 版本：** 需要 Node.js 18+，项目使用 ESM 模块格式。
 
@@ -147,6 +147,37 @@ export default function BasicMap() {
   );
 }
 ```
+
+## 地图加载方式
+
+AiMapUI 支持两种底图加载方式：
+
+### 方式一：basemap 动态加载（默认）
+
+通过 `basemap` 字段指定底图类型，AiMapUI 内部通过动态 `import()` 按需加载对应引擎，未使用的底图不会进入打包产物：
+
+```tsx
+<AiMap map={{ basemap: 'gaode', center: [116, 39], zoom: 10 }} />
+```
+
+### 方式二：engine 外部注入（v0.3.1+）
+
+如果你的项目已经安装了 L7 底图引擎，或者需要跳过动态 import（如 SSR、微前端、构建工具兼容性等场景），可以通过 `engine` 直接传入地图引擎构造函数：
+
+```tsx
+import { GaodeMap } from '@antv/l7-maps/gaode';
+
+<AiMap map={{ engine: GaodeMap, center: [116, 39], zoom: 10 }} />
+```
+
+使用 `engine` 时不需要传 `basemap`，两者二选一：
+
+| 方式 | 适用场景 | 特点 |
+|------|---------|------|
+| `basemap` | 大多数场景，推荐默认使用 | 按需加载，无需手动 import 底图引擎 |
+| `engine` | SSR、微前端、已有 L7 引擎实例 | 跳过动态 import，同步创建地图实例 |
+
+> **注意：** `basemap` 和 `engine` 同时传入时，`engine` 优先。
 
 ## 双模式使用
 

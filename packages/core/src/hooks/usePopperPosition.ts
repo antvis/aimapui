@@ -40,7 +40,7 @@ export function usePopperPosition(position: ControlPosition, open: boolean, anch
     const initialClass = getPopperDirection(position);
     setPopperClass(initialClass);
 
-    requestAnimationFrame(() => {
+    const reposition = () => {
       const popperEl = popperRef.current;
       if (!popperEl) return;
 
@@ -70,7 +70,12 @@ export function usePopperPosition(position: ControlPosition, open: boolean, anch
       const alignPart = parts.find(p => (ALIGN_CLASSES as readonly string[]).includes(p)) ?? '';
 
       setPopperClass(`${flipV || dirPart} ${flipH || alignPart}`.trim());
-    });
+    };
+
+    requestAnimationFrame(reposition);
+    // Second pass: after the class flip causes a re-layout, verify again
+    const timer = setTimeout(() => requestAnimationFrame(reposition), 50);
+    return () => clearTimeout(timer);
   }, [open, position]);
 
   return { popperRef, popperClass };

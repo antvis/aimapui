@@ -91,7 +91,7 @@ export function LayerSwitchControl({
   const controlContent = (
     <div
       ref={containerRef}
-      className={`l7-control l7-control--glass${className ? ` ${className}` : ''}`}
+      className={`l7-control l7-control--glass${open ? ' l7-control--popper-open' : ''}${className ? ` ${className}` : ''}`}
       style={style}
     >
       <button

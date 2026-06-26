@@ -64,6 +64,7 @@ import MarkerCluster from './composite/MarkerCluster';
 import ArcFlowLayer from './composite/ArcFlowLayer';
 import RouteLayerDemo from './composite/RouteLayer';
 import TiffRasterLayerDemo from './composite/TiffRasterLayer';
+import H3LayerDemo from './composite/H3Layer';
 // ── 基础图层 ──
 import PointLayer from './layer/PointLayer';
 import GeometricPoint from './layer/GeometricPoint';
@@ -255,6 +256,7 @@ const demos = [
   { name: 'ArcFlowLayer 弧线流向', icon: 'south_east', component: ArcFlowLayer, group: '复合图层', file: 'composite/ArcFlowLayer' },
   { name: 'ChoroplethMap 分级统计', icon: 'stacked_bar_chart', component: ChoroplethMap, group: '复合图层', file: 'composite/ChoroplethMap' },
   { name: 'TiffRasterLayer TIFF栅格', icon: 'satellite_alt', component: TiffRasterLayerDemo, group: '复合图层', file: 'composite/TiffRasterLayer' },
+  { name: 'H3Layer H3网格', icon: 'hexagon', component: H3LayerDemo, group: '复合图层', file: 'composite/H3Layer' },
 
   // ── 专题地图 ──────────────────────────────
   { name: 'SatelliteLayer 卫星影像', icon: 'satellite_alt', component: SatelliteLayerDemo, group: '专题地图', file: 'composite/SatelliteLayer' },

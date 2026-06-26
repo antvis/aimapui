@@ -115,7 +115,7 @@ export { RasterLayer } from './components/Layer/RasterLayer';
 export type { RasterLayerProps } from './components/Layer/RasterLayer';
 export { ImageLayer } from './components/Layer/ImageLayer';
 export type { ImageLayerProps } from './components/Layer/ImageLayer';
-export { BubbleLayer } from './components/CompositeLayer/BubbleLayer';
+export { BubbleLayer, BUBBLE_SIZE_LEVELS } from './components/CompositeLayer/BubbleLayer';
 export type { BubbleLayerProps } from './components/CompositeLayer/BubbleLayer';
 export { MarkerClusterLayer } from './components/CompositeLayer/MarkerClusterLayer';
 export type { MarkerClusterLayerProps } from './components/CompositeLayer/MarkerClusterLayer';
@@ -135,6 +135,8 @@ export { RouteLayer } from './components/CompositeLayer/RouteLayer';
 export type { RouteLayerProps, RouteStop, RouteSegment, RouteType, RouteQueryParams, RouteQueryResult } from './components/CompositeLayer/RouteLayer';
 export { TiffRasterLayer } from './components/CompositeLayer/TiffRasterLayer';
 export type { TiffRasterLayerProps, RampColors, RasterRenderMode } from './components/CompositeLayer/TiffRasterLayer';
+export { H3Layer, H3_SEQUENTIAL_COLORS } from './components/CompositeLayer/H3Layer';
+export type { H3LayerProps, H3DataItem } from './components/CompositeLayer/H3Layer';
 
 // Control 组件
 export { ZoomControl } from './components/Control/ZoomControl';

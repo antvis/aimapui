@@ -143,7 +143,7 @@ export interface ImageCalibrationControlProps {
 export interface ImageCalibrationHandle {
   getCorners(): GeoCorners | null;
   setCorners(corners: GeoCorners): void;
-  setImage(source: ImageSource): void;
+  setImage(source: ImageSource, initialCorners?: GeoCorners | null): void;
   exportImage(config?: ExportConfig): Promise<ExportResult>;
   clear(): void;
 }

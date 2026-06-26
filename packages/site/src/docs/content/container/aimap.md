@@ -49,6 +49,7 @@ import '@antv/aimapui/style.css';
 | 属性 | 类型 | 组合模式默认值 | Schema 模式默认值 | 说明 |
 |------|------|---------------|-----------------|------|
 | `basemap` | `'gaode' \| 'mapbox' \| 'maplibre' \| 'tianditu' \| 'tencent' \| 'baidu' \| 'google' \| 'map'` | `'gaode'` | `'map'` | 底图引擎。`'map'`/`'maplibre'` = 开源底图（无需 token）；其余需配 `token` |
+| `engine` | `new (opts: Record<string, unknown>) => unknown` | - | - | 外部注入的地图引擎**构造函数**，跳过动态 import。与 `basemap` 二选一，同时传入时 `engine` 优先。仅适用于组件化模式（不可序列化，Schema 模式不支持） |
 | `center` | `[number, number]` | `[105, 35]` | `[105, 35]` | 初始中心点 [经度, 纬度] |
 | `zoom` | `number` | `4` | `4` | 初始缩放级别（0~22，值越大越细节） |
 | `pitch` | `number` | `0` | `0` | 俯仰角（0~60），大于 0 开启 3D 透视，配合 [PolygonLayer](../layers/polygon-layer) 的 `extrusion` 或 [LineLayer](../layers/line-layer) 的 `arc3d` 使用 |
@@ -168,6 +169,25 @@ const cities = [
   <PolygonLayer source={buildings} sourceType="geojson" shape="extrusion" />
 </AiMap>
 ```
+
+### Engine 注入 — SSR / 微前端 / 跳过动态 import
+
+当项目已安装 L7 底图引擎包，或需要跳过动态 import（SSR、微前端等场景）时，可通过 `engine` 直接传入引擎构造函数：
+
+```tsx
+import { GaodeMap } from '@antv/l7-maps/gaode';
+import { AiMap, PointLayer, ZoomControl } from '@antv/aimapui';
+
+<AiMap
+  autoFit
+  map={{ engine: GaodeMap, center: [108, 34], zoom: 4, token: 'YOUR_TOKEN' }}
+>
+  <PointLayer source={cities} sourceType="json" sourceConfig={{ x: 'lng', y: 'lat' }} size={10} color="#3B82F6" />
+  <ZoomControl position="topright" />
+</AiMap>
+```
+
+> ⚠️ **注意**：`engine` 是构造函数（类），不是已创建的 Map 实例。`basemap` 和 `engine` 二选一，同时传入时 `engine` 优先。`engine` 不可序列化，仅适用于组件化模式，Schema 模式不支持。
 
 ### Google 地图底图
 

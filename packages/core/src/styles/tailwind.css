@@ -209,17 +209,19 @@
   background: rgba(22, 32, 48, 0.95);
   border-color: rgba(180, 197, 255, 0.08);
 }
-[data-theme="dark"] .l7-theme-card {
+[data-theme="dark"] .l7-theme-chip {
   background: #1e2c3e;
-  border-color: rgba(180, 197, 255, 0.06);
+  border-color: rgba(180, 197, 255, 0.1);
 }
-[data-theme="dark"] .l7-theme-card:hover {
-  border-color: rgba(180, 197, 255, 0.2);
+[data-theme="dark"] .l7-theme-chip:hover {
+  border-color: rgba(180, 197, 255, 0.25);
+  background: #253650;
 }
-[data-theme="dark"] .l7-theme-card--active {
+[data-theme="dark"] .l7-theme-chip--active {
   border-color: var(--color-primary);
+  background: rgba(0, 74, 198, 0.15);
 }
-[data-theme="dark"] .l7-theme-card__label {
+[data-theme="dark"] .l7-theme-chip__label {
   color: var(--color-on-surface);
 }
 
@@ -1263,6 +1265,11 @@
   display: none;
 }
 
+/* 弹出面板打开时，提升当前控件 z-index 使其浮于同层级兄弟控件之上 */
+.l7-control.l7-control--popper-open {
+  z-index: 1001;
+}
+
 /* 对齐 L7 ControlService 创建的容器中的控件样式 */
 .l7-control-container .l7-control {
   position: relative;
@@ -2048,83 +2055,52 @@
 }
 
 .l7-theme-panel {
-  padding: 12px;
-  min-width: 240px;
-  max-width: 320px;
+  padding: 10px;
 }
-.l7-theme-panel__title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-on-surface-variant, #434655);
-  margin-bottom: 10px;
-  padding: 0 2px;
-}
-.l7-theme-panel__grid {
+.l7-theme-chips {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, auto);
   gap: 8px;
 }
 
-/* 主题卡片 */
-.l7-theme-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  border-radius: 10px;
-  border: 2px solid var(--color-outline-variant, rgba(195, 198, 215, 0.3));
+/* 主题 Chip — 药丸按钮 */
+.l7-theme-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px 6px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-outline-variant, rgba(195, 198, 215, 0.4));
   background: var(--color-surface-container-lowest, #fff);
-  padding: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
-  text-align: left;
-  overflow: hidden;
+  white-space: nowrap;
 }
-.l7-theme-card:hover {
-  background: var(--color-surface-container, #e6eeff);
+.l7-theme-chip:hover {
+  background: var(--color-surface-container, #f0f4ff);
   border-color: var(--color-outline, #737686);
 }
-.l7-theme-card--active {
+.l7-theme-chip--active {
   border-color: var(--color-primary, #004ac6);
-  border-width: 2px;
+  background: var(--color-surface-container, #e6eeff);
 }
-.l7-theme-card--active:hover {
+.l7-theme-chip--active:hover {
   border-color: var(--color-primary, #004ac6);
 }
-.l7-theme-card__preview {
-  width: 100%;
-  height: 48px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-  background: linear-gradient(135deg, #e0e0e0 0%, #bdbdbd 100%);
+.l7-theme-chip__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
-.l7-theme-card__check {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 16px;
-  color: var(--color-primary, #004ac6);
-  line-height: 1;
-}
-.l7-theme-card__label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.l7-theme-chip__label {
+  font-size: 13px;
+  font-weight: 500;
   color: var(--color-on-surface-variant, #434655);
-  padding: 0 2px;
 }
-.l7-theme-card--active .l7-theme-card__label {
+.l7-theme-chip--active .l7-theme-chip__label {
   color: var(--color-primary, #004ac6);
-}
-
-/* 全宽卡片（卫星图等） */
-.l7-theme-card--full {
-  grid-column: 1 / -1;
+  font-weight: 600;
 }
 
 /* ============================================================
@@ -2439,6 +2415,23 @@
 }
 [data-theme="dark"] .l7-draw-separator {
   background-color: rgba(180, 197, 255, 0.2);
+}
+
+/* ============================================================
+ * ImageCalibrationControl — 图像校准控件样式
+ * ============================================================ */
+
+/* 默认 vertical 布局：按钮纵向排列 */
+.l7-control.l7-control-image-calibration {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+}
+
+/* horizontal 布局：按钮横向排列 */
+.l7-control.l7-control-image-calibration.l7-control-image-calibration--horizontal {
+  flex-direction: row;
 }
 
 /* ============================================================
