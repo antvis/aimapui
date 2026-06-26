@@ -78,7 +78,8 @@ import { AiMap } from '@antv/aimapui';
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `basemap` | `BasemapType` | `'map'` | 底图：`gaode`/`mapbox`/`maplibre`/`tianditu`/`tencent`/`baidu`/`map` |
+| `basemap` | `BasemapType` | `'gaode'` | 底图类型，与 `engine` 二选一，传 `engine` 时可省略 |
+| `engine` | `new (opts) => unknown` | — | 外部注入的地图引擎构造函数，跳过动态 import（v0.3.1+） |
 | `token` | `string` | — | 底图 API Token |
 | `style` | `MapStylePreset \| string` | — | 样式：`light`/`dark`/`normal`/`darkblue`/`satellite` 或 URL |
 | `center` | `[number, number]` | `[105, 35]` | 中心点 [经度, 纬度] |
@@ -89,6 +90,22 @@ import { AiMap } from '@antv/aimapui';
 | `maxZoom` | `number` | — | 最大缩放 |
 | `bounds` | `[[number,number],[number,number]]` | — | 初始边界，自动 fitBounds |
 | `gestureConfig` | `{ dragPan?, pinchZoom?, dragRotate? }` | — | 手势控制 |
+
+### engine 外部注入
+
+当项目已安装 L7 底图引擎，或需要跳过动态 import（SSR、微前端等）时，可通过 `engine` 直接传入引擎构造函数：
+
+```tsx
+import { GaodeMap } from '@antv/l7-maps/gaode';
+
+<AiMap map={{ engine: GaodeMap, center: [116, 39], zoom: 10 }}>
+  <PointLayer source={data} />
+</AiMap>
+```
+
+- `basemap` 和 `engine` 二选一，同时传入时 `engine` 优先
+- 使用 `engine` 时地图实例同步创建，无异步等待
+- `engine` 不可序列化，仅适用于组件化模式，不适用于 Schema 模式
 
 ## 底图选择
 

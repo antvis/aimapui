@@ -3,13 +3,14 @@ name: aimapui
 description: >
   Build React map visualizations with @antv/aimapui, a Schema-driven component library on L7.
   Use when: (1) Creating map applications with AiMap container, (2) Adding layers (Point/Line/Polygon/Heatmap/Raster/Image),
-  (3) Using composite layers (Bubble/Route/ArcFlow/Icon/Glyph/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster),
+  (3) Using composite layers (Bubble/Route/ArcFlow/Icon/Glyph/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster/H3),
   (4) Configuring visual mappings (color/size/shape), (5) Adding controls, legends, interactions (Marker/Popup/Tooltip),
   (6) Schema/JSON-driven map generation for AI, (7) Mobile-responsive map layouts, (8) Maki icon utilities for map markers,
   (9) Interactive drawing/editing with DrawControl (point/line/polygon/rectangle/circle),
-  (10) Image georeferencing with ImageCalibrationControl (upload, corner drag, perspective transform, tile export, ZIP download).
-  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向", "行政区划", "ChinaDistrict", "DrawControl", "绘制控件", "ImageCalibrationControl", "图片配准", "地图校准", "georeferencing", "image calibration", "切片导出", "tile export".
-version: "0.2.2"
+  (10) Image georeferencing with ImageCalibrationControl (upload, corner drag, perspective transform, tile export, ZIP download),
+  (11) Map annotation with AnnotationControl (marker/highlighter/text/note/link/image/video).
+  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向", "行政区划", "ChinaDistrict", "DrawControl", "绘制控件", "ImageCalibrationControl", "图片配准", "地图校准", "georeferencing", "image calibration", "切片导出", "tile export", "H3", "H3Layer", "六边形", "hexagon grid", "AnnotationControl", "标注控件", "标注", "annotation".
+version: "0.3.1"
 ---
 
 # aimapui
@@ -18,8 +19,8 @@ React map visualization library built on L7. Supports both JSX component mode an
 
 ## Version
 
-- **@antv/aimapui**: `0.2.2`
-- **@antv/aimapui-cli**: `0.2.2`
+- **@antv/aimapui**: `0.3.1`
+- **@antv/aimapui-cli**: `0.3.1`
 
 ## Install
 
@@ -62,8 +63,8 @@ import '@antv/aimapui/style.css';
 
 - **AiMap** — Container component, manages Scene/Map lifecycle; supports `autoFit` for automatic viewport fitting
 - **Layers** — 6 base types: `PointLayer`, `LineLayer`, `PolygonLayer`, `HeatmapLayer`, `RasterLayer`, `ImageLayer`
-- **Composite Layers** — Business-ready (11 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`
-- **Controls** — `ZoomControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl`, `DrawControl`, `ImageCalibrationControl` (12 types, 12 positions)
+- **Composite Layers** — Business-ready (12 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`, `H3Layer`
+- **Controls** — `ZoomControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl`, `DrawControl`, `ImageCalibrationControl`, `AnnotationControl` (13 types, 12 positions)
 - **Interactions** — `Marker`, `Popup`, `Tooltip` + Maki icon utilities (`makiIconUrl`, `makiPinUrl`, `createMakiIconMap`, `createMakiPinMap`, `MAKI_ICONS`, `MAKI_ICON_NAMES`)
 - **Legends** — `LegendCategories`, `LegendRamp`, `LegendDiverging`, `LegendThreshold`, `LegendSize`, `LegendLineWidth`, `LegendProportion`, `LegendIcon` (8 types)
 - **Mobile** — `BottomSheet`, `MobileToolbar`, `MobileSheetLegend`, `SearchBar`
@@ -83,12 +84,14 @@ import '@antv/aimapui/style.css';
 | Data sources | [data-source.md](references/data/data-source.md) | JSON/GeoJSON/CSV/Raster data |
 | Base layers | [base-layers.md](references/layers/base-layers.md) | Point/Line/Polygon/Heatmap/Raster/Image |
 | Composite layers | [composite-layers.md](references/composite/composite-layers.md) | Bubble/Route/Icon/Glyph/Choropleth/Flow |
+| H3Layer | [h3-layer.md](references/composite/h3-layer.md) | H3 hexagonal grid visualization |
 | Color/Size/Shape mapping | [mapping.md](references/visual/mapping.md) | Data-driven visuals |
 | Style config | [style.md](references/visual/style.md) | Opacity/blend/style passthrough |
 | Marker/Popup/Tooltip | [interaction.md](references/interaction/interaction.md) | Interactive overlays |
 | Controls | [controls.md](references/controls/controls.md) | Zoom/Scale/Fullscreen/etc. |
 | DrawControl | [draw-control.md](references/controls/draw-control.md) | Interactive drawing/editing (point/line/polygon/rectangle/circle) |
 | ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | Image georeferencing: upload, corner drag, perspective transform, tile export, ZIP download |
+| AnnotationControl | [annotation-control.md](references/controls/annotation-control.md) | Map annotation: marker/highlighter/text/note/link/image/video |
 | Legends | [legend-components.md](references/legend/legend-components.md) | Map legends |
 | Mobile components | [mobile-components.md](references/mobile/mobile-components.md) | Mobile-responsive UI |
 
@@ -177,6 +180,26 @@ const GDP_DATA: BusinessDataItem[] = [
 > 使用 adcode 匹配时传 6 位码即可（如 "440000"），组件自动去除 "156" 前缀。
 > 内置数据源：`DEFAULT_PROVINCE_SOURCE`（34省）、`DEFAULT_CITY_SOURCE`（375市）、`DEFAULT_DISTRICT_SOURCE`（2891区县）。
 
+### Composite Layer (H3 — H3 六边形网格)
+
+```tsx
+import { H3Layer, H3_SEQUENTIAL_COLORS } from '@antv/aimapui';
+
+const h3Data = [
+  { h3: '89283082837ffff', value: 120, name: 'A区' },
+  { h3: '8928308280fffff', value: 280, name: 'B区' },
+];
+
+<H3Layer
+  source={h3Data}
+  h3Field="h3"
+  colorField="value"
+  colorValues={H3_SEQUENTIAL_COLORS}
+  showStroke
+  strokeColor="rgba(255,255,255,0.3)"
+/>
+```
+
 ### Composite Layer (ArcFlow — OD 弧线流向图)
 
 ```tsx
@@ -226,6 +249,19 @@ import { LegendControl, LogoControl, LegendCategories } from '@antv/aimapui';
   </LegendControl>
   <LogoControl position="bottomleft" logos={[{ src: '/logo.png', alt: 'Logo', href: '/' }]} />
 </AiMap>
+```
+
+### Controls (AnnotationControl — 标注控件)
+
+```tsx
+import { AnnotationControl } from '@antv/aimapui';
+
+<AnnotationControl
+  position="topright"
+  tools={['marker', 'highlighter', 'text', 'note']}
+  onAnnotationCreate={(feature) => console.log('新建:', feature)}
+  onChange={(features) => console.log('标注列表:', features)}
+/>
 ```
 
 ### Maki Icon Utilities

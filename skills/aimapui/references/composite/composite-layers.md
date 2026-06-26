@@ -1,4 +1,4 @@
-# 复合图层（BubbleLayer / RouteLayer / ArcFlowLayer / GlyphLayer / IconLayer / ChinaDistrict / MarkerClusterLayer / HexagonLayer / FillLayer / SatelliteLayer / TiffRasterLayer）
+# 复合图层（BubbleLayer / RouteLayer / ArcFlowLayer / GlyphLayer / IconLayer / ChinaDistrict / MarkerClusterLayer / HexagonLayer / FillLayer / SatelliteLayer / TiffRasterLayer / H3Layer）
 
 复合图层是基于基础图层组合的高级业务组件，内置设计规范和最佳实践。
 
@@ -376,6 +376,49 @@ import { SatelliteLayer, SATELLITE_PROVIDER_NAMES } from '@antv/aimapui';
 ```
 
 **RampColors:** `Record<number, string>` — 值到颜色的映射
+
+## H3Layer — H3 六边形网格
+
+基于 [H3](https://h3geo.org/) 六边形索引的网格可视化。接收包含 H3 索引的 JSON 数据，自动转换为六边形多边形渲染。
+
+```tsx
+import { H3Layer, H3_SEQUENTIAL_COLORS } from '@antv/aimapui';
+
+const h3Data = [
+  { h3: '89283082837ffff', value: 120, name: 'A区' },
+  { h3: '8928308280fffff', value: 280, name: 'B区' },
+  { h3: '89283082873ffff', value: 95, name: 'C区' },
+];
+
+<H3Layer
+  source={h3Data}
+  h3Field="h3"
+  colorField="value"
+  colorValues={H3_SEQUENTIAL_COLORS}
+  showStroke
+  hoverEffect
+/>
+```
+
+**专有属性：**
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `source` | `H3DataItem[]` | **必填** | JSON 数组，每项含 H3 索引和数据字段 |
+| `h3Field` | `string` | `'h3'` | H3 索引字段名 |
+| `showStroke` | `boolean` | `true` | 是否显示描边 |
+| `strokeColor` | `string` | `'rgba(255,255,255,0.3)'` | 描边颜色 |
+| `strokeWidth` | `number` | `0.5` | 描边宽度 |
+| `hoverEffect` | `boolean` | `true` | 悬停高亮 |
+| `clickEffect` | `boolean` | `false` | 点击选中 |
+| `showLabel` | `boolean` | `false` | 是否显示标签 |
+| `labelField` | `string` | — | 标签显示字段 |
+| `labelColor` | `string` | `'#333'` | 标签颜色 |
+| `labelSize` | `number` | `12` | 标签字号 |
+
+**内置常量：** `H3_SEQUENTIAL_COLORS = ['#dbeafe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb']`
+
+> **详细文档：** [h3-layer.md](h3-layer.md)
 
 ## 相关文档
 

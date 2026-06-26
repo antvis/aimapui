@@ -100,6 +100,41 @@ terrain → 'terrain'
 const { GaodeMap } = await import('@antv/l7-maps');
 ```
 
+## 外部引擎注入（v0.3.1+）
+
+当 `MapSchema.engine` 存在时，`createBasemap()` 会跳过动态 import，直接使用传入的构造函数创建地图实例：
+
+```ts
+// 内部逻辑
+if (schema.engine) {
+  return new schema.engine({ ...commonOptions, style, token });
+}
+```
+
+这使得地图实例可以同步创建，适用于以下场景：
+
+| 场景 | 说明 |
+|------|------|
+| SSR / Next.js | 避免动态 import 在服务端的兼容问题 |
+| 微前端 | 主应用已加载底图引擎，子应用直接复用 |
+| 构建工具限制 | 部分打包器对动态 import 子路径支持不完善 |
+| 测试环境 | 方便 mock 地图引擎 |
+
+使用示例：
+
+```tsx
+import { GaodeMap } from '@antv/l7-maps/gaode';
+import { Mapbox } from '@antv/l7-maps/mapbox';
+
+// 高德
+<AiMap map={{ engine: GaodeMap, token: 'YOUR_TOKEN', center: [116, 39], zoom: 10 }} />
+
+// Mapbox
+<AiMap map={{ engine: Mapbox, token: 'YOUR_TOKEN', style: 'dark' }} />
+```
+
+> **注意：** `engine` 是构造函数引用，不可 JSON 序列化，因此仅适用于组件化模式，不适用于 Schema 模式（JSON 配置）。
+
 ## 相关文档
 
 - [aimap-container.md](aimap-container.md) — AiMap 容器组件

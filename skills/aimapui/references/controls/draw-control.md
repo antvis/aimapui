@@ -191,4 +191,3 @@ drawRef.current?.selectFeature(featureId);
 ## 相关文档
 
 - [controls.md](controls.md) — 所有控件概览
-- [draw-geometry.md](../utils/draw-geometry.md) — 绘制几何工具函数

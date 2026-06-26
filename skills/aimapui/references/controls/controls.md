@@ -246,6 +246,40 @@ import { ImageCalibrationControl } from '@antv/aimapui';
 | `onImageLoad` | `(dims: { width, height }) => void` | — | 图片加载完成回调 |
 | `onClear` | `() => void` | — | 清除回调 |
 
+## AnnotationControl — 标注控件
+
+默认位置：`topright`，支持 7 种标注工具（标记/荧光笔/文本/便签/链接/图片/视频），遵循 Material Design 3 风格。
+
+**详细文档：** [annotation-control.md](annotation-control.md)
+
+```tsx
+import { AnnotationControl } from '@antv/aimapui';
+
+<AnnotationControl
+  position="topright"
+  tools={['marker', 'highlighter', 'text', 'note', 'link', 'image', 'video']}
+  onAnnotationCreate={(feature) => console.log('新建:', feature)}
+  onChange={(features) => console.log('标注列表:', features)}
+/>
+```
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'topright'` | 控件位置 |
+| `tools` | `AnnotationToolMode[]` | 全部工具 | 需要显示的工具列表 |
+| `defaultFeatures` | `AnnotationFeature[]` | — | 初始标注（非受控） |
+| `features` | `AnnotationFeature[]` | — | 标注列表（受控模式） |
+| `styles` | `AnnotationStyleConfig` | — | 各工具的默认样式 |
+| `onUpload` | `(file, type) => Promise<string>` | — | 图片/视频上传回调 |
+| `onAnnotationCreate` | `(feature) => void` | — | 创建标注回调 |
+| `onAnnotationUpdate` | `(feature) => void` | — | 更新标注回调 |
+| `onAnnotationDelete` | `(feature) => void` | — | 删除标注回调 |
+| `onAnnotationSelect` | `(feature \| null) => void` | — | 选中标注回调 |
+| `onModeChange` | `(mode) => void` | — | 模式切换回调 |
+| `onChange` | `(features) => void` | — | 标注列表变化回调 |
+
+标注工具：`marker`（标记）、`highlighter`（荧光笔）、`text`（文本）、`note`（便签）、`link`（链接）、`image`（图片）、`video`（视频）、`select`（选择）。
+
 ## ControlContainer — 控件容器
 
 组件化模式下自动包裹，也可以手动使用：
