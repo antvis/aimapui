@@ -103,6 +103,12 @@ export interface RouteLayerProps {
   endColor?: string;
   /** 是否显示途经点序号，默认 true */
   showStopIndex?: boolean;
+  /** 是否显示途经点名称，默认 true */
+  showStopName?: boolean;
+  /** 名称文字颜色，默认 '#334155' */
+  stopNameColor?: string;
+  /** 名称文字大小，默认 11 */
+  stopNameSize?: number;
   /** 停留点渲染模式，默认 'point' */
   stopRenderer?: 'point' | 'marker' | 'icon';
   /** marker 模式下的默认变体，默认 'circle' */
@@ -166,6 +172,9 @@ export function RouteLayer({
   stopColor,
   endColor = '#10b981',
   showStopIndex = true,
+  showStopName = true,
+  stopNameColor = '#334155',
+  stopNameSize = 11,
   stopRenderer = 'point',
   stopMarkerVariant = 'circle',
   stopIconMap,
@@ -396,6 +405,24 @@ export function RouteLayer({
         />
       )}
 
+      {stopsWithIndex.length > 0 && stopRenderer === 'point' && showStopName && (
+        <PointLayer
+          source={stopsWithIndex}
+          sourceConfig={{ x: 'lng', y: 'lat' }}
+          shapeField="name"
+          shapeValues="text"
+          color={stopNameColor}
+          size={stopNameSize}
+          style={{
+            textAnchor: 'top',
+            textOffset: [0, stopSize / 2 + 4],
+            stroke: '#ffffff',
+            strokeWidth: 2,
+            fontWeight: '500',
+          }}
+        />
+      )}
+
       {stopsWithIndex.length > 0 && stopRenderer === 'icon' && resolvedStopIconMap && (
         <IconLayer
           source={stopsWithIndex}
@@ -414,6 +441,24 @@ export function RouteLayer({
           labelHaloColor="rgba(18, 28, 42, 0.35)"
           labelHaloWidth={2}
           onClick={handleStopClickInternal}
+        />
+      )}
+
+      {stopsWithIndex.length > 0 && stopRenderer === 'icon' && showStopName && (
+        <PointLayer
+          source={stopsWithIndex}
+          sourceConfig={{ x: 'lng', y: 'lat' }}
+          shapeField="name"
+          shapeValues="text"
+          color={stopNameColor}
+          size={stopNameSize}
+          style={{
+            textAnchor: 'top',
+            textOffset: [0, (stopIconAnchor === 'bottom' ? stopIconSize : 0) + 14],
+            stroke: '#ffffff',
+            strokeWidth: 2,
+            fontWeight: '500',
+          }}
         />
       )}
 
@@ -445,6 +490,24 @@ export function RouteLayer({
           />
         );
       })}
+
+      {stopsWithIndex.length > 0 && stopRenderer === 'marker' && showStopName && (
+        <PointLayer
+          source={stopsWithIndex}
+          sourceConfig={{ x: 'lng', y: 'lat' }}
+          shapeField="name"
+          shapeValues="text"
+          color={stopNameColor}
+          size={stopNameSize}
+          style={{
+            textAnchor: 'top',
+            textOffset: [0, 18],
+            stroke: '#ffffff',
+            strokeWidth: 2,
+            fontWeight: '500',
+          }}
+        />
+      )}
       {/* 内置 Popup — 点击途经点时展示 */}
       {showStopPopup && popupState.visible && (
         <Popup
