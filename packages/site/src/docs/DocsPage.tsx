@@ -281,7 +281,8 @@ function docsMarkdownToHtml(md: string, isDark: boolean): string {
     const language = lang || 'tsx';
     const highlighted = highlightCode(text, language, isDark);
     // mapcn 风格：无语言标签条；右上角悬浮复制按钮；统一 muted 底色；单层边框
-    const encoded = encodeURIComponent(text);
+    // 使用 base64 编码避免 HTML 属性中的特殊字符问题
+    const encoded = btoa(unescape(encodeURIComponent(text)));
     return `<div class="docs-code-block" data-code="${encoded}" style="position:relative;margin:18px 0;border-radius:8px;overflow:hidden;border:1px solid ${C.codeBorder};background:${C.codeBg}"><button type="button" class="docs-code-copy" aria-label="复制代码" style="position:absolute;top:8px;right:8px;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:6px;border:1px solid ${C.codeBorder};background:${isDark ? 'rgba(13,17,23,0.7)' : 'rgba(255,255,255,0.7)'};color:${C.text2};cursor:pointer;backdrop-filter:blur(4px);transition:color 120ms,background 120ms;opacity:0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button><pre style="margin:0;padding:16px 18px;overflow-x:auto;tab-size:2"><code style="font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;font-size:13px;line-height:1.7;display:block;background:transparent">${highlighted}</code></pre></div>`;
   };
 
@@ -509,20 +510,45 @@ export default function DocsPage({ theme, onToggleTheme, onNavigateHome, onNavig
       if (!btn) return;
       const block = btn.closest('.docs-code-block') as HTMLElement | null;
       const encoded = block?.getAttribute('data-code') ?? '';
-      const text = decodeURIComponent(encoded);
-      navigator.clipboard.writeText(text).then(() => {
-        btn.dataset.copied = '1';
-        const original = btn.innerHTML;
-        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-        btn.style.color = '#16a34a';
-        btn.style.opacity = '1';
-        window.setTimeout(() => {
-          btn.dataset.copied = '';
-          btn.innerHTML = original;
-          btn.style.color = '';
-          btn.style.opacity = '0';
-        }, 1400);
-      });
+      try {
+        const text = decodeURIComponent(escape(atob(encoded)));
+        navigator.clipboard.writeText(text).then(() => {
+          btn.dataset.copied = '1';
+          const original = btn.innerHTML;
+          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+          btn.style.color = '#16a34a';
+          btn.style.opacity = '1';
+          window.setTimeout(() => {
+            btn.dataset.copied = '';
+            btn.innerHTML = original;
+            btn.style.color = '';
+            btn.style.opacity = '0';
+          }, 1400);
+        }).catch(() => {
+          // fallback for non-secure contexts
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.style.position = 'fixed';
+          textarea.style.opacity = '0';
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          btn.dataset.copied = '1';
+          const original = btn.innerHTML;
+          btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+          btn.style.color = '#16a34a';
+          btn.style.opacity = '1';
+          window.setTimeout(() => {
+            btn.dataset.copied = '';
+            btn.innerHTML = original;
+            btn.style.color = '';
+            btn.style.opacity = '0';
+          }, 1400);
+        });
+      } catch {
+        // decoding failed, ignore
+      }
     };
 
     root.addEventListener('mouseover', handleEnter);

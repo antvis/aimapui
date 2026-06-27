@@ -268,7 +268,8 @@ export function ImageCropModal({
           background: '#fff',
           borderRadius: 10,
           padding: 0,
-          width: 680,
+          width: '90vw',
+          maxWidth: 900,
           maxHeight: '90vh',
           overflow: 'hidden',
           boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
@@ -306,7 +307,7 @@ export function ImageCropModal({
         </div>
 
         {/* 内容区 */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden' }}>
           {/* 左侧：裁剪画布 */}
           <div
             ref={canvasRef}
@@ -317,8 +318,8 @@ export function ImageCropModal({
               justifyContent: 'center',
               padding: 16,
               background: '#f9fafb',
-              overflow: 'hidden',
-              minHeight: 300,
+              overflow: 'auto',
+              position: 'relative',
             }}
           >
             <div style={{ position: 'relative', lineHeight: 0 }}>

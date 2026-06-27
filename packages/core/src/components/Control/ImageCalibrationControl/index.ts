@@ -12,4 +12,6 @@ export type {
   TileResult,
   CropRegion,
   PreprocessResult,
+  RegisteredImage,
+  ImageListAction,
 } from './image-calibration-types';

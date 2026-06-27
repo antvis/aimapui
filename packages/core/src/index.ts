@@ -152,7 +152,7 @@ export type { MapThemeControlProps, ThemeOption } from './components/Control/Map
 export { MouseLocationControl } from './components/Control/MouseLocationControl';
 export type { MouseLocationControlProps } from './components/Control/MouseLocationControl';
 export { ExportImageControl } from './components/Control/ExportImageControl';
-export type { ExportImageControlProps } from './components/Control/ExportImageControl';
+export type { ExportImageControlProps, ExportImageHandle } from './components/Control/ExportImageControl';
 export { LayerSwitchControl } from './components/Control/LayerSwitchControl';
 export type { LayerSwitchControlProps, LayerItem } from './components/Control/LayerSwitchControl';
 export { LegendControl } from './components/Control/LegendControl';

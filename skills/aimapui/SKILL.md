@@ -1,15 +1,10 @@
 ---
 name: aimapui
 description: >
-  Build React map visualizations with @antv/aimapui, a Schema-driven component library on L7.
-  Use when: (1) Creating map applications with AiMap container, (2) Adding layers (Point/Line/Polygon/Heatmap/Raster/Image),
-  (3) Using composite layers (Bubble/Route/ArcFlow/Icon/Glyph/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster/H3),
-  (4) Configuring visual mappings (color/size/shape), (5) Adding controls, legends, interactions (Marker/Popup/Tooltip),
-  (6) Schema/JSON-driven map generation for AI, (7) Mobile-responsive map layouts, (8) Maki icon utilities for map markers,
-  (9) Interactive drawing/editing with DrawControl (point/line/polygon/rectangle/circle),
-  (10) Image georeferencing with ImageCalibrationControl (upload, corner drag, perspective transform, tile export, ZIP download),
-  (11) Map annotation with AnnotationControl (marker/highlighter/text/note/link/image/video).
-  Triggers: "aimapui", "AiMap", "地图可视化", "map layer", "图层", "Schema 地图", "L7 React", "Maki", "弧线流向", "行政区划", "ChinaDistrict", "DrawControl", "绘制控件", "ImageCalibrationControl", "图片配准", "地图校准", "georeferencing", "image calibration", "切片导出", "tile export", "H3", "H3Layer", "六边形", "hexagon grid", "AnnotationControl", "标注控件", "标注", "annotation".
+  React map visualization with @antv/aimapui (Schema-driven, L7-based). Use for AiMap, base layers (Point/Line/Polygon/Heatmap/Raster/Image),
+  composite layers (Bubble/Route/ArcFlow/Glyph/Icon/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster/H3),
+  controls, legends, interactions (Marker/Popup/Tooltip), Schema/AI-driven maps, DrawControl, ImageCalibrationControl, AnnotationControl.
+  Triggers: aimapui, AiMap, 地图, map layer, 图层, Schema, L7, Maki, 弧线, 行政区划, ChinaDistrict, DrawControl, ImageCalibration, 图片配准, 地图校准, H3, H3Layer, 六边形, AnnotationControl, 标注.
 version: "0.3.1"
 ---
 
@@ -82,18 +77,21 @@ import '@antv/aimapui/style.css';
 | EventBus | [event-bus.md](references/core/event-bus.md) | Cross-component events |
 | Schema system | [schema-system.md](references/schema/schema-system.md) | Schema/AI-driven maps |
 | Data sources | [data-source.md](references/data/data-source.md) | JSON/GeoJSON/CSV/Raster data |
-| Base layers | [base-layers.md](references/layers/base-layers.md) | Point/Line/Polygon/Heatmap/Raster/Image |
-| Composite layers | [composite-layers.md](references/composite/composite-layers.md) | Bubble/Route/Icon/Glyph/Choropleth/Flow |
+| Base layers | [index.md](references/layers/index.md) | Point/Line/Polygon/Heatmap/Raster/Image (6 types) |
+| Base layers quick ref | [base-layers.md](references/layers/base-layers.md) | Quick reference with examples |
+| Composite layers | [composite/index.md](references/composite/index.md) | Bubble/Route/ArcFlow/Icon/Glyph/Choropleth/Flow index |
 | H3Layer | [h3-layer.md](references/composite/h3-layer.md) | H3 hexagonal grid visualization |
-| Color/Size/Shape mapping | [mapping.md](references/visual/mapping.md) | Data-driven visuals |
-| Style config | [style.md](references/visual/style.md) | Opacity/blend/style passthrough |
-| Marker/Popup/Tooltip | [interaction.md](references/interaction/interaction.md) | Interactive overlays |
+| Color/Size/Shape mapping | [mapping.md](references/layers/mapping.md) | Data-driven visuals |
+| Style config | [style.md](references/layers/style.md) | Opacity/blend/style passthrough |
+| Interactions | [index.md](references/interaction/index.md) | Marker/Popup/Tooltip/Maki icons (4 types) |
+| Interactions quick ref | [interaction.md](references/interaction/interaction.md) | Quick reference with examples |
 | Controls | [controls.md](references/controls/controls.md) | Zoom/Scale/Fullscreen/etc. |
 | DrawControl | [draw-control.md](references/controls/draw-control.md) | Interactive drawing/editing (point/line/polygon/rectangle/circle) |
 | ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | Image georeferencing: upload, corner drag, perspective transform, tile export, ZIP download |
 | AnnotationControl | [annotation-control.md](references/controls/annotation-control.md) | Map annotation: marker/highlighter/text/note/link/image/video |
 | Legends | [legend-components.md](references/legend/legend-components.md) | Map legends |
-| Mobile components | [mobile-components.md](references/mobile/mobile-components.md) | Mobile-responsive UI |
+| Mobile components | [index.md](references/mobile/index.md) | MobileToolbar/BottomSheet/MobileSheetLegend/SearchBar |
+| Mobile quick ref | [mobile-components.md](references/mobile/mobile-components.md) | Quick reference with examples |
 
 ## Key Patterns
 

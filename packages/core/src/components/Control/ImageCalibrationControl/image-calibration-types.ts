@@ -126,17 +126,29 @@ export interface ImageCalibrationControlProps {
   /** 额外 style */
   style?: React.CSSProperties;
   /** 角点变化回调 */
-  onCornersChange?: (corners: GeoCorners) => void;
+  onCornersChange?: (imageId: string, corners: GeoCorners) => void;
   /** 确认配准回调 */
-  onCalibrate?: (result: CalibrationResult) => void;
+  onCalibrate?: (imageId: string, result: CalibrationResult) => void;
   /** 导出完成回调 */
-  onExport?: (result: ExportResult) => void;
+  onExport?: (imageId: string, result: ExportResult) => void;
   /** 图片加载完成回调 */
-  onImageLoad?: (dimensions: { width: number; height: number }) => void;
+  onImageLoad?: (imageId: string, dimensions: { width: number; height: number }) => void;
   /** 裁剪预处理完成回调，返回裁剪后的尺寸和可选的初始坐标 */
-  onPreprocess?: (result: { croppedDimensions: { width: number; height: number }; initialCorners: GeoCorners | null }) => void;
+  onPreprocess?: (imageId: string, result: { croppedDimensions: { width: number; height: number }; initialCorners: GeoCorners | null }) => void;
   /** 清除回调 */
-  onClear?: () => void;
+  onClear?: (imageId: string) => void;
+  /** 图片列表变化回调 */
+  onImagesChange?: (images: RegisteredImage[]) => void;
+  /** 切换图片回调 */
+  onImageSwitch?: (imageId: string) => void;
+  /** 图片重命名回调 */
+  onImageRename?: (imageId: string, oldName: string, newName: string) => void;
+  /** 图片列表拖拽排序回调 */
+  onImagesReorder?: (images: RegisteredImage[]) => void;
+  /** 上传新图片回调 */
+  onImageAdd?: (image: RegisteredImage) => void;
+  /** 删除图片回调 */
+  onImageRemove?: (imageId: string) => void;
 }
 
 /** 命令式 Handle */
@@ -146,7 +158,40 @@ export interface ImageCalibrationHandle {
   setImage(source: ImageSource, initialCorners?: GeoCorners | null): void;
   exportImage(config?: ExportConfig): Promise<ExportResult>;
   clear(): void;
+  /** 获取所有已注册的图片列表 */
+  getImages(): RegisteredImage[];
+  /** 切换激活图片 */
+  switchImage(id: string): void;
+  /** 删除指定图片 */
+  deleteImage(id: string): void;
+  /** 获取当前激活图片 ID */
+  getActiveImageId(): string | null;
 }
+
+/** 单张配准图片（多图管理） */
+export interface RegisteredImage {
+  id: string;
+  name: string;
+  /** 图片来源（File 或 URL），用于重新加载 */
+  source: ImageSource;
+  /** 缩略图 URL */
+  thumbnailUrl: string;
+  /** 图片尺寸 */
+  dimensions: { width: number; height: number } | null;
+  /** 当前阶段 */
+  phase: CalibrationPhase;
+  /** 当前角点 */
+  corners: GeoCorners | null;
+  /** 透明度 0-1 */
+  opacity: number;
+  /** 需要释放的 ObjectURL */
+  revokeUrl: (() => void) | null;
+  /** 裁剪产生的额外 URL 需要释放 */
+  croppedRevokeUrl: (() => void) | null;
+}
+
+/** 列表操作类型 */
+export type ImageListAction = 'opacity' | 'place-to-view' | 'scale-to' | 'calibrate' | 're-edit' | 'export' | 'delete';
 
 /** 内部状态 */
 export interface CalibrationState {
