@@ -47,10 +47,33 @@ const skillFeatures = [
 function CopyButton({ text, c }: { text: string; c: Record<string, string> }) {
   const [copied, setCopied] = React.useState(false);
   const handleClick = () => {
-    navigator.clipboard.writeText(text).then(() => {
+    const doCopy = () => {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1500);
-    });
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(doCopy).catch(() => {
+        // clipboard API 失败时 fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try { document.execCommand('copy'); doCopy(); } catch { /* ignore */ }
+        document.body.removeChild(textarea);
+      });
+    } else {
+      // 不支持 clipboard API，直接 fallback
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try { document.execCommand('copy'); doCopy(); } catch { /* ignore */ }
+      document.body.removeChild(textarea);
+    }
   };
   return (
     <button
