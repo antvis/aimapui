@@ -2,6 +2,33 @@
 
 省市区三级下钻 + 业务数据关联色阶映射。通过 Join 字段将业务数据与区划形状绑定。
 
+## Examples
+
+```tsx
+import { ChinaDistrict, ADMIN_SEQUENTIAL_COLORS } from '@antv/aimapui';
+
+// 按名称匹配业务数据
+<ChinaDistrict
+  data={[
+    { name: '广东省', value: 145847 },
+    { name: '江苏省', value: 128222 },
+  ]}
+  joinField="name"          // GeoJSON feature.properties 中的匹配字段
+  dataJoinField="name"      // 业务数据中的匹配字段
+  valueField="value"        // 用于色阶映射的数值字段
+  colors={['#DBEAFE', '#3B82F6', '#1E3A8A']}
+  onRegionClick={(feature, level) => console.log(feature, level)}
+/>
+
+// 按行政区划编码匹配
+<ChinaDistrict
+  data={[{ code: '440000', amount: 8900 }]}
+  joinField="adcode"
+  dataJoinField="code"
+  valueField="amount"
+/>
+```
+
 ## Props
 
 | Prop | Type | Default | Description |
@@ -42,33 +69,6 @@
 | `drillUp()` | 上钻一级 |
 | `resetDrill()` | 重置下钻路径回到省级 |
 | `getCurrentLevel()` | 获取当前层级 |
-
-## Examples
-
-```tsx
-import { ChinaDistrict, ADMIN_SEQUENTIAL_COLORS } from '@antv/aimapui';
-
-// 按名称匹配业务数据
-<ChinaDistrict
-  data={[
-    { name: '广东省', value: 145847 },
-    { name: '江苏省', value: 128222 },
-  ]}
-  joinField="name"          // GeoJSON feature.properties 中的匹配字段
-  dataJoinField="name"      // 业务数据中的匹配字段
-  valueField="value"        // 用于色阶映射的数值字段
-  colors={['#DBEAFE', '#3B82F6', '#1E3A8A']}
-  onRegionClick={(feature, level) => console.log(feature, level)}
-/>
-
-// 按行政区划编码匹配
-<ChinaDistrict
-  data={[{ code: '440000', amount: 8900 }]}
-  joinField="adcode"
-  dataJoinField="code"
-  valueField="amount"
-/>
-```
 
 ## GeoJSON Matchable Fields
 
