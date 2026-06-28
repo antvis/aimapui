@@ -2,6 +2,16 @@
 
 图例独立于地图渲染，可放在地图容器内或外部任意位置。支持交互回调。
 
+所有图例组件共享 `className` 和 `interaction` props。
+
+```ts
+interface LegendInteractionCallbacks {
+  onHover?: (index: number) => void;    // 悬停高亮，-1 表示取消
+  onToggle?: (index: number) => void;   // 点击切换显隐
+  onBrush?: (range: [number, number]) => void;  // 范围刷选
+}
+```
+
 ## LegendCategories — 分类图例
 
 ```tsx
@@ -20,6 +30,16 @@ import { LegendCategories } from '@antv/aimapui';
 />
 ```
 
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | — | 图例标题 |
+| `labels` | `string[]` | **必填** | 分类标签 |
+| `colors` | `string[]` | **必填** | 分类颜色 |
+| `swatchShape` | `'square' \| 'circle'` | `'square'` | 色块形状 |
+| `grid` | `boolean` | `false` | 是否使用两列网格布局 |
+| `className` | `string` | — | CSS 类名 |
+| `interaction` | `LegendInteractionCallbacks` | — | 交互回调 |
+
 ## LegendRamp — 渐变图例
 
 ```tsx
@@ -36,6 +56,17 @@ import { LegendRamp } from '@antv/aimapui';
 />
 ```
 
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | — | 图例标题 |
+| `labels` | `string[]` | **必填** | 标签文字 |
+| `colors` | `string[]` | **必填** | 渐变颜色 |
+| `isContinuous` | `boolean` | `false` | 连续渐变 vs 分段色块 |
+| `showTicks` | `boolean` | — | 是否显示刻度线 |
+| `brushable` | `boolean` | — | 是否启用范围刷选 |
+| `className` | `string` | — | CSS 类名 |
+| `interaction` | `LegendInteractionCallbacks` | — | 交互回调 |
+
 ## LegendDiverging — 发散图例
 
 ```tsx
@@ -48,6 +79,15 @@ import { LegendDiverging } from '@antv/aimapui';
 />
 ```
 
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | — | 图例标题 |
+| `colors` | `string[]` | **必填** | 渐变色列表（如 红→灰→绿） |
+| `labels` | `[string, string]` | **必填** | 左端/右端标签 |
+| `middleLabel` | `string` | — | 中间值标签 |
+| `className` | `string` | — | CSS 类名 |
+| `interaction` | `LegendInteractionCallbacks` | — | 交互回调 |
+
 ## LegendThreshold — 阈值图例
 
 ```tsx
@@ -59,6 +99,14 @@ import { LegendThreshold } from '@antv/aimapui';
   colors={['#93c5fd', '#fde68a', '#f97316', '#ef4444']}
 />
 ```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | — | 图例标题 |
+| `ranges` | `[number\|string, number\|string][]` | **必填** | 区间定义 [min, max)，从上到下 |
+| `colors` | `string[]` | **必填** | 每个区间对应的颜色 |
+| `className` | `string` | — | CSS 类名 |
+| `interaction` | `LegendInteractionCallbacks` | — | 交互回调 |
 
 ## LegendSize — 大小图例
 
@@ -76,6 +124,14 @@ import { LegendSize } from '@antv/aimapui';
 />
 ```
 
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | — | 图例标题 |
+| `fillColor` | `string` | — | 填充色 |
+| `items` | `{ size: number; label: string }[]` | **必填** | 大小项（圆直径 px + 标签） |
+| `className` | `string` | — | CSS 类名 |
+| `interaction` | `LegendInteractionCallbacks` | — | 交互回调 |
+
 ## LegendLineWidth — 线宽图例
 
 ```tsx
@@ -92,6 +148,14 @@ import { LegendLineWidth } from '@antv/aimapui';
 />
 ```
 
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | — | 图例标题 |
+| `color` | `string` | — | 线条颜色 |
+| `items` | `{ width: number; label: string }[]` | **必填** | 线宽项 |
+| `className` | `string` | — | CSS 类名 |
+| `interaction` | `LegendInteractionCallbacks` | — | 交互回调 |
+
 ## LegendProportion — 比例圆图例
 
 ```tsx
@@ -103,6 +167,14 @@ import { LegendProportion } from '@antv/aimapui';
   fillColor="#2563eb"
 />
 ```
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | — | 图例标题 |
+| `labels` | `[number, number][]` | **必填** | 比例区间 |
+| `fillColor` | `string` | — | 填充色 |
+| `className` | `string` | — | CSS 类名 |
+| `interaction` | `LegendInteractionCallbacks` | — | 交互回调 |
 
 ## LegendIcon — 图标图例
 
@@ -119,17 +191,12 @@ import { LegendIcon } from '@antv/aimapui';
 />
 ```
 
-## 交互回调
-
-```typescript
-interface LegendInteractionCallbacks {
-  onHover?: (index: number) => void;    // 悬停高亮，-1 表示取消
-  onToggle?: (index: number) => void;   // 点击切换显隐
-  onBrush?: (range: [number, number]) => void;  // 范围刷选
-}
-```
-
-所有图例组件通过 `interaction` prop 传入。
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `title` | `string` | — | 图例标题 |
+| `items` | `{ icon: string; label: string }[]` | **必填** | 图标项 |
+| `className` | `string` | — | CSS 类名 |
+| `interaction` | `LegendInteractionCallbacks` | — | 交互回调 |
 
 ## Schema 模式使用
 

@@ -82,7 +82,37 @@ interface RouteQueryResult {
 
 ## Props
 
-`path`, `segments`, `stops`, `routeType`, `onRouteQuery`, `onRouteResult`, `color`, `lineWidth`, `opacity`, `glow`, `animate`, `animateSpeed`, `stopSize`, `stopColor`, `endColor`, `showStopIndex`, `stopRenderer`, `activeColor`, `onPathClick`, `onStopClick`
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `path` | `[number, number][]` | — | 路径坐标 — 完整线坐标 |
+| `segments` | `RouteSegment[]` | — | 分段路径（优先级高于 path） |
+| `stops` | `RouteStop[]` | `[]` | 途经点列表 |
+| `routeType` | `RouteType` | `'straight'` | 路径类型：straight/arc/walking/cycling/driving/transit |
+| `onRouteQuery` | `(params) => Promise<RouteQueryResult>` | — | 路线查询回调（walking/cycling/driving/transit 时必填） |
+| `onRouteResult` | `(result) => void` | — | 路线查询完成回调 |
+| `color` | `string` | `'#2563eb'` | 路径颜色 |
+| `lineWidth` | `number` | `4` | 路径宽度 |
+| `opacity` | `number` | `0.9` | 路径透明度 |
+| `glow` | `boolean` | `true` | 是否显示发光效果 |
+| `animate` | `boolean` | `false` | 是否启用流动动画 |
+| `animateSpeed` | `number` | `1` | 动画速度 |
+| `stopSize` | `number` | `14` | 途经点大小 |
+| `stopColor` | `string` | 跟随路径色 | 途经点颜色 |
+| `endColor` | `string` | `'#10b981'` | 终点颜色 |
+| `showStopIndex` | `boolean` | `true` | 是否显示途经点序号 |
+| `showStopName` | `boolean` | `true` | 是否显示途经点名称 |
+| `stopNameColor` | `string` | `'#334155'` | 名称文字颜色 |
+| `stopNameSize` | `number` | `11` | 名称文字大小 |
+| `stopRenderer` | `'point' \| 'marker' \| 'icon'` | `'point'` | 停留点渲染模式 |
+| `stopMarkerVariant` | `MarkerVariant` | `'circle'` | marker 模式下的默认变体 |
+| `stopIconMap` | `Record<string, string>` | — | icon 模式下的图标资源映射 |
+| `stopIconField` | `string` | `'iconValue'` | icon 模式下的图标字段名 |
+| `stopIconSize` | `number` | `16` | icon 模式下的图标尺寸 |
+| `stopIconAnchor` | `IconAnchor` | `'bottom'` | icon 模式下的图标锚点 |
+| `showStopPopup` | `boolean` | `true` | 点击途经点时是否显示 Popup |
+| `activeColor` | `string` | `'#fbbf24'` | hover 高亮色 |
+| `onPathClick` | `(payload) => void` | — | 路径点击回调 |
+| `onStopClick` | `(payload) => void` | — | 途经点点击回调 |
 
 ## Types
 
