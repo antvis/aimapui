@@ -71,6 +71,12 @@ import { ZoomControl } from '@antv/aimapui';
 <ScaleControl position="bottomleft" />
 ```
 
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'bottomleft'` | 控件位置 |
+| `maxWidth` | `number` | `100` | 比例尺最大宽度（px） |
+| `unit` | `'metric' \| 'imperial' \| 'nautical'` | `'metric'` | 单位制 |
+
 ## FullscreenControl — 全屏控件
 
 默认位置：`topright`
@@ -79,6 +85,10 @@ import { ZoomControl } from '@antv/aimapui';
 <FullscreenControl position="topright" />
 ```
 
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'topright'` | 控件位置 |
+
 ## GeoLocateControl — 定位控件
 
 默认位置：`topright`
@@ -86,6 +96,10 @@ import { ZoomControl } from '@antv/aimapui';
 ```tsx
 <GeoLocateControl position="topright" />
 ```
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'topright'` | 控件位置 |
 
 ## MapThemeControl — 主题切换
 
@@ -112,6 +126,10 @@ import { MapThemeControl, GAODE_THEME_PRESETS, OPENFREEMAP_THEME_PRESETS } from 
 <MouseLocationControl position="bottomright" />
 ```
 
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'bottomright'` | 控件位置 |
+
 ## ExportImageControl — 截图控件
 
 默认位置：`topright`
@@ -119,6 +137,10 @@ import { MapThemeControl, GAODE_THEME_PRESETS, OPENFREEMAP_THEME_PRESETS } from 
 ```tsx
 <ExportImageControl position="topright" />
 ```
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'topright'` | 控件位置 |
 
 ## LayerSwitchControl — 图层开关
 

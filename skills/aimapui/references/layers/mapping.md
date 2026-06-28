@@ -212,7 +212,7 @@ const schema: AiMapSchema = {
 ## 相关文档
 
 - [index.md](index.md) — 基础图层概览
-- [base-layers.md](base-layers.md) — 基础图层快速参考
+- [index.md](index.md) — 基础图层概览
 - [style.md](style.md) — 样式配置
 - [../composite/index.md](../composite/index.md) — 复合图层
 - [../schema/schema-system.md](../schema/schema-system.md) — Schema 完整定义

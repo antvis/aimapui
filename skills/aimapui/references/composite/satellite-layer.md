@@ -47,6 +47,8 @@ import { SATELLITE_PROVIDER_NAMES } from '@antv/aimapui';
 
 ## 瓦片源
 
+> ⚠️ 以下瓦片 URL 仅供参考，实际使用请确认服务商最新 API 文档，URL 格式可能随时变更。
+
 | 提供商 | 瓦片 URL |
 |--------|----------|
 | 高德 | `https://webst0{1-4}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}` |

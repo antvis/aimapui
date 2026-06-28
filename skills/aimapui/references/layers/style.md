@@ -129,5 +129,5 @@ responsive: {
 
 - [mapping.md](mapping.md) — 视觉映射
 - [index.md](index.md) — 基础图层概览
-- [base-layers.md](base-layers.md) — 基础图层快速参考
+- [index.md](index.md) — 基础图层概览
 - [../schema/schema-system.md](../schema/schema-system.md) — Schema 完整定义

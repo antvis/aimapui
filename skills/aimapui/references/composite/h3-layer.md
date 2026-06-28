@@ -87,5 +87,5 @@ import { H3_SEQUENTIAL_COLORS } from '@antv/aimapui';
 
 ## 相关文档
 
-- [composite-layers.md](composite-layers.md) — 复合图层概览
+- [index.md](index.md) — 复合图层概览
 - [basemap-factory.md](../core/basemap-factory.md) — 底图工厂

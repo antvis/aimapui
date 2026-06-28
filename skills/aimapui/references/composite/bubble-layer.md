@@ -24,6 +24,9 @@ import { BubbleLayer, BUBBLE_SIZE_LEVELS } from '@antv/aimapui';
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
+| `source` | `object[] \| GeoJSON \| string` | **必填** | 数据源 |
+| `sourceType` | `string` | `'json'` | 数据类型 |
+| `sourceConfig` | `{ x?, y? }` | — | 字段映射（JSON 数据时指定经纬度字段名） |
 | `labelField` | `string` | `'name'` | 标签字段 |
 | `labelColor` | `string` | `'#0b3b8c'` | 标签颜色 |
 | `labelSize` | `number` | `12` | 标签字号 |

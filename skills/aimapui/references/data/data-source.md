@@ -157,6 +157,6 @@ sourceConfig: {
 
 ## 相关文档
 
-- [base-layers.md](../layers/base-layers.md) — 基础图层
-- [mapping.md](../visual/mapping.md) — 视觉映射
+- [index.md](../layers/index.md) — 基础图层概览
+- [mapping.md](../layers/mapping.md) — 视觉映射
 - [schema-system.md](../schema/schema-system.md) — Schema 完整定义

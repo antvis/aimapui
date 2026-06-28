@@ -90,9 +90,3 @@ interface ArcFlowDataItem {
 | `onArcClick` | `(payload) => void` | — | 弧线点击事件 |
 | `onNodeClick` | `(payload) => void` | — | 节点点击事件 |
 | `style` | `Record<string, unknown>` | — | 额外 style 透传 |
-| `showTooltip` | `boolean` | `true` | hover 弧线显示 Tooltip |
-| `showNodePopup` | `boolean` | `true` | 点击节点显示 Popup |
-| `activeColor` | `string` | — | hover 高亮色 |
-| `onArcHover` | `(payload) => void` | — | 弧线 hover 事件 |
-| `onArcClick` | `(payload) => void` | — | 弧线点击事件 |
-| `onNodeClick` | `(payload) => void` | — | 节点点击事件 |
