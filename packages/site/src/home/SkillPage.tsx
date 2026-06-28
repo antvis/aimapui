@@ -44,6 +44,31 @@ const skillFeatures = [
 ];
 
 // ── Skill 文档浏览器子组件 ──
+function CopyButton({ text, c }: { text: string; c: Record<string, string> }) {
+  const [copied, setCopied] = React.useState(false);
+  const handleClick = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <button
+      onClick={handleClick}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4, height: 28, padding: '0 10px',
+        borderRadius: 6, border: `1px solid ${c.border}`, background: c.bg, color: c.fg,
+        fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all 150ms',
+      }}
+    >
+      <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+        {copied ? 'check' : 'content_copy'}
+      </span>
+      {copied ? '已复制' : '复制到 LLM'}
+    </button>
+  );
+}
+
 function SkillDocBrowser({ skillDocsMap, isDark, c }: { skillDocsMap: Record<string, string>; isDark: boolean; c: Record<string, string> }) {
   const [activeFile, setActiveFile] = React.useState('SKILL');
 
@@ -140,6 +165,10 @@ function SkillDocBrowser({ skillDocsMap, isDark, c }: { skillDocsMap: Record<str
       </div>
       {/* 右侧内容 */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
+        {/* 复制全文按钮 */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+          <CopyButton text={skillDocsMap[activeFile] ?? ''} c={c} />
+        </div>
         <style>{`
           .skill-doc-content h1 { font-size: 28px; font-weight: 700; margin: 0 0 16px; color: ${c.fg}; }
           .skill-doc-content h2 { font-size: 22px; font-weight: 600; margin: 24px 0 12px; color: ${c.fg}; }

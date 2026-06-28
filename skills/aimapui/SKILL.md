@@ -1,12 +1,12 @@
 ---
 name: aimapui
-description: React 地图可视化开发，基于 @antv/aimapui（Schema 驱动 + L7）。当用户需要创建地图、地图可视化、地理数据展示时，必须使用此 skill。覆盖 AiMap、6 种基础图层、12 种复合图层、13 种控件、交互组件（Marker/Popup/Tooltip/Maki）、8 种图例、移动端组件、Schema/AI 驱动地图。特殊控件：DrawControl（交互绘制）、ImageCalibrationControl（图片配准/地图校准）、AnnotationControl（标注）。关键词：aimapui, AiMap, 地图, 图层, L7, 行政区划, Maki, 弧线流向, H3, 图片配准, 标注控件.
-version: "0.3.1"
+description: React map visualization with @antv/aimapui. Schema-driven, L7-based.
+version: 0.3.1
 ---
 
 # aimapui
 
-React map visualization library built on L7. Supports both JSX component mode and Schema-driven mode.
+**触发条件：** 用户需要创建地图、地图可视化、地理数据展示时，必须使用此 skill。覆盖 AiMap 容器、6 种基础图层（Point/Line/Polygon/Heatmap/Raster/Image）、12 种复合图层（行政区划下钻/气泡/路径/弧线流向/图标/字标/聚合/蜂窝/填充/卫星/GeoTIFF/H3）、13 种控件。特殊控件：DrawControl（交互绘制）、ImageCalibrationControl（图片配准/地图校准）、AnnotationControl（标注）。
 
 ## Version
 
