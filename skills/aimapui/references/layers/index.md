@@ -2,16 +2,38 @@
 
 基础图层是直接映射到 L7 底层图层类的原子组件，每个图层类型对应一种数据可视化形式。
 
-## Available Layers
+## 图层列表
 
-| Layer | File | Description |
-|-------|------|-------------|
-| PointLayer | [point-layer.md](point-layer.md) | 点图层 — 散点、符号、文字标注 |
-| LineLayer | [line-layer.md](line-layer.md) | 线图层 — 路径、弧线、OD 流向 |
-| PolygonLayer | [polygon-layer.md](polygon-layer.md) | 面图层 — 区域填充、3D 挤出 |
-| HeatmapLayer | [heatmap-layer.md](heatmap-layer.md) | 热力图 — 密度热力、蜂窝聚合 |
-| RasterLayer | [raster-layer.md](raster-layer.md) | 栅格图层 — 瓦片地图、栅格数据 |
-| ImageLayer | [image-layer.md](image-layer.md) | 图片图层 — 图片叠层 |
+| Layer | 文档 | 默认 sourceType | 可用 Shape | 说明 |
+|-------|------|----------------|-----------|------|
+| PointLayer | [point-layer.md](point-layer.md) | `json` | circle, square, triangle, diamond, text, cylinder | 散点、符号、文字标注 |
+| LineLayer | [line-layer.md](line-layer.md) | `json` | line, arc, arc3d, greatcircle | 路径、弧线、OD 流向 |
+| PolygonLayer | [polygon-layer.md](polygon-layer.md) | `geojson` | fill, extrusion | 区域填充、3D 挤出 |
+| HeatmapLayer | [heatmap-layer.md](heatmap-layer.md) | `json` | heatmap, hexagonColumn, hexagon, gridColumn, grid | 密度热力、蜂窝聚合 |
+| RasterLayer | [raster-layer.md](raster-layer.md) | `raster` | — | 瓦片地图、栅格数据 |
+| ImageLayer | [image-layer.md](image-layer.md) | `image` | — | 图片叠层 |
+
+## 快速示例
+
+```tsx
+// PointLayer — 散点图
+<PointLayer source={data} sourceConfig={{ x: 'lng', y: 'lat' }} color="#5B8FF9" size={12} shape="circle" />
+
+// LineLayer — 路径/弧线
+<LineLayer source={flowData} sourceType="geojson" color="#5B8FF9" size={2} shape="arc" />
+
+// PolygonLayer — 区域填充
+<PolygonLayer source={geojsonData} sourceType="geojson" colorField="density" colorValues={['#f0f9e8','#bae4bc','#7bccc4','#43a2ca','#0868ac']} />
+
+// HeatmapLayer — 热力图
+<HeatmapLayer source={points} sourceConfig={{ x: 'lng', y: 'lat' }} colorField="value" size={30} />
+
+// RasterLayer — 栅格瓦片
+<RasterLayer source="https://example.com/{z}/{x}/{y}.png" sourceType="rasterTile" />
+
+// ImageLayer — 图片叠层
+<ImageLayer source="https://example.com/overlay.png" sourceType="image" style={{ bounds: [[119,29],[122,32]] }} />
+```
 
 ## 公共属性
 
@@ -36,20 +58,40 @@
 | `blend` | `'normal' \| 'additive' \| 'subtractive' \| 'max'` | 混合模式 |
 | `visible` | `boolean` | 图层可见性 |
 | `zIndex` | `number` | 图层层级 |
-| `minZoom` | `number` | 最小可见缩放级别 |
-| `maxZoom` | `number` | 最大可见缩放级别 |
+| `minZoom` / `maxZoom` | `number` | 可见缩放范围 |
 | `autoFit` | `boolean` | 自动缩放到数据范围 |
-| `filterField` | `string` | 过滤字段 |
-| `filterValues` | `unknown[]` | 过滤值列表 |
+| `filterField` / `filterValues` | `string` / `unknown[]` | 数据过滤 |
 | `animate` | `AnimateConfig` | 动画配置 |
 | `active` | `ActiveConfig` | 悬停高亮配置 |
 | `select` | `SelectConfig` | 选中配置 |
 | `events` | `LayerEventSchema` | 事件配置（popup、tooltip 等） |
-| `onClick` | `(payload) => void` | 点击回调 |
-| `onMouseMove` | `(payload) => void` | 鼠标移动回调 |
-| `onMouseEnter` | `(payload) => void` | 鼠标进入回调 |
-| `onMouseLeave` | `(payload) => void` | 鼠标离开回调 |
+| `onClick` / `onMouseMove` / `onMouseEnter` / `onMouseLeave` | 回调 | 鼠标事件 |
 | `onLayerCreated` | `(layer) => void` | L7 图层实例创建回调 |
+
+## 视觉映射模式
+
+所有图层支持两种视觉映射模式：
+
+- **固定值**：直接传入 `color`/`size`/`shape`（如 `color="#5B8FF9"`）
+- **字段映射**：传入 `colorField`/`sizeField`/`shapeField` + `colorValues`/`sizeValues`/`shapeValues`
+
+```tsx
+// 固定值
+<PointLayer source={data} color="#5B8FF9" size={12} />
+
+// 字段映射
+<PointLayer
+  source={data}
+  colorField="category"
+  colorValues={['#5B8FF9', '#F6BD16', '#5AD8A6', '#E86452']}
+  sizeField="value"
+  sizeValues={[6, 30]}
+/>
+
+// 文字标注
+<PointLayer source={data} shapeField="name" shapeValues="text" color="#333" size={12}
+  style={{ textAnchor: 'top', textOffset: [0, 15] }} />
+```
 
 ## 数据源类型
 
@@ -62,20 +104,9 @@
 | `'rasterTile'` | Raster | 栅格瓦片（需 URL 模板） |
 | `'image'` | Image | 图片叠层 |
 
-## 视觉映射模式
-
-所有图层支持两种视觉映射模式：
-
-- **固定值**：直接传入 `color`/`size`/`shape`（如 `color="#5B8FF9"`）
-- **字段映射**：传入 `colorField`/`sizeField`/`shapeField` + `colorValues`/`sizeValues`/`shapeValues`（如 `colorField="category" colorValues={['#f00','#0f0']}`）
-
-## 视觉映射与样式
+## 相关文档
 
 - [mapping.md](mapping.md) — 颜色/大小/形状映射、过滤、动画、交互高亮
 - [style.md](style.md) — 不透明度、混合模式、style 属性、层级与可见性
-
-## 相关文档
-
-- [../schema/schema-system.md](../schema/schema-system.md) — LayerSchema 完整属性
+- [schema-system.md](../schema/schema-system.md) — LayerSchema 完整属性
 - [../composite/index.md](../composite/index.md) — 复合图层概览
-- [base-layers.md](base-layers.md) — 基础图层快速参考

@@ -1,5 +1,18 @@
 # Schema 系统
 
+## 目录
+
+- [概述](#概述)
+- [AiMapSchema 完整结构](#aimapschema-完整结构)
+- [LayerSchema 公共属性](#layerschema-公共属性)
+- [ControlSchema](#controlschema)
+- [InteractionSchema](#interactionschema)
+- [LegendSchema](#legendschema)
+- [ResponsiveSchema](#responsiveschema)
+- [Schema 工具 API](#schema-工具-api)
+- [完整示例](#完整示例)
+- [相关文档](#相关文档)
+
 ## 概述
 
 AiMapUI 的 Schema 系统是面向 AI 生成优化的可序列化配置，用于 Schema 模式下一次声明完整地图应用。

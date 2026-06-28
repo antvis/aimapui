@@ -1,10 +1,11 @@
 ---
 name: aimapui
 description: >
-  React map visualization with @antv/aimapui (Schema-driven, L7-based). Use for AiMap, base layers (Point/Line/Polygon/Heatmap/Raster/Image),
-  composite layers (Bubble/Route/ArcFlow/Glyph/Icon/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster/H3),
-  controls, legends, interactions (Marker/Popup/Tooltip), Schema/AI-driven maps, DrawControl, ImageCalibrationControl, AnnotationControl.
-  Triggers: aimapui, AiMap, 地图, map layer, 图层, Schema, L7, Maki, 弧线, 行政区划, ChinaDistrict, DrawControl, ImageCalibration, 图片配准, 地图校准, H3, H3Layer, 六边形, AnnotationControl, 标注.
+  React 地图可视化开发，基于 @antv/aimapui（Schema 驱动 + L7）。
+  当用户需要创建地图、地图可视化、地理数据展示时，必须使用此 skill —— 即使没有明确提到 "aimapui"。
+  覆盖：AiMap 容器、6 种基础图层、12 种复合图层（行政区划下钻/气泡/路径/弧线流向/图标/字标/聚合/蜂窝/填充/卫星/GeoTIFF/H3）、13 种控件、交互组件（Marker/Popup/Tooltip/Maki）、8 种图例、移动端组件、Schema/AI 驱动地图。
+  特殊控件优先触发：DrawControl（交互绘制）、ImageCalibrationControl（图片配准/地图校准）、AnnotationControl（标注）。
+  关键词触发：aimapui, AiMap, 地图, 图层, L7, 行政区划, Maki, 弧线流向, H3, 图片配准, 标注控件.
 version: "0.3.1"
 ---
 
@@ -14,8 +15,7 @@ React map visualization library built on L7. Supports both JSX component mode an
 
 ## Version
 
-- **@antv/aimapui**: `0.3.1`
-- **@antv/aimapui-cli**: `0.3.1`
+见 frontmatter `version` 字段。当前：`@antv/aimapui` / `@antv/aimapui-cli` → **0.3.1**
 
 ## Install
 
@@ -77,31 +77,50 @@ import '@antv/aimapui/style.css';
 | EventBus | [event-bus.md](references/core/event-bus.md) | Cross-component events |
 | Schema system | [schema-system.md](references/schema/schema-system.md) | Schema/AI-driven maps |
 | Data sources | [data-source.md](references/data/data-source.md) | JSON/GeoJSON/CSV/Raster data |
-| Base layers | [index.md](references/layers/index.md) | Point/Line/Polygon/Heatmap/Raster/Image (6 types) |
-| Base layers quick ref | [base-layers.md](references/layers/base-layers.md) | Quick reference with examples |
-| Composite layers | [composite/index.md](references/composite/index.md) | Bubble/Route/ArcFlow/Icon/Glyph/Choropleth/Flow index |
+| Base layers (index + quick ref) | [index.md](references/layers/index.md) | Point/Line/Polygon/Heatmap/Raster/Image (6 types) |
+| Composite layers | [index.md](references/composite/index.md) | Bubble/Route/ArcFlow/Icon/Glyph/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster/H3 |
 | H3Layer | [h3-layer.md](references/composite/h3-layer.md) | H3 hexagonal grid visualization |
 | Color/Size/Shape mapping | [mapping.md](references/layers/mapping.md) | Data-driven visuals |
 | Style config | [style.md](references/layers/style.md) | Opacity/blend/style passthrough |
-| Interactions | [index.md](references/interaction/index.md) | Marker/Popup/Tooltip/Maki icons (4 types) |
-| Interactions quick ref | [interaction.md](references/interaction/interaction.md) | Quick reference with examples |
+| Interactions (index + quick ref) | [index.md](references/interaction/index.md) | Marker/Popup/Tooltip/Maki icons (4 types) |
 | Controls | [controls.md](references/controls/controls.md) | Zoom/Scale/Fullscreen/etc. |
-| DrawControl | [draw-control.md](references/controls/draw-control.md) | Interactive drawing/editing (point/line/polygon/rectangle/circle) |
-| ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | Image georeferencing: upload, corner drag, perspective transform, tile export, ZIP download |
-| AnnotationControl | [annotation-control.md](references/controls/annotation-control.md) | Map annotation: marker/highlighter/text/note/link/image/video |
+| DrawControl | [draw-control.md](references/controls/draw-control.md) | Interactive drawing/editing |
+| ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | Image georeferencing |
+| AnnotationControl | [annotation-control.md](references/controls/annotation-control.md) | Map annotation |
 | Legends | [legend-components.md](references/legend/legend-components.md) | Map legends |
-| Mobile components | [index.md](references/mobile/index.md) | MobileToolbar/BottomSheet/MobileSheetLegend/SearchBar |
-| Mobile quick ref | [mobile-components.md](references/mobile/mobile-components.md) | Quick reference with examples |
+| Mobile (index + quick ref) | [index.md](references/mobile/index.md) | MobileToolbar/BottomSheet/MobileSheetLegend/SearchBar |
+
+## Common Mistakes
+
+| 错误 | 现象 | 解决方案 |
+|------|------|---------|
+| 未引入 style.css | 控件/弹窗/图例样式丢失 | `import '@antv/aimapui/style.css'`（CDN 用 `<link>`） |
+| 容器无高度 | 地图不显示 | 确保父容器有明确高度，或给 AiMap 设置 `style={{ height: '100vh' }}` |
+| map 与 schema 同时传入 | 报错或地图异常 | 只传一个，两者互斥 |
+| sourceConfig 字段名错误 | 数据点不显示或偏移 | JSON 数据必须指定 `x`/`y` 字段名，如 `sourceConfig={{ x: 'lng', y: 'lat' }}` |
+| GeoJSON 格式不对 | PolygonLayer 不渲染 | 必须是标准 FeatureCollection，不能是裸 Geometry |
+| Token 缺失 | 高德/Mapbox 底图空白 | `map={{ basemap: 'gaode', token: 'YOUR_TOKEN' }}` |
+| TouchGesturePanel 使用 | 功能不存在 | 此组件尚未实现，请勿使用 |
 
 ## Key Patterns
 
-### Visual Mapping
+### Visual Mapping (数据驱动样式)
+
+所有图层支持 **固定值** 和 **字段映射** 两种模式：
 
 ```tsx
+// 固定值
+<PointLayer source={data} color="#5B8FF9" size={12} />
+
+// 字段映射
 <PointLayer colorField="type" colorValues={['#f00','#0f0','#00f']} sizeField="value" sizeValues={[4,20]} />
 ```
 
-### Schema Mode
+详见 → [mapping.md](references/layers/mapping.md)
+
+### Schema Mode (AI/JSON 驱动地图)
+
+用单个 JSON 对象渲染完整地图，适合 AI 生成或配置化场景：
 
 ```tsx
 import { AiMap } from '@antv/aimapui';
@@ -109,171 +128,43 @@ const schema = { map: { basemap: 'gaode', center: [121,31], zoom: 12 }, layers: 
 <AiMap schema={schema} />
 ```
 
-### Composite Layer (Icon with Maki)
+> `map` 和 `schema` 互斥，禁止同时传入。
+
+详见 → [schema-system.md](references/schema/schema-system.md)
+
+### Composite Layers (复合图层)
+
+复合图层是业务开箱即用的高级组件。各图层详细用法见对应 reference 文件：
+
+| 图层 | Reference | 一句话说明 |
+|------|-----------|-----------|
+| ChinaDistrict | [china-district.md](references/composite/china-district.md) | 行政区划下钻 + 业务数据色阶绑定 |
+| BubbleLayer | [bubble-layer.md](references/composite/bubble-layer.md) | 气泡大小编码数值 |
+| RouteLayer | [route-layer.md](references/composite/route-layer.md) | 路径地图（静态/驾车/步行/骑行/公交） |
+| ArcFlowLayer | [arc-flow-layer.md](references/composite/arc-flow-layer.md) | OD 弧线流向动画 |
+| IconLayer | [icon-layer.md](references/composite/icon-layer.md) | 自定义图片图标 + Maki 内置图标 |
+| GlyphLayer | [glyph-layer.md](references/composite/glyph-layer.md) | 图标字体标注（Material Symbols） |
+| MarkerClusterLayer | [marker-cluster-layer.md](references/composite/marker-cluster-layer.md) | 聚合标注 |
+| HexagonLayer | [hexagon-layer.md](references/composite/hexagon-layer.md) | 蜂窝热力 |
+| FillLayer | [fill-layer.md](references/composite/fill-layer.md) | 区域填充 |
+| SatelliteLayer | [satellite-layer.md](references/composite/satellite-layer.md) | 卫星影像 |
+| TiffRasterLayer | [tiff-raster-layer.md](references/composite/tiff-raster-layer.md) | GeoTIFF 栅格 |
+| H3Layer | [h3-layer.md](references/composite/h3-layer.md) | H3 六边形网格 |
+
+### Special Controls (特殊控件)
+
+| 控件 | Reference | 说明 |
+|------|-----------|------|
+| DrawControl | [draw-control.md](references/controls/draw-control.md) | 交互绘制（点/线/面/矩形/圆） |
+| ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | 图片配准/地理校准（上传、角点拖拽、透视变换、瓦片导出） |
+| AnnotationControl | [annotation-control.md](references/controls/annotation-control.md) | 标注（marker/highlighter/text/note/link/image/video） |
+
+### Maki Icon Utilities (内置 200+ 矢量图标)
 
 ```tsx
-import { IconLayer, createMakiIconMap } from '@antv/aimapui';
-
-<IconLayer
-  source={data} sourceConfig={{ x: 'lng', y: 'lat' }}
-  iconField="type"
-  iconMap={createMakiIconMap(['cafe', 'restaurant', 'bus'], { size: 32, fill: '#2563eb' })}
-  iconAnchor="bottom"
-  labelField="name" labelAnchor="top" labelOffset={[0, -10]}
-  labelColor="#333" labelSize={12}
-/>
+import { makiIconUrl, createMakiIconMap } from '@antv/aimapui';
+// 单个图标 → makiIconUrl('cafe', { size: 32, fill: '#333' })
+// 批量映射 → createMakiIconMap(['cafe', 'bus', 'hospital'])  // 用于 IconLayer.iconMap
 ```
 
-### Composite Layer (Glyph)
-
-```tsx
-<GlyphLayer
-  source={data} sourceConfig={{ x: 'lng', y: 'lat' }}
-  iconFontFamily="material-symbols" iconField="icon"
-  iconColor="#06b6d4" iconSize={20}
-  labelAnchor="top" labelOffset={[0, -20]}
-  labelField="name" labelColor="#e2e8f0" labelSize={11}
-/>
-```
-
-### Composite Layer (ChinaDistrict — 行政区划 + 业务数据绑定)
-
-```tsx
-import { ChinaDistrict } from '@antv/aimapui';
-import type { BusinessDataItem } from '@antv/aimapui';
-
-// 按名称匹配（最常用）
-const GDP_DATA: BusinessDataItem[] = [
-  { name: '广东省', value: 145847 },
-  { name: '江苏省', value: 128222 },
-  { name: '山东省', value: 92069 },
-];
-
-<ChinaDistrict
-  data={GDP_DATA}
-  joinField="name"          // GeoJSON feature.properties 中的匹配字段
-  dataJoinField="name"      // 业务数据中的匹配字段
-  valueField="value"        // 用于色阶映射的数值字段
-  colors={['#DBEAFE', '#3B82F6', '#1E3A8A']}
-/>
-
-// 按行政区划编码匹配（更精确）
-<ChinaDistrict
-  data={[{ code: '440000', amount: 8900 }, { code: '320000', amount: 7600 }]}
-  joinField="adcode"        // 组件自动处理 gb→adcode 转换
-  dataJoinField="code"
-  valueField="amount"
-/>
-
-// 业务字段名与 GeoJSON 不同
-<ChinaDistrict
-  data={[{ province: '广东省', revenue: 999 }]}
-  joinField="name"           // GeoJSON 里的字段
-  dataJoinField="province"   // 业务数据里的字段
-  valueField="revenue"       // 色阶用 revenue
-/>
-```
-
-> **内置 GeoJSON 可匹配字段：** `name`（中文全称如"广东省"）、`gb`（9位国标码如"156440000"）。
-> 使用 adcode 匹配时传 6 位码即可（如 "440000"），组件自动去除 "156" 前缀。
-> 内置数据源：`DEFAULT_PROVINCE_SOURCE`（34省）、`DEFAULT_CITY_SOURCE`（375市）、`DEFAULT_DISTRICT_SOURCE`（2891区县）。
-
-### Composite Layer (H3 — H3 六边形网格)
-
-```tsx
-import { H3Layer, H3_SEQUENTIAL_COLORS } from '@antv/aimapui';
-
-const h3Data = [
-  { h3: '89283082837ffff', value: 120, name: 'A区' },
-  { h3: '8928308280fffff', value: 280, name: 'B区' },
-];
-
-<H3Layer
-  source={h3Data}
-  h3Field="h3"
-  colorField="value"
-  colorValues={H3_SEQUENTIAL_COLORS}
-  showStroke
-  strokeColor="rgba(255,255,255,0.3)"
-/>
-```
-
-### Composite Layer (ArcFlow — OD 弧线流向图)
-
-```tsx
-import { ArcFlowLayer } from '@antv/aimapui';
-
-<ArcFlowLayer
-  source={odData}
-  sourceConfig={{ x: 'fromLng', y: 'fromLat', x1: 'toLng', y1: 'toLat' }}
-  color="#5B8FF9"
-  colorMode="gradient"
-  gradientColors={['#2563eb', '#10b981']}
-  lineWidth={2}
-  animate animateSpeed={1} animateTrailLength={0.3}
-  showNodes
-/>
-```
-
-### Composite Layer (Route — 多路径模式)
-
-```tsx
-// 静态路径（直线/弧线）
-<RouteLayer path={coords} stops={stops} routeType="arc" color="#8b5cf6" glow animate />
-
-// 交通路线查询（驾车/步行/骑行/公交）
-<RouteLayer
-  stops={[
-    { lng: 116.397, lat: 39.909, name: '起点' },
-    { lng: 116.474, lat: 39.877, name: '终点' },
-  ]}
-  routeType="driving"
-  onRouteQuery={async ({ origin, destination, waypoints, routeType }) => {
-    const res = await fetchRoute(origin, destination, routeType);
-    return { path: res.coordinates, info: { distance: res.distance, duration: res.duration } };
-  }}
-  color="#10b981" glow animate
-/>
-```
-
-### Controls (LegendControl + LogoControl)
-
-```tsx
-import { LegendControl, LogoControl, LegendCategories } from '@antv/aimapui';
-
-<AiMap map={{ basemap: 'gaode', center: [116, 39], zoom: 10 }}>
-  <LegendControl position="bottomleft">
-    <LegendCategories title="类型" labels={['A', 'B']} colors={['#f00', '#00f']} />
-  </LegendControl>
-  <LogoControl position="bottomleft" logos={[{ src: '/logo.png', alt: 'Logo', href: '/' }]} />
-</AiMap>
-```
-
-### Controls (AnnotationControl — 标注控件)
-
-```tsx
-import { AnnotationControl } from '@antv/aimapui';
-
-<AnnotationControl
-  position="topright"
-  tools={['marker', 'highlighter', 'text', 'note']}
-  onAnnotationCreate={(feature) => console.log('新建:', feature)}
-  onChange={(features) => console.log('标注列表:', features)}
-/>
-```
-
-### Maki Icon Utilities
-
-```tsx
-import { MAKI_ICON_NAMES, makiIconUrl, makiPinUrl, createMakiIconMap, createMakiPinMap } from '@antv/aimapui';
-
-// 单个图标 SVG data URL
-const cafeUrl = makiIconUrl('cafe', { size: 32, fill: '#333' });
-
-// Pin 样式（带水滴底座）
-const cafePinUrl = makiPinUrl('cafe', { size: 40, fill: '#2563eb' });
-
-// 批量生成 { name: dataUrl } 映射表（用于 IconLayer.iconMap）
-const iconMap = createMakiIconMap(['cafe', 'bus', 'hospital']);
-const pinMap = createMakiPinMap(['cafe', 'bus', 'hospital'], { fill: '#10b981' });
-```
+详见 → [maki-icons.md](references/interaction/maki-icons.md)

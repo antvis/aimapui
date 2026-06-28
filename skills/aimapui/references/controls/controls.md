@@ -9,6 +9,26 @@
 </AiMap>
 ```
 
+## 目录
+
+- [ControlPosition 类型](#controlposition-类型)
+- [ZoomControl — 缩放控件](#zoomcontrol--缩放控件)
+- [ScaleControl — 比例尺](#scalecontrol--比例尺)
+- [FullscreenControl — 全屏控件](#fullscreencontrol--全屏控件)
+- [GeoLocateControl — 定位控件](#geolocatecontrol--定位控件)
+- [MapThemeControl — 主题切换](#mapthemecontrol--主题切换)
+- [MouseLocationControl — 鼠标坐标](#mouselocationcontrol--鼠标坐标)
+- [ExportImageControl — 截图控件](#exportimagecontrol--截图控件)
+- [LayerSwitchControl — 图层开关](#layerswitchcontrol--图层开关)
+- [LegendControl — 图例控件](#legendcontrol--图例控件)
+- [LogoControl — Logo 控件](#logocontrol--logo-控件)
+- [DrawControl — 绘制控件](#drawcontrol--绘制控件)
+- [ImageCalibrationControl — 图片配准控件](#imagecalibrationcontrol--图片配准控件)
+- [AnnotationControl — 标注控件](#annotationcontrol--标注控件)
+- [ControlContainer — 控件容器](#controlcontainer--控件容器)
+- [useMapControl Hook](#usemapcontrol-hook)
+- [相关文档](#相关文档)
+
 ## ControlPosition 类型
 
 ```
