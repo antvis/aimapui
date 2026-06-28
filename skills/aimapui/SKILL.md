@@ -20,6 +20,9 @@ npm install @antv/aimapui @antv/l7 @antv/l7-maps
 pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
 ```
 
+> **注意:** `@antv/l7` 版本必须 **≥ 2.28.14**，低于此版本会导致部分功能异常（如控件渲染、动态 import 等）。
+```
+
 > **注意:** 使用组件前必须引入样式文件 `import '@antv/aimapui/style.css'`，否则控件、弹窗、图例等样式不生效。
 
 ### CDN 引用（IIFE）
