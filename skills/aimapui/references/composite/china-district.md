@@ -2,6 +2,47 @@
 
 省市区三级下钻 + 业务数据关联色阶映射。通过 Join 字段将业务数据与区划形状绑定。
 
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `provinceSource` | `string \| Record<string, unknown>` | 内置全国省级数据 | 省级 GeoJSON 数据 URL 或对象 |
+| `citySource` | `string \| Record<string, unknown>` | 内置全国市级数据 | 市级 GeoJSON 数据 URL 或对象 |
+| `districtSource` | `string \| Record<string, unknown>` | 内置全国县级数据 | 县级 GeoJSON 数据 URL 或对象 |
+| `level` | `'province' \| 'city' \| 'district'` | `'province'` | 当前显示层级（非下钻模式时使用） |
+| `drillEnabled` | `boolean` | `true` | 是否启用下钻模式 |
+| `drillPath` | `DrillPathNode[]` | — | 下钻路径（受控模式） |
+| `onDrill` | `(path: DrillPathNode[]) => void` | — | 下钻回调，点击区域进入下一级时触发 |
+| `onDrillUp` | `(path: DrillPathNode[]) => void` | — | 上钻回调，面包屑导航返回上级 |
+| `autoFitOnDrill` | `boolean` | `true` | 下钻时是否自动适配视口（fitBounds） |
+| `data` | `BusinessDataItem[]` | — | 业务数据，通过 name 或 adcode 与地理数据关联 |
+| `joinField` | `string` | `'name'` | 关联字段（地理数据属性名） |
+| `dataJoinField` | `string` | `'name'` | 业务数据匹配字段 |
+| `valueField` | `string` | `'value'` | 数值字段名（用于色阶映射） |
+| `colors` | `string[]` | 内置色阶 | 色阶颜色数组 |
+| `fillOpacity` | `number` | — | 填充透明度 |
+| `strokeColor` | `string` | — | 描边颜色 |
+| `strokeWidth` | `number` | — | 描边宽度 |
+| `dimOpacity` | `number` | — | 非焦点区域透明度（下钻时） |
+| `showLabel` | `boolean` | — | 是否显示标签 |
+| `labelField` | `string` | `'name'` | 标签字段名 |
+| `labelSize` | `number` | `12` | 标签字号 |
+| `hoverHighlight` | `boolean` | — | hover 高亮 |
+| `clickSelect` | `boolean` | — | 点击选中 |
+| `showTooltip` | `boolean` | — | Tooltip 显示 |
+| `tooltipFields` | `string[]` | `[labelField, valueField]` | Tooltip 自定义字段 |
+| `onRegionClick` | `(feature, level) => void` | — | 区域点击事件 |
+| `zIndex` | `number` | — | 图层 zIndex |
+
+## 命令式 API（ref）
+
+| Method | Description |
+|--------|-------------|
+| `drillDown(pathNode)` | 下钻到指定区域 |
+| `drillUp()` | 上钻一级 |
+| `resetDrill()` | 重置下钻路径回到省级 |
+| `getCurrentLevel()` | 获取当前层级 |
+
 ## Examples
 
 ```tsx
@@ -28,14 +69,6 @@ import { ChinaDistrict, ADMIN_SEQUENTIAL_COLORS } from '@antv/aimapui';
   valueField="amount"
 />
 ```
-
-## Data Binding
-
-| Prop | Default | Description |
-|------|---------|-------------|
-| `joinField` | `'name'` | GeoJSON feature.properties 中用于匹配的字段 |
-| `dataJoinField` | `'name'` | 业务数据中用于匹配的字段 |
-| `valueField` | `'value'` | 业务数据中用于色阶映射的数值字段 |
 
 ## GeoJSON Matchable Fields
 
