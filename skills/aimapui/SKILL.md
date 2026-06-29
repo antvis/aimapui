@@ -1,7 +1,7 @@
 ---
 name: aimapui
 description: React map visualization library @antv/aimapui. Use whenever the user wants to create maps, map layers, geographic visualizations, or map controls — covers AiMap container, 6 base layers, 12 composite layers, 13 controls, interactions, legends, mobile components, and schema-driven mode. Schema-driven, L7-based.
-version: 0.3.1
+version: 0.3.2
 ---
 
 # aimapui
@@ -10,7 +10,7 @@ version: 0.3.1
 
 ## Version
 
-见 frontmatter `version` 字段。当前：`@antv/aimapui` / `@antv/aimapui-cli` → **0.3.1**
+见 frontmatter `version` 字段。当前：`@antv/aimapui` / `@antv/aimapui-cli` → **0.3.2**
 
 ## Install
 
