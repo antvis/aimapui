@@ -586,8 +586,13 @@ function filterByParent(
   const parentAdcode = parentNode.adcode;
   const parentLevel = parentNode.level;
 
-  // 根据父级层级确定行政区划码前缀长度：省=2位，市=4位
-  const adcodePrefixLen = parentLevel === 'province' ? 2 : 4;
+  // 根据父级层级确定行政区划码前缀长度
+  // 直辖市（北京/天津/上海/重庆）的市级 adcode 与省级相同（如 110000），
+  // 其下辖区县的 adcode 前缀与市级不同（如 1101xx vs 110000），
+  // 因此直辖市市级下钻到区县时需使用 2 位前缀匹配
+  const parentCodeForPrefix = parentAdcode ? normalizeAdcode(String(parentAdcode)) : '';
+  const isDirectMunicipality = parentLevel === 'city' && parentCodeForPrefix.endsWith('0000');
+  const adcodePrefixLen = parentLevel === 'province' || isDirectMunicipality ? 2 : 4;
 
   const features = geo.features.filter((feature) => {
     const props = feature.properties;
@@ -602,9 +607,12 @@ function filterByParent(
       const parentCode = normalizeAdcode(String(parentAdcode));
       const childCode = normalizeAdcode(String(childCodeRaw));
       if (childCode.length >= adcodePrefixLen
-        && childCode.slice(0, adcodePrefixLen) === parentCode.slice(0, adcodePrefixLen)
-        && childCode !== parentCode) {
-        return true;
+        && childCode.slice(0, adcodePrefixLen) === parentCode.slice(0, adcodePrefixLen)) {
+        // 直辖市省级下钻时，市级 feature 与省级共享同一 adcode（如北京 110000），
+        // 允许 childCode === parentCode 以匹配直辖市自身
+        if (childCode !== parentCode || parentLevel === 'province') {
+          return true;
+        }
       }
     }
 
