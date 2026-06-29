@@ -42,8 +42,6 @@ export default defineConfig({
         'geotiff',
         'supercluster',
         '@antv/l7',
-        '@antv/l7-maps',
-        /^@antv\/l7-maps\//,
         '@antv/l7-core',
         /^@antv\/l7-core\//,
         '@antv/l7-layers',
@@ -64,7 +62,6 @@ export default defineConfig({
           react: 'React',
           'react-dom': 'ReactDOM',
           '@antv/l7': 'L7',
-          '@antv/l7-maps': 'L7Maps',
         },
         assetFileNames: (assetInfo) => {
           // Vite lib build 从入口名称生成 CSS（如 aimapui.css），

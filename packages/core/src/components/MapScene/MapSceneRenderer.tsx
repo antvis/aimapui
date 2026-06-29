@@ -134,7 +134,8 @@ export function MapSceneRenderer({
       const mapInstance = new config.engine(commonOptions as Record<string, unknown>);
       initScene(mapInstance);
     } else {
-      createBasemap(config).then(initScene);
+      const mapInstance = createBasemap(config);
+      initScene(mapInstance);
     }
 
     function bindMapEvents(s: Scene) {

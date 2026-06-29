@@ -33,8 +33,6 @@ export default defineConfig({
         'geotiff',
         'supercluster',
         '@antv/l7',
-        '@antv/l7-maps',
-        /^@antv\/l7-maps\//,
         '@antv/l7-core',
         /^@antv\/l7-core\//,
         '@antv/l7-layers',
@@ -55,7 +53,6 @@ export default defineConfig({
           react: 'React',
           'react-dom': 'ReactDOM',
           '@antv/l7': 'L7',
-          '@antv/l7-maps': 'L7Maps',
         },
         assetFileNames: (assetInfo) => {
           if (assetInfo.names?.includes('style.css') || assetInfo.names?.includes('aimapui.css') || assetInfo.originalFileNames?.some(f => f.endsWith('.css'))) {

@@ -1,11 +1,20 @@
 import type { MapSchema, BasemapType } from '../../schema/types';
 import { DEFAULT_MAP } from '../../schema/defaults';
 
+// 静态导入所有底图引擎，避免运行时动态 chunk 加载失败
+import { GaodeMap } from '@antv/l7-maps/gaode';
+import { Mapbox } from '@antv/l7-maps/mapbox';
+import { TMap } from '@antv/l7-maps/tianditu';
+import { TencentMap } from '@antv/l7-maps/tencent';
+import { BaiduMap } from '@antv/l7-maps/baidu';
+import { MapLibre } from '@antv/l7-maps/maplibre';
+import { GoogleMap } from '@antv/l7-maps/google';
+import { Map } from '@antv/l7-maps/simple';
+
 /**
  * 底图工厂 — 根据配置创建 L7 Map 实例
- * 动态导入各底图模块，避免未使用时打包
  */
-export async function createBasemap(schema: MapSchema) {
+export function createBasemap(schema: MapSchema) {
   const basemap: BasemapType = schema.basemap ?? DEFAULT_MAP.basemap;
   const token = schema.token ?? '';
   const style = schema.style ?? 'normal';
@@ -28,81 +37,62 @@ export async function createBasemap(schema: MapSchema) {
   }
 
   switch (basemap) {
-    case 'gaode': {
-      const { GaodeMap } = await import('@antv/l7-maps/gaode');
+    case 'gaode':
       return new GaodeMap({
         ...commonOptions,
         style: mapStyleToGaode(style),
         token,
       });
-    }
 
-    case 'mapbox': {
-      const { Mapbox } = await import('@antv/l7-maps/mapbox');
+    case 'mapbox':
       return new Mapbox({
         ...commonOptions,
         style: mapStyleToMapbox(style),
         token,
       });
-    }
 
-    case 'tianditu': {
-      const { TMap } = await import('@antv/l7-maps/tianditu');
+    case 'tianditu':
       return new TMap({
         ...commonOptions,
         token,
       });
-    }
 
-    case 'tencent': {
-      const { TencentMap } = await import('@antv/l7-maps/tencent');
+    case 'tencent':
       return new TencentMap({
         ...commonOptions,
         token,
       });
-    }
 
-    case 'baidu': {
-      const { BaiduMap } = await import('@antv/l7-maps/baidu');
+    case 'baidu':
       return new BaiduMap({
         ...commonOptions,
         style: mapStyleToBaidu(style),
         token,
       });
-    }
 
-    case 'maplibre': {
-      const { MapLibre } = await import('@antv/l7-maps/maplibre');
+    case 'maplibre':
       return new MapLibre({
         ...commonOptions,
         style: mapStyleToMaplibre(style),
         token,
       });
-    }
 
     case 'google': {
-      const { GoogleMap } = await import('@antv/l7-maps/google');
       const instance = new GoogleMap({
         ...commonOptions,
         style: mapStyleToGoogle(style),
         token,
       });
-      // 移除 Google 原生控件（zoom / mapType / streetView / fullscreen / scale 等），
-      // 统一由 L7 控件层接管（ZoomControl / ScaleControl / ...）。
-      // L7 GMapService 在初始化后会根据 zoomEnable 重新打开 zoomControl，这里在 init
-      // 完成后强制覆盖一次原生 setOptions。
       suppressGoogleNativeControls(instance);
       return instance;
     }
 
     case 'map':
-    default: {
-      const { Map } = await import('@antv/l7-maps/simple');
+    default:
       return new Map({
         center: schema.center ?? DEFAULT_MAP.center,
         zoom: schema.zoom ?? DEFAULT_MAP.zoom,
       });
-    }
   }
 }
 
