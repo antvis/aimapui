@@ -344,7 +344,7 @@ const componentDemos = demos.filter(d => d.group !== 'App Templates');
 const groups = [...new Set(componentDemos.map((d) => d.group))];
 
 // Block 页面的 demos（来自应用模板）
-const blockDemos = demos.filter(d => d.group === '应用模板');
+const blockDemos = demos.filter(d => d.group === 'App Templates');
 
 // 从 URL 获取当前页面状态（支持 path 和 hash 两种模式）
 const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design' | 'skill'; demoIndex: number } => {
