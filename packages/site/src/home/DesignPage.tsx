@@ -78,6 +78,11 @@ export default function DesignPage({ docs, groups, theme, initialDocIndex = 0, o
   const [showSource, setShowSource] = React.useState(false);
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
+  // URL 变化时同步更新选中文档
+  React.useEffect(() => {
+    setCurrentDoc(initialDocIndex);
+  }, [initialDocIndex]);
+
   // 注入 data-theme 到 srcDoc，确保首帧渲染就使用正确主题
   const injectTheme = (html: string, dark: boolean): string => {
     const themeAttr = dark ? 'dark' : 'light';
