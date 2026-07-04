@@ -22,6 +22,7 @@
 - [LayerSwitchControl — 图层开关](#layerswitchcontrol--图层开关)
 - [LegendControl — 图例控件](#legendcontrol--图例控件)
 - [LogoControl — Logo 控件](#logocontrol--logo-控件)
+- [SatelliteLayerControl — 卫星影像控件](#satellitelayercontrol--卫星影像控件) → 详见 [satellite-layer-control.md](satellite-layer-control.md)
 - [DrawControl — 绘制控件](#drawcontrol--绘制控件) → 详见 [draw-control.md](draw-control.md)
 - [ImageCalibrationControl — 图片配准控件](#imagecalibrationcontrol--图片配准控件) → 详见 [image-calibration-control.md](image-calibration-control.md)
 - [AnnotationControl — 标注控件](#annotationcontrol--标注控件) → 详见 [annotation-control.md](annotation-control.md)

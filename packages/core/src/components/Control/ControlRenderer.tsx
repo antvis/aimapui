@@ -108,14 +108,31 @@ function ControlItem({
           showDelete={control.options?.showDelete as boolean | undefined}
         />
       );
-    case 'imageCalibration':
+    case 'imageCalibration': {
+      const cb = control.callbacks ?? {};
       return (
         <ImageCalibrationControl
           position={position ?? 'topright'}
           opacity={control.options?.opacity as number | undefined}
           imageSource={control.options?.imageSource as string | undefined}
+          onCornersChange={cb.onCornersChange as ((imageId: string, corners: unknown) => void) | undefined}
+          onCalibrate={cb.onCalibrate as ((imageId: string, result: unknown) => void) | undefined}
+          onExport={cb.onExport as ((imageId: string, result: unknown) => void) | undefined}
+          onImageLoad={cb.onImageLoad as ((imageId: string, dimensions: unknown) => void) | undefined}
+          onPreprocess={cb.onPreprocess as ((imageId: string, result: unknown) => void) | undefined}
+          onClear={cb.onClear as ((imageId: string) => void) | undefined}
+          onImagesChange={cb.onImagesChange as ((images: unknown) => void) | undefined}
+          onImageSwitch={cb.onImageSwitch as ((imageId: string) => void) | undefined}
+          onImageRename={cb.onImageRename as ((imageId: string, oldName: string, newName: string) => void) | undefined}
+          onImagesReorder={cb.onImagesReorder as ((images: unknown) => void) | undefined}
+          onImageAdd={cb.onImageAdd as ((image: unknown) => void) | undefined}
+          onImageRemove={cb.onImageRemove as ((imageId: string) => void) | undefined}
+          onImageUpload={cb.onImageUpload as any}
+          onCropUpload={cb.onCropUpload as any}
+          onExportUpload={cb.onExportUpload as any}
         />
       );
+    }
     default:
       return null;
   }

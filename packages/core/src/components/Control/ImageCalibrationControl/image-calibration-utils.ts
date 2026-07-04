@@ -1,4 +1,9 @@
-import type { GeoCorners, ImageSource, CropRegion } from './image-calibration-types';
+import type { GeoCorners, ImageSource, CropRegion, UploadResult } from './image-calibration-types';
+
+/** 从 UploadResult 中提取纯 URL 字符串 */
+export function extractUrl(result: UploadResult): string {
+  return typeof result === 'string' ? result : result.url;
+}
 
 export interface ImageInfo {
   url: string;

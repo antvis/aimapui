@@ -101,6 +101,46 @@ export interface ExportResult {
   outputHeight: number;
 }
 
+// ============================================================
+// 第三方 CDN 集成回调类型
+// ============================================================
+
+/** 上传回调返回值：简单 URL 字符串或包含元数据的对象 */
+export type UploadResult = string | { url: string; [key: string]: unknown };
+
+/** 文件上传到 CDN 的回调 */
+export type OnImageUpload = (file: File) => Promise<UploadResult>;
+
+/** 裁剪后 Blob 上传到 CDN 的回调 */
+export type OnCropUpload = (
+  blob: Blob,
+  dimensions: { width: number; height: number },
+) => Promise<UploadResult>;
+
+/** 导出上传数据包 */
+export interface ExportUploadData {
+  /** 所有瓦片切片 */
+  tiles: Array<{
+    blob: Blob;
+    row: number;
+    col: number;
+    extent: [number, number, number, number];
+    corners: GeoCorners;
+    width: number;
+    height: number;
+  }>;
+  /** 完整配准后的图片 Blob */
+  fullBlob: Blob;
+  /** 完整图片的地理范围 */
+  extent: [number, number, number, number];
+  /** 输出尺寸 */
+  outputWidth: number;
+  outputHeight: number;
+}
+
+/** 导出上传到 CDN 的回调 */
+export type OnExportUpload = (exportData: ExportUploadData) => Promise<void>;
+
 /** ImageCalibrationControl 组件 Props */
 export interface ImageCalibrationControlProps {
   /** 控件位置 */
@@ -149,6 +189,12 @@ export interface ImageCalibrationControlProps {
   onImageAdd?: (image: RegisteredImage) => void;
   /** 删除图片回调 */
   onImageRemove?: (imageId: string) => void;
+  /** 文件上传到 CDN 的回调。提供时，组件会将原始 File 传给此回调，用返回的 CDN URL 进入后续流程 */
+  onImageUpload?: OnImageUpload;
+  /** 裁剪后上传到 CDN 的回调。提供时，裁剪后的 Blob 先传给此回调，返回的 CDN URL 作为最终图片源 */
+  onCropUpload?: OnCropUpload;
+  /** 导出上传到 CDN 的回调。提供时，导出对话框中展示"上传到云端"按钮，瓦片和完整图片传给此回调 */
+  onExportUpload?: OnExportUpload;
 }
 
 /** 命令式 Handle */

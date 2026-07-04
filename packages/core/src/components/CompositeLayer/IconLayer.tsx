@@ -165,6 +165,14 @@ export function IconLayer({
           ...((rest.style as Record<string, unknown>) ?? {}),
           anchor: iconAnchor,
           allowOverlap: iconAllowOverlap,
+          // 图标白色描边 (Halo) 增强复杂底图辨识度
+          stroke: '#ffffff',
+          strokeWidth: 1,
+          // 轻微阴影提供物理悬浮感
+          shadowColor: 'rgba(0,0,0,0.2)',
+          shadowBlur: 4,
+          shadowOffsetX: 0,
+          shadowOffsetY: 2,
         }}
         onClick={onClick}
         onMouseEnter={onMouseEnter}

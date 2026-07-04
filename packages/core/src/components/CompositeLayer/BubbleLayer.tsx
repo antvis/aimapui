@@ -165,7 +165,7 @@ export function BubbleLayer({
         colorField={mappedColorField}
         colorValues={mappedColorValues}
         {...bubbleSizeProps}
-        opacity={0.75}
+        opacity={0.4}
         active={hoverEffect ? (active ?? defaultActive) : active}
         select={clickEffect ? (select ?? defaultSelect) : select}
         events={resolvedEvents}
@@ -179,7 +179,7 @@ export function BubbleLayer({
         onMouseLeave={onMouseLeave}
         style={{
           stroke: color ?? '#004ac6',
-          strokeWidth: 2,
+          strokeWidth: 1,
           strokeOpacity: 1,
           ...(style ?? {}),
         }}

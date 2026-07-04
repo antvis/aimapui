@@ -21,7 +21,7 @@ import { useControlContainer, ControlRegistry } from '../ControlContainer';
 import { useImageCalibration } from './useImageCalibration';
 import { CornerHandles } from './CornerHandles';
 import { ImageCropModal } from './ImageCropModal';
-import { cornersToExtent, cropImage, loadImageSource } from './image-calibration-utils';
+import { cornersToExtent, cropImage, loadImageSource, extractUrl } from './image-calibration-utils';
 import { ZipWriter } from './zip-writer';
 import type {
   ImageCalibrationControlProps,
@@ -31,6 +31,7 @@ import type {
   CropRegion,
   GeoCorners,
   RegisteredImage,
+  ExportUploadData,
 } from './image-calibration-types';
 
 /** 带 tooltip 的工具条按钮 */
@@ -121,6 +122,9 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
       onImagesReorder,
       onImageAdd,
       onImageRemove,
+      onImageUpload,
+      onCropUpload,
+      onExportUpload,
     },
     ref,
   ) {
@@ -138,12 +142,33 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
     const [editingNameId, setEditingNameId] = useState<string | null>(null);
     const [dragOverId, setDragOverId] = useState<string | null>(null);
     const [editNameValue, setEditNameValue] = useState('');
+    const [reorderVersion, setReorderVersion] = useState(0);
+
+    // 当 reorderVersion 变化时触发 onImagesReorder
+    useEffect(() => {
+      if (reorderVersion > 0) {
+        onImagesReorder?.(images);
+      }
+    }, [reorderVersion]);
+
+    // 延迟操作 ref（对非活跃图片执行操作时使用）
+    const pendingActionRef = useRef<{ imageId: string; action: ImageListAction } | null>(null);
 
     // Refs for use in callbacks to avoid stale closures
     const imagesRef = useRef(images);
     imagesRef.current = images;
     const activeImageIdRef = useRef(activeImageId);
     activeImageIdRef.current = activeImageId;
+
+    // 追踪 images 列表的结构性变化（增删/排序），仅在结构变化时触发 onImagesChange
+    const prevImageIdsRef = useRef<string | null>(null);
+    useEffect(() => {
+      const currentIds = images.map((img) => img.id).join(',');
+      if (prevImageIdsRef.current !== null && prevImageIdsRef.current !== currentIds) {
+        onImagesChange?.(images);
+      }
+      prevImageIdsRef.current = currentIds;
+    }, [images]);
 
     // ---- 管理所有非活跃图片的静态图层（确保所有已配准图片都显示在地图上） ----
     const staticLayersRef = useRef<Map<string, any>>(new Map());
@@ -238,25 +263,25 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
       [],
     );
 
-    const prevPhaseRef = useRef(state.phase);
-    const prevOpacityRef = useRef(state.opacity);
-    const prevCornersRef = useRef(state.corners);
-    if (activeImageId) {
-      if (prevPhaseRef.current !== state.phase ||
-          prevOpacityRef.current !== state.opacity ||
-          prevCornersRef.current !== state.corners) {
-        prevPhaseRef.current = state.phase;
-        prevOpacityRef.current = state.opacity;
-        prevCornersRef.current = state.corners;
-        setTimeout(() => {
-          syncImageState(activeImageId, {
-            phase: state.phase,
-            opacity: state.opacity,
-            corners: state.corners,
-          });
-        }, 0);
+    // 同步校准状态到活跃图片的 RegisteredImage 记录
+    useEffect(() => {
+      if (!activeImageId) return;
+      syncImageState(activeImageId, {
+        phase: state.phase,
+        opacity: state.opacity,
+        corners: state.corners,
+      });
+    }, [activeImageId, state.phase, state.opacity, state.corners, syncImageState]);
+
+    // 延迟操作：对非活跃图片执行操作时，先切换图片，再通过 pendingActionRef + useEffect 执行动作
+    useEffect(() => {
+      if (!pendingActionRef.current) return;
+      const { imageId, action } = pendingActionRef.current;
+      if (imageId === activeImageId && state.phase !== 'idle') {
+        pendingActionRef.current = null;
+        actionHandlersRef.current[action](imageId);
       }
-    }
+    }, [activeImageId, state.phase]);
 
     const saveActiveImageState = useCallback(() => {
       const id = activeImageIdRef.current;
@@ -264,10 +289,16 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
       setImages((prev) =>
         prev.map((img) => {
           if (img.id !== id) return img;
+          const currentPhase = phaseRef.current;
+          // 切换图片时，如果当前处于「配准中」状态，自动结束配准：
+          // 有角点 → confirmed，无角点 → idle
+          const endPhase = currentPhase === 'calibrating'
+            ? (getCornersRef.current() ? 'confirmed' : 'idle')
+            : currentPhase;
           return {
             ...img,
             corners: getCornersRef.current(),
-            phase: phaseRef.current,
+            phase: endPhase,
             opacity: opacityRef.current,
           };
         }),
@@ -330,6 +361,9 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
     const [exportConfig, setExportConfig] = useState({ outputWidth: 0, outputHeight: 0, cols: 1, rows: 1 });
     const [exportResult, setExportResult] = useState<import('./image-calibration-types').ExportResult | null>(null);
     const [exporting, setExporting] = useState(false);
+    const [exportUploading, setExportUploading] = useState(false);
+    const [exportUploadDone, setExportUploadDone] = useState(false);
+    const [exportUploadError, setExportUploadError] = useState<string | null>(null);
 
     const handleExport = useCallback(() => {
       const dims = stateRef.current.imageDimensions;
@@ -340,6 +374,8 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
 
     const handleGeneratePreview = useCallback(async () => {
       setExporting(true);
+      setExportUploadDone(false);
+      setExportUploadError(null);
       try {
         const result = await exportImage(exportConfig);
         setExportResult(result);
@@ -348,6 +384,37 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
       }
       setExporting(false);
     }, [exportImage, exportConfig]);
+
+    // 上传导出结果到 CDN
+    const handleExportUpload = useCallback(async () => {
+      if (!exportResult || !onExportUpload) return;
+      setExportUploading(true);
+      setExportUploadError(null);
+      try {
+        const exportData: ExportUploadData = {
+          tiles: exportResult.tiles.map((t) => ({
+            blob: t.blob,
+            row: t.row,
+            col: t.col,
+            extent: t.extent,
+            corners: t.corners,
+            width: t.width,
+            height: t.height,
+          })),
+          fullBlob: exportResult.blob,
+          extent: exportResult.extent,
+          outputWidth: exportResult.outputWidth,
+          outputHeight: exportResult.outputHeight,
+        };
+        await onExportUpload(exportData);
+        setExportUploadDone(true);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Upload failed';
+        setExportUploadError(msg);
+        console.error('Export upload to CDN failed:', err);
+      }
+      setExportUploading(false);
+    }, [exportResult, onExportUpload]);
 
     const handleDownloadAll = useCallback(async () => {
       if (!exportResult) return;
@@ -382,17 +449,19 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
       }
       setExportResult(null);
       setShowExportDialog(false);
+      setExportUploadDone(false);
+      setExportUploadError(null);
+      setExportUploading(false);
     }, [exportResult]);
 
     const handleClearCurrent = useCallback(() => {
-      saveActiveImageState();
       const id = activeImageIdRef.current;
       clear();
       if (id) {
         syncImageState(id, { phase: 'idle' as const, corners: null });
         onClear?.(id);
       }
-    }, [saveActiveImageState, clear, syncImageState, onClear]);
+    }, [clear, syncImageState, onClear]);
 
     const handleActivateImage = useCallback(
       (img: RegisteredImage, isNew = false) => {
@@ -410,14 +479,13 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
         });
         setActiveImageId(img.id);
         onImageSwitch?.(img.id);
-        setTimeout(() => { onImagesChange?.(imagesRef.current); }, 0);
         clear();
         setTimeout(() => {
           if (img.corners) setImage(img.source, img.corners);
           else setImage(img.source);
         }, 50);
       },
-      [saveActiveImageState, clear, setImage, onImageSwitch, onImagesChange, onImageAdd, scene],
+      [saveActiveImageState, clear, setImage, onImageSwitch, onImageAdd, scene],
     );
 
     const handleSwitchImage = useCallback(
@@ -444,11 +512,23 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
         }
         const remaining = imagesRef.current.filter((i) => i.id !== id);
         setImages(remaining);
-        onImagesChange?.(remaining);
         onImageRemove?.(id);
         if (id === activeImageIdRef.current) {
           if (remaining.length > 0) {
-            handleActivateImage(remaining[0]);
+            // 直接激活下一个图片，不保存被删除图片的状态
+            const nextImg = remaining[0];
+            const nextStaticLayer = staticLayersRef.current.get(nextImg.id);
+            if (nextStaticLayer && scene) {
+              try { scene.removeLayer(nextStaticLayer); } catch {}
+              staticLayersRef.current.delete(nextImg.id);
+            }
+            setActiveImageId(nextImg.id);
+            onImageSwitch?.(nextImg.id);
+            clear();
+            setTimeout(() => {
+              if (nextImg.corners) setImage(nextImg.source, nextImg.corners);
+              else setImage(nextImg.source);
+            }, 50);
           } else {
             setActiveImageId(null);
             clear();
@@ -456,7 +536,7 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
           }
         }
       },
-      [clear, handleActivateImage, onClear, onImagesChange, onImageRemove, scene],
+      [clear, setImage, onImageSwitch, onClear, onImageRemove, scene],
     );
 
     const actionHandlersRef = useRef<Record<ImageListAction, (imageId: string) => void>>({
@@ -481,8 +561,8 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
     const handleImageAction = useCallback(
       (imageId: string, action: ImageListAction) => {
         if (imageId !== activeImageIdRef.current) {
+          pendingActionRef.current = { imageId, action };
           handleSwitchImage(imageId);
-          setTimeout(() => { actionHandlersRef.current[action](imageId); }, 150);
           return;
         }
         actionHandlersRef.current[action](imageId);
@@ -540,8 +620,8 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
         return next;
       });
       setDragOverId(null);
-      setTimeout(() => { onImagesReorder?.(imagesRef.current); }, 0);
-    }, [onImagesReorder]);
+      setReorderVersion((v) => v + 1);
+    }, []);
 
     const handleDragEnd = useCallback((e: React.DragEvent) => {
       (e.currentTarget as HTMLElement).style.opacity = '1';
@@ -553,22 +633,36 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
         const file = e.target.files?.[0];
         if (!file) return;
         e.target.value = '';
+
+        // 如果提供了 onImageUpload，先上传到 CDN 获取远程 URL
+        let imageUrl: string | undefined;
+        if (onImageUpload) {
+          try {
+            const result = await onImageUpload(file);
+            imageUrl = extractUrl(result);
+          } catch (err) {
+            console.error('Image upload to CDN failed:', err);
+            return;
+          }
+        }
+
         if (enableCrop || enableInitialCoords) {
           try {
-            const info = await loadImageSource(file);
-            setPendingImageInfo({ url: info.url, dimensions: { width: info.width, height: info.height }, revokeUrl: info.revokeUrl ?? null, file });
+            const info = await loadImageSource(imageUrl ?? file);
+            setPendingImageInfo({ url: info.url, dimensions: { width: info.width, height: info.height }, revokeUrl: info.revokeUrl ?? null, file, cdnUrl: imageUrl ?? null });
           } catch (err) { console.error('Failed to load image for crop:', err); }
         } else {
-          const thumbnailUrl = URL.createObjectURL(file);
+          const thumbnailUrl = imageUrl ?? URL.createObjectURL(file);
+          const revokeUrl = imageUrl ? null : () => URL.revokeObjectURL(thumbnailUrl);
           const newImage: RegisteredImage = {
             id: `calib-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-            name: file.name, source: file, thumbnailUrl, dimensions: null,
-            phase: 'idle', corners: null, opacity, revokeUrl: null, croppedRevokeUrl: null,
+            name: file.name, source: imageUrl ?? file, thumbnailUrl, dimensions: null,
+            phase: 'idle', corners: null, opacity, revokeUrl, croppedRevokeUrl: null,
           };
           handleActivateImage(newImage, true);
         }
       },
-      [enableCrop, enableInitialCoords, opacity, handleActivateImage],
+      [enableCrop, enableInitialCoords, opacity, handleActivateImage, onImageUpload],
     );
 
     // 替换图片
@@ -582,25 +676,39 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
           oldImg.revokeUrl?.();
           oldImg.croppedRevokeUrl?.();
         }
+
+        // 如果提供了 onImageUpload，先上传到 CDN 获取远程 URL
+        let imageUrl: string | undefined;
+        if (onImageUpload) {
+          try {
+            const result = await onImageUpload(file);
+            imageUrl = extractUrl(result);
+          } catch (err) {
+            console.error('Image upload to CDN failed:', err);
+            return;
+          }
+        }
+
         if (enableCrop || enableInitialCoords) {
           try {
-            const info = await loadImageSource(file);
-            setPendingImageInfo({ url: info.url, dimensions: { width: info.width, height: info.height }, revokeUrl: info.revokeUrl ?? null, file });
+            const info = await loadImageSource(imageUrl ?? file);
+            setPendingImageInfo({ url: info.url, dimensions: { width: info.width, height: info.height }, revokeUrl: info.revokeUrl ?? null, file, cdnUrl: imageUrl ?? null });
             setPendingIsReplace(true);
           } catch (err) { console.error('Failed to load image for crop:', err); }
         } else {
-          const thumbnailUrl = URL.createObjectURL(file);
+          const thumbnailUrl = imageUrl ?? URL.createObjectURL(file);
+          const revokeUrl = imageUrl ? null : () => URL.revokeObjectURL(thumbnailUrl);
           const newImage: RegisteredImage = {
             id: replacingImageId,
-            name: file.name, source: file, thumbnailUrl, dimensions: null,
-            phase: 'idle', corners: null, opacity, revokeUrl: null, croppedRevokeUrl: null,
+            name: file.name, source: imageUrl ?? file, thumbnailUrl, dimensions: null,
+            phase: 'idle', corners: null, opacity, revokeUrl, croppedRevokeUrl: null,
           };
           setImages((prev) => prev.map((i) => (i.id === replacingImageId ? newImage : i)));
           handleActivateImage(newImage);
           setReplacingImageId(null);
         }
       },
-      [replacingImageId, enableCrop, enableInitialCoords, opacity, handleActivateImage],
+      [replacingImageId, enableCrop, enableInitialCoords, opacity, handleActivateImage, onImageUpload],
     );
 
     const handleReplaceClick = useCallback((id: string) => {
@@ -609,7 +717,7 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
     }, []);
 
     const [pendingImageInfo, setPendingImageInfo] = useState<{
-      url: string; dimensions: { width: number; height: number }; revokeUrl: (() => void) | null; file: File;
+      url: string; dimensions: { width: number; height: number }; revokeUrl: (() => void) | null; file: File; cdnUrl: string | null;
     } | null>(null);
     const [pendingIsReplace, setPendingIsReplace] = useState(false);
 
@@ -617,27 +725,45 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
       async (cropRegion: CropRegion, initialCorners: GeoCorners | null) => {
         if (!pendingImageInfo) return;
         const file = pendingImageInfo.file;
-        const thumbnailUrl = URL.createObjectURL(file);
+        const cdnUrl = pendingImageInfo.cdnUrl;
+        const thumbnailUrl = cdnUrl ?? URL.createObjectURL(file);
         try {
           const needsCrop = cropRegion.x !== 0 || cropRegion.y !== 0 ||
             cropRegion.width !== pendingImageInfo.dimensions.width ||
             cropRegion.height !== pendingImageInfo.dimensions.height;
           let croppedRevokeUrl: (() => void) | null = null;
-          let imageSourceForCalibration: ImageSource = file;
+          let imageSourceForCalibration: ImageSource = cdnUrl ?? file;
           let finalDimensions = pendingImageInfo.dimensions;
           if (needsCrop) {
             const cropped = await cropImage(pendingImageInfo.url, cropRegion);
             pendingImageInfo.revokeUrl?.();
-            croppedRevokeUrl = cropped.revokeUrl;
             imageSourceForCalibration = cropped.url;
             finalDimensions = { width: cropped.width, height: cropped.height };
+
+            // 如果提供了 onCropUpload，将裁剪后的 Blob 上传到 CDN
+            if (onCropUpload) {
+              try {
+                const result = await onCropUpload(cropped.blob, finalDimensions);
+                imageSourceForCalibration = extractUrl(result);
+                cropped.revokeUrl?.();
+                croppedRevokeUrl = null;
+              } catch (err) {
+                console.error('Crop upload to CDN failed, falling back to ObjectURL:', err);
+                croppedRevokeUrl = cropped.revokeUrl;
+              }
+            } else {
+              croppedRevokeUrl = cropped.revokeUrl;
+            }
+
             onPreprocess?.(activeImageIdRef.current ?? '', { croppedDimensions: finalDimensions, initialCorners });
           }
+          // 如果不需要裁剪但已有 CDN URL，直接使用
+          const finalRevokeUrl = (needsCrop || cdnUrl) ? null : (() => URL.revokeObjectURL(thumbnailUrl));
           const newImage: RegisteredImage = {
             id: pendingIsReplace && replacingImageId ? replacingImageId : `calib-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
             name: file.name, source: imageSourceForCalibration, thumbnailUrl,
             dimensions: finalDimensions, phase: 'calibrating',
-            corners: initialCorners ?? null, opacity, revokeUrl: null, croppedRevokeUrl,
+            corners: initialCorners ?? null, opacity, revokeUrl: finalRevokeUrl, croppedRevokeUrl,
           };
           if (pendingIsReplace && replacingImageId) {
             setImages((prev) => prev.map((i) => (i.id === replacingImageId ? newImage : i)));
@@ -648,7 +774,7 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
         setPendingImageInfo(null);
         setPendingIsReplace(false);
       },
-      [pendingImageInfo, pendingIsReplace, replacingImageId, opacity, handleActivateImage, onPreprocess],
+      [pendingImageInfo, pendingIsReplace, replacingImageId, opacity, handleActivateImage, onPreprocess, onCropUpload],
     );
 
     const handleCropCancel = useCallback(() => {
@@ -728,7 +854,7 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
                   style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', cursor: 'pointer', color: '#0050cb', fontSize: 16 }}>
                   <span className="material-symbols-outlined">upload</span>
                 </button>
-                <button title="导出全部" disabled={images.length === 0}
+                <button title="导出当前" disabled={images.length === 0}
                   onClick={() => { if (activeImageId) handleExport(); }}
                   style={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', borderRadius: 4, background: 'transparent', cursor: 'pointer', color: '#0050cb', fontSize: 16, opacity: images.length === 0 ? 0.35 : 1 }}>
                   <span className="material-symbols-outlined">download</span>
@@ -904,10 +1030,28 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
                       </div>
                     ))}
                   </div>
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                     <button onClick={handleExportCancel} style={{ padding: '6px 16px', fontSize: 12, border: '1px solid #d1d5db', borderRadius: 4, background: '#fff', cursor: 'pointer' }}>取消</button>
+                    {onExportUpload && (
+                      <button
+                        onClick={handleExportUpload}
+                        disabled={exportUploading || exportUploadDone}
+                        style={{
+                          padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 4,
+                          background: exportUploadDone ? '#16a34a' : '#7c3aed', color: '#fff', cursor: exportUploading || exportUploadDone ? 'default' : 'pointer',
+                        }}
+                      >
+                        {exportUploading ? '上传中...' : exportUploadDone ? '✓ 已上传到云端' : `上传到云端（${exportResult.tiles.length} 张）`}
+                      </button>
+                    )}
                     <button onClick={handleDownloadAll} style={{ padding: '6px 16px', fontSize: 12, border: 'none', borderRadius: 4, background: '#2563eb', color: '#fff', cursor: 'pointer' }}>打包下载 ZIP（{exportResult.tiles.length} 张 + 坐标JSON）</button>
                   </div>
+                  {exportUploadError && (
+                    <div style={{ marginTop: 8, fontSize: 11, color: '#dc2626' }}>上传失败: {exportUploadError}</div>
+                  )}
+                  {exportUploadDone && (
+                    <div style={{ marginTop: 8, fontSize: 11, color: '#16a34a' }}>已成功上传到云端存储</div>
+                  )}
                 </>
               )}
               {!exportResult && (

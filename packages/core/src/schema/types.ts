@@ -161,6 +161,8 @@ export interface ControlSchema {
   type: ControlType;
   position?: ControlPosition;
   options?: Record<string, unknown>;
+  /** 不可序列化的回调函数（仅用于编程式 API，不出现在 JSON Schema 中） */
+  callbacks?: Record<string, unknown>;
 }
 
 // ============================================================

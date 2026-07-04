@@ -8,7 +8,7 @@ export type SatelliteProvider = 'gaode' | 'tianditu' | 'google';
 export interface SatelliteLayerProps {
   /** 影像提供商，默认 'gaode' */
   provider?: SatelliteProvider;
-  /** 图层层级，默认 0（底层） */
+  /** 图层层级，默认 -1（最底层，确保不覆盖矢量图层） */
   zIndex?: number;
   /** 图层透明度 0~1，默认 1 */
   opacity?: number;
@@ -48,7 +48,7 @@ export const SATELLITE_PROVIDER_NAMES: Record<SatelliteProvider, string> = {
  */
 export function SatelliteLayer({
   provider = 'gaode',
-  zIndex = 0,
+  zIndex = -1,
   opacity = 1,
   tiandituToken,
   visible = true,

@@ -2991,3 +2991,115 @@
 [data-theme="dark"] .aimapui-annotation-inline-input {
   text-shadow: 0 0 3px rgba(0,0,0,0.7), 0 0 6px rgba(0,0,0,0.5);
 }
+
+/* ============================================================
+   Satellite Panel — 卫星影像控件面板
+   ============================================================ */
+
+.l7-satellite-panel {
+  padding: 12px;
+  min-width: 220px;
+  max-width: 280px;
+}
+.l7-satellite-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-on-surface-variant, #434655);
+  margin-bottom: 10px;
+  padding: 0 2px;
+}
+.l7-satellite-panel__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px;
+}
+.l7-satellite-panel__label {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-on-surface-variant, #434655);
+  white-space: nowrap;
+  min-width: 60px;
+}
+.l7-satellite-panel__value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-on-surface-variant, #434655);
+  min-width: 32px;
+  text-align: right;
+}
+.l7-satellite-panel__providers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-outline-variant, rgba(195, 198, 215, 0.2));
+}
+.l7-satellite-provider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--color-surface-container-low, rgba(239, 244, 255, 0.5));
+  border-radius: 8px;
+  border: 1px solid var(--color-outline-variant, rgba(195, 198, 215, 0.2));
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 12px;
+  color: var(--color-on-surface-variant, #434655);
+  width: 100%;
+  text-align: left;
+}
+.l7-satellite-provider:hover {
+  background: var(--color-surface-container, rgba(225, 232, 245, 0.6));
+  border-color: var(--color-outline, rgba(148, 163, 184, 0.4));
+}
+.l7-satellite-provider--active {
+  border-color: var(--color-primary, #2563eb);
+  color: var(--color-primary, #2563eb);
+  font-weight: 600;
+}
+.l7-satellite-provider--active:hover {
+  background: var(--color-surface-container, rgba(225, 232, 245, 0.6));
+}
+.l7-satellite-provider:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.l7-satellite-provider__name {
+  flex: 1;
+}
+
+/* 暗色主题适配 */
+[data-theme="dark"] .l7-satellite-panel__title,
+[data-theme="dark"] .l7-satellite-panel__label,
+[data-theme="dark"] .l7-satellite-panel__value {
+  color: var(--color-on-surface-variant, #c3c6d7);
+}
+[data-theme="dark"] .l7-satellite-provider {
+  background: rgba(40, 44, 56, 0.6);
+  border-color: rgba(100, 110, 140, 0.3);
+  color: var(--color-on-surface-variant, #c3c6d7);
+}
+[data-theme="dark"] .l7-satellite-provider:hover {
+  background: rgba(50, 55, 70, 0.7);
+  border-color: rgba(120, 130, 160, 0.4);
+}
+[data-theme="dark"] .l7-satellite-provider--active {
+  border-color: var(--color-primary, #60a5fa);
+  color: var(--color-primary, #60a5fa);
+}
+[data-theme="dark"] .l7-satellite-provider--active:hover {
+  background: rgba(50, 55, 70, 0.7);
+}
+[data-theme="dark"] .l7-satellite-panel__providers {
+  border-top-color: rgba(100, 110, 140, 0.3);
+}

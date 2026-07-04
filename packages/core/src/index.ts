@@ -165,6 +165,8 @@ export { ImageCalibrationControl } from './components/Control/ImageCalibrationCo
 export type { ImageCalibrationHandle, ImageCalibrationControlProps, GeoCorners, CalibrationPhase, CalibrationResult, ExportOptions, ExportConfig, ExportResult, TileResult } from './components/Control/ImageCalibrationControl';
 export { LogoControl } from './components/Control/LogoControl';
 export type { LogoControlProps, LogoItem } from './components/Control/LogoControl';
+export { SatelliteLayerControl } from './components/Control/SatelliteLayerControl';
+export type { SatelliteLayerControlProps } from './components/Control/SatelliteLayerControl';
 
 // Interaction 组件
 export { Marker } from './components/Interaction/Marker';

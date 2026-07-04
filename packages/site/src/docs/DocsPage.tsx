@@ -63,6 +63,7 @@ const docToDemoMap: Record<string, string> = {
   'controls/layer-switch-control': 'control/MapControls',
   'controls/scale-control': 'control/MapControls',
   'controls/draw-control': 'control/DrawControlDemo',
+  'controls/satellite-layer-control': 'control/SatelliteLayerControlDemo',
   // 容器 & 地图引擎
   'container/map-scene': 'engine/MaplibreMap',
   'engines/gaode': 'engine/GaodeMap',
