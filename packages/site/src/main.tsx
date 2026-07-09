@@ -384,7 +384,8 @@ const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block'
     d.file.replace('demo-', '') === normalizedRoute ||
     d.file === `demo-${normalizedRoute.padStart(2, '0')}`
   );
-  return { page: 'demo', demoIndex: index >= 0 ? index : 0 };
+  // 默认 demo 为 Marker (索引 7)
+  return { page: 'demo', demoIndex: index >= 0 ? index : 7 };
 };
 
 function App() {
@@ -506,7 +507,7 @@ function App() {
           onDocChange={(docId: string) => navigateTo(`design/${docId}`)}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
@@ -526,7 +527,7 @@ function App() {
           sourceModules={sourceModules}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
@@ -550,7 +551,7 @@ function App() {
           onDocChange={(docId: string) => navigateTo('block-design/' + docId)}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
@@ -569,7 +570,7 @@ function App() {
           theme={appTheme}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
@@ -589,7 +590,7 @@ function App() {
           theme={appTheme}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); navigateTo('demo/' + demos[0].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}

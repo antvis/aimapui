@@ -147,7 +147,7 @@ export default function HomePage({ onNavigate, onNavigateDesign, onNavigateBlock
         theme={theme}
         activePage="home"
         onLogoClick={() => {}}
-        onNavigateDemos={() => onNavigate(0)}
+        onNavigateDemos={() => onNavigate(7)}
         onNavigateDocs={onNavigateDocs}
         onNavigateDesign={onNavigateDesign}
         onNavigateBlock={onNavigateBlock}

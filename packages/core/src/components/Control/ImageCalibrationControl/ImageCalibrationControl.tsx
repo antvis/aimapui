@@ -181,7 +181,9 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
 
       images.forEach((img) => {
         if (img.id === activeId) return;
-        if (!img.corners || img.phase === 'idle') return;
+        // 所有非激活图片都应显示为静态图层（包括 idle/calibrating/confirmed）
+        // 只有没有 corners 的 idle 图片才跳过（无法定位到地图）
+        if (!img.corners && img.phase === 'idle') return;
 
         currentLayerIds.add(img.id);
 
@@ -466,11 +468,6 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
     const handleActivateImage = useCallback(
       (img: RegisteredImage, isNew = false) => {
         saveActiveImageState();
-        const staticLayer = staticLayersRef.current.get(img.id);
-        if (staticLayer && scene) {
-          try { scene.removeLayer(staticLayer); } catch {}
-          staticLayersRef.current.delete(img.id);
-        }
         setImages((prev) => {
           const exists = prev.find((i) => i.id === img.id);
           if (exists) return prev;
@@ -479,13 +476,14 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
         });
         setActiveImageId(img.id);
         onImageSwitch?.(img.id);
-        clear();
-        setTimeout(() => {
-          if (img.corners) setImage(img.source, img.corners);
-          else setImage(img.source);
-        }, 50);
+        // 先设置新图片，再清除旧状态，避免视觉间隙
+        if (img.corners) {
+          setImage(img.source, img.corners);
+        } else {
+          setImage(img.source);
+        }
       },
-      [saveActiveImageState, clear, setImage, onImageSwitch, onImageAdd, scene],
+      [saveActiveImageState, setImage, onImageSwitch, onImageAdd],
     );
 
     const handleSwitchImage = useCallback(
