@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { Scene } from '@antv/l7';
-import { AiMap, LineLayer, PointLayer, Marker, Tooltip, ZoomControl, MapThemeControl, LegendCategories } from '@antv/aimapui';
-import type { LayerEventPayload } from '@antv/aimapui';
+import { AiMap, LineLayer, PointLayer, Marker, Tooltip, Popup, ZoomControl, MapThemeControl, LegendCategories } from '@antv/aimapui';
+import type { LayerEventPayload, PopupAttribute } from '@antv/aimapui';
 
 /* ================================================================
    台风路径地图 — 应用模板 Demo
@@ -245,8 +245,15 @@ export default function TyphoonMap() {
   const [error, setError] = useState(false);
 
   const [selectedAgency, setSelectedAgency] = useState<string>('中国');
-  const [animate, setAnimate] = useState(true);
   const [selectedPointIdx, setSelectedPointIdx] = useState<number>(-1);
+
+  // 点击线路 / 节点显示的 Popup(同一时间仅一个)
+  interface PopupData {
+    lng: number; lat: number;
+    title: string; statusLabel: string; statusColor: string;
+    attrs: PopupAttribute[];
+  }
+  const [popup, setPopup] = useState<PopupData | null>(null);
 
   const sceneRef = useRef<Scene | null>(null);
   const hoverRef = useRef<{ lng: number; lat: number; time: string; strong: string; power: string; speed: string; pressure: string } | null>(null);
@@ -342,7 +349,7 @@ export default function TyphoonMap() {
   // 选中机构的预报段(高亮:粗实、本机构色)
   const activeForecastSegs = useMemo(() => {
     const a = forecastSrc.find(f => f.tm === selectedAgency);
-    return toForecastSegments(a);
+    return toForecastSegments(a).map(s => ({ path: s.path, agency: selectedAgency }));
   }, [forecastSrc, selectedAgency]);
   // 其余机构的预报段(淡显:细虚、本机构色半透明)
   const otherForecastSegs = useMemo(() => {
@@ -386,9 +393,42 @@ export default function TyphoonMap() {
   }, []);
   const handleNodeLeave = useCallback(() => setTooltip(t => ({ ...t, visible: false })), []);
   const handleNodeClick = useCallback((payload: LayerEventPayload) => {
-    const f = payload.feature as { index?: number } | undefined;
-    if (f && typeof f.index === 'number') setSelectedPointIdx(f.index);
-  }, []);
+    const f = payload.feature as Record<string, unknown> | undefined;
+    if (!f) return;
+    if (typeof f.index === 'number') setSelectedPointIdx(f.index);
+    const lng = payload.lng, lat = payload.lat;
+    const strong = String(f.strong ?? ''), power = String(f.power ?? ''), speed = String(f.speed ?? ''),
+      pressure = String(f.pressure ?? ''), time = String(f.time ?? '');
+    const key = STRENGTH_TO_KEY[strong] ?? 'TS';
+    setPopup({
+      lng, lat,
+      title: info?.name ?? '台风', statusLabel: strong, statusColor: GRADE_COLOR[key],
+      attrs: [
+        { label: '时间', value: time.slice(5) || '—' },
+        { label: '风力', value: power ? `${power}级` : '—', valueColor: GRADE_COLOR[key] },
+        { label: '风速', value: speed ? `${speed}m/s` : '—' },
+        { label: '中心气压', value: pressure ? `${pressure}hPa` : '—' },
+        { label: '经度', value: `${Number(lng).toFixed(1)}°` },
+        { label: '纬度', value: `${Number(lat).toFixed(1)}°` },
+      ],
+    });
+  }, [info]);
+
+  // 预报线路点击 → 显示该机构预报 Popup
+  const handleForecastClick = useCallback((payload: LayerEventPayload) => {
+    const f = payload.feature as Record<string, unknown> | undefined;
+    const agencyName = String(f?.agency ?? selectedAgency);
+    setPopup({
+      lng: payload.lng, lat: payload.lat,
+      title: `${agencyName} 预报路径`, statusLabel: '预报', statusColor: AGENCY_COLOR[agencyName],
+      attrs: [
+        { label: '机构', value: agencyName },
+        { label: '路径类型', value: '预报(虚线)' },
+        { label: '经度', value: `${Number(payload.lng).toFixed(1)}°` },
+        { label: '纬度', value: `${Number(payload.lat).toFixed(1)}°` },
+      ],
+    });
+  }, [selectedAgency]);
 
   // ── UI 颜色常量 ──
   const C = {
@@ -425,7 +465,7 @@ export default function TyphoonMap() {
               zIndex={0}
             />
           )}
-          {/* ② 历史轨迹段（按等级着色 + 动画） */}
+          {/* ② 历史轨迹段（实线，按等级着色，无动画） */}
           {trackSegments.length > 0 && (
             <LineLayer
               source={trackSegments}
@@ -435,35 +475,37 @@ export default function TyphoonMap() {
               size={2.5}
               colorField="grade"
               colorValues={GRADE_ORDER.map(g => GRADE_COLOR[g])}
-              animate={animate ? { enable: true, duration: 4, trailLength: 1.5 } : undefined}
               zIndex={1}
             />
           )}
-          {/* ③ 其他机构预报路径（全部同图显示，细实线淡显便于横向对比） */}
+          {/* ③ 其他机构预报路径（全显示，淡色长虚线便于横向对比） */}
           {otherForecastSegs.length > 0 && (
             <LineLayer
               source={otherForecastSegs}
               sourceType="json"
               sourceConfig={{ coordinates: 'path' }}
               shape="line"
-              size={2}
+              size={3}
               colorField="agency"
               colorValues={AGENCIES.filter(a => a !== selectedAgency).map(a => AGENCY_COLOR[a])}
-              style={{ opacity: 0.5 } as Record<string, unknown>}
+              style={{ opacity: 0.55, lineType: 'dash', dashArray: [8, 8] } as Record<string, unknown>}
+              onClick={handleForecastClick}
               zIndex={1}
             />
           )}
-          {/* ③' 选中机构预报路径（粗实线高亮） */}
+          {/* ③' 选中机构预报路径（粗虚线高亮） */}
           {activeForecastSegs.length > 0 && (
             <LineLayer
               source={activeForecastSegs}
               sourceType="json"
               sourceConfig={{ coordinates: 'path' }}
               shape="line"
-              size={3.5}
-              color={AGENCY_COLOR[selectedAgency]}
-              style={{ opacity: 0.95 } as Record<string, unknown>}
+              size={4}
+              colorField="agency"
+              colorValues={[AGENCY_COLOR[selectedAgency]]}
+              style={{ opacity: 0.95, lineType: 'dash', dashArray: [12, 8] } as Record<string, unknown>}
               active={{ color: '#fff' }}
+              onClick={handleForecastClick}
               zIndex={2}
             />
           )}
@@ -510,6 +552,21 @@ export default function TyphoonMap() {
               { label: '气压', value: tooltip.pressure ? `${tooltip.pressure}hPa` : '' },
             ]}
           />
+
+          {/* ⑦ 点击线路 / 节点显示的 Popup(同一时间仅一个) */}
+          {popup && (
+            <Popup
+              longitude={popup.lng}
+              latitude={popup.lat}
+              size="standard"
+              singleton
+              closeButton
+              visible
+              onClose={() => setPopup(null)}
+              header={{ title: popup.title, statusLabel: popup.statusLabel, statusColor: popup.statusColor }}
+              attributes={popup.attrs}
+            />
+          )}
 
           <ZoomControl position="bottomright" showZoom />
           <MapThemeControl position="topright" />
@@ -623,15 +680,6 @@ export default function TyphoonMap() {
             })}
           </div>
         </div>
-        {/* 动画 / 选中点信息 */}
-        <button onClick={() => setAnimate(v => !v)} style={{
-          padding: '8px 12px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-          border: `1px solid ${C.border}`, borderRadius: 10, cursor: 'pointer', color: animate ? C.accent : C.muted,
-          fontSize: 11, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
-        }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{animate ? 'play_circle' : 'pause_circle'}</span>
-          {animate ? '轨迹动画' : '已暂停'}
-        </button>
       </div>
 
       {/* ════════ 右下：等级 + 风圈图例 ════════ */}
