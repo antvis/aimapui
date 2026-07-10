@@ -15,7 +15,10 @@
     },
     "./style.css": "./dist/style.css"
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "rm -rf dist && vite build && vite build --config vite.config.cjs.ts",
     "build:esm": "vite build",
@@ -34,6 +37,7 @@
     "@antv/aimapui": "workspace:*",
     "@antv/l7": "2.28.13",
     "@tailwindcss/vite": "^4.0.0",
+    "@types/geojson": "^7946.0.16",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
@@ -45,12 +49,24 @@
     "vite-plugin-dts": "^4.3.0",
     "vitest": "^4.1.8"
   },
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/antvis/aimapui",
     "directory": "packages/plot"
   },
-  "keywords": ["antv", "l7", "map", "bindtype", "bindtype", "bindtype", "bindtype", "bindtype", "bindtype"]
+  "keywords": [
+    "antv",
+    "l7",
+    "map",
+    "bindtype",
+    "bindtype",
+    "bindtype",
+    "bindtype",
+    "bindtype",
+    "bindtype"
+  ]
 }
