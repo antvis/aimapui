@@ -439,17 +439,17 @@ export default function TyphoonMap() {
               zIndex={1}
             />
           )}
-          {/* ③ 其他机构预报路径（全部同图显示，淡色虚线便于横向对比） */}
+          {/* ③ 其他机构预报路径（全部同图显示，细实线淡显便于横向对比） */}
           {otherForecastSegs.length > 0 && (
             <LineLayer
               source={otherForecastSegs}
               sourceType="json"
               sourceConfig={{ coordinates: 'path' }}
               shape="line"
-              size={1.5}
+              size={2}
               colorField="agency"
               colorValues={AGENCIES.filter(a => a !== selectedAgency).map(a => AGENCY_COLOR[a])}
-              style={{ opacity: 0.45, lineType: 'dash', dashArray: [10, 6] } as Record<string, unknown>}
+              style={{ opacity: 0.5 } as Record<string, unknown>}
               zIndex={1}
             />
           )}
@@ -659,7 +659,7 @@ export default function TyphoonMap() {
                 const present = presentAgencies.has(a);
                 return (
                   <div key={a} style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: present ? 1 : 0.3 }}>
-                    <div style={{ width: 18, height: 0, borderTop: `${sel ? 3 : 1.5}px ${sel ? 'solid' : 'dashed'} ${AGENCY_COLOR[a]}` }} />
+                    <div style={{ width: 18, height: 0, borderTop: `${sel ? 3 : 2}px solid ${AGENCY_COLOR[a]}`, opacity: sel ? 1 : 0.5 }} />
                     <span style={{ fontSize: 11, color: sel ? '#e2e8f0' : '#94a3b8', fontWeight: sel ? 600 : 400 }}>{a}{sel ? ' (高亮)' : ''}</span>
                   </div>
                 );
