@@ -92,9 +92,9 @@ export default function Demo33MarkerCluster() {
             // eslint-disable-next-line no-console
             console.log('点击点位:', point.properties?.name);
           }}
-          onClusterClick={(cluster: any, leaves: any[]) => {
+          onClusterClick={(cluster: any, leaves?: any[]) => {
             // eslint-disable-next-line no-console
-            console.log('点击聚合点:', leaves.length, '个要素');
+            console.log('点击聚合点:', leaves?.length ?? 0, '个要素');
           }}
         />
       </AiMap>

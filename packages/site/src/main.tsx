@@ -51,6 +51,7 @@ import PcApp from './app/PcApp';
 import ImmersiveTravelMap from './app/ImmersiveTravelMap';
 import InterestMap from './app/InterestMap';
 import FlightRouteMap from './app/FlightRouteMap';
+import TyphoonMap from './app/TyphoonMap';
 
 // ── 复合图层 ──
 import BubbleLayer from './composite/BubbleLayer';
@@ -253,6 +254,7 @@ const demos = [
   { name: 'ImmersiveTravelMap', icon: 'photo_camera', component: ImmersiveTravelMap, group: 'App Templates', file: 'app/ImmersiveTravelMap', device: 'desktop' },
   { name: 'InterestMap', icon: 'interests', component: InterestMap, group: 'App Templates', file: 'app/InterestMap', device: 'mobile' },
   { name: 'FlightRouteMap', icon: 'flight', component: FlightRouteMap, group: 'App Templates', file: 'app/FlightRouteMap', device: 'mobile' },
+  { name: 'TyphoonMap', icon: 'cyclone', component: TyphoonMap, group: 'App Templates', file: 'app/TyphoonMap', device: 'desktop' },
 
 
   // ── Point Markers ──────────────────────────────

@@ -184,6 +184,8 @@ export const ImageCalibrationControl = forwardRef<ImageCalibrationHandle, ImageC
         // 所有非激活图片都应显示为静态图层（包括 idle/calibrating/confirmed）
         // 只有没有 corners 的 idle 图片才跳过（无法定位到地图）
         if (!img.corners && img.phase === 'idle') return;
+        // 其他阶段也可能 corners 为 null（尚未完成配准），跳过以避免 TS 报错
+        if (!img.corners) return;
 
         currentLayerIds.add(img.id);
 

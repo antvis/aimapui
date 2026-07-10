@@ -198,7 +198,7 @@ export default function MobileApp() {
             stopSize={10}
             stopRenderer="icon"
             stopIconSize={24}
-            stopIconColor={currentRoute.color}
+            stopColor={currentRoute.color}
             showStopIndex={false}
           />
         </AiMap>
