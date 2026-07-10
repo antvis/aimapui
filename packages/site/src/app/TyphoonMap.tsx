@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { Scene } from '@antv/l7';
-import { AiMap, LineLayer, PointLayer, Marker, Tooltip, Popup, ZoomControl, MapThemeControl, LegendCategories } from '@antv/aimapui';
+import { AiMap, LineLayer, PointLayer, ImageLayer, Marker, Tooltip, Popup, ZoomControl, MapThemeControl, LegendCategories, SatelliteLayer } from '@antv/aimapui';
 import type { LayerEventPayload, PopupAttribute } from '@antv/aimapui';
 
 /* ================================================================
@@ -154,6 +154,102 @@ interface TrackSegment { path: [number, number][]; grade: GradeKey; }
 interface TrackNode { lng: number; lat: number; grade: GradeKey; time: string; strong: string; power: string; speed: string; pressure: string; index: number; }
 interface WindPoint { lng: number; lat: number; level: string; quadrant: string; radius: number; }
 
+// ── 气象图层：浙江水利气象 API ────────────────────────────────
+// 复用同一 API_BASE；CORS 直连可取（与台风 API 同域）。
+// - 云图  LeastCloud?type=1|3|6  → base64 PNG + 边界(minLat/maxLat/minLng/maxLng)
+// - 雷达  LastRadar                → 4 片 base64 PNG(radar0_0/0_1/1_0/1_1) + synTime/radarType
+// - 降雨  LeastRain/24            → contours(矢量等值线, latAndLong 为 [lat,lng]) + time
+// - 风场  LastWind                 → GRIB2 风场数据(暂作占位, 后续接入 L7 WindLayer)
+const API_LEASTCLOUD = (type: number) => `${API_BASE}/LeastCloud?type=${type}`;
+const API_LASTRADAR = `${API_BASE}/LastRadar`;
+const API_LEASTRAIN = `${API_BASE}/LeastRain/24`;
+
+// 单张大图模式(radarType==='2'):全幅雷达拼图边界 [minLng,minLat,maxLng,maxLat]
+// (取自浙江水利站点客户端硬编码, 覆盖东亚)
+const RADAR_FULL_EXTENT: [number, number, number, number] =
+  [69.85883897374661, 12.17563341623027, 140.09971829625096, 54.338914427211094];
+// 四象限 tile→extent 映射(2×2 国家拼图, row0 北 row1 南, col0 西 col1 东)
+const RADAR_TILES: { key: 'radar0_0' | 'radar0_1' | 'radar1_0' | 'radar1_1'; extent: [number, number, number, number] }[] = [
+  // tile 名 → [westLng, southLat, eastLng, northLat]
+  { key: 'radar0_0', extent: [67.5, 36.580247, 104.073486, 55.7766] },       // NW
+  { key: 'radar0_1', extent: [67.5, 11.1784, 104.073486, 36.580247] },        // SW
+  { key: 'radar1_0', extent: [104.073486, 36.580247, 140.625, 55.7766] },    // NE
+  { key: 'radar1_1', extent: [104.073486, 11.1784, 140.625, 36.580247] },    // SE
+];
+
+interface CloudData { img: string; time: string; extent: [number, number, number, number]; }
+interface RadarTileData { img: string; extent: [number, number, number, number]; }
+interface RadarData { tiles: RadarTileData[]; time: string; }
+interface RainContourItem { path: [number, number][]; color: string; }
+interface RainData { contours: RainContourItem[]; time: string; }
+
+async function fetchCloud(type: 1 | 3 | 6 = 1): Promise<CloudData | null> {
+  try {
+    const r = await fetch(API_LEASTCLOUD(type), { cache: 'no-store' });
+    if (!r.ok) return null;
+    const j = await r.json() as {
+      cloud1h?: string; cloud3h?: string; cloud6h?: string;
+      minLat?: string; maxLat?: string; minLng?: string; maxLng?: string;
+      timeStr1h?: string; timeStr3h?: string; timeStr6h?: string;
+    };
+    const imgKey = `cloud${type}h` as 'cloud1h' | 'cloud3h' | 'cloud6h';
+    const img = j[imgKey]?.startsWith('data:image') ? j[imgKey] : (j[imgKey] ? `data:image/png;base64,${j[imgKey]}` : undefined);
+    if (!img) return null;
+    const minLng = Number(j.minLng), minLat = Number(j.minLat), maxLng = Number(j.maxLng), maxLat = Number(j.maxLat);
+    if (![minLng, minLat, maxLng, maxLat].every(Number.isFinite)) return null;
+    return { img, time: j[`timeStr${type}h` as 'timeStr1h' | 'timeStr3h' | 'timeStr6h'] ?? '', extent: [minLng, minLat, maxLng, maxLat] };
+  } catch { return null; }
+}
+
+async function fetchRadar(): Promise<RadarData | null> {
+  try {
+    const r = await fetch(API_LASTRADAR, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const j = await r.json() as Record<string, string>;
+    const synTime = j.synTime ?? '';
+    const radarType = j.radarType ?? '1';
+    if (radarType === '2' && j.radar0_0?.startsWith('data:image')) {
+      return { tiles: [{ img: j.radar0_0, extent: RADAR_FULL_EXTENT }], time: synTime };
+    }
+    const tiles: RadarTileData[] = [];
+    for (const t of RADAR_TILES) {
+      const raw = j[t.key];
+      if (!raw) continue;
+      const img = raw.startsWith('data:image') ? raw : `data:image/png;base64,${raw}`;
+      tiles.push({ img, extent: t.extent });
+    }
+    if (tiles.length === 0) return null;
+    return { tiles, time: synTime };
+  } catch { return null; }
+}
+
+async function fetchRain(): Promise<RainData | null> {
+  try {
+    const r = await fetch(API_LEASTRAIN, { cache: 'no-store' });
+    if (!r.ok) return null;
+    const j = await r.json() as { contours?: string; time?: string };
+    // contours 是双重编码的 JSON 字符串
+    const raw = typeof j.contours === 'string' ? JSON.parse(j.contours) : j.contours;
+    if (!Array.isArray(raw)) return null;
+    const contours: RainContourItem[] = [];
+    for (const c of raw as Array<{ color?: string; latAndLong?: number[][] }>) {
+      const ll = c.latAndLong;
+      if (!Array.isArray(ll) || ll.length < 2) continue;
+      // latAndLong 每点为 [lat, lng] → 转 [lng, lat] 供 L7
+      const path = ll.map(p => {
+        const lat = Number(p[0]), lng = Number(p[1]);
+        return [Number.isFinite(lng) && Number.isFinite(lat) ? lng : NaN, lat] as [number, number];
+      }).filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1])) as [number, number][];
+      if (path.length < 2) continue;
+      const rgba = String(c.color ?? '120,180,255,255').split(',').map(Number);
+      const hex = `#${rgba.slice(0, 3).map(v => Math.max(0, Math.min(255, v | 0)).toString(16).padStart(2, '0')).join('')}`;
+      contours.push({ path, color: hex });
+    }
+    if (contours.length === 0) return null;
+    return { contours, time: j.time ?? '' };
+  } catch { return null; }
+}
+
 function pointGrade(p: TyphoonPoint): GradeKey {
   return STRENGTH_TO_KEY[p.strong] ?? 'TS';
 }
@@ -247,6 +343,16 @@ export default function TyphoonMap() {
   const [selectedAgency, setSelectedAgency] = useState<string>('中国');
   const [selectedPointIdx, setSelectedPointIdx] = useState<number>(-1);
 
+  // 气象图层(单选)+ 透明度。weatherLayer: 'none'|'cloud'|'radar'|'rain'|'satellite'|'wind'
+  const [weatherLayer, setWeatherLayer] = useState<'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind'>('none');
+  const [weatherOpacity, setWeatherOpacity] = useState(0.7);
+  const [cloudType, setCloudType] = useState<1 | 3 | 6>(1);       // 云图时段 1h/3h/6h
+  const [cloud, setCloud] = useState<CloudData | null>(null);
+  const [radar, setRadar] = useState<RadarData | null>(null);
+  const [rain, setRain] = useState<RainData | null>(null);
+  const [satellite, setSatellite] = useState(false);              // 卫星底图开关(复用 SatelliteLayer)
+  const weatherLoading = useRef(false);
+
   // 点击线路 / 节点显示的 Popup(同一时间仅一个)
   interface PopupData {
     lng: number; lat: number;
@@ -258,6 +364,23 @@ export default function TyphoonMap() {
   const sceneRef = useRef<Scene | null>(null);
   const hoverRef = useRef<{ lng: number; lat: number; time: string; strong: string; power: string; speed: string; pressure: string } | null>(null);
   const [tooltip, setTooltip] = useState({ visible: false, lng: 0, lat: 0, time: '', strong: '', power: '', speed: '', pressure: '' });
+
+  // 0. 气象图层按需拉取(切换图层时触发, 同一图层缓存不重复请求)
+  useEffect(() => {
+    if (weatherLayer === 'cloud' && !cloud) {
+      weatherLoading.current = true;
+      fetchCloud(cloudType).then(d => { if (d) setCloud(d); });
+    } else if (weatherLayer === 'radar' && !radar) {
+      weatherLoading.current = true;
+      fetchRadar().then(d => { if (d) setRadar(d); });
+    } else if (weatherLayer === 'rain' && !rain) {
+      weatherLoading.current = true;
+      fetchRain().then(d => { if (d) setRain(d); });
+    }
+  }, [weatherLayer, cloudType, cloud, radar, rain]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 云图时段切换(1h/3h/6h) → 重新拉取
+  useEffect(() => { if (weatherLayer === 'cloud') setCloud(null); }, [cloudType]);
 
   // 1. 拉取当年台风列表
   useEffect(() => {
@@ -448,9 +571,52 @@ export default function TyphoonMap() {
       {/* ── 地图 ── */}
       <div style={{ position: 'absolute', inset: 0 }}>
         <AiMap
-          map={{ basemap: 'gaode', center: [127.6, 20.8], zoom: 4, pitch: 12, style: 'dark' }}
+          map={{ basemap: 'gaode', center: [127.6, 20.8], zoom: 4, pitch: 12, style: satellite ? 'light' : 'dark' }}
           onSceneReady={handleSceneReady}
         >
+          {/* ⓪ 气象覆盖层(置于最底,zIndex=-1,在台风轨迹之下) */}
+          {/* 卫星底图切换:开启时叠加高德影像 */
+          satellite && (<SatelliteLayer provider="gaode" zIndex={-2} opacity={0.95} />)}
+          {/* 云图(base64 PNG + 边界 extent) */
+          weatherLayer === 'cloud' && cloud && (
+            <ImageLayer
+              source={cloud.img}
+              sourceType="image"
+              sourceConfig={{ parser: { type: 'image', extent: cloud.extent } }}
+              style={{ opacity: weatherOpacity } as Record<string, unknown>}
+              zIndex={-1}
+            />
+          )}
+          {/* 雷达(多片拼接, radarType=2 单片) */
+          weatherLayer === 'radar' && radar && radar.tiles.map((t, i) => (
+            <ImageLayer
+              key={`radar-${i}`}
+              source={t.img}
+              sourceType="image"
+              sourceConfig={{ parser: { type: 'image', extent: t.extent } }}
+              style={{ opacity: weatherOpacity } as Record<string, unknown>}
+              zIndex={-1}
+            />
+          ))}
+          {/* 降雨(矢量等值线, LineLayer path + colorField=color) */
+          weatherLayer === 'rain' && rain && (() => {
+            const contourColors = [...new Set(rain.contours.map(c => c.color))];
+            return (
+              <LineLayer
+                source={rain.contours as unknown as { path: [number, number][]; color: string }[]}
+                sourceType="json"
+                sourceConfig={{ coordinates: 'path' }}
+                shape="line"
+                size={1.2}
+                colorField="color"
+                colorValues={contourColors}
+                style={{ opacity: weatherOpacity } as Record<string, unknown>}
+                zIndex={-1}
+              />
+            );
+          })()}
+          {/* 风场占位(数据为 GRIB, 暂未接入 L7 WindLayer 粒子) */}
+
           {/* ① 风圈（公里半径整圆，随缩放自适应） */}
           {windSourceMeter.length > 0 && (
             <PointLayer
@@ -679,6 +845,76 @@ export default function TyphoonMap() {
               );
             })}
           </div>
+        </div>
+      </div>
+
+      {/* ════════ 右中：气象图层切换 ════════ */}
+      <div style={{ position: 'absolute', top: '50%', right: 12, transform: 'translateY(-50%)', zIndex: 20 }}>
+        <div style={{
+          padding: '10px 12px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+          border: `1px solid ${C.border}`, borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.3)', width: 168,
+        }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>气象图层</div>
+          <div style={{ fontSize: 9, color: C.muted, marginBottom: 8 }}>单选叠加 · 高德底图</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+            {([
+              { k: 'none', label: '无', icon: 'block' },
+              { k: 'cloud', label: '云图', icon: 'cloud' },
+              { k: 'radar', label: '雷达', icon: 'radar' },
+              { k: 'rain', label: '降雨', icon: 'rainy' },
+              { k: 'satellite', label: '卫星', icon: 'satellite_alt' },
+              { k: 'wind', label: '风场', icon: 'air', disabled: true },
+            ] as { k: typeof weatherLayer; label: string; icon: string; disabled?: boolean }[]).map(o => {
+              const sel = weatherLayer === o.k;
+              return (
+                <button key={o.k} onClick={() => {
+                  setWeatherLayer(o.k as typeof weatherLayer);
+                  if (o.k === 'satellite') setSatellite(true);
+                  else if (o.k !== 'none') setSatellite(false);
+                }} title={o.disabled ? '风场(开发中)' : o.label} style={{
+                  padding: '6px 2px', borderRadius: 6, border: 'none', cursor: o.disabled ? 'not-allowed' : 'pointer',
+                  fontSize: 10, fontWeight: 500, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                  opacity: o.disabled ? 0.35 : 1, transition: 'all 0.15s',
+                  background: sel ? 'rgba(34,211,238,0.18)' : 'transparent',
+                  color: sel ? C.accent : 'rgba(148,163,184,0.7)',
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 15 }}>{o.icon}</span>{o.label}
+                </button>
+              );
+            })}
+          </div>
+          {/* 云图时段切换 */
+          weatherLayer === 'cloud' && (
+            <div style={{ marginTop: 8, display: 'flex', gap: 4, fontSize: 10 }}>
+              {([1, 3, 6] as const).map(h => (
+                <button key={h} onClick={() => setCloudType(h)} style={{
+                  flex: 1, padding: '3px 0', borderRadius: 5, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 500,
+                  background: cloudType === h ? 'rgba(34,211,238,0.18)' : 'transparent',
+                  color: cloudType === h ? C.accent : 'rgba(148,163,184,0.7)',
+                }}>{h}h</button>
+              ))}
+            </div>
+          )}
+          {/* 透明度(非"无"且非卫星底图时) */
+          weatherLayer !== 'none' && weatherLayer !== 'satellite' && (
+            <div style={{ marginTop: 10, borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: C.muted, marginBottom: 4 }}>
+                <span>透明度</span><span>{Math.round(weatherOpacity * 100)}%</span>
+              </div>
+              <input type="range" min={0} max={1} step={0.05} value={weatherOpacity} onChange={e => setWeatherOpacity(Number(e.target.value))}
+                style={{ width: '100%', accentColor: C.accent, height: 4 }} />
+            </div>
+          )}
+          {/* 数据时间 */
+          (weatherLayer === 'cloud' && cloud?.time) || (weatherLayer === 'radar' && radar?.time) || (weatherLayer === 'rain' && rain?.time) ? (
+            <div style={{ marginTop: 8, fontSize: 9, color: C.muted, borderTop: `1px solid ${C.border}`, paddingTop: 6 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 11, verticalAlign: 'middle' }}>schedule</span>{' '}
+              {weatherLayer === 'cloud' ? cloud?.time : weatherLayer === 'radar' ? radar?.time : rain?.time}
+            </div>
+          ) : null}
+          {weatherLayer === 'wind' && (
+            <div style={{ marginTop: 8, fontSize: 9, color: '#fca5a5' }}>风场粒子层开发中</div>
+          )}
         </div>
       </div>
 
