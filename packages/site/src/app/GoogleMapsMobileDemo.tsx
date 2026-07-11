@@ -360,7 +360,7 @@ export default function GoogleMapsMobileDemo() {
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', fontFamily: 'Roboto, system-ui, sans-serif', background: '#E8EAED' }}>
       {/* Map */}
       <div style={{ position: 'absolute', inset: 0, zIndex: 0 }}>
-        <AiMap autoFit={false} map={{ basemap: 'gaode', center: [120.15, 30.25], zoom: 13, style: 'normal' }} onSceneReady={handleSceneReady}>
+        <AiMap autoFit={false} map={{ basemap: 'gaode', center: [120.15, 30.25], zoom: 13, style: 'normal', gestureConfig: { dragPan: true, pinchZoom: true, dragRotate: true } }} onSceneReady={handleSceneReady}>
           {filteredPois.map(poi => {
             const cat = CAT_ICON[poi.category] ?? CAT_ICON.restaurant;
             return (
@@ -401,7 +401,7 @@ export default function GoogleMapsMobileDemo() {
       </div>
 
       {/* ═══ Status Bar — spec: 48px, padding 18px 26px 14px 27px ═══ */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2000, height: 48, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 26px 14px 27px' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 2000, height: 48, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 26px 14px 27px', pointerEvents: 'none' }}>
         <span style={{ fontSize: 17, fontWeight: 600, color: '#121212', letterSpacing: '-0.408px' }}>9:41</span>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#121212' }}>signal_cellular_alt</span>
@@ -411,12 +411,12 @@ export default function GoogleMapsMobileDemo() {
       </div>
 
       {/* ═══ Search Bar — spec: top: 61px, container 56px, bar 48px, radius 40 ═══ */}
-      <div style={{ position: 'absolute', top: 61, left: 0, right: 0, zIndex: 2000, height: 56, display: 'flex', flexDirection: 'column', padding: '4px 12px' }}>
+      <div style={{ position: 'absolute', top: 61, left: 0, right: 0, zIndex: 2000, height: 56, display: 'flex', flexDirection: 'column', padding: '4px 12px', pointerEvents: 'none' }}>
         <div style={{
           display: 'flex', alignItems: 'center',
           padding: '8px 12px', gap: 16, flex: 1,
           background: G.surface, boxShadow: '0px 4px 4px rgba(0,0,0,0.25)', borderRadius: 40,
-          overflow: 'hidden',
+          overflow: 'hidden', pointerEvents: 'auto',
         }}>
           {searchFocused ? (
             <>
@@ -440,7 +440,7 @@ export default function GoogleMapsMobileDemo() {
       <div style={{
         position: 'absolute', top: 122, left: 0, right: 0, zIndex: 2000,
         height: 40, display: 'flex', alignItems: 'flex-start',
-        padding: '4px 0px 4px 12px', gap: 4, overflowX: 'auto', scrollbarWidth: 'none',
+        padding: '4px 0px 4px 12px', gap: 4, overflowX: 'auto', scrollbarWidth: 'none', pointerEvents: 'none',
       }}>
         {PILL_FILTERS.map(f => {
           const isActive = activeFilter === f.key;
@@ -452,7 +452,7 @@ export default function GoogleMapsMobileDemo() {
               background: isActive ? '#1C1B1F' : G.surface,
               color: isActive ? '#fff' : 'rgba(0,0,0,0.9)',
               boxShadow: isActive ? undefined : '0px 1px 2px rgba(0,0,0,0.25)',
-              transition: 'all 0.15s',
+              transition: 'all 0.15s', pointerEvents: 'auto',
             }}>
               <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{f.icon}</span>
               {f.label}
@@ -464,14 +464,14 @@ export default function GoogleMapsMobileDemo() {
       {/* ═══ Left Column: Zoom + Locate + Directions ═══ */}
       <div style={{
         position: 'absolute', left: 10, bottom: BOTTOM_NAV_H + 2, zIndex: 3000,
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, pointerEvents: 'none',
       }}>
         <ZoomButtons scene={sceneRef.current} />
         <button onClick={() => { if (userLoc) sceneRef.current?.setZoomAndCenter(16, [userLoc.lng, userLoc.lat]); }}
-          style={{ width: 40, height: 40, borderRadius: 44, border: 'none', cursor: 'pointer', background: G.surface, boxShadow: G.shadowLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          style={{ width: 40, height: 40, borderRadius: 44, border: 'none', cursor: 'pointer', background: G.surface, boxShadow: G.shadowLight, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 20, color: G.primary }}>my_location</span>
         </button>
-        <button style={{ width: 58, height: 58, borderRadius: 44, border: 'none', cursor: 'pointer', background: G.primary, boxShadow: G.shadowHeavy, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button style={{ width: 58, height: 58, borderRadius: 44, border: 'none', cursor: 'pointer', background: G.primary, boxShadow: G.shadowHeavy, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 26, color: '#fff' }}>directions</span>
         </button>
       </div>
