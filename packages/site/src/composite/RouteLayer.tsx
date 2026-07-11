@@ -122,7 +122,7 @@ export default function RouteLayerDemo() {
           stopSize={8}
           endColor={DAY_COLORS.day3}
           stopRenderer="icon"
-          stopIconSize={28}
+          stopIconSize={14}
         />
 
         <ZoomControl position="bottomright" />

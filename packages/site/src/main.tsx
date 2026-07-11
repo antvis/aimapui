@@ -52,6 +52,8 @@ import ImmersiveTravelMap from './app/ImmersiveTravelMap';
 import InterestMap from './app/InterestMap';
 import FlightRouteMap from './app/FlightRouteMap';
 import TyphoonMap from './app/TyphoonMap';
+import GoogleMapsMobileDemo from './app/GoogleMapsMobileDemo';
+import AppleMapsDemo from './app/AppleMapsDemo';
 
 // ── 复合图层 ──
 import BubbleLayer from './composite/BubbleLayer';
@@ -254,7 +256,9 @@ const demos = [
   { name: 'ImmersiveTravelMap', icon: 'photo_camera', component: ImmersiveTravelMap, group: 'App Templates', file: 'app/ImmersiveTravelMap', device: 'desktop' },
   { name: 'InterestMap', icon: 'interests', component: InterestMap, group: 'App Templates', file: 'app/InterestMap', device: 'mobile' },
   { name: 'FlightRouteMap', icon: 'flight', component: FlightRouteMap, group: 'App Templates', file: 'app/FlightRouteMap', device: 'mobile' },
-  { name: 'TyphoonMap', icon: 'cyclone', component: TyphoonMap, group: 'App Templates', file: 'app/TyphoonMap', device: 'desktop' },
+  { name: 'TyphoonMap', icon: 'cyclone', component: TyphoonMap, group: 'App Templates', file: 'app/TyphoonMap', device: 'both' },
+  { name: 'GoogleMapsMobile', icon: 'map', component: GoogleMapsMobileDemo, group: 'App Templates', file: 'app/GoogleMapsMobileDemo', device: 'mobile' },
+  { name: 'AppleMaps', icon: 'map', component: AppleMapsDemo, group: 'App Templates', file: 'app/AppleMapsDemo', device: 'mobile' },
 
 
   // ── Point Markers ──────────────────────────────
@@ -509,7 +513,7 @@ function App() {
           onDocChange={(docId: string) => navigateTo(`design/${docId}`)}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(13); navigateTo('demo/' + demos[13].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
@@ -529,7 +533,7 @@ function App() {
           sourceModules={sourceModules}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(13); navigateTo('demo/' + demos[13].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
@@ -553,7 +557,7 @@ function App() {
           onDocChange={(docId: string) => navigateTo('block-design/' + docId)}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(13); navigateTo('demo/' + demos[13].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
@@ -572,7 +576,7 @@ function App() {
           theme={appTheme}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(13); navigateTo('demo/' + demos[13].file); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
@@ -592,7 +596,7 @@ function App() {
           theme={appTheme}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(13); navigateTo('demo/' + demos[13].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}

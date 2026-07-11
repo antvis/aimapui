@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useScene } from '../../context/SceneContext';
 import { useMapPosition } from '../../hooks/useMapPosition';
+import { useTheme } from '../../context/ThemeContext';
 import { cx } from '../../utils/style';
 import type { PopupSchema } from '../../schema/types';
 
@@ -410,6 +411,7 @@ export function Popup({
   const resolvedSize = sizeProp ?? (layout === 'simple' ? 'compact' : layout === 'rich' ? 'detailed' : 'standard');
   const size = resolvedSize;
   const scene = useScene();
+  const { resolvedTheme } = useTheme();
   // 如果传入了 visibleProp，则为受控模式；否则内部管理
   const isControlled = visibleProp !== undefined;
   const [internalVisible, setInternalVisible] = useState(true);
@@ -705,6 +707,7 @@ export function Popup({
     <div
       ref={popupRef}
       className={cx('aimapui-popup', `aimapui-popup--${size}`)}
+      data-theme={resolvedTheme}
       style={{
         position: 'absolute',
         left: 0,
@@ -712,7 +715,7 @@ export function Popup({
         transform: 'translate(-9999px, -9999px)',
         // 初始隐藏，等待 applyPosition 计算后再显示，避免 (-9999,-9999) 闪烁
         display: 'none',
-        zIndex: 30,
+        zIndex: 10000,
         pointerEvents: 'auto',
         ...wrapperStyle,
       }}

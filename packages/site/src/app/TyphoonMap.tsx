@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { Scene } from '@antv/l7';
-import { AiMap, LineLayer, PointLayer, FillLayer, ImageLayer, Marker, Tooltip, Popup, ZoomControl, MapThemeControl, LegendCategories, SatelliteLayer, SatelliteLayerControl } from '@antv/aimapui';
+import { AiMap, LineLayer, PointLayer, FillLayer, ImageLayer, Marker, Tooltip, Popup, ZoomControl, MapThemeControl, LegendCategories, SatelliteLayer, SatelliteLayerControl, useResponsive } from '@antv/aimapui';
 import type { LayerEventPayload, PopupAttribute } from '@antv/aimapui';
 
 /* ================================================================
@@ -73,6 +73,14 @@ interface ForecastAgency {
   tm: string;
   forecastpoints: TyphoonPoint[];
 }
+interface LandPoint {
+  landaddress: string;
+  landtime: string;
+  lng: string;
+  lat: string;
+  info: string;
+  strong: string | null;
+}
 interface TyphoonInfo {
   tfid: string;
   name: string;
@@ -84,7 +92,7 @@ interface TyphoonInfo {
   centerlng?: string;
   centerlat?: string;
   points: TyphoonPoint[];
-  land?: unknown[];
+  land?: LandPoint[];
 }
 interface TyphoonListItem {
   tfid: string;
@@ -107,6 +115,32 @@ function parseRadii(s: string | undefined | null): [number, number, number, numb
   };
   return [n(parts[0]), n(parts[1]), n(parts[2]), n(parts[3])];
 }
+
+// ── 台风24/48小时警戒线坐标（气象数据与GIS制图规范）──────────────
+// 坐标格式：[经度, 纬度]（L7 GeoJSON标准）
+// 24小时警戒线：6个折点依次连线
+const WARNING_LINE_24H: [number, number][] = [
+  [127, 34],   // [34°N, 127°E]
+  [127, 22],   // [22°N, 127°E]
+  [119, 18],   // [18°N, 119°E]
+  [119, 11],   // [11°N, 119°E]
+  [113, 4.5],  // [4.5°N, 113°E]
+  [105, 0],    // [0°, 105°E]
+];
+
+// 48小时警戒线：4个折点依次连线
+const WARNING_LINE_48H: [number, number][] = [
+  [132, 34],   // [34°N, 132°E]
+  [132, 15],   // [15°N, 132°E]
+  [120, 0],    // [0°, 120°E]
+  [105, 0],    // [0°, 105°E]
+];
+
+// 警戒线颜色配置
+const WARNING_LINE_COLORS = {
+  '24h': '#f59e0b',  // 橙色
+  '48h': '#ef4444',  // 红色
+};
 
 // ── 当前年份 ─────────────────────────────────────────────────
 const CURRENT_YEAR = new Date().getFullYear();
@@ -398,22 +432,40 @@ function toNodes(points: TyphoonPoint[]): TrackNode[] {
     .filter(Boolean) as TrackNode[];
 }
 /** 某路径点的 7/10/12 级四象限风圈 → GeoJSON Polygon 数组（每个等级一个完整外环） */
+/** 球面几何：从点出发，沿 bearing 方向走 distanceKm → 目标经纬 */
+function destinationPoint(
+  startLng: number, startLat: number, distanceKm: number, bearingDeg: number,
+): [number, number] {
+  const R = 6371;
+  const dR = distanceKm / R;
+  const lat1 = (startLat * Math.PI) / 180;
+  const lng1 = (startLng * Math.PI) / 180;
+  const bearing = (bearingDeg * Math.PI) / 180;
+  const lat2 = Math.asin(
+    Math.sin(lat1) * Math.cos(dR) +
+    Math.cos(lat1) * Math.sin(dR) * Math.cos(bearing),
+  );
+  const lng2 = lng1 + Math.atan2(
+    Math.sin(bearing) * Math.sin(dR) * Math.cos(lat1),
+    Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2),
+  );
+  return [(lng2 * 180) / Math.PI, (lat2 * 180) / Math.PI];
+}
+
+/** 某路径点的 7/10/12 级四象限风圈 → GeoJSON Polygon 数组（每个等级一个完整外环） */
 function toWindPolygons(p: TyphoonPoint | undefined): WindPolygon[] {
   if (!p) return [];
   const lng = Number(p.lng), lat = Number(p.lat);
   if (!Number.isFinite(lng) || !Number.isFinite(lat)) return [];
   const out: WindPolygon[] = [];
-  // 四象限角度范围（从正北顺时针）: NE=0-90, SE=90-180, SW=180-270, NW=270-360
+  // 四象限角度范围（从正北顺时针，气象惯例）: NE=0-90, SE=90-180, SW=180-270, NW=270-360
   const QUADRANT_ANGLES: [number, number][] = [[0, 90], [90, 180], [180, 270], [270, 360]];
-  const buildArc = (centerLng: number, centerLat: number, radiusKm: number, startDeg: number, endDeg: number): [number, number][] => {
+  const buildArc = (radiusKm: number, startDeg: number, endDeg: number): [number, number][] => {
     const points: [number, number][] = [];
-    const steps = Math.max(8, Math.round((endDeg - startDeg) / 5));
+    const steps = Math.max(12, Math.round((endDeg - startDeg) / 3));
     for (let i = 0; i <= steps; i++) {
-      const deg = startDeg + (endDeg - startDeg) * (i / steps);
-      const rad = (deg - 90) * (Math.PI / 180);
-      const dLng = (radiusKm / 111.32) * Math.cos(rad);
-      const dLat = (radiusKm / 110.57) * Math.sin(rad);
-      points.push([centerLng + dLng, centerLat + dLat]);
+      const bearing = startDeg + (endDeg - startDeg) * (i / steps);
+      points.push(destinationPoint(lng, lat, radiusKm, bearing));
     }
     return points;
   };
@@ -425,7 +477,7 @@ function toWindPolygons(p: TyphoonPoint | undefined): WindPolygon[] {
       if (radii[qi] > 0) {
         hasAny = true;
         const [startDeg, endDeg] = QUADRANT_ANGLES[qi];
-        ring.push(...buildArc(lng, lat, radii[qi], startDeg, endDeg));
+        ring.push(...buildArc(radii[qi], startDeg, endDeg));
       }
     }
     if (!hasAny || ring.length < 3) return;
@@ -452,195 +504,6 @@ function toForecastSegments(agency: ForecastAgency | undefined): TrackSegment[] 
     segs.push({ path: [[aLng, aLat], [bLng, bLat]], grade: pointGrade(b) });
   }
   return segs;
-}
-
-// ── 警戒线（预报误差锥）───────────────────────────────────────
-// 参考浙江水利台风系统实现，根据预报时间差计算误差半径，
-// 在预报路径两侧绘制半透明的误差范围多边形。
-
-const EARTH_RADIUS = 6371; // 地球半径 km
-
-// 预报时间(小时) → 误差半径(km) 映射表
-const FORECAST_RADII = new Map<number, number>([
-  [3, 10], [6, 20], [9, 30], [12, 40], [15, 50], [18, 60],
-  [21, 70], [24, 80], [30, 90], [36, 100], [42, 110], [48, 120],
-  [60, 160], [72, 200], [96, 300], [120, 400],
-]);
-
-/** 根据预报小时数获取误差半径(km) - 使用线性插值 */
-function getForecastRadius(hours: number): number | undefined {
-  // 直接匹配
-  if (FORECAST_RADII.has(hours)) {
-    return FORECAST_RADII.get(hours);
-  }
-  
-  // 找到 closest 的两个时间点进行插值
-  const sortedKeys = Array.from(FORECAST_RADII.keys()).sort((a, b) => a - b);
-  
-  // 小于最小时间，返回最小半径
-  if (hours <= sortedKeys[0]) {
-    return FORECAST_RADII.get(sortedKeys[0]);
-  }
-  
-  // 大于最大时间，返回最大半径
-  if (hours >= sortedKeys[sortedKeys.length - 1]) {
-    return FORECAST_RADII.get(sortedKeys[sortedKeys.length - 1]);
-  }
-  
-  // 找到上下界进行线性插值
-  for (let i = 0; i < sortedKeys.length - 1; i++) {
-    const h1 = sortedKeys[i];
-    const h2 = sortedKeys[i + 1];
-    if (hours > h1 && hours < h2) {
-      const r1 = FORECAST_RADII.get(h1)!;
-      const r2 = FORECAST_RADII.get(h2)!;
-      const t = (hours - h1) / (h2 - h1);
-      return Math.round(r1 + (r2 - r1) * t);
-    }
-  }
-  
-  return undefined;
-}
-
-/**
- * 计算路径点两侧垂直方向的坐标
- * @param lat 当前点纬度
- * @param lng 当前点经度
- * @param prevLat 前一个点纬度
- * @param prevLng 前一个点经度
- * @param radiusKm 误差半径(km)
- * @returns 两侧坐标 [[lat1, lng1], [lat2, lng2]]
- */
-function calculatePerpendicularCoordinates(
-  lat: number, lng: number, prevLat: number, prevLng: number, radiusKm: number
-): [number, number][] {
-  const latRad = (lat * Math.PI) / 180;
-  const lngRad = (lng * Math.PI) / 180;
-  const prevLatRad = (prevLat * Math.PI) / 180;
-  const dLng = ((prevLng * Math.PI) / 180) - lngRad;
-
-  // 计算方位角
-  const y = Math.sin(dLng) * Math.cos(prevLatRad);
-  const x = Math.cos(latRad) * Math.sin(prevLatRad) - Math.sin(latRad) * Math.cos(prevLatRad) * Math.cos(dLng);
-  const bearing = Math.atan2(y, x);
-
-  // 两侧垂直方向（+90° 和 -90°）
-  const d1 = bearing + Math.PI / 2;
-  const d2 = bearing - Math.PI / 2;
-
-  // 计算两侧点坐标
-  const lat1 = Math.asin(
-    Math.sin(latRad) * Math.cos(radiusKm / EARTH_RADIUS) +
-    Math.cos(latRad) * Math.sin(radiusKm / EARTH_RADIUS) * Math.cos(d1)
-  );
-  const lng1 = lngRad + Math.atan2(
-    Math.sin(d1) * Math.sin(radiusKm / EARTH_RADIUS) * Math.cos(latRad),
-    Math.cos(radiusKm / EARTH_RADIUS) - Math.sin(latRad) * Math.sin(lat1)
-  );
-  const lat2 = Math.asin(
-    Math.sin(latRad) * Math.cos(radiusKm / EARTH_RADIUS) +
-    Math.cos(latRad) * Math.sin(radiusKm / EARTH_RADIUS) * Math.cos(d2)
-  );
-  const lng2 = lngRad + Math.atan2(
-    Math.sin(d2) * Math.sin(radiusKm / EARTH_RADIUS) * Math.cos(latRad),
-    Math.cos(radiusKm / EARTH_RADIUS) - Math.sin(latRad) * Math.sin(lat2)
-  );
-
-  return [
-    [(lat1 * 180) / Math.PI, (lng1 * 180) / Math.PI],
-    [(lat2 * 180) / Math.PI, (lng2 * 180) / Math.PI],
-  ];
-}
-
-/**
- * 生成半圆弧上的点列（用于闭合警戒线末端）
- * @param startLat 起点纬度
- * @param startLng 起点经度
- * @param endLat 终点纬度
- * @param endLng 终点经度
- */
-function generateSemiCirclePoints(
-  startLat: number, startLng: number, endLat: number, endLng: number
-): [number, number][] {
-  const points: [number, number][] = [];
-  const steps = 20;
-  // 从起点到终点画半圆弧
-  for (let i = 0; i <= steps; i++) {
-    const t = (i / steps) * Math.PI;
-    const midLat = (startLat + endLat) / 2;
-    const midLng = (startLng + endLng) / 2;
-    const dist = Math.sqrt((endLat - startLat) ** 2 + (endLng - startLng) ** 2);
-    const r = dist / 2;
-    const lat = midLat + r * Math.cos(t);
-    const lng = midLng + r * Math.sin(t);
-    points.push([lat, lng]);
-  }
-  return points;
-}
-
-/** 计算警戒线多边形坐标 */
-interface ConePolygon {
-  coordinates: [number, number][][];
-}
-
-function toConePolygon(forecastPoints: TyphoonPoint[]): ConePolygon | null {
-  if (forecastPoints.length < 2) return null;
-
-  const firstPoint = forecastPoints[0];
-  const firstTime = new Date(firstPoint.time).getTime();
-  
-  // o 数组存储所有垂直点（交替插入：前半部分左侧点，后半部分右侧点）
-  const o: [number, number][] = [];  // [lat, lng] 格式
-  let lastPerp: [number, number][] | null = null;
-
-  for (let i = 1; i < forecastPoints.length; i++) {
-    const pt = forecastPoints[i];
-    const lat = Number(pt.lat);
-    const lng = Number(pt.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-
-    const time = new Date(pt.time).getTime();
-    const hours = Math.round((time - firstTime) / (1000 * 60 * 60));
-    const radius = getForecastRadius(hours);
-    if (!radius) continue;
-
-    const prevPt = forecastPoints[i - 1];
-    const prevLat = Number(prevPt.lat);
-    const prevLng = Number(prevPt.lng);
-
-    // calculatePerpendicularCoordinates returns [[lat1, lng1], [lat2, lng2]]
-    const h = calculatePerpendicularCoordinates(lat, lng, prevLat, prevLng, radius);
-    lastPerp = h;
-    
-    if (o.length > 0) {
-      // 在中间插入新点
-      o.splice(o.length / 2, 0, ...h);
-    } else {
-      o.push(...h);
-    }
-  }
-
-  if (o.length === 0 || !lastPerp) return null;
-
-  // 生成末端半圆
-  const v = generateSemiCirclePoints(lastPerp[1][0], lastPerp[1][1], lastPerp[0][0], lastPerp[0][1]);
-  
-  // 在半圆中间插入
-  o.splice(o.length / 2, 0, ...v);
-
-  // 构建最终多边形: [[起点lat, 起点lng], ...所有点]
-  const startLat = Number(firstPoint.lat);
-  const startLng = Number(firstPoint.lng);
-  const ring: [number, number][] = [[startLng, startLat]];
-  
-  for (const pt of o) {
-    ring.push([pt[1], pt[0]]);  // [lat, lng] → [lng, lat]
-  }
-  
-  // 闭合
-  ring.push(ring[0]);
-
-  return { coordinates: [ring] };
 }
 
 // ── 台风眼符号 ───────────────────────────────────────────────
@@ -672,7 +535,9 @@ function TyphoonEye({ color, label }: { color: string; label: string }) {
 // ══════════════════════════════════════════════════════════════
 //  主组件
 // ══════════════════════════════════════════════════════════════
-export default function TyphoonMap() {
+export default function TyphoonMap({ mobilePreview }: { mobilePreview?: boolean } = {}) {
+  const { isMobile: responsiveMobile } = useResponsive();
+  const isMobile = mobilePreview ?? responsiveMobile;
   const [list, setList] = useState<TyphoonListItem[]>([]);
   const [activeIds, setActiveIds] = useState<string[]>([]);
   const [tfid, setTfid] = useState<string>('');
@@ -683,6 +548,7 @@ export default function TyphoonMap() {
   const [selectedAgency, setSelectedAgency] = useState<string>('中国');
   const [selectedPointIdx, setSelectedPointIdx] = useState<number>(-1);
   const [listExpanded, setListExpanded] = useState(false);
+  const [pointsDetailExpanded, setPointsDetailExpanded] = useState(false);
   const [legendExpanded, setLegendExpanded] = useState(false);
   const [showWindCircles, setShowWindCircles] = useState(true);
 
@@ -887,14 +753,6 @@ const sceneRef = useRef<Scene | null>(null);
     return points;
   }, [forecastSrc]);
 
-  // 警戒线（预报误差锥）- 基于选中机构预报路径计算
-  const conePolygon = useMemo(() => {
-    const a = forecastSrc.find(f => f.tm === selectedAgency);
-    if (!a || a.forecastpoints.length < 2) {
-      return null;
-    }
-    return toConePolygon(a.forecastpoints);
-  }, [forecastSrc, selectedAgency]);
   const handleSceneReady = useCallback((scene: Scene) => {
     sceneRef.current = scene;
     // 降雨图层悬停提示已通过 FillLayer onMouseMove 事件处理
@@ -1025,16 +883,23 @@ const sceneRef = useRef<Scene | null>(null);
     lng: Number(selectedPoint.lng), lat: Number(selectedPoint.lat), time: selectedPoint.time,
   } : null;
 
+  // 登陆点数据
+  const landMarks = useMemo(() => {
+    const lands = info?.land ?? [];
+    return lands.filter(l => {
+      const lng = Number(l.lng), lat = Number(l.lat);
+      return Number.isFinite(lng) && Number.isFinite(lat);
+    });
+  }, [info]);
+
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: C.bg, fontFamily: "'Inter', system-ui, sans-serif" }}>
-      {/* L7 控件暗色主题覆盖 */}
+    <div data-theme="dark" style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: C.bg, fontFamily: "'Inter', system-ui, sans-serif" }}>
       <style>{`
-        .l7-control-zoom, .l7-control-theme, .l7-map-theme-control { background: rgba(15,23,42,0.9) !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(148,163,184,0.12) !important; border-radius: 12px !important; box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important; padding: 4px !important; }
-        .l7-control-zoom a, .l7-control-zoom button, .l7-control-theme a, .l7-control-theme button, .l7-map-theme-control a, .l7-map-theme-control button { color: #e2e8f0 !important; background: transparent !important; border: none !important; width: 28px !important; height: 28px !important; line-height: 28px !important; font-size: 16px !important; border-radius: 8px !important; transition: background 0.15s !important; }
-        .l7-control-zoom a:hover, .l7-control-zoom button:hover, .l7-control-theme a:hover, .l7-control-theme button:hover, .l7-map-theme-control a:hover, .l7-map-theme-control button:hover { background: rgba(34,211,238,0.15) !important; color: #22d3ee !important; }
-        .l7-control-zoom .l7-zoom-number { color: #cbd5e1 !important; background: transparent !important; border-top: 1px solid rgba(148,163,184,0.1) !important; border-bottom: 1px solid rgba(148,163,184,0.1) !important; font-size: 11px !important; font-weight: 600 !important; height: 28px !important; line-height: 28px !important; }
-        .l7-map-theme-control img, .l7-map-theme-control svg { filter: brightness(0) invert(0.9) !important; }
+        @keyframes typhoon-eye-rot { to { transform: rotate(360deg); } }
+        .typhoon-eye-spin { animation: typhoon-eye-rot 4s linear infinite; }
       `}</style>
+      {/* L7 控件暗色主题已通过 data-theme="dark" + tailwind.css [data-theme="dark"] 规则自动适配 */}
+      {/* Popup/Tooltip 暗色主题及 z-index 已在通用组件内部处理 */}
       {/* ── 地图 ── */}
       <div style={{ position: 'absolute', inset: 0 }}>
         <AiMap
@@ -1106,10 +971,74 @@ const sceneRef = useRef<Scene | null>(null);
                     style={{ opacity: 0.8 } as Record<string, unknown>}
                     zIndex={2}
                   />
+                  {/* 风圈文字标注 */}
+                  <PointLayer
+                    source={{ type: 'FeatureCollection' as const, features: windPolygons.map(w => {
+                      // 取多边形外环的第一个点作为标注位置（通常在NE象限起点附近）
+                      const coords = w.coordinates[0];
+                      const midIdx = Math.floor(coords.length / 4); // 取约1/4处的点（NE象限中部）
+                      const pt = coords[midIdx] || coords[0];
+                      return {
+                        type: 'Feature' as const,
+                        properties: { label: `${w.level}级风圈`, level: w.level },
+                        geometry: { type: 'Point' as const, coordinates: pt },
+                      };
+                    }) }}
+                    sourceType="geojson"
+                    shapeField="label"
+                    shapeValues="text"
+                    colorField="level"
+                    colorValues={WIND_LEVEL_KEY.map(k => WIND_LEVEL_COLOR[k])}
+                    size={11}
+                    zIndex={5}
+                    style={{
+                      textAnchor: 'center',
+                      textOffset: [0, -8],
+                      fontWeight: 600,
+                      stroke: '#0f172a',
+                      strokeWidth: 3,
+                    } as Record<string, unknown>}
+                  />
                 </>
               )}
             </>
-          ) : null}          {/* ② 历史轨迹段（实线，按等级着色，无动画） */}
+          ) : null}
+          {/* ①' 台风24/48小时警戒线（气象规范固定坐标） */}
+          <LineLayer
+            source={{ type: 'FeatureCollection' as const, features: [
+              { type: 'Feature' as const, properties: { type: '24h', label: '24小时警戒线' }, geometry: { type: 'LineString' as const, coordinates: WARNING_LINE_24H } },
+              { type: 'Feature' as const, properties: { type: '48h', label: '48小时警戒线' }, geometry: { type: 'LineString' as const, coordinates: WARNING_LINE_48H } },
+            ] }}
+            sourceType="geojson"
+            shape="line"
+            size={1.5}
+            colorField="type"
+            colorValues={[WARNING_LINE_COLORS['24h'], WARNING_LINE_COLORS['48h']]}
+            style={{ opacity: 0.9, lineType: 'dash', dashArray: [8, 5] } as Record<string, unknown>}
+            zIndex={3}
+          />
+          {/* 警戒线文字标注 */}
+          <PointLayer
+            source={{ type: 'FeatureCollection' as const, features: [
+              { type: 'Feature' as const, properties: { label: '24小时警戒线', type: '24h' }, geometry: { type: 'Point' as const, coordinates: [119, 18] } },
+              { type: 'Feature' as const, properties: { label: '48小时警戒线', type: '48h' }, geometry: { type: 'Point' as const, coordinates: [132, 15] } },
+            ] }}
+            sourceType="geojson"
+            shapeField="label"
+            shapeValues="text"
+            colorField="type"
+            colorValues={[WARNING_LINE_COLORS['24h'], WARNING_LINE_COLORS['48h']]}
+            size={12}
+            zIndex={4}
+            style={{
+              textAnchor: 'center',
+              textOffset: [0, -10],
+              fontWeight: 600,
+              stroke: '#0f172a',
+              strokeWidth: 3,
+            } as Record<string, unknown>}
+          />
+          {/* ② 历史轨迹段（实线，按等级着色，无动画） */}
           {trackSegments.length > 0 && (
             <LineLayer
               source={trackSegments}
@@ -1122,7 +1051,6 @@ const sceneRef = useRef<Scene | null>(null);
               zIndex={1}
             />
           )}
-          {/* ③ 其他机构预报路径（全显示，淡色长虚线便于横向对比） */}
           {otherForecastSegs.length > 0 && (
             <LineLayer
               source={otherForecastSegs}
@@ -1172,32 +1100,48 @@ const sceneRef = useRef<Scene | null>(null);
               zIndex={7}
             />
           )}
-          {/* ③''' 警戒线（预报误差锥）- 半透明填充多边形 */}
-          {conePolygon && (
-            <FillLayer
-              source={{ type: 'FeatureCollection' as const, features: [{ type: 'Feature' as const, properties: {}, geometry: { type: 'Polygon' as const, coordinates: conePolygon.coordinates } }] }}
-              sourceType="geojson"
-              shape="fill"
-              color={AGENCY_COLOR[selectedAgency] ?? '#22d3ee'}
-              showStroke={true}
-              strokeColor={AGENCY_COLOR[selectedAgency] ?? '#22d3ee'}
-              strokeWidth={1}
-              style={{ opacity: 0.2 } as Record<string, unknown>}
-              zIndex={1}
-            />
-          )}
-          {/* 警戒线描边 */}
-          {conePolygon && (
-            <LineLayer
-              source={{ type: 'FeatureCollection' as const, features: [{ type: 'Feature' as const, properties: {}, geometry: { type: 'Polygon' as const, coordinates: conePolygon.coordinates } }] }}
-              sourceType="geojson"
-              shape="line"
-              size={2}
-              color={AGENCY_COLOR[selectedAgency] ?? '#22d3ee'}
-              style={{ opacity: 0.8 } as Record<string, unknown>}
-              zIndex={11}
-            />
-          )}
+          {/* 预报路径日期标注（仅中国机构，每天一个） */}
+          {(() => {
+            const chinaPoints = forecastSrc.find(f => f.tm === '中国')?.forecastpoints ?? [];
+            // 按日期去重，每天只保留第一个点作为标注
+            const dailyLabels: { lng: number; lat: number; dateLabel: string }[] = [];
+            const seenDates = new Set<string>();
+            for (const pt of chinaPoints) {
+              const timeStr = String(pt.time ?? '');
+              const datePart = timeStr.slice(0, 10); // YYYY-MM-DD
+              if (!datePart || seenDates.has(datePart)) continue;
+              seenDates.add(datePart);
+              const lng = Number(pt.lng), lat = Number(pt.lat);
+              if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue;
+              // 格式化日期标签：MM/DD
+              const month = datePart.slice(5, 7);
+              const day = datePart.slice(8, 10);
+              dailyLabels.push({ lng, lat, dateLabel: `${month}/${day}` });
+            }
+            if (dailyLabels.length === 0) return null;
+            return (
+              <PointLayer
+                source={{ type: 'FeatureCollection' as const, features: dailyLabels.map(d => ({
+                  type: 'Feature' as const,
+                  properties: { label: d.dateLabel },
+                  geometry: { type: 'Point' as const, coordinates: [d.lng, d.lat] },
+                })) }}
+                sourceType="geojson"
+                shapeField="label"
+                shapeValues="text"
+                color="#22d3ee"
+                size={11}
+                zIndex={8}
+                style={{
+                  textAnchor: 'center',
+                  textOffset: [0, -12],
+                  fontWeight: 700,
+                  stroke: '#0f172a',
+                  strokeWidth: 3,
+                } as Record<string, unknown>}
+              />
+            );
+          })()}
           {/* ④ 路径节点（按等级着色） */}
           {nodes.length > 0 && (
             <PointLayer
@@ -1225,13 +1169,37 @@ const sceneRef = useRef<Scene | null>(null);
               offsets={[0, 0]}
               content={
                 <img
-                  src="https://mdn.alipayobjects.com/huamei_b5qxsh/afts/img/A*OT11QYzVNCcAAAAAQCAAAAgAerZ5AQ/original"
+                  className="typhoon-eye-spin"
+                  src="https://mdn.alipayobjects.com/huamei_b5qxsh/afts/img/A*WGCYS7D5AI0AAAAAQGAAAAgAerZ5AQ/original"
                   alt="台风眼"
-                  style={{ width: 64, height: 64, pointerEvents: 'none' }}
+                  style={{ width: 40, height: 40, pointerEvents: 'none' }}
                 />
               }
             />
           )}
+
+          {/* ⑤' 登陆点标注 */}
+          {landMarks.map((land) => {
+            const lng = Number(land.lng), lat = Number(land.lat);
+            if (!Number.isFinite(lng) || !Number.isFinite(lat)) return null;
+            return (
+              <Marker
+                key={`${land.landtime}-${land.landaddress}`}
+                longitude={lng}
+                latitude={lat}
+                anchor="bottom"
+                offsets={[0, 0]}
+                content={
+                  <img
+                    src="https://mdn.alipayobjects.com/huamei_b5qxsh/afts/img/A*ADaqSZdQm0wAAAAAPSAAAAgAerZ5AQ/original"
+                    alt="登陆点"
+                    title={land.info}
+                    style={{ width: 32, height: 40, cursor: 'pointer' }}
+                  />
+                }
+              />
+            );
+          })}
 
           {/* ⑥ 节点 Tooltip */}
           <Tooltip
@@ -1279,12 +1247,12 @@ const sceneRef = useRef<Scene | null>(null);
         </AiMap>
       </div>
 
-      {/* ════════ 顶部导航条（与左侧面板同宽） ════════ */}
-      <div style={{ position: 'absolute', top: 0, left: 0, width: 264, zIndex: 1000, padding: '12px 16px', background: 'linear-gradient(180deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0) 100%)', pointerEvents: 'none' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 22, color: C.accent, pointerEvents: 'auto' }}>cyclone</span>
-          <span style={{ fontSize: 17, fontWeight: 800, color: '#f1f5f9' }}>台风路径图</span>
-          <span style={{ fontSize: 11, color: C.muted, marginLeft: 6 }}>{CURRENT_YEAR} 年 西太平洋</span>
+      {/* ════════ 顶部导航条 ════════ */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: isMobile ? '100%' : 264, zIndex: 1000, padding: isMobile ? '8px 12px' : '12px 16px', background: 'linear-gradient(180deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0) 100%)', pointerEvents: 'none' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 8 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: isMobile ? 18 : 22, color: C.accent, pointerEvents: 'auto' }}>cyclone</span>
+          <span style={{ fontSize: isMobile ? 14 : 17, fontWeight: 800, color: '#f1f5f9' }}>台风路径图</span>
+          {!isMobile && <span style={{ fontSize: 11, color: C.muted, marginLeft: 6 }}>{CURRENT_YEAR} 年 西太平洋</span>}
           {error && (
             <span style={{ fontSize: 10, color: '#fca5a5', background: 'rgba(239,68,68,0.12)', padding: '2px 8px', borderRadius: 6, pointerEvents: 'auto', marginLeft: 'auto' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 11, verticalAlign: 'middle' }}>wifi_off</span> 使用内置样本
@@ -1293,10 +1261,10 @@ const sceneRef = useRef<Scene | null>(null);
         </div>
       </div>
 
-      {/* ════════ 左上：台风信息卡 + 列表 ════════ */}
-      <div style={{ position: 'absolute', top: 48, left: 12, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8, width: 240, maxHeight: 'calc(100% - 80px)' }}>
+      {/* ════════ 台风信息卡 + 列表 ════════ */}
+      <div style={{ position: 'absolute', top: isMobile ? 48 : 82, right: isMobile ? 8 : 12, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8, width: isMobile ? 'calc(100% - 16px)' : 240, maxHeight: isMobile ? 'calc(50vh - 60px)' : 'calc(100% - 100px)' }}>
         {/* 台风信息卡 */}
-        {currentPoint && (
+        {currentPoint && !isMobile && (
           <div style={{
             padding: '12px 14px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
             border: `1px solid ${C.border}`, borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
@@ -1327,34 +1295,77 @@ const sceneRef = useRef<Scene | null>(null);
         )}
 
         {/* 台风列表选择器 */}
+        {isMobile && !listExpanded ? (
+          <div onClick={() => setListExpanded(true)} style={{
+            width: 36, height: 36, borderRadius: '50%', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+            border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3)', transition: 'background 120ms',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,211,238,0.15)'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = C.panel; }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18, color: C.accent }}>list</span>
+          </div>
+        ) : (
         <div style={{
           padding: '8px 10px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
           border: `1px solid ${C.border}`, borderRadius: 12, overflowY: 'auto', minHeight: 0,
         }}>
           <div
             onClick={() => setListExpanded(!listExpanded)}
-            style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+            style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: (!listExpanded || (isMobile && !listExpanded)) ? 0 : 6, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 12 }}>{listExpanded ? 'expand_less' : 'expand_more'}</span>
             台风列表（{list.length}）
           </div>
-          {loading && <div style={{ fontSize: 11, color: C.muted, padding: '4px 0' }}>加载中…</div>}
-          {[...list].reverse().slice(0, listExpanded ? list.length : 3).map(t => {
-            const sel = t.tfid === tfid;
+          {(listExpanded || !isMobile) && (
+            <>
+              {loading && <div style={{ fontSize: 11, color: C.muted, padding: '4px 0' }}>加载中…</div>}
+              {[...list].reverse().slice(0, listExpanded ? list.length : 3).map(t => {
+                const sel = t.tfid === tfid;
             const actv = activeIds.includes(t.tfid) || t.isactive === '1';
             return (
-              <div key={t.tfid} onClick={() => setTfid(t.tfid)} style={{
-                display: 'flex', alignItems: 'center', gap: 6, padding: '5px 6px', margin: '2px 0', borderRadius: 6,
-                cursor: 'pointer', fontSize: 11,
-                background: sel ? 'rgba(34,211,238,0.12)' : 'transparent',
-                color: sel ? '#e0f2fe' : 'rgba(203,213,225,0.75)', fontWeight: sel ? 600 : 400,
-                transition: 'background 120ms',
-              }}
-              onMouseEnter={e => { if (!sel) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; } }}
-              onMouseLeave={e => { if (!sel) { e.currentTarget.style.background = 'transparent'; } }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: actv ? '#22c55e' : 'rgba(148,163,184,0.4)', boxShadow: actv ? '0 0 6px #22c55e' : 'none', flexShrink: 0 }} />
-                <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-                <span style={{ fontSize: 9, color: C.muted, flexShrink: 0 }}>{t.tfid.slice(-3)}</span>
+              <div key={t.tfid}>
+                <div onClick={() => { setTfid(t.tfid); if (sel) setPointsDetailExpanded(!pointsDetailExpanded); }} style={{
+                  display: 'flex', alignItems: 'center', gap: 6, padding: '5px 6px', margin: '2px 0', borderRadius: 6,
+                  cursor: 'pointer', fontSize: 11,
+                  background: sel ? 'rgba(34,211,238,0.12)' : 'transparent',
+                  color: sel ? '#e0f2fe' : 'rgba(203,213,225,0.75)', fontWeight: sel ? 600 : 400,
+                  transition: 'background 120ms',
+                }}
+                onMouseEnter={e => { if (!sel) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; } }}
+                onMouseLeave={e => { if (!sel) { e.currentTarget.style.background = 'transparent'; } }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: actv ? '#22c55e' : 'rgba(148,163,184,0.4)', boxShadow: actv ? '0 0 6px #22c55e' : 'none', flexShrink: 0 }} />
+                  <span style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                  <span style={{ fontSize: 9, color: C.muted, flexShrink: 0 }}>{t.tfid.slice(-3)}</span>
+                  {sel && <span className="material-symbols-outlined" style={{ fontSize: 12, color: C.muted }}>{pointsDetailExpanded ? 'expand_less' : 'expand_more'}</span>}
+                </div>
+                {/* 点位详情展开面板 */}
+                {sel && pointsDetailExpanded && info?.points && (
+                  <div style={{ margin: '4px 0 8px', padding: '6px', background: 'rgba(15,23,42,0.6)', borderRadius: 8, border: `1px solid ${C.border}`, maxHeight: 200, overflowY: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
+                      <thead>
+                        <tr style={{ borderBottom: `1px solid ${C.border}` }}>
+                          <th style={{ padding: '4px 6px', textAlign: 'left', color: C.muted, fontWeight: 500 }}>时间</th>
+                          <th style={{ padding: '4px 6px', textAlign: 'left', color: C.muted, fontWeight: 500 }}>强度</th>
+                          <th style={{ padding: '4px 6px', textAlign: 'right', color: C.muted, fontWeight: 500 }}>风速</th>
+                          <th style={{ padding: '4px 6px', textAlign: 'right', color: C.muted, fontWeight: 500 }}>气压</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...info.points].reverse().map((p, idx) => (
+                          <tr key={idx} style={{ borderBottom: `1px solid rgba(148,163,184,0.1)` }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,211,238,0.08)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                            <td style={{ padding: '3px 6px', color: 'rgba(203,213,225,0.9)' }}>{p.time?.slice(5, 16)}</td>
+                            <td style={{ padding: '3px 6px', color: GRADE_COLOR[STRENGTH_TO_KEY[p.strong] || 'TD'] || C.muted }}>{p.strong}</td>
+                            <td style={{ padding: '3px 6px', textAlign: 'right', color: 'rgba(203,213,225,0.9)' }}>{p.speed} m/s</td>
+                            <td style={{ padding: '3px 6px', textAlign: 'right', color: 'rgba(203,213,225,0.9)' }}>{p.pressure} hPa</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -1363,15 +1374,18 @@ const sceneRef = useRef<Scene | null>(null);
               展开全部（{list.length}）
             </div>
           )}
+            </>
+          )}
         </div>
+        )}
       </div>
 
-      {/* ════════ 顶部右侧：气象图层工具条 ════════ */}
-      <div style={{ position: 'absolute', top: 8, right: 12, zIndex: 1000 }}>
+      {/* ════════ 气象图层工具条 ════════ */}
+      <div style={{ position: 'absolute', top: isMobile ? 44 : 8, right: isMobile ? 8 : 12, left: isMobile ? 8 : 'auto', zIndex: 1000 }}>
         <div style={{
-          padding: '8px 14px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+          padding: isMobile ? '6px 10px' : '8px 14px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
           border: `1px solid ${C.border}`, borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
+          display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 12, flexWrap: 'wrap', justifyContent: isMobile ? 'center' : 'flex-start',
         }}>
           {/* 图层切换按钮组 */}
           <div style={{ display: 'flex', gap: 2 }}>
@@ -1450,13 +1464,20 @@ const sceneRef = useRef<Scene | null>(null);
         })()}
       </div>
 
-      {/* ════════ 右下：图例 + 选中历史点提示 ════════ */}
-      <div style={{ position: 'absolute', right: 12, bottom: 12, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {/* ════════ 图例 + 选中历史点提示 ════════ */}
+      <div style={{ position: 'absolute', right: isMobile ? 0 : 12, bottom: isMobile ? 60 : 12, left: isMobile ? 'auto' : 'auto', zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
         {/* 图例容器（支持展开收起） */}
-        <div style={{ padding: '10px 12px', background: C.panel, backdropFilter: 'blur(12px)', border: `1px solid ${C.border}`, borderRadius: 10, maxHeight: legendExpanded ? 320 : 40, overflowY: 'auto', transition: 'max-height 0.3s' }}>
-          <div onClick={() => setLegendExpanded(!legendExpanded)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', paddingBottom: legendExpanded ? 8 : 0 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9' }}>图例</span>
-            <span className="material-symbols-outlined" style={{ fontSize: 14, color: C.muted, transition: 'transform 0.3s', transform: legendExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>expand_more</span>
+        <div style={{
+          padding: isMobile ? '8px 10px' : '10px 12px', background: C.panel, backdropFilter: 'blur(12px)',
+          border: `1px solid ${C.border}`, borderRadius: isMobile ? '10px 0 0 10px' : 10,
+          maxHeight: isMobile ? 'none' : (legendExpanded ? 320 : 40),
+          maxWidth: isMobile ? 220 : 'none',
+          overflowY: 'auto', transition: isMobile ? 'transform 0.3s ease' : 'max-height 0.3s',
+          transform: isMobile ? (legendExpanded ? 'translateX(0)' : 'translateX(calc(100% - 36px))') : 'none',
+        }}>
+          <div onClick={() => setLegendExpanded(!legendExpanded)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', paddingBottom: legendExpanded ? 8 : 0, minWidth: isMobile ? 36 : 'auto' }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap' }}>{isMobile && !legendExpanded ? '' : '图例'}</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 14, color: C.muted, transition: 'transform 0.3s', transform: legendExpanded ? (isMobile ? 'rotate(0deg)' : 'rotate(180deg)') : (isMobile ? 'rotate(180deg)' : 'rotate(0deg)') }}>{isMobile ? 'chevron_left' : 'expand_more'}</span>
           </div>
           {legendExpanded && (
             <>
@@ -1466,10 +1487,12 @@ const sceneRef = useRef<Scene | null>(null);
                 <input type="checkbox" checked={showWindCircles} onChange={e => setShowWindCircles(e.target.checked)} style={{ accentColor: C.accent, cursor: 'pointer' }} />
               </div>
               {/* 登陆点 */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }} />
-                <span style={{ fontSize: 11, color: '#cbd5e1' }}>登陆点</span>
-              </div>
+              {landMarks.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <img src="https://mdn.alipayobjects.com/huamei_b5qxsh/afts/img/A*ADaqSZdQm0wAAAAAPSAAAAgAerZ5AQ/original" alt="" style={{ width: 12, height: 15 }} />
+                  <span style={{ fontSize: 11, color: '#cbd5e1' }}>登陆点</span>
+                </div>
+              )}
               {/* 预报台 */}
               <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 4, marginBottom: 8 }}>
                 <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>预报台</div>
@@ -1496,6 +1519,20 @@ const sceneRef = useRef<Scene | null>(null);
                       <span style={{ fontSize: 11, color: '#cbd5e1' }}>{k} 级风圈</span>
                     </div>
                   ))}
+                </div>
+              </div>
+              {/* 警戒线 */}
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 4, marginBottom: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>警戒线</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 20, height: 0, borderTop: `2px dashed ${WARNING_LINE_COLORS['24h']}` }} />
+                    <span style={{ fontSize: 11, color: '#cbd5e1' }}>24小时警戒线</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ width: 20, height: 0, borderTop: `2px dashed ${WARNING_LINE_COLORS['48h']}` }} />
+                    <span style={{ fontSize: 11, color: '#cbd5e1' }}>48小时警戒线</span>
+                  </div>
                 </div>
               </div>
               {/* 降雨等级 */}

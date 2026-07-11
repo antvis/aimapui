@@ -29,6 +29,7 @@ export default function BlockPage({ demos, theme, sourceModules, onToggleTheme, 
   const isDark = theme === 'dark';
   const [current, setCurrent] = React.useState(initialDemoIndex);
   const [showPanel, setShowPanel] = React.useState(false);
+  const [previewDevice, setPreviewDevice] = React.useState<'mobile' | 'desktop'>('desktop');
 
   const handleDemoChange = (idx: number) => {
     setCurrent(idx);
@@ -111,11 +112,28 @@ export default function BlockPage({ demos, theme, sourceModules, onToggleTheme, 
 
         {/* 中间内容区 */}
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          {demo?.device === 'mobile' ? (
+          {/* 设备切换按钮（仅 device=both 时显示） */}
+          {demo?.device === 'both' && (
+            <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 10, display: 'flex', gap: 2, background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', borderRadius: 8, padding: 2 }}>
+              {(['desktop', 'mobile'] as const).map(d => (
+                <button key={d} onClick={() => setPreviewDevice(d)} style={{
+                  padding: '4px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 500,
+                  display: 'flex', alignItems: 'center', gap: 4, transition: 'all 0.15s',
+                  background: previewDevice === d ? (isDark ? 'rgba(255,255,255,0.12)' : '#fff') : 'transparent',
+                  color: previewDevice === d ? c.fg : c.muted,
+                  boxShadow: previewDevice === d ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>{d === 'mobile' ? 'smartphone' : 'desktop_windows'}</span>
+                  {d === 'mobile' ? '移动端' : '桌面端'}
+                </button>
+              ))}
+            </div>
+          )}
+          {(demo?.device === 'mobile' || (demo?.device === 'both' && previewDevice === 'mobile')) ? (
             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: c.bg }}>
               <div style={{ width: 390, height: 844, maxHeight: 'calc(100% - 40px)', borderRadius: 20, overflow: 'hidden', border: `2px solid ${c.border}`, position: 'relative' }}>
                 <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
-                  {DemoComponent && <DemoComponent />}
+                  {DemoComponent && <DemoComponent mobilePreview />}
                 </div>
               </div>
             </div>

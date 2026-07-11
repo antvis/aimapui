@@ -1,12 +1,6 @@
----
-name: map-app-builder
-description: >-
-  Build production-ready map applications using @antv/aimapui. Covers layout architecture, layer z-index hierarchy, UI overlay stacking, theme system, interaction patterns, and data-type-to-component mapping. Use this skill whenever the user asks to create a map application, build a geographic visualization, design a map dashboard, or needs guidance on aimapui component selection, layer ordering, or map UI architecture. Triggers on: "create a map app", "build a map", "map visualization", "geographic dashboard", "map layout", "layer hierarchy", "map theme", "which aimapui component for X data".
----
+# Technical Specification
 
-# Map Application Builder
-
-Build complete map applications with @antv/aimapui following established conventions for layout, layering, theming, and interaction.
+@antv/aimapui 地图应用通用技术规范，适用于所有场景。
 
 ## Prerequisites
 
@@ -19,16 +13,6 @@ import '@antv/aimapui/style.css'; // Required — controls, popups, legends won'
 ```
 
 L7 version must be ≥ 2.28.14.
-
-## Scene References (load as needed)
-
-根据应用场景加载对应的详细指南，SKILL.md 本体提供通用规范，reference 文件提供场景专属的布局、组件选型和交互模式。
-
-| 场景 | Reference File | When to load |
-|------|---------------|-------------|
-| PC 分析地图 / 数据仪表盘 / 监控大屏 | [pc-analytics.md](references/pc-analytics.md) | 桌面端数据分析、多图层叠加、侧边面板联动、精细 hover/click 交互 |
-| 移动端地图应用 | [mobile-map.md](references/mobile-map.md) | 手机/平板端、BottomSheet 面板、MobileToolbar、触屏 tap 交互、手势友好设计 |
-| 旅游地图 / 景区导览 / 城市探索 | [vertical-tourism.md](references/vertical-tourism.md) | POI 标注、游览路线串联、Maki 图标映射、图文混排详情面板、分类筛选 |
 
 ## 1. Base Layout
 
@@ -111,8 +95,9 @@ DOM elements float above the L7 canvas and use a separate z-index scale:
 | 5000 | Marker (DOM) | Custom DOM elements |
 | 6000 | DrawControl preview | Editing temporaries |
 | 9999 | Modal / Dialog | Full-screen overlay |
+| **≥ 10001** | **控件弹出面板（`.l7-popper`）** | **必须高于所有地图组件，确保不被遮挡** |
 
-**Rule**: All custom DOM panels (title bars, sidebars, floating cards) must use `zIndex >= 1000`. Never use values like 30 or 50 — they will be occluded by L7 internals.
+**Rule**: All custom DOM panels (title bars, sidebars, floating cards) must use `zIndex >= 1000`. Never use values like 30 or 50 — they will be occluded by L7 internals. **控件弹出面板（如 MapThemeControl、LayerSwitchControl 的下拉/弹出内容）z-index 必须 ≥ 10001，高于 Popup(10000) 和 Tooltip(9998)，在通用组件内部通过 inline style 设置，禁止在应用层魔改覆盖。**
 
 ## 4. Theme System
 
@@ -295,44 +280,6 @@ Controls placed at edges keep focus on the map center. Use familiar icons; add t
 | Line width | `LegendLineWidth` |
 | Icon categories | `LegendIcon` |
 
-## Complete Example: Typhoon Tracking App
-
-```tsx
-import { AiMap, FillLayer, LineLayer, PointLayer, Marker, Tooltip, Popup,
-         ZoomControl, MapThemeControl, LegendCategories, SatelliteLayer,
-         ResetViewControl } from '@antv/aimapui';
-import '@antv/aimapui/style.css';
-
-<AiMap map={{ basemap: 'gaode', center: [127.6, 20.8], zoom: 4, pitch: 12, style: 'dark' }}>
-  {/* z=-2: Satellite basemap overlay */}
-  <SatelliteLayer zIndex={-2} opacity={0.6} />
-
-  {/* z=-1: Rainfall fill (environmental coverage) */}
-  <FillLayer source={rainGeoJSON} colorField="color" colorValues={rainColors}
-             zIndex={-1} hoverEffect={false} />
-
-  {/* z=0: Wind circles (base data) */}
-  <FillLayer source={windPolygons} colorField="level" zIndex={0} />
-
-  {/* z=1: Track lines */}
-  <LineLayer source={trackSegments} colorField="grade" zIndex={1} />
-
-  {/* z=2: Selected forecast path */}
-  <LineLayer source={activeForecast} zIndex={2} />
-
-  {/* z=6: Track nodes (point features) */}
-  <PointLayer source={nodes} colorField="grade" zIndex={6} />
-
-  {/* z=7: Forecast points */}
-  <PointLayer source={forecastPoints} zIndex={7} />
-
-  {/* Controls */}
-  <ZoomControl position="bottomright" />
-  <ResetViewControl position="bottomright" initialView={{ center: [127.6, 20.8], zoom: 4 }} />
-  <MapThemeControl position="bottomleft" />
-</AiMap>
-```
-
 ## Common Pitfalls
 
 | Mistake | Symptom | Fix |
@@ -345,3 +292,5 @@ import '@antv/aimapui/style.css';
 | `hoverEffect=true` on data viz layers | Fill color changes distort data reading | Keep `false` unless interaction needed |
 | Inline arrow functions returning objects in JSX | esbuild parse error | Extract to `useCallback` |
 | Unclosed JSX comments `{/* ... */` | Transform failed | Ensure closing `}` |
+| 控件弹出面板被遮挡 | Popup/Tooltip/主题面板等被地图图层或其他组件盖住 | 控件弹出面板（`.l7-popper`）z-index 必须 ≥ 10001，高于 Popup(10000) > Tooltip(9998) > 地图图层(0-10)。在通用组件内部通过 inline style 设置，禁止应用层魔改 |
+| 控件暗色主题不生效 | 弹出面板在暗色地图下仍显示浅色背景 | 弹出面板通过 portal 渲染到 body，脱离 `data-theme` 作用域。必须在组件内部根据当前地图样式值判断暗色主题，通过 inline style 直接设置暗色背景/文字颜色，不能仅依赖 CSS `[data-theme="dark"]` 选择器 |

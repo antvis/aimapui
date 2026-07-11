@@ -179,7 +179,7 @@ export function RouteLayer({
   stopMarkerVariant = 'circle',
   stopIconMap,
   stopIconField = 'iconValue',
-  stopIconSize = 12,
+  stopIconSize = 8,
   stopIconAnchor = 'bottom',
   showStopPopup = false,
   activeColor = '#fbbf24',
@@ -539,7 +539,7 @@ export function RouteLayer({
           size={stopNameSize}
           style={{
             textAnchor: 'top',
-            textOffset: [0, 24],
+            textOffset: [0, (MARKER_SIZE_CONFIG[stopMarkerVariant]?.size ?? 24) + 8],
             stroke: '#ffffff',
             strokeWidth: 2,
             fontWeight: '500',
@@ -572,6 +572,12 @@ function resolveMarkerColor(type: RouteStop['type']): MarkerColor {
   }
 }
 
+/** Marker 内容尺寸配置 */
+const MARKER_SIZE_CONFIG = {
+  circle: { size: 24, fontSize: 11 },
+  dot: { size: 18, fontSize: 10 },
+} as const;
+
 function createMarkerStopContent(
   indexLabel: string,
   fill: string,
@@ -581,14 +587,13 @@ function createMarkerStopContent(
   if (!showStopIndex) return undefined;
   if (variant !== 'circle' && variant !== 'dot') return undefined;
 
-  const size = variant === 'circle' ? 24 : 18;
-  const fontSize = variant === 'circle' ? 11 : 10;
+  const config = MARKER_SIZE_CONFIG[variant];
 
   return (
     <div
       style={{
-        width: size,
-        height: size,
+        width: config.size,
+        height: config.size,
         borderRadius: '9999px',
         border: '2px solid #ffffff',
         background: fill,
@@ -596,7 +601,7 @@ function createMarkerStopContent(
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize,
+        fontSize: config.fontSize,
         lineHeight: 1,
         fontWeight: 700,
         boxShadow: '0 6px 12px rgba(0,0,0,0.14)',

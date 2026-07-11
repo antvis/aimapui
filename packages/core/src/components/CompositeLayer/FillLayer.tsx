@@ -150,7 +150,7 @@ export function FillLayer({
     [tooltipTemplate, tooltipNameField, tooltipValueField, percentageField],
   );
 
-  const defaultActive: ActiveConfig = { color: '#ffffff', duration: 150 };
+  const defaultActive: ActiveConfig = { color: undefined, duration: 150 };
   const defaultSelect: SelectConfig = { color: '#0f172a', duration: 150 };
 
   const labelSource = useMemo(
@@ -245,26 +245,15 @@ export function FillLayer({
       {showStroke && <LineLayer source={source} sourceType={sourceType} color={strokeColor} size={strokeWidth} zIndex={(rest.zIndex ?? 0) + 2} />}
 
       {hoverEffect && hoveredRegionId !== null && (
-        <>
-          <LineLayer
-            source={source}
-            sourceType={sourceType}
-            color={withAlpha(highlightStrokeColor, 0.35)}
-            size={highlightStrokeWidth + 2}
-            filterField={regionIdField}
-            filterValues={[hoveredRegionId]}
-            zIndex={(rest.zIndex ?? 0) + 3}
-          />
-          <LineLayer
-            source={source}
-            sourceType={sourceType}
-            color={highlightStrokeColor}
-            size={highlightStrokeWidth}
-            filterField={regionIdField}
-            filterValues={[hoveredRegionId]}
-            zIndex={(rest.zIndex ?? 0) + 4}
-          />
-        </>
+        <LineLayer
+          source={source}
+          sourceType={sourceType}
+          color={withAlpha(highlightStrokeColor, 0.6)}
+          size={highlightStrokeWidth}
+          filterField={regionIdField}
+          filterValues={[hoveredRegionId]}
+          zIndex={(rest.zIndex ?? 0) + 3}
+        />
       )}
 
       {clickEffect && selectedRegionId !== null && (
