@@ -179,12 +179,13 @@ export function RouteLayer({
   stopMarkerVariant = 'circle',
   stopIconMap,
   stopIconField = 'iconValue',
-  stopIconSize = 16,
+  stopIconSize = 12,
   stopIconAnchor = 'bottom',
   showStopPopup = false,
   activeColor = '#fbbf24',
   onPathClick,
   onStopClick,
+  ...rest
 }: RouteLayerProps) {
   // 交通路线查询结果
   const [routeQueryResult, setRouteQueryResult] = useState<RouteQueryResult | null>(null);
@@ -262,8 +263,45 @@ export function RouteLayer({
     let merged = [...stops, ...extraStops];
 
     if (effectivePathForStops && effectivePathForStops.length >= 2) {
-      const [startLng, startLat] = effectivePathForStops[0];
-      const [endLng, endLat] = effectivePathForStops[effectivePathForStops.length - 1];
+      const startCoord = effectivePathForStops[0];
+      const endCoord = effectivePathForStops[effectivePathForStops.length - 1];
+      
+      // 防御性检查：确保坐标有效
+      if (!startCoord || !endCoord || startCoord.length < 2 || endCoord.length < 2) {
+        return merged.map((stop, idx) => ({
+          ...stop,
+          index: stop.index ?? idx + 1,
+          type: stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint'),
+          stopColor: (stop.type === 'end' || (!stop.type && idx === merged.length - 1))
+            ? endColor
+            : (stopColor ?? color),
+          iconValue: stop.icon ?? 'marker',
+          indexLabel: String(stop.index ?? idx + 1),
+          markerColorValue: stop.markerColor ?? resolveMarkerColor(stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint')),
+        }));
+      }
+      
+      const [startLng, startLat] = startCoord;
+      const [endLng, endLat] = endCoord;
+      
+      // 检查坐标值是否为有效数字
+      if (typeof startLng !== 'number' || typeof startLat !== 'number' || 
+          typeof endLng !== 'number' || typeof endLat !== 'number' ||
+          !isFinite(startLng) || !isFinite(startLat) || 
+          !isFinite(endLng) || !isFinite(endLat)) {
+        return merged.map((stop, idx) => ({
+          ...stop,
+          index: stop.index ?? idx + 1,
+          type: stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint'),
+          stopColor: (stop.type === 'end' || (!stop.type && idx === merged.length - 1))
+            ? endColor
+            : (stopColor ?? color),
+          iconValue: stop.icon ?? 'marker',
+          indexLabel: String(stop.index ?? idx + 1),
+          markerColorValue: stop.markerColor ?? resolveMarkerColor(stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint')),
+        }));
+      }
+      
       const hasStart = stops.some((s) => Math.abs(s.lng - startLng) < 1e-6 && Math.abs(s.lat - startLat) < 1e-6);
       const hasEnd = stops.some((s) => Math.abs(s.lng - endLng) < 1e-6 && Math.abs(s.lat - endLat) < 1e-6);
 
@@ -396,7 +434,7 @@ export function RouteLayer({
           color="#ffffff"
           size={Math.max(10, Math.round(stopSize * 0.75))}
           style={{
-            textAnchor: 'center',
+            textAnchor: 'bottom',
             stroke: 'rgba(18, 28, 42, 0.28)',
             strokeWidth: 1.5,
             fontWeight: '700',
@@ -501,7 +539,7 @@ export function RouteLayer({
           size={stopNameSize}
           style={{
             textAnchor: 'top',
-            textOffset: [0, 18],
+            textOffset: [0, 24],
             stroke: '#ffffff',
             strokeWidth: 2,
             fontWeight: '500',
