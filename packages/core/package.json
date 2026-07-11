@@ -1,6 +1,6 @@
 {
   "name": "@antv/aimapui",
-  "version": "0.3.5",
+  "version": "0.4.1",
   "type": "module",
   "description": "Schema/DSL-driven React map visualization component library powered by L7",
   "main": "dist/index.cjs",

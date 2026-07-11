@@ -131,6 +131,8 @@ export interface RouteLayerProps {
   onPathClick?: (payload: LayerEventPayload) => void;
   /** 途经点点击 */
   onStopClick?: (payload: LayerEventPayload) => void;
+  /** 图层层级 */
+  zIndex?: number;
 }
 
 /**
@@ -168,7 +170,7 @@ export function RouteLayer({
   glow = false,
   animate = false,
   animateSpeed = 1,
-  stopSize = 14,
+  stopSize = 8,
   stopColor,
   endColor = '#10b981',
   showStopIndex = true,
@@ -179,12 +181,13 @@ export function RouteLayer({
   stopMarkerVariant = 'circle',
   stopIconMap,
   stopIconField = 'iconValue',
-  stopIconSize = 8,
+  stopIconSize = 16,
   stopIconAnchor = 'bottom',
   showStopPopup = false,
   activeColor = '#fbbf24',
   onPathClick,
   onStopClick,
+  zIndex,
   ...rest
 }: RouteLayerProps) {
   // 交通路线查询结果
@@ -402,7 +405,7 @@ export function RouteLayer({
           size={Math.max(1.5, lineWidth * 0.5)}
           style={{ opacity: 0.6, lineType: 'dash', lineDash: [8, 16] }}
           animate={{ enable: true, speed: animateSpeed, duration: 1500 }}
-          zIndex={(rest.zIndex ?? 0) + 5}
+          zIndex={(zIndex ?? 0) + 5}
         />
       )}
 
@@ -434,7 +437,7 @@ export function RouteLayer({
           color="#ffffff"
           size={Math.max(10, Math.round(stopSize * 0.75))}
           style={{
-            textAnchor: 'bottom',
+            textAnchor: 'center',
             stroke: 'rgba(18, 28, 42, 0.28)',
             strokeWidth: 1.5,
             fontWeight: '700',
@@ -453,7 +456,7 @@ export function RouteLayer({
           size={stopNameSize}
           style={{
             textAnchor: 'top',
-            textOffset: [0, stopSize / 2 + 4],
+            textOffset: [0, -3 * stopSize],
             stroke: '#ffffff',
             strokeWidth: 2,
             fontWeight: '500',
@@ -492,7 +495,6 @@ export function RouteLayer({
           size={stopNameSize}
           style={{
             textAnchor: 'top',
-            textOffset: [0, (stopIconAnchor === 'bottom' ? stopIconSize : 0) + 14],
             stroke: '#ffffff',
             strokeWidth: 2,
             fontWeight: '500',
@@ -539,7 +541,7 @@ export function RouteLayer({
           size={stopNameSize}
           style={{
             textAnchor: 'top',
-            textOffset: [0, (MARKER_SIZE_CONFIG[stopMarkerVariant]?.size ?? 24) + 8],
+            textOffset: [0, -((MARKER_SIZE_CONFIG[stopMarkerVariant]?.size ?? 18) / 2 + 4)],
             stroke: '#ffffff',
             strokeWidth: 2,
             fontWeight: '500',
@@ -573,10 +575,12 @@ function resolveMarkerColor(type: RouteStop['type']): MarkerColor {
 }
 
 /** Marker 内容尺寸配置 */
-const MARKER_SIZE_CONFIG = {
-  circle: { size: 24, fontSize: 11 },
+const MARKER_SIZE_CONFIG: Record<string, { size: number; fontSize: number }> = {
+  circle: { size: 18, fontSize: 12 },
   dot: { size: 18, fontSize: 10 },
-} as const;
+  pin: { size: 24, fontSize: 11 },
+  icon: { size: 24, fontSize: 11 },
+};
 
 function createMarkerStopContent(
   indexLabel: string,
@@ -595,16 +599,15 @@ function createMarkerStopContent(
         width: config.size,
         height: config.size,
         borderRadius: '9999px',
-        border: '2px solid #ffffff',
+        border: '1.5px solid #ffffff',
         background: fill,
         color: '#ffffff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: config.fontSize,
+        fontSize: '10px',
         lineHeight: 1,
         fontWeight: 700,
-        boxShadow: '0 6px 12px rgba(0,0,0,0.14)',
       }}
     >
       {indexLabel}

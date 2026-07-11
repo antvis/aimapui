@@ -150,7 +150,7 @@ export function FillLayer({
     [tooltipTemplate, tooltipNameField, tooltipValueField, percentageField],
   );
 
-  const defaultActive: ActiveConfig = { color: undefined, duration: 150 };
+  const defaultActive: ActiveConfig = { color: '', duration: 150 };
   const defaultSelect: SelectConfig = { color: '#0f172a', duration: 150 };
 
   const labelSource = useMemo(

@@ -71,7 +71,7 @@ const NAV_TABS = [
 
 // Spec constants
 const BOTTOM_NAV_H = 89;        // 53 + 36 safe area
-const CARD_COLLAPSED_H = 112;
+const CARD_COLLAPSED_H = 96;
 const CARD_EXPANDED_H = 520;
 
 // ── Zoom Buttons ────────────────────────────────────────────────
@@ -134,108 +134,175 @@ function BottomNav({ activeTab, onTab }: { activeTab: string; onTab: (k: string)
   );
 }
 
-// ── BottomSheet-based Card (draggable, stays above nav) ────────
-function BottomCard({
-  filteredPois, activeFilter, selectedPoi, onSelect,
-}: {
-  filteredPois: PoiItem[]; activeFilter: string; selectedPoi: PoiItem | null;
-  onSelect: (p: PoiItem) => void;
+// ── Business-style drawer per spec ─────────────────────────────
+function BottomCard({ filteredPois, activeFilter, selectedPoi, onSelect, selectedPoiId, onPoiClick }: {
+  filteredPois: PoiItem[]; activeFilter: string; selectedPoi: PoiItem | null; selectedPoiId: string | null;
+  onSelect: (p: PoiItem) => void; onPoiClick: (p: PoiItem) => void;
 }) {
+  const [activeTab, setActiveTab] = useState<'overview' | 'list'>('overview');
+
   return (
     <div style={{
       position: 'absolute', top: 160, bottom: BOTTOM_NAV_H - 8, left: 0, right: 0, zIndex: 2490,
     }}>
       <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <BottomSheet defaultSnap="collapsed" collapsedHeight={CARD_COLLAPSED_H} showHandle borderRadius={16}>
-        {/* Business-style card: handle → title → address → buttons → list */}
         <div style={{
           background: G.surface, height: '100%', overflowY: 'auto',
-          boxShadow: G.cardShadow, borderTopLeftRadius: 16, borderTopRightRadius: 16,
-          display: 'flex', flexDirection: 'column', padding: 12, gap: 12,
+          boxShadow: G.cardShadow,
+          display: 'flex', flexDirection: 'column',
+          margin: '0 -16px',  // negate BottomSheet's built-in padding
         }}>
-          {/* Title — spec: 20px/400, letter-spacing 0.01em */}
-          <div style={{
-            fontSize: 20, fontWeight: 400, color: '#000', lineHeight: '23px',
-            letterSpacing: '0.01em',
-          }}>
-            {activeFilter === 'all' ? '附近地点' : PILL_FILTERS.find(f => f.key === activeFilter)?.label}
+          {/* Title — spec: 20px/400 */}
+          <div style={{ padding: '4px 28px 0', fontSize: 20, fontWeight: 400, color: '#000', lineHeight: '23px', letterSpacing: '0.01em' }}>
+            {selectedPoi ? selectedPoi.name : '西湖风景区'}
           </div>
 
           {/* Address — spec: 14px, #867F7F */}
-          <div style={{ fontSize: 14, color: '#867F7F', lineHeight: '16px' }}>
-            杭州市西湖区 · {filteredPois.length} 个地点
+          <div style={{ padding: '4px 28px 8px', fontSize: 14, color: '#867F7F', lineHeight: '16px' }}>
+            {selectedPoi ? selectedPoi.address : '杭州市西湖区龙井路 1 号'}
           </div>
 
-          {/* Action Buttons — spec: Directions primary #1A73E8 + Call/Save/Share secondary #ECF3FE, radius 44 */}
-          <div style={{
-            display: 'flex', gap: 4, padding: '12px 0', flexShrink: 0,
-          }}>
+          {/* Action Buttons row — spec exact */}
+          <div style={{ display: 'flex', gap: 4, padding: '12px 28px', flexShrink: 0, overflowX: 'auto', scrollbarWidth: 'none' }}>
+            {/* Primary button — spec: 12px 18px 12px 16px, gap 6, #1A73E8, radius 44, icon 18px, label 16px/500 */}
             <button style={{
-              display: 'flex', alignItems: 'center', gap: 6,
+              display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
               padding: '12px 18px 12px 16px', borderRadius: 44, border: 'none', cursor: 'pointer',
-              background: G.primary, color: '#fff', fontSize: 16, fontWeight: 500, fontFamily: 'inherit',
+              background: G.primary, fontFamily: 'Roboto, system-ui, sans-serif',
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>directions</span>
-              导航
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: '#fff' }}>directions</span>
+              <span style={{ fontSize: 16, fontWeight: 500, color: '#fff', lineHeight: '19px' }}>导航</span>
             </button>
+            {/* Secondary Call — spec: 12px 16px, gap 6, #ECF3FE, radius 44, icon 22px, label 16px/500 #0B57D0 */}
             <button style={{
-              display: 'flex', alignItems: 'center', gap: 6,
+              display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
               padding: '12px 16px', borderRadius: 44, border: 'none', cursor: 'pointer',
-              background: '#ECF3FE', color: G.secondary, fontSize: 16, fontWeight: 500, fontFamily: 'inherit',
+              background: '#ECF3FE', fontFamily: 'Roboto, system-ui, sans-serif',
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 22 }}>call</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 22, color: G.secondary }}>call</span>
             </button>
+            {/* Secondary Save — spec: 12px 16px, gap 6, #ECF3FE, radius 44, icon 22px, label 16px/500 #0B57D0 */}
             <button style={{
-              display: 'flex', alignItems: 'center', gap: 6,
+              display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
               padding: '12px 16px', borderRadius: 44, border: 'none', cursor: 'pointer',
-              background: '#ECF3FE', color: G.secondary, fontSize: 16, fontWeight: 500, fontFamily: 'inherit',
+              background: '#ECF3FE', fontFamily: 'Roboto, system-ui, sans-serif',
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 22 }}>bookmark</span>
-              收藏
+              <span className="material-symbols-outlined" style={{ fontSize: 22, color: G.secondary }}>bookmark</span>
+              <span style={{ fontSize: 16, fontWeight: 500, color: G.secondary, lineHeight: '19px' }}>收藏</span>
             </button>
+            {/* Secondary Share — spec: 12px 16px */}
             <button style={{
-              display: 'flex', alignItems: 'center', gap: 6,
+              display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
               padding: '12px 16px', borderRadius: 44, border: 'none', cursor: 'pointer',
-              background: '#ECF3FE', color: G.secondary, fontSize: 16, fontWeight: 500, fontFamily: 'inherit',
+              background: '#ECF3FE', fontFamily: 'Roboto, system-ui, sans-serif',
             }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 22 }}>share</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 22, color: G.secondary }}>share</span>
             </button>
           </div>
 
-          {/* List Items */}
-          {filteredPois.map((poi, i) => {
-            const cat = CAT_ICON[poi.category] ?? CAT_ICON.restaurant;
-            const isSel = selectedPoi?.id === poi.id;
-            return (
-              <div key={poi.id} onClick={() => onSelect(poi)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 20,
-                  height: 72, padding: '0 0 0 12px', cursor: 'pointer', flexShrink: 0,
-                  borderBottom: i < filteredPois.length - 1 ? `1px solid ${G.borderLight}` : 'none',
-                  background: isSel ? G.highlightBgAlt : 'transparent', transition: 'background 0.15s',
-                }}>
-                <div style={{
-                  width: 34, height: 34, borderRadius: '50%', background: G.highlightBgAlt,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 18, color: cat.color }}>{cat.icon}</span>
+          {/* Tab Bar — spec: 36px, selected=15px/600 #1761D7 + 3px highlighter, inactive=15px/500 #7F7F7F */}
+          <div style={{
+            display: 'flex', height: 36, borderBottom: '1px solid #BBBBBB', flexShrink: 0,
+            padding: '0 28px',
+          }}>
+            {(['overview', 'list'] as const).map(tab => {
+              const isActive = activeTab === tab;
+              return (
+                <div key={tab} onClick={() => setActiveTab(tab)}
+                  style={{
+                    position: 'relative', cursor: 'pointer',
+                    display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                    padding: '4px 4px 0', gap: 4, width: 72, height: 36,
+                  }}>
+                  <span style={{
+                    fontSize: 15, fontWeight: isActive ? 600 : 500,
+                    color: isActive ? '#1761D7' : '#7F7F7F',
+                    lineHeight: '22px', letterSpacing: isActive ? '0.2px' : undefined,
+                  }}>{tab === 'overview' ? '概览' : '列表'}</span>
+                  {isActive && (
+                    <div style={{
+                      width: 64, height: 3, background: '#1761D7',
+                      borderRadius: '4px 4px 0 0', alignSelf: 'stretch',
+                    }} />
+                  )}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 400, color: G.textPrimary, lineHeight: '20px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{poi.name}</div>
-                  <div style={{ fontSize: 12, color: G.textTertiary, display: 'flex', alignItems: 'center', gap: 4, lineHeight: '18px' }}>
-                    <span style={{ color: '#F9AB00', fontWeight: 500 }}>★ {poi.rating}</span>
-                    <span>({poi.reviewCount.toLocaleString()})</span><span>·</span><span>{poi.distance}</span>
-                    {poi.openNow && <><span>·</span><span style={{ color: '#34A853' }}>营业中</span></>}
-                  </div>
-                  <div style={{ fontSize: 12, color: G.textQuaternary, lineHeight: '18px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{poi.address}</div>
-                </div>
-                <span className="material-symbols-outlined" style={{ fontSize: 16, color: G.borderMedium, marginRight: 12 }}>chevron_right</span>
+              );
+            })}
+          </div>
+
+          {/* Tab Content */}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            {activeTab === 'overview' ? (
+              /* Overview — simple info rows per spec */
+              <div style={{ padding: '12px 28px', display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {selectedPoi && (
+                  <>
+                    <InfoRow label="评分" value={`${selectedPoi.rating} (${selectedPoi.reviewCount.toLocaleString()} 条评价)`} />
+                    <InfoRow label="地址" value={selectedPoi.address} />
+                    <InfoRow label="距离" value={selectedPoi.distance} />
+                    {selectedPoi.openNow && <InfoRow label="状态" value="营业中" valueColor="#34A853" />}
+                  </>
+                )}
+                {!selectedPoi && (
+                  <InfoRow label="评分" value="4.8 (52,100 条评价)" />
+                )}
               </div>
-            );
-          })}
+            ) : (
+              /* List tab — POI items per spec: 72px, 34px icon, divider #F3F2F2 */
+              <div style={{ paddingBottom: 32 }}>
+                <div style={{ padding: '8px 28px 4px', fontSize: 15, fontWeight: 500, color: '#000' }}>
+                  {activeFilter === 'all' ? '附近地点' : PILL_FILTERS.find(f => f.key === activeFilter)?.label}
+                  <span style={{ fontSize: 12, color: G.textSecondary, marginLeft: 6, fontWeight: 400 }}>{filteredPois.length} 个</span>
+                </div>
+                {filteredPois.map((poi, i) => {
+                  const cat = CAT_ICON[poi.category] ?? CAT_ICON.restaurant;
+                  return (
+                    <div key={poi.id} onClick={() => onPoiClick(poi)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 20,
+                        height: 72, padding: '0 0 0 12px', cursor: 'pointer',
+                        borderBottom: i < filteredPois.length - 1 ? `1px solid ${G.borderLight}` : 'none',
+                        background: selectedPoiId === poi.id ? G.highlightBgAlt : 'transparent',
+                        transition: 'background 0.15s',
+                      }}>
+                      <div style={{
+                        width: 34, height: 34, borderRadius: '50%', background: G.highlightBgAlt,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                      }}>
+                        <span className="material-symbols-outlined" style={{ fontSize: 18, color: cat.color }}>{cat.icon}</span>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 400, color: G.textPrimary, lineHeight: '20px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{poi.name}</div>
+                        <div style={{ fontSize: 12, color: G.textTertiary, display: 'flex', alignItems: 'center', gap: 4, lineHeight: '18px' }}>
+                          <span style={{ color: '#F9AB00', fontWeight: 500 }}>★ {poi.rating}</span>
+                          <span>({poi.reviewCount.toLocaleString()})</span><span>·</span><span>{poi.distance}</span>
+                          {poi.openNow && <><span>·</span><span style={{ color: '#34A853' }}>营业中</span></>}
+                        </div>
+                        <div style={{ fontSize: 12, color: G.textQuaternary, lineHeight: '18px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{poi.address}</div>
+                      </div>
+                      <span className="material-symbols-outlined" style={{ fontSize: 16, color: G.borderMedium, marginRight: 12 }}>chevron_right</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </BottomSheet>
       </div>
+    </div>
+  );
+}
+
+function InfoRow({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', padding: '12px 0',
+      borderBottom: `1px solid ${G.borderLight}`,
+    }}>
+      <span style={{ fontSize: 14, color: G.textSecondary, width: 80, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 14, color: valueColor ?? G.textPrimary, lineHeight: '20px' }}>{value}</span>
     </div>
   );
 }
@@ -413,7 +480,7 @@ export default function GoogleMapsMobileDemo() {
       <BottomNav activeTab={activeTab} onTab={setActiveTab} />
 
       {/* ═══ Bottom Card — spec: -2px 0px 11px shadow ═══ */}
-      <BottomCard filteredPois={filteredPois} activeFilter={activeFilter} selectedPoi={selectedPoi} onSelect={handlePoiSelect} />
+      <BottomCard filteredPois={filteredPois} activeFilter={activeFilter} selectedPoi={selectedPoi} selectedPoiId={selectedPoi?.id ?? null} onSelect={handlePoiSelect} onPoiClick={handlePoiClick} />
 
       {/* ═══ Popup ═══ */}
       {selectedPoi && (

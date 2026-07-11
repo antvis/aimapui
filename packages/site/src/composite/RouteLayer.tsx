@@ -55,10 +55,10 @@ const day1Stops = [
 ];
 
 const day2Stops = [
-  { lng: 120.0990, lat: 30.2400, name: '灵隐寺', markerVariant: 'pin' as const, markerColor: 'success' as const },
-  { lng: 120.1050, lat: 30.2450, name: '飞来峰', markerVariant: 'circle' as const, markerColor: 'warning' as const },
-  { lng: 120.1000, lat: 30.2550, name: '北高峰', markerVariant: 'dot' as const, markerColor: 'primary' as const },
-  { lng: 120.0700, lat: 30.2700, name: '西溪湿地', markerVariant: 'pin' as const, markerColor: 'error' as const },
+  { lng: 120.0990, lat: 30.2400, name: '灵隐寺' },
+  { lng: 120.1050, lat: 30.2450, name: '飞来峰' },
+  { lng: 120.1000, lat: 30.2550, name: '北高峰' },
+  { lng: 120.0700, lat: 30.2700, name: '西溪湿地' },
 ];
 
 const day3Stops = [
@@ -87,42 +87,32 @@ export default function RouteLayerDemo() {
           style: 'light',
         }}
       >
-        {/* Day 1 — 西湖环线 */}
+        {/* Day 1 — 西湖环线（point 渲染，默认值） */}
         <RouteLayer
           path={day1Path}
           stops={day1Stops}
           color={DAY_COLORS.day1}
-          lineWidth={2}
           glow
           animate
-          stopSize={8}
-          stopRenderer="point"
         />
 
-        {/* Day 2 — 灵隐-西溪 */}
+        {/* Day 2 — 灵隐-西溪（marker 渲染） */}
         <RouteLayer
           path={day2Path}
           stops={day2Stops}
           color={DAY_COLORS.day2}
-          lineWidth={2}
           glow
-          stopSize={8}
-          endColor={DAY_COLORS.day2}
           stopRenderer="marker"
-          stopMarkerVariant="circle"
         />
 
-        {/* Day 3 — 钱塘江-滨江 */}
+        {/* Day 3 — 钱塘江-滨江（icon 渲染） */}
         <RouteLayer
+          showStopIndex={false}
           path={day3Path}
           stops={day3Stops}
           color={DAY_COLORS.day3}
-          lineWidth={2}
           glow
-          stopSize={8}
-          endColor={DAY_COLORS.day3}
           stopRenderer="icon"
-          stopIconSize={14}
         />
 
         <ZoomControl position="bottomright" />

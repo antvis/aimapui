@@ -20,7 +20,7 @@ interface LayerAdapter {
   sourceConfig: { data: unknown; options?: Record<string, unknown> };
   visual: {
     color?: { field?: string; values?: string[] | string };
-    size?: { field?: string; values?: number[] | number };
+    size?: { field?: string; values?: number[] | number; range?: [number, number] };
     shape?: { field?: string; values?: string[] | string };
     style?: Record<string, unknown>;
   };

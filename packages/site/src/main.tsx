@@ -54,6 +54,7 @@ import FlightRouteMap from './app/FlightRouteMap';
 import TyphoonMap from './app/TyphoonMap';
 import GoogleMapsMobileDemo from './app/GoogleMapsMobileDemo';
 import AppleMapsDemo from './app/AppleMapsDemo';
+import HangzhouTravelMap from './app/HangzhouTravelMap';
 
 // ── 复合图层 ──
 import BubbleLayer from './composite/BubbleLayer';
@@ -259,6 +260,7 @@ const demos = [
   { name: 'TyphoonMap', icon: 'cyclone', component: TyphoonMap, group: 'App Templates', file: 'app/TyphoonMap', device: 'both' },
   { name: 'GoogleMapsMobile', icon: 'map', component: GoogleMapsMobileDemo, group: 'App Templates', file: 'app/GoogleMapsMobileDemo', device: 'mobile' },
   { name: 'AppleMaps', icon: 'map', component: AppleMapsDemo, group: 'App Templates', file: 'app/AppleMapsDemo', device: 'mobile' },
+  { name: 'HangzhouTravelMap', icon: 'travel_explore', component: HangzhouTravelMap, group: 'App Templates', file: 'app/HangzhouTravelMap', device: 'mobile' },
 
 
   // ── Point Markers ──────────────────────────────
