@@ -71,7 +71,7 @@ export function MapThemeControl({
   const { mapsService, positionClassName } = useMapControl(position);
   const isInContainer = useControlContainer();
   const [open, setOpen] = useState(false);
-  const [currentValue, setCurrentValue] = useState<string>(defaultValue ?? '');
+  const [currentValue, setCurrentValue] = useState<string>(defaultValue ?? 'dark');
   const [options, setOptions] = useState<ThemeOption[]>(propOptions ?? []);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -176,6 +176,7 @@ export function MapThemeControl({
             style={isDarkTheme ? {
               background: 'rgba(22, 32, 48, 0.95)',
               borderColor: 'rgba(180, 197, 255, 0.08)',
+              color: '#e2e8f0',
             } : undefined}
           >
             <div className="l7-theme-chips">

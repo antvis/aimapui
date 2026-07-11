@@ -51,7 +51,7 @@ import PcApp from './app/PcApp';
 import ImmersiveTravelMap from './app/ImmersiveTravelMap';
 import InterestMap from './app/InterestMap';
 import FlightRouteMap from './app/FlightRouteMap';
-import TyphoonMap from './app/TyphoonMap';
+import TyphoonMap from './app/typhoon';
 import GoogleMapsMobileDemo from './app/GoogleMapsMobileDemo';
 import AppleMapsDemo from './app/AppleMapsDemo';
 import HangzhouTravelMap from './app/HangzhouTravelMap';
@@ -107,7 +107,7 @@ import MobileToolbarDemo from './app/MobileToolbarDemo';
 import MobileSheetLegendDemo from './app/MobileSheetLegendDemo';
 
 const sourceModules = import.meta.glob(
-  ['./{engine,control,marker,layer,composite,app}/*.tsx', './{engine,control,marker,layer,composite,app}/*.md'],
+  ['./{engine,control,marker,layer,composite,app,app/typhoon,app/typhoon/hooks}/*.tsx', './{engine,control,marker,layer,composite,app,app/typhoon,app/typhoon/hooks}/*.md'],
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
 
@@ -257,7 +257,7 @@ const demos = [
   { name: 'ImmersiveTravelMap', icon: 'photo_camera', component: ImmersiveTravelMap, group: 'App Templates', file: 'app/ImmersiveTravelMap', device: 'desktop' },
   { name: 'InterestMap', icon: 'interests', component: InterestMap, group: 'App Templates', file: 'app/InterestMap', device: 'mobile' },
   { name: 'FlightRouteMap', icon: 'flight', component: FlightRouteMap, group: 'App Templates', file: 'app/FlightRouteMap', device: 'mobile' },
-  { name: 'TyphoonMap', icon: 'cyclone', component: TyphoonMap, group: 'App Templates', file: 'app/TyphoonMap', device: 'both' },
+  { name: 'TyphoonMap', icon: 'cyclone', component: TyphoonMap, group: 'App Templates', file: 'app/typhoon/TyphoonMap', device: 'both' },
   { name: 'GoogleMapsMobile', icon: 'map', component: GoogleMapsMobileDemo, group: 'App Templates', file: 'app/GoogleMapsMobileDemo', device: 'mobile' },
   { name: 'AppleMaps', icon: 'map', component: AppleMapsDemo, group: 'App Templates', file: 'app/AppleMapsDemo', device: 'mobile' },
   { name: 'HangzhouTravelMap', icon: 'travel_explore', component: HangzhouTravelMap, group: 'App Templates', file: 'app/HangzhouTravelMap', device: 'mobile' },

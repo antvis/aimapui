@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
-import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 
 export default defineConfig({
@@ -11,7 +10,6 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    tailwindcss(),
     dts({
       insertTypesEntry: true,
       rollupTypes: true,
@@ -25,6 +23,7 @@ export default defineConfig({
   build: {
     emptyOutDir: false,
     assetsInlineLimit: 0,
+    minify: 'terser',
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'aimapui',
@@ -37,10 +36,12 @@ export default defineConfig({
         /^react\//,
         'react-dom',
         /^react-dom\//,
+        'react/jsx-runtime',
         'ahooks',
         'clsx',
         'geotiff',
         'supercluster',
+        'h3-js',
         '@antv/l7',
         '@antv/l7-core',
         /^@antv\/l7-core\//,
