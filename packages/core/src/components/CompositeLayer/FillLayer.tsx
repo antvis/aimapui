@@ -4,14 +4,14 @@ import { useScene } from '../../context/SceneContext';
 import { PolygonLayer } from '../Layer/PolygonLayer';
 import { LineLayer } from '../Layer/LineLayer';
 import { PointLayer } from '../Layer/PointLayer';
+import { getColorPalette, type ColorScheme } from '../../constants/colorPalettes';
 
-export type FillColorMapping = 'sequential' | 'diverging' | 'categorical';
+export type FillColorMapping = ColorScheme;
 
-export const CHOROPLETH_SEQUENTIAL_COLORS = ['#dbeafe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb'] as const;
-
-export const CHOROPLETH_DIVERGING_COLORS = ['#dc2626', '#fca5a5', '#e5e7eb', '#86efac', '#16a34a'] as const;
-
-export const CHOROPLETH_CATEGORICAL_COLORS = ['#2563eb', '#f59e0b', '#ef4444', '#10b981', '#8b5cf6', '#14b8a6', '#f97316', '#64748b'] as const;
+// Re-export for backward compatibility
+export { SEQUENTIAL_COLORS as CHOROPLETH_SEQUENTIAL_COLORS } from '../../constants/colorPalettes';
+export { DIVERGING_COLORS as CHOROPLETH_DIVERGING_COLORS } from '../../constants/colorPalettes';
+export { CATEGORICAL_COLORS as CHOROPLETH_CATEGORICAL_COLORS } from '../../constants/colorPalettes';
 
 export interface FillLayerProps extends Omit<LayerSchema, 'type' | 'source' | 'sourceType' | 'sourceConfig'> {
   source: LayerSchema['source'];
@@ -40,6 +40,8 @@ export interface FillLayerProps extends Omit<LayerSchema, 'type' | 'source' | 's
 
   onRegionClick?: (payload: LayerEventPayload) => void;
   onDrilldown?: (feature: Record<string, unknown>) => void;
+  onMouseMove?: (payload: LayerEventPayload) => void;
+  onMouseLeave?: (payload: LayerEventPayload) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onLayerCreated?: (layer: any) => void;
 
@@ -66,20 +68,22 @@ export function FillLayer({
   showStroke = true,
   strokeColor = 'rgba(255,255,255,0.30)',
   strokeWidth = 0.5,
-  hoverEffect = true,
-  clickEffect = true,
-  stickySelection = true,
-  tooltipEffect = true,
+  hoverEffect = false,
+  clickEffect = false,
+  stickySelection = false,
+  tooltipEffect = false,
   tooltipFields,
   tooltipTemplate,
   regionIdField = 'name',
   highlightStrokeColor = '#2563eb',
   highlightStrokeWidth = 2,
-  zoomToRegionOnClick = true,
+  zoomToRegionOnClick = false,
   clickZoomPadding = 40,
   clickZoomDelta = 1.2,
   onRegionClick,
   onDrilldown,
+  onMouseMove,
+  onMouseLeave,
   onLayerCreated,
   showLabel = false,
   labelField = 'name',
@@ -136,15 +140,7 @@ export function FillLayer({
 
   const mappedColorValues = useMemo(() => {
     if (colorValues) return colorValues;
-    switch (colorMapping) {
-      case 'diverging':
-        return [...CHOROPLETH_DIVERGING_COLORS];
-      case 'categorical':
-        return [...CHOROPLETH_CATEGORICAL_COLORS];
-      case 'sequential':
-      default:
-        return [...CHOROPLETH_SEQUENTIAL_COLORS];
-    }
+    return [...getColorPalette(colorMapping)];
   }, [colorValues, colorMapping]);
 
   const tooltipValueField = valueField ?? colorField ?? 'value';
@@ -154,8 +150,8 @@ export function FillLayer({
     [tooltipTemplate, tooltipNameField, tooltipValueField, percentageField],
   );
 
-  const defaultActive: ActiveConfig = { color: '#ffffff' };
-  const defaultSelect: SelectConfig = { color: '#0f172a' };
+  const defaultActive: ActiveConfig = { color: '#ffffff', duration: 150 };
+  const defaultSelect: SelectConfig = { color: '#0f172a', duration: 150 };
 
   const labelSource = useMemo(
     () => buildLabelSourceFromGeoJSON(source, sourceType, labelField, regionIdField, labelAreaThreshold),
@@ -237,12 +233,16 @@ export function FillLayer({
         events={resolvedEvents}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseLeave={(payload) => {
+          handleMouseLeave();
+          onMouseLeave?.(payload);
+        }}
+        onMouseMove={onMouseMove}
         onLayerCreated={onLayerCreated}
         style={{ opacity: 0.8, ...(style ?? {}) }}
       />
 
-      {showStroke && <LineLayer source={source} sourceType={sourceType} color={strokeColor} size={strokeWidth} zIndex={2} />}
+      {showStroke && <LineLayer source={source} sourceType={sourceType} color={strokeColor} size={strokeWidth} zIndex={(rest.zIndex ?? 0) + 2} />}
 
       {hoverEffect && hoveredRegionId !== null && (
         <>
@@ -253,7 +253,7 @@ export function FillLayer({
             size={highlightStrokeWidth + 2}
             filterField={regionIdField}
             filterValues={[hoveredRegionId]}
-            zIndex={3}
+            zIndex={(rest.zIndex ?? 0) + 3}
           />
           <LineLayer
             source={source}
@@ -262,7 +262,7 @@ export function FillLayer({
             size={highlightStrokeWidth}
             filterField={regionIdField}
             filterValues={[hoveredRegionId]}
-            zIndex={4}
+            zIndex={(rest.zIndex ?? 0) + 4}
           />
         </>
       )}
@@ -275,7 +275,7 @@ export function FillLayer({
           size={Math.max(1.5, highlightStrokeWidth)}
           filterField={regionIdField}
           filterValues={[selectedRegionId]}
-          zIndex={5}
+          zIndex={(rest.zIndex ?? 0) + 5}
         />
       )}
 
@@ -288,6 +288,7 @@ export function FillLayer({
           shapeValues="text"
           color={labelColor}
           size={labelSize}
+          zIndex={(rest.zIndex ?? 0) + 10}
           style={{
             textAllowOverlap: false,
             stroke: '#ffffff',

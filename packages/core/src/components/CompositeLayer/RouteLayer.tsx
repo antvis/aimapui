@@ -163,9 +163,9 @@ export function RouteLayer({
   onRouteQuery,
   onRouteResult,
   color = '#2563eb',
-  lineWidth = 4,
+  lineWidth = 3,
   opacity = 0.9,
-  glow = true,
+  glow = false,
   animate = false,
   animateSpeed = 1,
   stopSize = 14,
@@ -181,7 +181,7 @@ export function RouteLayer({
   stopIconField = 'iconValue',
   stopIconSize = 16,
   stopIconAnchor = 'bottom',
-  showStopPopup = true,
+  showStopPopup = false,
   activeColor = '#fbbf24',
   onPathClick,
   onStopClick,
@@ -364,7 +364,7 @@ export function RouteLayer({
           size={Math.max(1.5, lineWidth * 0.5)}
           style={{ opacity: 0.6, lineType: 'dash', lineDash: [8, 16] }}
           animate={{ enable: true, speed: animateSpeed, duration: 1500 }}
-          zIndex={10}
+          zIndex={(rest.zIndex ?? 0) + 5}
         />
       )}
 

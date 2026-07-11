@@ -13,6 +13,8 @@ export interface ColorConfig {
 export interface SizeConfig {
   field?: string;
   values?: number[] | number;
+  /** 连续数值尺寸范围 [min, max]，与 field 配合使用 */
+  range?: [number, number];
 }
 
 export interface ShapeConfig {
@@ -50,7 +52,7 @@ export function buildColorConfig(schema: LayerSchema): ColorConfig | undefined {
  */
 export function buildSizeConfig(schema: LayerSchema): SizeConfig | undefined {
   if (schema.sizeField) {
-    return { field: schema.sizeField, values: schema.sizeValues };
+    return { field: schema.sizeField, values: schema.sizeValues, range: schema.sizeRange };
   }
   if (schema.size !== undefined) {
     return { values: schema.size };
@@ -119,7 +121,16 @@ export function buildCsvSourceConfig(schema: LayerSchema): SourceOutput {
  * 构建 GeoJSON 类型数据源配置
  */
 export function buildGeojsonSourceConfig(schema: LayerSchema): SourceOutput {
-  return { data: schema.source, options: undefined };
+  return {
+    data: schema.source,
+    options: {
+      parser: {
+        type: 'geojson',
+        // 保留所有原始 properties，确保事件回调中能获取完整 feature 数据
+        ...(schema.sourceConfig?.parser ?? {}),
+      },
+    },
+  };
 }
 
 /**

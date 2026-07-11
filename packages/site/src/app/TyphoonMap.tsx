@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import type { Scene } from '@antv/l7';
-import { AiMap, LineLayer, PointLayer, ImageLayer, Marker, Tooltip, Popup, ZoomControl, MapThemeControl, LegendCategories, SatelliteLayer } from '@antv/aimapui';
+import { AiMap, LineLayer, PointLayer, FillLayer, ImageLayer, Marker, Tooltip, Popup, ZoomControl, MapThemeControl, LegendCategories, SatelliteLayer, SatelliteLayerControl } from '@antv/aimapui';
 import type { LayerEventPayload, PopupAttribute } from '@antv/aimapui';
 
 /* ================================================================
@@ -153,16 +153,18 @@ const FALLBACK_LIST: TyphoonListItem[] = [
 interface TrackSegment { path: [number, number][]; grade: GradeKey; }
 interface TrackNode { lng: number; lat: number; grade: GradeKey; time: string; strong: string; power: string; speed: string; pressure: string; index: number; }
 interface WindPoint { lng: number; lat: number; level: string; quadrant: string; radius: number; }
+interface WindPolygon { coordinates: [number, number][][]; level: string; }
 
 // ── 气象图层：浙江水利气象 API ────────────────────────────────
 // 复用同一 API_BASE；CORS 直连可取（与台风 API 同域）。
 // - 云图  LeastCloud?type=1|3|6  → base64 PNG + 边界(minLat/maxLat/minLng/maxLng)
 // - 雷达  LastRadar                → 4 片 base64 PNG(radar0_0/0_1/1_0/1_1) + synTime/radarType
 // - 降雨  LeastRain/24            → contours(矢量等值线, latAndLong 为 [lat,lng]) + time
-// - 风场  LastWind                 → GRIB2 风场数据(暂作占位, 后续接入 L7 WindLayer)
+// - 风场  LastWind                 → GRIB2 风场数据(L7 WindLayer 粒子动画)
 const API_LEASTCLOUD = (type: number) => `${API_BASE}/LeastCloud?type=${type}`;
 const API_LASTRADAR = `${API_BASE}/LastRadar`;
-const API_LEASTRAIN = `${API_BASE}/LeastRain/24`;
+const API_LEASTRAIN = (hours: number) => `${API_BASE}/LeastRain/${hours}`;
+const API_LASTWIND = `${API_BASE}/LastWind`;
 
 // 单张大图模式(radarType==='2'):全幅雷达拼图边界 [minLng,minLat,maxLng,maxLat]
 // (取自浙江水利站点客户端硬编码, 覆盖东亚)
@@ -180,24 +182,32 @@ const RADAR_TILES: { key: 'radar0_0' | 'radar0_1' | 'radar1_0' | 'radar1_1'; ext
 interface CloudData { img: string; time: string; extent: [number, number, number, number]; }
 interface RadarTileData { img: string; extent: [number, number, number, number]; }
 interface RadarData { tiles: RadarTileData[]; time: string; }
-interface RainContourItem { path: [number, number][]; color: string; }
-interface RainData { contours: RainContourItem[]; time: string; }
+interface RainFeature { type: 'Feature'; properties: { color: string; symbol: string }; geometry: { type: 'Polygon'; coordinates: [number, number][][] } }
+interface RainData { features: RainFeature[]; colors: string[]; time: string; colorToSymbol: Record<string, string>; }
 
-async function fetchCloud(type: 1 | 3 | 6 = 1): Promise<CloudData | null> {
+// 风场数据：GRIB2 → 转换为风场图片后供 WindLayer 使用
+interface WindData {
+  imageUrl: string;       // 风场图片 URL (RGBA 编码 U/V 分量)
+  time: string;
+  extent: [number, number, number, number];  // [minLng, minLat, maxLng, maxLat]
+  uMin: number; uMax: number;  // U 分量范围
+  vMin: number; vMax: number;  // V 分量范围
+}
+
+async function fetchCloud(type: 0.5 | 1 | 3 | 6 = 1): Promise<CloudData | null> {
   try {
     const r = await fetch(API_LEASTCLOUD(type), { cache: 'no-store' });
     if (!r.ok) return null;
-    const j = await r.json() as {
-      cloud1h?: string; cloud3h?: string; cloud6h?: string;
-      minLat?: string; maxLat?: string; minLng?: string; maxLng?: string;
-      timeStr1h?: string; timeStr3h?: string; timeStr6h?: string;
-    };
-    const imgKey = `cloud${type}h` as 'cloud1h' | 'cloud3h' | 'cloud6h';
+    const j = await r.json() as Record<string, string | undefined>;
+    // 0.5h → cloud05h / timeStr05h, 其他 → cloud1h / timeStr1h 等
+    const typeKey = type === 0.5 ? '05' : String(type);
+    const imgKey = `cloud${typeKey}h`;
+    const timeKey = `timeStr${typeKey}h`;
     const img = j[imgKey]?.startsWith('data:image') ? j[imgKey] : (j[imgKey] ? `data:image/png;base64,${j[imgKey]}` : undefined);
     if (!img) return null;
     const minLng = Number(j.minLng), minLat = Number(j.minLat), maxLng = Number(j.maxLng), maxLat = Number(j.maxLat);
     if (![minLng, minLat, maxLng, maxLat].every(Number.isFinite)) return null;
-    return { img, time: j[`timeStr${type}h` as 'timeStr1h' | 'timeStr3h' | 'timeStr6h'] ?? '', extent: [minLng, minLat, maxLng, maxLat] };
+    return { img, time: j[timeKey] ?? '', extent: [minLng, minLat, maxLng, maxLat] };
   } catch { return null; }
 }
 
@@ -223,30 +233,142 @@ async function fetchRadar(): Promise<RadarData | null> {
   } catch { return null; }
 }
 
-async function fetchRain(): Promise<RainData | null> {
+async function fetchRain(hours: number = 24): Promise<RainData | null> {
   try {
-    const r = await fetch(API_LEASTRAIN, { cache: 'no-store' });
+    const r = await fetch(API_LEASTRAIN(hours), { cache: 'no-store' });
     if (!r.ok) return null;
     const j = await r.json() as { contours?: string; time?: string };
     // contours 是双重编码的 JSON 字符串
     const raw = typeof j.contours === 'string' ? JSON.parse(j.contours) : j.contours;
     if (!Array.isArray(raw)) return null;
-    const contours: RainContourItem[] = [];
-    for (const c of raw as Array<{ color?: string; latAndLong?: number[][] }>) {
+    const features: RainFeature[] = [];
+    const colorSet = new Set<string>();
+    const colorToSymbol: Record<string, string> = {};
+    for (const c of raw as Array<{ color?: string; latAndLong?: number[][]; symbol?: string }>) {
       const ll = c.latAndLong;
-      if (!Array.isArray(ll) || ll.length < 2) continue;
-      // latAndLong 每点为 [lat, lng] → 转 [lng, lat] 供 L7
-      const path = ll.map(p => {
+      if (!Array.isArray(ll) || ll.length < 3) continue;
+      // latAndLong 每点为 [lat, lng] → 转 [lng, lat] 供 L7, 并闭合环
+      const ring: [number, number][] = ll.map(p => {
         const lat = Number(p[0]), lng = Number(p[1]);
         return [Number.isFinite(lng) && Number.isFinite(lat) ? lng : NaN, lat] as [number, number];
       }).filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1])) as [number, number][];
-      if (path.length < 2) continue;
+      if (ring.length < 3) continue;
+      // 闭合多边形(首尾连接, GeoJSON 规范)
+      if (ring[0][0] !== ring[ring.length - 1][0] || ring[0][1] !== ring[ring.length - 1][1]) ring.push(ring[0]);
       const rgba = String(c.color ?? '120,180,255,255').split(',').map(Number);
       const hex = `#${rgba.slice(0, 3).map(v => Math.max(0, Math.min(255, v | 0)).toString(16).padStart(2, '0')).join('')}`;
-      contours.push({ path, color: hex });
+      colorSet.add(hex);
+      const sym = String(c.symbol ?? '0');
+      colorToSymbol[hex] = sym;
+      features.push({
+        type: 'Feature',
+        properties: { color: hex, symbol: sym },
+        geometry: { type: 'Polygon', coordinates: [ring] },
+      });
     }
-    if (contours.length === 0) return null;
-    return { contours, time: j.time ?? '' };
+    if (features.length === 0) return null;
+    return { features, colors: [...colorSet], time: j.time ?? '', colorToSymbol };
+  } catch { return null; }
+}
+
+// ── 风场：GRIB2 数值 → 风场图片 (RGBA 编码 U/V) ──────────────
+// 参考 L7 WindLayer 源码，图片的 RGBA 通道编码风速：
+// R → U 分量 (东西向), G → V 分量 (南北向)
+// 浙江水利 API 返回 GRIB2 格式：360×181 网格，1° 分辨率，覆盖全球
+interface WindGribHeader {
+  nx: number; ny: number;      // 网格尺寸
+  lo1: number; la1: number;    // 起始经度、纬度
+  dx: number; dy: number;      // 步长
+  parameterNumberName: string;  // U-component_of_wind / V-component_of_wind
+  parameterUnit: string;
+}
+interface WindGribResponse {
+  header: WindGribHeader;
+  data: number[];  // 扁平数组 nx * ny 个值
+}
+
+/** 将 U/V 数值数组编码为风场图片 (RGBA) */
+function windDataToImage(uData: number[], vData: number[], nx: number, ny: number): string {
+  const canvas = document.createElement('canvas');
+  canvas.width = nx;
+  canvas.height = ny;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return '';
+
+  const imageData = ctx.createImageData(nx, ny);
+  const pixels = imageData.data;
+
+  // 计算 U/V 范围用于归一化
+  let uMin = Infinity, uMax = -Infinity, vMin = Infinity, vMax = -Infinity;
+  for (let i = 0; i < uData.length; i++) {
+    const u = uData[i], v = vData[i];
+    if (u < uMin) uMin = u;
+    if (u > uMax) uMax = u;
+    if (v < vMin) vMin = v;
+    if (v > vMax) vMax = v;
+  }
+
+  const uRange = uMax - uMin || 1;
+  const vRange = vMax - vMin || 1;
+
+  // 编码：R = 归一化 U, G = 归一化 V
+  for (let i = 0; i < uData.length; i++) {
+    const idx = i * 4;
+    const uNorm = ((uData[i] - uMin) / uRange) * 255;
+    const vNorm = ((vData[i] - vMin) / vRange) * 255;
+    pixels[idx] = uNorm;     // R
+    pixels[idx + 1] = vNorm; // G
+    pixels[idx + 2] = 0;     // B
+    pixels[idx + 3] = 255;   // A
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
+/** 获取风场数据 (U/V 分量) 并转换为图片 */
+async function fetchWind(): Promise<WindData | null> {
+  try {
+    const res = await fetch(API_LASTWIND, { cache: 'no-store' });
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const rawWindData = json.windData;
+
+    // windData 是 JSON 字符串，解析后是数组 [U分量, V分量]
+    const windArray = typeof rawWindData === 'string' ? JSON.parse(rawWindData) : rawWindData;
+    if (!Array.isArray(windArray) || windArray.length < 2) return null;
+
+    const uItem = windArray[0];
+    const vItem = windArray[1];
+    const uHeader = uItem.header;
+    const vHeader = vItem.header;
+
+    // 验证网格一致性
+    if (uHeader.nx !== vHeader.nx || uHeader.ny !== vHeader.ny) return null;
+
+    const nx = uHeader.nx;
+    const ny = uHeader.ny;
+
+    // 转换为图片
+    const imageUrl = windDataToImage(uItem.data, vItem.data, nx, ny);
+    if (!imageUrl) return null;
+
+    // 计算 extent (全球风场: 0°~360° 经度, 90°~-90° 纬度)
+    const minLng = uHeader.lo1;
+    const maxLng = uHeader.lo2;
+    const maxLat = uHeader.la1;
+    const minLat = uHeader.la2;
+
+    return {
+      imageUrl,
+      time: json.synTime ?? '',
+      extent: [minLng, minLat, maxLng, maxLat],
+      uMin: -21.32,
+      uMax: 26.8,
+      vMin: -21.57,
+      vMax: 21.42,
+    };
   } catch { return null; }
 }
 
@@ -275,18 +397,47 @@ function toNodes(points: TyphoonPoint[]): TrackNode[] {
     })
     .filter(Boolean) as TrackNode[];
 }
-/** 某路径点的 7/10/12 级四象限风圈 → 12 个 PointLayer 数据点（半径单位 km） */
-function toWindCircles(p: TyphoonPoint | undefined): WindPoint[] {
+/** 某路径点的 7/10/12 级四象限风圈 → GeoJSON Polygon 数组（每个等级一个完整外环） */
+function toWindPolygons(p: TyphoonPoint | undefined): WindPolygon[] {
   if (!p) return [];
   const lng = Number(p.lng), lat = Number(p.lat);
   if (!Number.isFinite(lng) || !Number.isFinite(lat)) return [];
-  const out: WindPoint[] = [];
-  const push = (level: string, radii: [number, number, number, number]) => {
-    radii.forEach((r, qi) => { if (r > 0) out.push({ lng, lat, level, quadrant: ['NE', 'SE', 'SW', 'NW'][qi], radius: r }); });
+  const out: WindPolygon[] = [];
+  // 四象限角度范围（从正北顺时针）: NE=0-90, SE=90-180, SW=180-270, NW=270-360
+  const QUADRANT_ANGLES: [number, number][] = [[0, 90], [90, 180], [180, 270], [270, 360]];
+  const buildArc = (centerLng: number, centerLat: number, radiusKm: number, startDeg: number, endDeg: number): [number, number][] => {
+    const points: [number, number][] = [];
+    const steps = Math.max(8, Math.round((endDeg - startDeg) / 5));
+    for (let i = 0; i <= steps; i++) {
+      const deg = startDeg + (endDeg - startDeg) * (i / steps);
+      const rad = (deg - 90) * (Math.PI / 180);
+      const dLng = (radiusKm / 111.32) * Math.cos(rad);
+      const dLat = (radiusKm / 110.57) * Math.sin(rad);
+      points.push([centerLng + dLng, centerLat + dLat]);
+    }
+    return points;
   };
-  push('7', parseRadii(p.radius7));
-  push('10', parseRadii(p.radius10));
-  push('12', parseRadii(p.radius12));
+  const pushLevel = (level: string, radii: [number, number, number, number]) => {
+    // 收集四个象限的弧线点，拼接成完整外环
+    const ring: [number, number][] = [];
+    let hasAny = false;
+    for (let qi = 0; qi < 4; qi++) {
+      if (radii[qi] > 0) {
+        hasAny = true;
+        const [startDeg, endDeg] = QUADRANT_ANGLES[qi];
+        ring.push(...buildArc(lng, lat, radii[qi], startDeg, endDeg));
+      }
+    }
+    if (!hasAny || ring.length < 3) return;
+    // 闭合环
+    if (ring[0][0] !== ring[ring.length - 1][0] || ring[0][1] !== ring[ring.length - 1][1]) {
+      ring.push(ring[0]);
+    }
+    out.push({ coordinates: [ring], level });
+  };
+  pushLevel('7', parseRadii(p.radius7));
+  pushLevel('10', parseRadii(p.radius10));
+  pushLevel('12', parseRadii(p.radius12));
   return out;
 }
 /** 某机构预报路径段 */
@@ -301,6 +452,195 @@ function toForecastSegments(agency: ForecastAgency | undefined): TrackSegment[] 
     segs.push({ path: [[aLng, aLat], [bLng, bLat]], grade: pointGrade(b) });
   }
   return segs;
+}
+
+// ── 警戒线（预报误差锥）───────────────────────────────────────
+// 参考浙江水利台风系统实现，根据预报时间差计算误差半径，
+// 在预报路径两侧绘制半透明的误差范围多边形。
+
+const EARTH_RADIUS = 6371; // 地球半径 km
+
+// 预报时间(小时) → 误差半径(km) 映射表
+const FORECAST_RADII = new Map<number, number>([
+  [3, 10], [6, 20], [9, 30], [12, 40], [15, 50], [18, 60],
+  [21, 70], [24, 80], [30, 90], [36, 100], [42, 110], [48, 120],
+  [60, 160], [72, 200], [96, 300], [120, 400],
+]);
+
+/** 根据预报小时数获取误差半径(km) - 使用线性插值 */
+function getForecastRadius(hours: number): number | undefined {
+  // 直接匹配
+  if (FORECAST_RADII.has(hours)) {
+    return FORECAST_RADII.get(hours);
+  }
+  
+  // 找到 closest 的两个时间点进行插值
+  const sortedKeys = Array.from(FORECAST_RADII.keys()).sort((a, b) => a - b);
+  
+  // 小于最小时间，返回最小半径
+  if (hours <= sortedKeys[0]) {
+    return FORECAST_RADII.get(sortedKeys[0]);
+  }
+  
+  // 大于最大时间，返回最大半径
+  if (hours >= sortedKeys[sortedKeys.length - 1]) {
+    return FORECAST_RADII.get(sortedKeys[sortedKeys.length - 1]);
+  }
+  
+  // 找到上下界进行线性插值
+  for (let i = 0; i < sortedKeys.length - 1; i++) {
+    const h1 = sortedKeys[i];
+    const h2 = sortedKeys[i + 1];
+    if (hours > h1 && hours < h2) {
+      const r1 = FORECAST_RADII.get(h1)!;
+      const r2 = FORECAST_RADII.get(h2)!;
+      const t = (hours - h1) / (h2 - h1);
+      return Math.round(r1 + (r2 - r1) * t);
+    }
+  }
+  
+  return undefined;
+}
+
+/**
+ * 计算路径点两侧垂直方向的坐标
+ * @param lat 当前点纬度
+ * @param lng 当前点经度
+ * @param prevLat 前一个点纬度
+ * @param prevLng 前一个点经度
+ * @param radiusKm 误差半径(km)
+ * @returns 两侧坐标 [[lat1, lng1], [lat2, lng2]]
+ */
+function calculatePerpendicularCoordinates(
+  lat: number, lng: number, prevLat: number, prevLng: number, radiusKm: number
+): [number, number][] {
+  const latRad = (lat * Math.PI) / 180;
+  const lngRad = (lng * Math.PI) / 180;
+  const prevLatRad = (prevLat * Math.PI) / 180;
+  const dLng = ((prevLng * Math.PI) / 180) - lngRad;
+
+  // 计算方位角
+  const y = Math.sin(dLng) * Math.cos(prevLatRad);
+  const x = Math.cos(latRad) * Math.sin(prevLatRad) - Math.sin(latRad) * Math.cos(prevLatRad) * Math.cos(dLng);
+  const bearing = Math.atan2(y, x);
+
+  // 两侧垂直方向（+90° 和 -90°）
+  const d1 = bearing + Math.PI / 2;
+  const d2 = bearing - Math.PI / 2;
+
+  // 计算两侧点坐标
+  const lat1 = Math.asin(
+    Math.sin(latRad) * Math.cos(radiusKm / EARTH_RADIUS) +
+    Math.cos(latRad) * Math.sin(radiusKm / EARTH_RADIUS) * Math.cos(d1)
+  );
+  const lng1 = lngRad + Math.atan2(
+    Math.sin(d1) * Math.sin(radiusKm / EARTH_RADIUS) * Math.cos(latRad),
+    Math.cos(radiusKm / EARTH_RADIUS) - Math.sin(latRad) * Math.sin(lat1)
+  );
+  const lat2 = Math.asin(
+    Math.sin(latRad) * Math.cos(radiusKm / EARTH_RADIUS) +
+    Math.cos(latRad) * Math.sin(radiusKm / EARTH_RADIUS) * Math.cos(d2)
+  );
+  const lng2 = lngRad + Math.atan2(
+    Math.sin(d2) * Math.sin(radiusKm / EARTH_RADIUS) * Math.cos(latRad),
+    Math.cos(radiusKm / EARTH_RADIUS) - Math.sin(latRad) * Math.sin(lat2)
+  );
+
+  return [
+    [(lat1 * 180) / Math.PI, (lng1 * 180) / Math.PI],
+    [(lat2 * 180) / Math.PI, (lng2 * 180) / Math.PI],
+  ];
+}
+
+/**
+ * 生成半圆弧上的点列（用于闭合警戒线末端）
+ * @param startLat 起点纬度
+ * @param startLng 起点经度
+ * @param endLat 终点纬度
+ * @param endLng 终点经度
+ */
+function generateSemiCirclePoints(
+  startLat: number, startLng: number, endLat: number, endLng: number
+): [number, number][] {
+  const points: [number, number][] = [];
+  const steps = 20;
+  // 从起点到终点画半圆弧
+  for (let i = 0; i <= steps; i++) {
+    const t = (i / steps) * Math.PI;
+    const midLat = (startLat + endLat) / 2;
+    const midLng = (startLng + endLng) / 2;
+    const dist = Math.sqrt((endLat - startLat) ** 2 + (endLng - startLng) ** 2);
+    const r = dist / 2;
+    const lat = midLat + r * Math.cos(t);
+    const lng = midLng + r * Math.sin(t);
+    points.push([lat, lng]);
+  }
+  return points;
+}
+
+/** 计算警戒线多边形坐标 */
+interface ConePolygon {
+  coordinates: [number, number][][];
+}
+
+function toConePolygon(forecastPoints: TyphoonPoint[]): ConePolygon | null {
+  if (forecastPoints.length < 2) return null;
+
+  const firstPoint = forecastPoints[0];
+  const firstTime = new Date(firstPoint.time).getTime();
+  
+  // o 数组存储所有垂直点（交替插入：前半部分左侧点，后半部分右侧点）
+  const o: [number, number][] = [];  // [lat, lng] 格式
+  let lastPerp: [number, number][] | null = null;
+
+  for (let i = 1; i < forecastPoints.length; i++) {
+    const pt = forecastPoints[i];
+    const lat = Number(pt.lat);
+    const lng = Number(pt.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+
+    const time = new Date(pt.time).getTime();
+    const hours = Math.round((time - firstTime) / (1000 * 60 * 60));
+    const radius = getForecastRadius(hours);
+    if (!radius) continue;
+
+    const prevPt = forecastPoints[i - 1];
+    const prevLat = Number(prevPt.lat);
+    const prevLng = Number(prevPt.lng);
+
+    // calculatePerpendicularCoordinates returns [[lat1, lng1], [lat2, lng2]]
+    const h = calculatePerpendicularCoordinates(lat, lng, prevLat, prevLng, radius);
+    lastPerp = h;
+    
+    if (o.length > 0) {
+      // 在中间插入新点
+      o.splice(o.length / 2, 0, ...h);
+    } else {
+      o.push(...h);
+    }
+  }
+
+  if (o.length === 0 || !lastPerp) return null;
+
+  // 生成末端半圆
+  const v = generateSemiCirclePoints(lastPerp[1][0], lastPerp[1][1], lastPerp[0][0], lastPerp[0][1]);
+  
+  // 在半圆中间插入
+  o.splice(o.length / 2, 0, ...v);
+
+  // 构建最终多边形: [[起点lat, 起点lng], ...所有点]
+  const startLat = Number(firstPoint.lat);
+  const startLng = Number(firstPoint.lng);
+  const ring: [number, number][] = [[startLng, startLat]];
+  
+  for (const pt of o) {
+    ring.push([pt[1], pt[0]]);  // [lat, lng] → [lng, lat]
+  }
+  
+  // 闭合
+  ring.push(ring[0]);
+
+  return { coordinates: [ring] };
 }
 
 // ── 台风眼符号 ───────────────────────────────────────────────
@@ -342,15 +682,21 @@ export default function TyphoonMap() {
 
   const [selectedAgency, setSelectedAgency] = useState<string>('中国');
   const [selectedPointIdx, setSelectedPointIdx] = useState<number>(-1);
+  const [listExpanded, setListExpanded] = useState(false);
+  const [legendExpanded, setLegendExpanded] = useState(false);
+  const [showWindCircles, setShowWindCircles] = useState(true);
 
-  // 气象图层(单选)+ 透明度。weatherLayer: 'none'|'cloud'|'radar'|'rain'|'satellite'|'wind'
-  const [weatherLayer, setWeatherLayer] = useState<'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind'>('none');
+  // 气象图层(单选)+ 透明度。weatherLayer: 'none'|'cloud'|'radar'|'rain'|'satellite'
+  const [weatherLayer, setWeatherLayer] = useState<'none' | 'cloud' | 'radar' | 'rain' | 'satellite'>('none');
   const [weatherOpacity, setWeatherOpacity] = useState(0.7);
-  const [cloudType, setCloudType] = useState<1 | 3 | 6>(1);       // 云图时段 1h/3h/6h
+  const [cloudType, setCloudType] = useState<0.5 | 1 | 3 | 6>(1);       // 云图时段 0.5h/1h/3h/6h
+  const [rainHours, setRainHours] = useState<24 | 48 | 72>(24);    // 降雨时段 24h/48h/72h
   const [cloud, setCloud] = useState<CloudData | null>(null);
   const [radar, setRadar] = useState<RadarData | null>(null);
   const [rain, setRain] = useState<RainData | null>(null);
   const [satellite, setSatellite] = useState(false);              // 卫星底图开关(复用 SatelliteLayer)
+  const [satProvider, setSatProvider] = useState<'gaode' | 'tianditu' | 'google'>('gaode');
+  const [satOpacity, setSatOpacity] = useState(0.8);
   const weatherLoading = useRef(false);
 
   // 点击线路 / 节点显示的 Popup(同一时间仅一个)
@@ -361,9 +707,40 @@ export default function TyphoonMap() {
   }
   const [popup, setPopup] = useState<PopupData | null>(null);
 
-  const sceneRef = useRef<Scene | null>(null);
+  // 降雨 symbol(降水量 mm) → 降水等级映射
+const RAIN_LEVEL_LABEL: Record<string, string> = {
+  '0': '小雨', '2.5': '小雨', '5': '小雨',
+  '10': '中雨', '25': '大雨', '50': '暴雨',
+  '100': '大暴雨', '250': '特大暴雨',
+};
+function getRainLevelLabel(symbol: string): string {
+  const num = Number(symbol);
+  if (!Number.isFinite(num)) return symbol || '—';
+  if (num >= 250) return '特大暴雨';
+  if (num >= 100) return '大暴雨';
+  if (num >= 50) return '暴雨';
+  if (num >= 25) return '大雨';
+  if (num >= 10) return '中雨';
+  return '小雨';
+}
+
+const sceneRef = useRef<Scene | null>(null);
   const hoverRef = useRef<{ lng: number; lat: number; time: string; strong: string; power: string; speed: string; pressure: string } | null>(null);
   const [tooltip, setTooltip] = useState({ visible: false, lng: 0, lat: 0, time: '', strong: '', power: '', speed: '', pressure: '' });
+  const [rainTooltip, setRainTooltip] = useState<{ visible: boolean; lng: number; lat: number; symbol: string; color: string }>({ visible: false, lng: 0, lat: 0, symbol: '', color: '' });
+  const handleRainTooltipLeave = useCallback(() => {
+    setRainTooltip((prev) => ({ ...prev, visible: false }));
+  }, []);
+  const handleRainTooltipMove = useCallback((payload: LayerEventPayload) => {
+    const f = payload.feature as Record<string, unknown> | undefined;
+    const symbol = String(f?.symbol ?? '');
+    setRainTooltip({
+      visible: true,
+      lng: payload.lng, lat: payload.lat,
+      symbol,
+      color: String(f?.color ?? ''),
+    });
+  }, []);
 
   // 0. 气象图层按需拉取(切换图层时触发, 同一图层缓存不重复请求)
   useEffect(() => {
@@ -375,12 +752,15 @@ export default function TyphoonMap() {
       fetchRadar().then(d => { if (d) setRadar(d); });
     } else if (weatherLayer === 'rain' && !rain) {
       weatherLoading.current = true;
-      fetchRain().then(d => { if (d) setRain(d); });
+      fetchRain(rainHours).then(d => { if (d) setRain(d); });
     }
-  }, [weatherLayer, cloudType, cloud, radar, rain]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [weatherLayer, cloudType, rainHours, cloud, radar, rain]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 云图时段切换(1h/3h/6h) → 重新拉取
   useEffect(() => { if (weatherLayer === 'cloud') setCloud(null); }, [cloudType]);
+
+  // 降雨时段切换(6h/12h/24h) → 重新拉取
+  useEffect(() => { if (weatherLayer === 'rain') setRain(null); }, [rainHours]);
 
   // 1. 拉取当年台风列表
   useEffect(() => {
@@ -458,9 +838,12 @@ export default function TyphoonMap() {
   const selectedPoint = points[selectedIdx];
   const currentPoint = points[currentIdx];
 
-  const windSource = useMemo(() => toWindCircles(selectedPoint), [selectedPoint]);
-  // PointLayer 的 size 需为米（isMeter）；半径 km → 米
-  const windSourceMeter = useMemo(() => windSource.map(w => ({ ...w, radiusM: w.radius * 1000 })), [windSource]);
+  const windPolygons = useMemo(() => {
+    const polygons = toWindPolygons(selectedPoint);
+    console.log('[风圈] selectedPoint:', selectedPoint?.time, 'radius7:', selectedPoint?.radius7, 'radius10:', selectedPoint?.radius10, 'radius12:', selectedPoint?.radius12);
+    console.log('[风圈] windPolygons 数量:', polygons.length);
+    return polygons;
+  }, [selectedPoint]);
 
   // 真实 API 的预报挂在"被选中的历史点"上(从此点起的未来路径)。
   // 机构选择用于"高亮"某一家;所有机构路径始终同图显示以便横向对比。
@@ -484,10 +867,39 @@ export default function TyphoonMap() {
     return out;
   }, [forecastSrc, selectedAgency]);
 
-  // 4. scene 控制：切台风时 fitBounds 到轨迹
+  // 预报路径点位（用于显示预测线路上的点）
+  const forecastPoints = useMemo(() => {
+    const points: { lng: number; lat: number; agency: string; time: string; strong: string; speed: string; pressure: string }[] = [];
+    for (const a of forecastSrc) {
+      for (const pt of a.forecastpoints ?? []) {
+        const lng = Number(pt.lng), lat = Number(pt.lat);
+        if (Number.isFinite(lng) && Number.isFinite(lat)) {
+          points.push({
+            lng, lat, agency: a.tm,
+            time: String(pt.time ?? ''),
+            strong: String(pt.strong ?? ''),
+            speed: String(pt.speed ?? ''),
+            pressure: String(pt.pressure ?? ''),
+          });
+        }
+      }
+    }
+    return points;
+  }, [forecastSrc]);
+
+  // 警戒线（预报误差锥）- 基于选中机构预报路径计算
+  const conePolygon = useMemo(() => {
+    const a = forecastSrc.find(f => f.tm === selectedAgency);
+    if (!a || a.forecastpoints.length < 2) {
+      return null;
+    }
+    return toConePolygon(a.forecastpoints);
+  }, [forecastSrc, selectedAgency]);
   const handleSceneReady = useCallback((scene: Scene) => {
     sceneRef.current = scene;
-  }, []);
+    // 降雨图层悬停提示已通过 FillLayer onMouseMove 事件处理
+    return () => {};
+  }, [rain, weatherLayer]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -521,18 +933,32 @@ export default function TyphoonMap() {
     if (typeof f.index === 'number') setSelectedPointIdx(f.index);
     const lng = payload.lng, lat = payload.lat;
     const strong = String(f.strong ?? ''), power = String(f.power ?? ''), speed = String(f.speed ?? ''),
-      pressure = String(f.pressure ?? ''), time = String(f.time ?? '');
+      pressure = String(f.pressure ?? ''), time = String(f.time ?? ''),
+      movespeed = String(f.movespeed ?? ''), movedirection = String(f.movedirection ?? ''),
+      radius7 = String(f.radius7 ?? ''), radius10 = String(f.radius10 ?? ''), radius12 = String(f.radius12 ?? '');
     const key = STRENGTH_TO_KEY[strong] ?? 'TS';
+    // 解析风圈半径（格式如 "350|300|300|280" → 取范围）
+    const formatRadius = (r: string) => {
+      if (!r || r === 'undefined') return '—';
+      const vals = r.split('|').map(Number).filter(Number.isFinite);
+      if (vals.length === 0) return '—';
+      const min = Math.min(...vals), max = Math.max(...vals);
+      return min === max ? `${min}公里` : `${min}-${max}公里`;
+    };
     setPopup({
       lng, lat,
-      title: info?.name ?? '台风', statusLabel: strong, statusColor: GRADE_COLOR[key],
+      title: info?.name ? `${info.name}(${info.enname})` : '台风',
+      statusLabel: strong,
+      statusColor: GRADE_COLOR[key],
       attrs: [
-        { label: '时间', value: time.slice(5) || '—' },
-        { label: '风力', value: power ? `${power}级` : '—', valueColor: GRADE_COLOR[key] },
-        { label: '风速', value: speed ? `${speed}m/s` : '—' },
-        { label: '中心气压', value: pressure ? `${pressure}hPa` : '—' },
-        { label: '经度', value: `${Number(lng).toFixed(1)}°` },
-        { label: '纬度', value: `${Number(lat).toFixed(1)}°` },
+        { label: '时间', value: time.slice(0, 16).replace('T', ' ') || '—' },
+        { label: '中心位置', value: `${Number(lng).toFixed(2)}° / ${Number(lat).toFixed(2)}°` },
+        { label: '风速风力', value: speed && power ? `${speed}米/秒，${power}级(${strong})` : '—', valueColor: GRADE_COLOR[key] },
+        { label: '中心气压', value: pressure ? `${pressure}百帕` : '—' },
+        { label: '移速移向', value: movespeed && movedirection ? `${movespeed}公里/小时，${movedirection}` : '—' },
+        { label: '七级半径', value: formatRadius(radius7) },
+        { label: '十级半径', value: formatRadius(radius10) },
+        { label: '十二级半径', value: formatRadius(radius12) },
       ],
     });
   }, [info]);
@@ -553,6 +979,39 @@ export default function TyphoonMap() {
     });
   }, [selectedAgency]);
 
+  // 预报点位悬停 → Tooltip
+  const handleForecastPointHover = useCallback((payload: LayerEventPayload) => {
+    const f = payload.feature as Record<string, unknown> | undefined;
+    if (!f) return;
+    hoverRef.current = {
+      lng: payload.lng, lat: payload.lat,
+      time: String(f.time ?? ''), strong: String(f.strong ?? ''), power: '',
+      speed: String(f.speed ?? ''), pressure: String(f.pressure ?? ''),
+    };
+    setTooltip({ visible: true, ...hoverRef.current });
+  }, []);
+  const handleForecastPointLeave = useCallback(() => setTooltip(t => ({ ...t, visible: false })), []);
+  // 预报点位点击 → Popup
+  const handleForecastPointClick = useCallback((payload: LayerEventPayload) => {
+    const f = payload.feature as Record<string, unknown> | undefined;
+    if (!f) return;
+    const agencyName = String(f.agency ?? '');
+    const time = String(f.time ?? ''), strong = String(f.strong ?? ''),
+      speed = String(f.speed ?? ''), pressure = String(f.pressure ?? '');
+    setPopup({
+      lng: payload.lng, lat: payload.lat,
+      title: `${agencyName} 预报点`, statusLabel: strong || '预报', statusColor: AGENCY_COLOR[agencyName] ?? '#22d3ee',
+      attrs: [
+        { label: '机构', value: agencyName },
+        { label: '时间', value: time.slice(0, 16).replace('T', ' ') || '—' },
+        { label: '中心位置', value: `${Number(payload.lng).toFixed(2)}° / ${Number(payload.lat).toFixed(2)}°` },
+        { label: '风速', value: speed ? `${speed}米/秒` : '—' },
+        { label: '强度', value: strong || '—' },
+        { label: '中心气压', value: pressure ? `${pressure}百帕` : '—' },
+      ],
+    });
+  }, []);
+
   // ── UI 颜色常量 ──
   const C = {
     bg: '#0f172a', panel: 'rgba(15,23,42,0.82)', border: 'rgba(56,189,248,0.15)',
@@ -568,6 +1027,14 @@ export default function TyphoonMap() {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: C.bg, fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* L7 控件暗色主题覆盖 */}
+      <style>{`
+        .l7-control-zoom, .l7-control-theme, .l7-map-theme-control { background: rgba(15,23,42,0.9) !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(148,163,184,0.12) !important; border-radius: 12px !important; box-shadow: 0 4px 16px rgba(0,0,0,0.3) !important; padding: 4px !important; }
+        .l7-control-zoom a, .l7-control-zoom button, .l7-control-theme a, .l7-control-theme button, .l7-map-theme-control a, .l7-map-theme-control button { color: #e2e8f0 !important; background: transparent !important; border: none !important; width: 28px !important; height: 28px !important; line-height: 28px !important; font-size: 16px !important; border-radius: 8px !important; transition: background 0.15s !important; }
+        .l7-control-zoom a:hover, .l7-control-zoom button:hover, .l7-control-theme a:hover, .l7-control-theme button:hover, .l7-map-theme-control a:hover, .l7-map-theme-control button:hover { background: rgba(34,211,238,0.15) !important; color: #22d3ee !important; }
+        .l7-control-zoom .l7-zoom-number { color: #cbd5e1 !important; background: transparent !important; border-top: 1px solid rgba(148,163,184,0.1) !important; border-bottom: 1px solid rgba(148,163,184,0.1) !important; font-size: 11px !important; font-weight: 600 !important; height: 28px !important; line-height: 28px !important; }
+        .l7-map-theme-control img, .l7-map-theme-control svg { filter: brightness(0) invert(0.9) !important; }
+      `}</style>
       {/* ── 地图 ── */}
       <div style={{ position: 'absolute', inset: 0 }}>
         <AiMap
@@ -575,10 +1042,10 @@ export default function TyphoonMap() {
           onSceneReady={handleSceneReady}
         >
           {/* ⓪ 气象覆盖层(置于最底,zIndex=-1,在台风轨迹之下) */}
-          {/* 卫星底图切换:开启时叠加高德影像 */
-          satellite && (<SatelliteLayer provider="gaode" zIndex={-2} opacity={0.95} />)}
-          {/* 云图(base64 PNG + 边界 extent) */
-          weatherLayer === 'cloud' && cloud && (
+          {/* 卫星底图切换:开启时叠加高德影像 */}
+          {satellite && (<SatelliteLayer provider={satProvider} zIndex={-2} opacity={satOpacity} visible={satellite} />)}
+          {/* 云图(base64 PNG + 边界 extent) */}
+          {weatherLayer === 'cloud' && cloud && (
             <ImageLayer
               source={cloud.img}
               sourceType="image"
@@ -587,8 +1054,8 @@ export default function TyphoonMap() {
               zIndex={-1}
             />
           )}
-          {/* 雷达(多片拼接, radarType=2 单片) */
-          weatherLayer === 'radar' && radar && radar.tiles.map((t, i) => (
+          {/* 雷达(多片拼接, radarType=2 单片) */}
+          {weatherLayer === 'radar' && radar && radar.tiles.map((t, i) => (
             <ImageLayer
               key={`radar-${i}`}
               source={t.img}
@@ -598,47 +1065,58 @@ export default function TyphoonMap() {
               zIndex={-1}
             />
           ))}
-          {/* 降雨(矢量等值线, LineLayer path + colorField=color) */
-          weatherLayer === 'rain' && rain && (() => {
-            const contourColors = [...new Set(rain.contours.map(c => c.color))];
-            return (
-              <LineLayer
-                source={rain.contours as unknown as { path: [number, number][]; color: string }[]}
-                sourceType="json"
-                sourceConfig={{ coordinates: 'path' }}
-                shape="line"
-                size={1.2}
-                colorField="color"
-                colorValues={contourColors}
-                style={{ opacity: weatherOpacity } as Record<string, unknown>}
-                zIndex={-1}
-              />
-            );
-          })()}
-          {/* 风场占位(数据为 GRIB, 暂未接入 L7 WindLayer 粒子) */}
-
-          {/* ① 风圈（公里半径整圆，随缩放自适应） */}
-          {windSourceMeter.length > 0 && (
-            <PointLayer
-              source={windSourceMeter}
-              sourceType="json"
-              sourceConfig={{ x: 'lng', y: 'lat' }}
-              shape="circle"
-              sizeField="radiusM"
-              colorField="level"
-              colorValues={WIND_LEVEL_KEY.map(k => WIND_LEVEL_COLOR[k])}
-              style={{ isMeter: true, opacity: 0.85, stroke: '#fff', strokeWidth: 0 } as Record<string, unknown>}
-              zIndex={0}
+          {/* 降雨(等值面填充, GeoJSON Polygon, 每个 feature 自带 color + symbol 属性) */}
+          {weatherLayer === 'rain' && rain && (
+            <FillLayer
+              source={{ type: 'FeatureCollection', features: rain.features }}
+              sourceType="geojson"
+              colorField="color"
+              colorValues={rain.colors}
+              style={{ opacity: weatherOpacity } as Record<string, unknown>}
+              zIndex={-1}
+              hoverEffect={false}
+              clickEffect={false}
+              tooltipEffect={false}
+              onMouseMove={handleRainTooltipMove}
+              onMouseLeave={handleRainTooltipLeave}
             />
           )}
-          {/* ② 历史轨迹段（实线，按等级着色，无动画） */}
+
+          {/* 风圈（四象限扇形 Polygon，填充+描边） */}
+          {showWindCircles ? (
+            <>
+              {windPolygons.length > 0 && (
+                <>
+                  <FillLayer
+                    source={{ type: 'FeatureCollection', features: windPolygons.map(w => ({ type: 'Feature' as const, properties: { level: w.level }, geometry: { type: 'Polygon' as const, coordinates: w.coordinates } })) }}
+                    sourceType="geojson"
+                    shape="fill"
+                    colorField="level"
+                    colorValues={WIND_LEVEL_KEY.map(k => WIND_LEVEL_COLOR[k])}
+                    style={{ opacity: 0.25 } as Record<string, unknown>}
+                    zIndex={0}
+                  />
+                  <LineLayer
+                    source={{ type: 'FeatureCollection', features: windPolygons.map(w => ({ type: 'Feature' as const, properties: { level: w.level }, geometry: { type: 'Polygon' as const, coordinates: w.coordinates } })) }}
+                    sourceType="geojson"
+                    shape="line"
+                    size={1}
+                    colorField="level"
+                    colorValues={WIND_LEVEL_KEY.map(k => WIND_LEVEL_COLOR[k])}
+                    style={{ opacity: 0.8 } as Record<string, unknown>}
+                    zIndex={2}
+                  />
+                </>
+              )}
+            </>
+          ) : null}          {/* ② 历史轨迹段（实线，按等级着色，无动画） */}
           {trackSegments.length > 0 && (
             <LineLayer
               source={trackSegments}
               sourceType="json"
               sourceConfig={{ coordinates: 'path' }}
               shape="line"
-              size={2.5}
+              size={1.5}
               colorField="grade"
               colorValues={GRADE_ORDER.map(g => GRADE_COLOR[g])}
               zIndex={1}
@@ -651,10 +1129,11 @@ export default function TyphoonMap() {
               sourceType="json"
               sourceConfig={{ coordinates: 'path' }}
               shape="line"
-              size={3}
+              size={2}
               colorField="agency"
               colorValues={AGENCIES.filter(a => a !== selectedAgency).map(a => AGENCY_COLOR[a])}
               style={{ opacity: 0.55, lineType: 'dash', dashArray: [8, 8] } as Record<string, unknown>}
+              active={{ color: '#fff' }}
               onClick={handleForecastClick}
               zIndex={1}
             />
@@ -666,13 +1145,57 @@ export default function TyphoonMap() {
               sourceType="json"
               sourceConfig={{ coordinates: 'path' }}
               shape="line"
-              size={4}
+              size={2.5}
               colorField="agency"
               colorValues={[AGENCY_COLOR[selectedAgency]]}
               style={{ opacity: 0.95, lineType: 'dash', dashArray: [12, 8] } as Record<string, unknown>}
               active={{ color: '#fff' }}
               onClick={handleForecastClick}
               zIndex={2}
+            />
+          )}
+          {/* ③'' 预报路径点位 */}
+          {forecastPoints.length > 0 && (
+            <PointLayer
+              source={forecastPoints}
+              sourceType="json"
+              sourceConfig={{ x: 'lng', y: 'lat' }}
+              shape="circle"
+              size={3}
+              colorField="agency"
+              colorValues={AGENCIES.map(a => AGENCY_COLOR[a])}
+              style={{ opacity: 0.7, stroke: '#fff', strokeWidth: 0.5 } as Record<string, unknown>}
+              active={{ color: '#fff' }}
+              onMouseMove={handleForecastPointHover}
+              onMouseLeave={handleForecastPointLeave}
+              onClick={handleForecastPointClick}
+              zIndex={7}
+            />
+          )}
+          {/* ③''' 警戒线（预报误差锥）- 半透明填充多边形 */}
+          {conePolygon && (
+            <FillLayer
+              source={{ type: 'FeatureCollection' as const, features: [{ type: 'Feature' as const, properties: {}, geometry: { type: 'Polygon' as const, coordinates: conePolygon.coordinates } }] }}
+              sourceType="geojson"
+              shape="fill"
+              color={AGENCY_COLOR[selectedAgency] ?? '#22d3ee'}
+              showStroke={true}
+              strokeColor={AGENCY_COLOR[selectedAgency] ?? '#22d3ee'}
+              strokeWidth={1}
+              style={{ opacity: 0.2 } as Record<string, unknown>}
+              zIndex={1}
+            />
+          )}
+          {/* 警戒线描边 */}
+          {conePolygon && (
+            <LineLayer
+              source={{ type: 'FeatureCollection' as const, features: [{ type: 'Feature' as const, properties: {}, geometry: { type: 'Polygon' as const, coordinates: conePolygon.coordinates } }] }}
+              sourceType="geojson"
+              shape="line"
+              size={2}
+              color={AGENCY_COLOR[selectedAgency] ?? '#22d3ee'}
+              style={{ opacity: 0.8 } as Record<string, unknown>}
+              zIndex={11}
             />
           )}
           {/* ④ 路径节点（按等级着色） */}
@@ -689,18 +1212,24 @@ export default function TyphoonMap() {
               onMouseMove={handleNodeHover}
               onMouseLeave={handleNodeLeave}
               onClick={handleNodeClick}
-              zIndex={2}
+              zIndex={6}
             />
           )}
 
-          {/* ⑤ 台风眼 */}
+          {/* ⑤ 台风眼（GIF 动画） */}
           {Number.isFinite(eyeLng) && Number.isFinite(eyeLat) && (
             <Marker
               longitude={eyeLng}
               latitude={eyeLat}
               anchor="center"
-              offsets={[0, -4]}
-              content={<TyphoonEye color={eyeColor} label={info?.name ?? ''} />}
+              offsets={[0, 0]}
+              content={
+                <img
+                  src="https://mdn.alipayobjects.com/huamei_b5qxsh/afts/img/A*OT11QYzVNCcAAAAAQCAAAAgAerZ5AQ/original"
+                  alt="台风眼"
+                  style={{ width: 64, height: 64, pointerEvents: 'none' }}
+                />
+              }
             />
           )}
 
@@ -719,6 +1248,17 @@ export default function TyphoonMap() {
             ]}
           />
 
+          {/* ⑥' 降雨图层 Tooltip */}
+          <Tooltip
+            longitude={rainTooltip.lng}
+            latitude={rainTooltip.lat}
+            variant="dark"
+            visible={rainTooltip.visible}
+            items={[
+              { label: '降水等级', value: getRainLevelLabel(rainTooltip.symbol) },
+            ]}
+          />
+
           {/* ⑦ 点击线路 / 节点显示的 Popup(同一时间仅一个) */}
           {popup && (
             <Popup
@@ -734,21 +1274,19 @@ export default function TyphoonMap() {
             />
           )}
 
-          <ZoomControl position="bottomright" showZoom />
-          <MapThemeControl position="topright" />
+          <ZoomControl position="bottomleft" showZoom />
+          <MapThemeControl position="bottomleft" defaultValue="dark" />
         </AiMap>
       </div>
 
-      {/* ════════ 顶部标题栏 ════════ */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20, padding: '12px 16px', background: 'linear-gradient(180deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0) 100%)', pointerEvents: 'none' }}>
+      {/* ════════ 顶部导航条（与左侧面板同宽） ════════ */}
+      <div style={{ position: 'absolute', top: 0, left: 0, width: 264, zIndex: 1000, padding: '12px 16px', background: 'linear-gradient(180deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0) 100%)', pointerEvents: 'none' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="material-symbols-outlined" style={{ fontSize: 22, color: C.accent, pointerEvents: 'auto' }}>cyclone</span>
           <span style={{ fontSize: 17, fontWeight: 800, color: '#f1f5f9' }}>台风路径图</span>
           <span style={{ fontSize: 11, color: C.muted, marginLeft: 6 }}>{CURRENT_YEAR} 年 西太平洋</span>
-          <div style={{ flex: 1 }} />
-          <span style={{ fontSize: 10, color: C.muted, pointerEvents: 'auto' }}>数据来源:浙江水利 typhoon.slt.zj.gov.cn</span>
           {error && (
-            <span style={{ fontSize: 10, color: '#fca5a5', background: 'rgba(239,68,68,0.12)', padding: '2px 8px', borderRadius: 6, pointerEvents: 'auto' }}>
+            <span style={{ fontSize: 10, color: '#fca5a5', background: 'rgba(239,68,68,0.12)', padding: '2px 8px', borderRadius: 6, pointerEvents: 'auto', marginLeft: 'auto' }}>
               <span className="material-symbols-outlined" style={{ fontSize: 11, verticalAlign: 'middle' }}>wifi_off</span> 使用内置样本
             </span>
           )}
@@ -756,7 +1294,7 @@ export default function TyphoonMap() {
       </div>
 
       {/* ════════ 左上：台风信息卡 + 列表 ════════ */}
-      <div style={{ position: 'absolute', top: 56, left: 12, zIndex: 20, display: 'flex', flexDirection: 'column', gap: 8, width: 240, maxHeight: 'calc(100% - 80px)' }}>
+      <div style={{ position: 'absolute', top: 48, left: 12, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8, width: 240, maxHeight: 'calc(100% - 80px)' }}>
         {/* 台风信息卡 */}
         {currentPoint && (
           <div style={{
@@ -791,14 +1329,17 @@ export default function TyphoonMap() {
         {/* 台风列表选择器 */}
         <div style={{
           padding: '8px 10px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-          border: `1px solid ${C.border}`, borderRadius: 12, flex: 1, overflowY: 'auto', minHeight: 0,
+          border: `1px solid ${C.border}`, borderRadius: 12, overflowY: 'auto', minHeight: 0,
         }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 12 }}>format_list_bulleted</span>
+          <div
+            onClick={() => setListExpanded(!listExpanded)}
+            style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 12 }}>{listExpanded ? 'expand_less' : 'expand_more'}</span>
             台风列表（{list.length}）
           </div>
           {loading && <div style={{ fontSize: 11, color: C.muted, padding: '4px 0' }}>加载中…</div>}
-          {list.map(t => {
+          {[...list].reverse().slice(0, listExpanded ? list.length : 3).map(t => {
             const sel = t.tfid === tfid;
             const actv = activeIds.includes(t.tfid) || t.isactive === '1';
             return (
@@ -817,152 +1358,191 @@ export default function TyphoonMap() {
               </div>
             );
           })}
+          {!listExpanded && list.length > 3 && (
+            <div onClick={() => setListExpanded(true)} style={{ fontSize: 10, color: C.accent, textAlign: 'center', padding: '4px 0', cursor: 'pointer' }}>
+              展开全部（{list.length}）
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ════════ 右上：预报机构 + 动画开关 ════════ */}
-      <div style={{ position: 'absolute', top: 56, right: 12, zIndex: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {/* 预报机构 */}
+      {/* ════════ 顶部右侧：气象图层工具条 ════════ */}
+      <div style={{ position: 'absolute', top: 8, right: 12, zIndex: 1000 }}>
         <div style={{
-          padding: '10px 12px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-          border: `1px solid ${C.border}`, borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.3)', width: 148,
+          padding: '8px 14px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+          border: `1px solid ${C.border}`, borderRadius: 10, boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+          display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
         }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>预报机构(全部显示)</div>
-          <div style={{ fontSize: 9, color: C.muted, marginBottom: 8 }}>点选高亮某一机构</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-            {AGENCIES.map(a => {
-              const sel = a === selectedAgency;
-              const present = presentAgencies.has(a);
-              return (
-                <button key={a} onClick={() => setSelectedAgency(a)} disabled={!present} style={{
-                  padding: '4px 8px', borderRadius: 6, border: 'none', cursor: present ? 'pointer' : 'default',
-                  fontSize: 11, fontWeight: 500, transition: 'all 0.15s',
-                  background: sel ? `${AGENCY_COLOR[a]}22` : 'transparent',
-                  color: sel ? AGENCY_COLOR[a] : (present ? 'rgba(148,163,184,0.6)' : 'rgba(148,163,184,0.3)'),
-                }}>
-                  {a}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* ════════ 右中：气象图层切换 ════════ */}
-      <div style={{ position: 'absolute', top: '50%', right: 12, transform: 'translateY(-50%)', zIndex: 20 }}>
-        <div style={{
-          padding: '10px 12px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
-          border: `1px solid ${C.border}`, borderRadius: 14, boxShadow: '0 8px 32px rgba(0,0,0,0.3)', width: 168,
-        }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 4 }}>气象图层</div>
-          <div style={{ fontSize: 9, color: C.muted, marginBottom: 8 }}>单选叠加 · 高德底图</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+          {/* 图层切换按钮组 */}
+          <div style={{ display: 'flex', gap: 2 }}>
             {([
               { k: 'none', label: '无', icon: 'block' },
               { k: 'cloud', label: '云图', icon: 'cloud' },
               { k: 'radar', label: '雷达', icon: 'radar' },
               { k: 'rain', label: '降雨', icon: 'rainy' },
               { k: 'satellite', label: '卫星', icon: 'satellite_alt' },
-              { k: 'wind', label: '风场', icon: 'air', disabled: true },
-            ] as { k: typeof weatherLayer; label: string; icon: string; disabled?: boolean }[]).map(o => {
+            ] as { k: typeof weatherLayer; label: string; icon: string }[]).map(o => {
               const sel = weatherLayer === o.k;
               return (
                 <button key={o.k} onClick={() => {
                   setWeatherLayer(o.k as typeof weatherLayer);
                   if (o.k === 'satellite') setSatellite(true);
                   else if (o.k !== 'none') setSatellite(false);
-                }} title={o.disabled ? '风场(开发中)' : o.label} style={{
-                  padding: '6px 2px', borderRadius: 6, border: 'none', cursor: o.disabled ? 'not-allowed' : 'pointer',
-                  fontSize: 10, fontWeight: 500, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                  opacity: o.disabled ? 0.35 : 1, transition: 'all 0.15s',
+                }} title={o.label} style={{
+                  padding: '4px 8px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                  fontSize: 10, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 3,
+                  transition: 'all 0.15s',
                   background: sel ? 'rgba(34,211,238,0.18)' : 'transparent',
                   color: sel ? C.accent : 'rgba(148,163,184,0.7)',
                 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 15 }}>{o.icon}</span>{o.label}
+                  <span className="material-symbols-outlined" style={{ fontSize: 13 }}>{o.icon}</span>{o.label}
                 </button>
               );
             })}
           </div>
-          {/* 云图时段切换 */
-          weatherLayer === 'cloud' && (
-            <div style={{ marginTop: 8, display: 'flex', gap: 4, fontSize: 10 }}>
-              {([1, 3, 6] as const).map(h => (
-                <button key={h} onClick={() => setCloudType(h)} style={{
-                  flex: 1, padding: '3px 0', borderRadius: 5, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 500,
-                  background: cloudType === h ? 'rgba(34,211,238,0.18)' : 'transparent',
-                  color: cloudType === h ? C.accent : 'rgba(148,163,184,0.7)',
-                }}>{h}h</button>
-              ))}
-            </div>
-          )}
-          {/* 透明度(非"无"且非卫星底图时) */
-          weatherLayer !== 'none' && weatherLayer !== 'satellite' && (
-            <div style={{ marginTop: 10, borderTop: `1px solid ${C.border}`, paddingTop: 8 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: C.muted, marginBottom: 4 }}>
-                <span>透明度</span><span>{Math.round(weatherOpacity * 100)}%</span>
-              </div>
-              <input type="range" min={0} max={1} step={0.05} value={weatherOpacity} onChange={e => setWeatherOpacity(Number(e.target.value))}
-                style={{ width: '100%', accentColor: C.accent, height: 4 }} />
-            </div>
-          )}
-          {/* 数据时间 */
-          (weatherLayer === 'cloud' && cloud?.time) || (weatherLayer === 'radar' && radar?.time) || (weatherLayer === 'rain' && rain?.time) ? (
-            <div style={{ marginTop: 8, fontSize: 9, color: C.muted, borderTop: `1px solid ${C.border}`, paddingTop: 6 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 11, verticalAlign: 'middle' }}>schedule</span>{' '}
-              {weatherLayer === 'cloud' ? cloud?.time : weatherLayer === 'radar' ? radar?.time : rain?.time}
-            </div>
-          ) : null}
-          {weatherLayer === 'wind' && (
-            <div style={{ marginTop: 8, fontSize: 9, color: '#fca5a5' }}>风场粒子层开发中</div>
-          )}
         </div>
-      </div>
-
-      {/* ════════ 右下：等级 + 风圈图例 ════════ */}
-      <div style={{ position: 'absolute', right: 12, bottom: 12, zIndex: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <div style={{ padding: '10px 12px', background: C.panel, backdropFilter: 'blur(12px)', border: `1px solid ${C.border}`, borderRadius: 10 }}>
-          <div style={{ marginBottom: 8 }}>
-            <LegendCategories type="categories" title="台风等级" labels={GRADE_LABELS} colors={GRADE_COLORS} swatchShape="circle" />
-          </div>
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 4 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>风圈等级</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {WIND_LEVEL_KEY.map(k => (
-                <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: '50%', background: `${WIND_LEVEL_COLOR[k]}33`, border: `1.5px solid ${WIND_LEVEL_COLOR[k]}` }} />
-                  <span style={{ fontSize: 11, color: '#cbd5e1' }}>{k} 级风圈</span>
+        {/* 下方按需显示：云图时段 / 降雨时段 / 透明度 / 数据时间 */}
+        {(() => {
+          const wl = weatherLayer;
+          if (wl === 'none') return null;
+          const showTime = (wl === 'cloud' && cloud?.time) || (wl === 'radar' && radar?.time) || (wl === 'rain' && rain?.time);
+          const timeStr = wl === 'cloud' ? cloud?.time : wl === 'radar' ? radar?.time : wl === 'rain' ? rain?.time : undefined;
+          return (
+            <div style={{ marginTop: 4, padding: '6px 12px', background: C.panel, backdropFilter: 'blur(12px)', border: `1px solid ${C.border}`, borderRadius: 8, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', alignSelf: 'flex-end' }}>
+              {wl === 'cloud' && (
+                <div style={{ display: 'flex', gap: 2 }}>
+                  {([0.5, 1, 3, 6] as const).map(h => (
+                    <button key={h} onClick={() => setCloudType(h)} style={{
+                      padding: '2px 6px', borderRadius: 4, border: 'none', cursor: 'pointer', fontSize: 9, fontWeight: 500,
+                      background: cloudType === h ? 'rgba(34,211,238,0.18)' : 'transparent',
+                      color: cloudType === h ? C.accent : 'rgba(148,163,184,0.7)',
+                    }}>{h < 1 ? '30m' : `${h}h`}</button>
+                  ))}
                 </div>
-              ))}
+              )}
+              {wl === 'rain' && (
+                <div style={{ display: 'flex', gap: 2 }}>
+                  {([24, 48, 72] as const).map(h => (
+                    <button key={h} onClick={() => setRainHours(h)} style={{
+                      padding: '2px 6px', borderRadius: 4, border: 'none', cursor: 'pointer', fontSize: 9, fontWeight: 500,
+                      background: rainHours === h ? 'rgba(34,211,238,0.18)' : 'transparent',
+                      color: rainHours === h ? C.accent : 'rgba(148,163,184,0.7)',
+                    }}>{h}h</button>
+                  ))}
+                </div>
+              )}
+              {wl !== 'satellite' && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 9, color: C.muted }}>透明度</span>
+                  <input type="range" min={0} max={1} step={0.05} value={weatherOpacity} onChange={e => setWeatherOpacity(Number(e.target.value))}
+                    style={{ width: 60, accentColor: C.accent, height: 3 }} />
+                  <span style={{ fontSize: 9, color: C.muted, minWidth: 24 }}>{Math.round(weatherOpacity * 100)}%</span>
+                </div>
+              )}
+              {showTime && timeStr && (
+                <div style={{ fontSize: 9, color: C.muted, display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 11 }}>schedule</span>
+                  {timeStr}
+                </div>
+              )}
             </div>
-          </div>
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 8 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>机构预报</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {AGENCIES.map(a => {
-                const sel = a === selectedAgency;
-                const present = presentAgencies.has(a);
-                return (
-                  <div key={a} style={{ display: 'flex', alignItems: 'center', gap: 8, opacity: present ? 1 : 0.3 }}>
-                    <div style={{ width: 18, height: 0, borderTop: `${sel ? 3 : 2}px solid ${AGENCY_COLOR[a]}`, opacity: sel ? 1 : 0.5 }} />
-                    <span style={{ fontSize: 11, color: sel ? '#e2e8f0' : '#94a3b8', fontWeight: sel ? 600 : 400 }}>{a}{sel ? ' (高亮)' : ''}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+          );
+        })()}
       </div>
 
-      {/* ════════ 左下：选中历史点提示 ════════ */}
-      {selectedWind && selectedIdx !== currentIdx && (
-        <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 20, padding: '8px 12px', background: C.panel, backdropFilter: 'blur(12px)', border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 11, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#f59e0b' }}>history</span>
-          <span>历史点 · {selectedWind.time.slice(5)} · {selectedWind.strong} {selectedWind.power}级</span>
-          <button onClick={() => setSelectedPointIdx(-1)} style={{ marginLeft: 4, padding: 0, border: 'none', background: 'none', color: C.muted, cursor: 'pointer' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>close</span>
-          </button>
+      {/* ════════ 右下：图例 + 选中历史点提示 ════════ */}
+      <div style={{ position: 'absolute', right: 12, bottom: 12, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* 图例容器（支持展开收起） */}
+        <div style={{ padding: '10px 12px', background: C.panel, backdropFilter: 'blur(12px)', border: `1px solid ${C.border}`, borderRadius: 10, maxHeight: legendExpanded ? 320 : 40, overflowY: 'auto', transition: 'max-height 0.3s' }}>
+          <div onClick={() => setLegendExpanded(!legendExpanded)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', paddingBottom: legendExpanded ? 8 : 0 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#f1f5f9' }}>图例</span>
+            <span className="material-symbols-outlined" style={{ fontSize: 14, color: C.muted, transition: 'transform 0.3s', transform: legendExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}>expand_more</span>
+          </div>
+          {legendExpanded && (
+            <>
+              {/* 风圈开关 */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase' }}>风圈</span>
+                <input type="checkbox" checked={showWindCircles} onChange={e => setShowWindCircles(e.target.checked)} style={{ accentColor: C.accent, cursor: 'pointer' }} />
+              </div>
+              {/* 登陆点 */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ef4444' }} />
+                <span style={{ fontSize: 11, color: '#cbd5e1' }}>登陆点</span>
+              </div>
+              {/* 预报台 */}
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 4, marginBottom: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>预报台</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+                  {AGENCIES.map(a => (
+                    <div key={a} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '2px 6px', borderRadius: 4, background: 'rgba(255,255,255,0.05)' }}>
+                      <div style={{ width: 12, height: 0, borderTop: `2px dashed ${AGENCY_COLOR[a]}`, opacity: 0.8 }} />
+                      <span style={{ fontSize: 10, color: '#94a3b8' }}>{a}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* 台风等级 */}
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 4, marginBottom: 8 }}>
+                <LegendCategories type="categories" title="台风等级" labels={GRADE_LABELS} colors={GRADE_COLORS} swatchShape="circle" className="[&_span.text-on-surface]:!text-[#e2e8f0]" />
+              </div>
+              {/* 风圈等级 */}
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 4, marginBottom: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>风圈等级</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {WIND_LEVEL_KEY.map(k => (
+                    <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 12, height: 12, borderRadius: '50%', background: `${WIND_LEVEL_COLOR[k]}33`, border: `1.5px solid ${WIND_LEVEL_COLOR[k]}` }} />
+                      <span style={{ fontSize: 11, color: '#cbd5e1' }}>{k} 级风圈</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* 降雨等级 */}
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 4, marginBottom: 8 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>降雨等级</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 8px' }}>
+                  {[
+                    { label: '0-10', color: '#a5d6a7' }, { label: '10-25', color: '#66bb6a' },
+                    { label: '25-50', color: '#42a5f5' }, { label: '50-100', color: '#1e88e5' },
+                    { label: '100-250', color: '#e040fb' }, { label: '>250', color: '#c62828' },
+                  ].map(r => (
+                    <div key={r.label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ width: 12, height: 12, background: r.color }} />
+                      <span style={{ fontSize: 10, color: '#cbd5e1' }}>{r.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* 雷达反射率 */}
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 8, marginTop: 4 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: C.muted, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>雷达反射率 dBZ</div>
+                <div style={{ display: 'flex', gap: 1 }}>
+                  {['#00bcd4', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722', '#f44336', '#e91e63', '#9c27b0', '#673ab7'].map((c, i) => (
+                    <div key={i} style={{ flex: 1, height: 8, background: c }} />
+                  ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 2 }}>
+                  <span style={{ fontSize: 9, color: C.muted }}>10</span>
+                  <span style={{ fontSize: 9, color: C.muted }}>70</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-      )}
+        {/* 选中历史点提示 */}
+        {selectedWind && selectedIdx !== currentIdx && (
+          <div style={{ padding: '8px 12px', background: C.panel, backdropFilter: 'blur(12px)', border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 11, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 14, color: '#f59e0b' }}>history</span>
+            <span>历史点 · {selectedWind.time.slice(5)} · {selectedWind.strong} {selectedWind.power}级</span>
+            <button onClick={() => setSelectedPointIdx(-1)} style={{ marginLeft: 4, padding: 0, border: 'none', background: 'none', color: C.muted, cursor: 'pointer' }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>close</span>
+            </button>
+          </div>
+        )}
+        {/* 数据来源 */}
+        <div style={{ fontSize: 9, color: C.muted, padding: '4px 0', textAlign: 'center' }}>数据来源:浙江水利 typhoon.slt.zj.gov.cn</div>
+      </div>
     </div>
   );
 }

@@ -141,9 +141,9 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
   showLabel = true,
   labelField = 'name',
   labelSize = 12,
-  hoverHighlight = true,
-  clickSelect = true,
-  showTooltip = true,
+  hoverHighlight = false,
+  clickSelect = false,
+  showTooltip = false,
   tooltipFields,
   onRegionClick,
   zIndex = 0,
@@ -351,8 +351,8 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
           ? { colorField: valueField, colorValues: colors }
           : { color: colors[2] ?? '#3b82f6' }
         )}
-        active={hoverHighlight ? { color: '#ffffff' } : undefined}
-        select={clickSelect ? { color: '#0f172a' } : undefined}
+        active={hoverHighlight ? { color: '#ffffff', duration: 150 } : undefined}
+        select={clickSelect ? { color: '#0f172a', duration: 150 } : undefined}
         style={{ opacity: fillOpacity }}
         onClick={handleClick}
         zIndex={zIndex + 2}

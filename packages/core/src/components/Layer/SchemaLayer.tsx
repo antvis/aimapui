@@ -101,7 +101,9 @@ function buildLayer(adapter: LayerAdapter, _scene: Scene): L7Layer {
   }
 
   if (sizeConfig) {
-    if (sizeConfig.field && sizeConfig.values) {
+    if (sizeConfig.field && sizeConfig.range) {
+      layer.size(sizeConfig.field, sizeConfig.range);
+    } else if (sizeConfig.field && sizeConfig.values) {
       layer.size(sizeConfig.field, sizeConfig.values);
     } else if (sizeConfig.values !== undefined) {
       layer.size(sizeConfig.values);
@@ -303,17 +305,11 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
       if (needsClick) {
         layer.on('click', (evt: unknown) => {
           const payload = extractLayerPayload(layerId, schema.type, evt);
-
-          // 1. 直接回调
           eventHandlersRef.current?.onClick?.(payload);
-
-          // 2. EventBus 广播（Schema 事件标识符）
           if (layerEvents?.click) {
             eventBus.emit(layerEvents.click, payload);
           }
-
-          // 3. 内置 Popup（click）
-          if (popupTrigger === 'click') {
+          if (popupEnabled && popupTrigger === 'click') {
             showPopup(payload);
           }
         });
@@ -324,12 +320,8 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
         layer.on('mousemove', (evt: unknown) => {
           const payload = extractLayerPayload(layerId, schema.type, evt);
           eventHandlersRef.current?.onMouseMove?.(payload);
-          if (popupTrigger === 'hover') {
-            showPopup(payload);
-          }
-          if (layerEvents?.mousemove) {
-            eventBus.emit(layerEvents.mousemove, payload);
-          }
+          if (popupTrigger === 'hover') showPopup(payload);
+          if (layerEvents?.mousemove) eventBus.emit(layerEvents.mousemove, payload);
         });
       }
 
@@ -349,15 +341,21 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
         layer.on('mouseleave', (evt: unknown) => {
           const payload = extractLayerPayload(layerId, schema.type, evt);
           eventHandlersRef.current?.onMouseLeave?.(payload);
-          if (popupTrigger === 'hover') {
-            hidePopup();
-          }
-          if (layerEvents?.mouseleave) {
-            eventBus.emit(layerEvents.mouseleave, payload);
-          }
+          if (popupTrigger === 'hover') hidePopup();
+          if (layerEvents?.mouseleave) eventBus.emit(layerEvents.mouseleave, payload);
         });
       }
 
+      // 兜底：L7 unmousemove 事件（鼠标移出图层要素时触发）
+      // 当 mouseleave 未触发时，unmousemove 可作为可靠的离开信号
+      if (needsMouseLeave && needsMouseMove) {
+        layer.on('unmousemove', (evt: unknown) => {
+          const payload = extractLayerPayload(layerId, schema.type, evt);
+          eventHandlersRef.current?.onMouseLeave?.(payload);
+          if (popupTrigger === 'hover') hidePopup();
+          if (layerEvents?.mouseleave) eventBus.emit(layerEvents.mouseleave, payload);
+        });
+      }
       // 添加到场景
       scene.addLayer(layer);
       onLayerCreated?.(layer);
@@ -382,15 +380,9 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
     return () => {
       destroyed = true;
       if (layerRef.current) {
-        try {
-          scene.removeLayer(layerRef.current);
-        } catch {
-          // layer 可能已被销毁
-        }
+        try { scene.removeLayer(layerRef.current); } catch { /* ignore */ }
         layerRef.current = null;
       }
-
-      // 组件卸载时清理 Popup 状态（确保 popup 消失）
       setPopupState((prev) => ({ ...prev, visible: false }));
     };
   }, [schemaSignature, scene, eventBus]);
