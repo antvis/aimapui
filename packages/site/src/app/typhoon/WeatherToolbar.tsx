@@ -6,7 +6,7 @@
 import { C } from './constants';
 
 interface WeatherToolbarProps {
-  weatherLayer: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite';
+  weatherLayer: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind';
   weatherOpacity: number;
   cloudType: 0.5 | 1 | 3 | 6;
   rainHours: 24 | 48 | 72;
@@ -14,7 +14,7 @@ interface WeatherToolbarProps {
   radarTime?: string;
   rainTime?: string;
   isMobile: boolean;
-  onSetWeatherLayer: (v: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite') => void;
+  onSetWeatherLayer: (v: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind') => void;
   onSetWeatherOpacity: (v: number) => void;
   onSetCloudType: (v: 0.5 | 1 | 3 | 6) => void;
   onSetRainHours: (v: 24 | 48 | 72) => void;
@@ -32,7 +32,7 @@ export default function WeatherToolbar({
   const timeStr = wl === 'cloud' ? cloudTime : wl === 'radar' ? radarTime : wl === 'rain' ? rainTime : undefined;
 
   return (
-    <div style={{ position: 'absolute', top: isMobile ? 44 : 8, zIndex: 1000 }}>
+    <div style={{ position: 'relative', zIndex: 1000 }}>
       {/* 图层切换按钮组 */}
       <div style={{
         padding: isMobile ? '6px 10px' : '8px 14px', background: C.panel, backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
@@ -45,6 +45,7 @@ export default function WeatherToolbar({
             { k: 'cloud', label: '云图', icon: 'cloud' },
             { k: 'radar', label: '雷达', icon: 'radar' },
             { k: 'rain', label: '降雨', icon: 'rainy' },
+            { k: 'wind', label: '风场', icon: 'air' },
             { k: 'satellite', label: '卫星', icon: 'satellite_alt' },
           ] as { k: typeof weatherLayer; label: string; icon: string }[]).map(o => {
             const sel = weatherLayer === o.k;

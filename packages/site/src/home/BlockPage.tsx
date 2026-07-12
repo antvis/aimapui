@@ -18,7 +18,6 @@ interface BlockPageProps {
   onNavigateHome: () => void;
   onNavigateDemo: () => void;
   onNavigateDocs: () => void;
-  onNavigateDesign: () => void;
   onNavigateBlock: () => void;
   onNavigateSkill?: () => void;
   initialDemoIndex?: number;

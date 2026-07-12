@@ -143,9 +143,9 @@ function BottomCard({ filteredPois, activeFilter, selectedPoi, onSelect, selecte
 
   return (
     <div style={{
-      position: 'absolute', top: 160, bottom: BOTTOM_NAV_H - 8, left: 0, right: 0, zIndex: 2490,
+      position: 'absolute', top: 160, bottom: BOTTOM_NAV_H - 8, left: 0, right: 0, zIndex: 3100, pointerEvents: 'none',
     }}>
-      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div style={{ position: 'relative', width: '100%', height: '100%', pointerEvents: 'none' }}>
       <BottomSheet defaultSnap="collapsed" collapsedHeight={CARD_COLLAPSED_H} showHandle borderRadius={16}>
         <div style={{
           background: G.surface, height: '100%', overflowY: 'auto',

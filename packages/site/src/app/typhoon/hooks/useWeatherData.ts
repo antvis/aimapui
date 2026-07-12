@@ -4,12 +4,12 @@
    ================================================================ */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { CloudData, RadarData, RainData, RainTooltipState } from '../types';
-import { fetchCloud, fetchRadar, fetchRain } from '../api';
+import type { CloudData, RadarData, RainData, RainTooltipState, WindFieldRawData } from '../types';
+import { fetchCloud, fetchRadar, fetchRain, fetchWindFieldRaw } from '../api';
 import type { LayerEventPayload } from '@antv/aimapui';
 
 export interface WeatherDataState {
-  weatherLayer: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite';
+  weatherLayer: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind';
   weatherOpacity: number;
   cloudType: 0.5 | 1 | 3 | 6;
   rainHours: 24 | 48 | 72;
@@ -19,10 +19,11 @@ export interface WeatherDataState {
   satellite: boolean;
   satProvider: 'gaode' | 'tianditu' | 'google';
   satOpacity: number;
+  windField: WindFieldRawData | null;
 
   rainTooltip: RainTooltipState;
 
-  setWeatherLayer: (v: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite') => void;
+  setWeatherLayer: (v: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind') => void;
   setWeatherOpacity: (v: number) => void;
   setCloudType: (v: 0.5 | 1 | 3 | 6) => void;
   setRainHours: (v: 24 | 48 | 72) => void;
@@ -35,7 +36,7 @@ export interface WeatherDataState {
 }
 
 export function useWeatherData(): WeatherDataState {
-  const [weatherLayer, setWeatherLayer] = useState<'none' | 'cloud' | 'radar' | 'rain' | 'satellite'>('none');
+  const [weatherLayer, setWeatherLayer] = useState<'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind'>('wind');
   const [weatherOpacity, setWeatherOpacity] = useState(0.7);
   const [cloudType, setCloudType] = useState<0.5 | 1 | 3 | 6>(1);
   const [rainHours, setRainHours] = useState<24 | 48 | 72>(24);
@@ -45,6 +46,7 @@ export function useWeatherData(): WeatherDataState {
   const [satellite, setSatellite] = useState(false);
   const [satProvider, setSatProvider] = useState<'gaode' | 'tianditu' | 'google'>('gaode');
   const [satOpacity, setSatOpacity] = useState(0.8);
+  const [windField, setWindField] = useState<WindFieldRawData | null>(null);
 
   const [rainTooltip, setRainTooltip] = useState<RainTooltipState>({ visible: false, lng: 0, lat: 0, symbol: '', color: '' });
 
@@ -56,8 +58,10 @@ export function useWeatherData(): WeatherDataState {
       fetchRadar().then(d => { if (d) setRadar(d); });
     } else if (weatherLayer === 'rain' && !rain) {
       fetchRain(rainHours).then(d => { if (d) setRain(d); });
+    } else if (weatherLayer === 'wind' && !windField) {
+      fetchWindFieldRaw().then(d => { if (d) setWindField(d); });
     }
-  }, [weatherLayer, cloudType, rainHours, cloud, radar, rain]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [weatherLayer, cloudType, rainHours, cloud, radar, rain, windField]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── 云图时段切换 ──
   useEffect(() => { if (weatherLayer === 'cloud') setCloud(null); }, [cloudType]);
@@ -82,7 +86,7 @@ export function useWeatherData(): WeatherDataState {
 
   return {
     weatherLayer, weatherOpacity, cloudType, rainHours,
-    cloud, radar, rain, satellite, satProvider, satOpacity,
+    cloud, radar, rain, satellite, satProvider, satOpacity, windField,
     rainTooltip,
     setWeatherLayer, setWeatherOpacity, setCloudType, setRainHours,
     setSatellite, setSatProvider, setSatOpacity,

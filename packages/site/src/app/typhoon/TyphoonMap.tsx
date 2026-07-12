@@ -91,6 +91,7 @@ export default function TyphoonMap({ mobilePreview }: { mobilePreview?: boolean 
             cloud={weather.cloud}
             radar={weather.radar}
             rain={weather.rain}
+            windField={weather.windField}
             popup={popup.popup}
             tooltip={popup.tooltip}
             rainTooltip={weather.rainTooltip}
@@ -125,39 +126,39 @@ export default function TyphoonMap({ mobilePreview }: { mobilePreview?: boolean 
         </div>
       </div>
 
-      {/* ════════ 台风信息卡 + 列表 ════════ */}
-      <TyphoonInfoCard
-        info={typhoon.info}
-        currentPoint={typhoon.currentPoint}
-        list={typhoon.list}
-        activeIds={typhoon.activeIds}
-        tfid={typhoon.tfid}
-        points={typhoon.points}
-        loading={typhoon.loading}
-        listExpanded={listExpanded}
-        pointsDetailExpanded={typhoon.pointsDetailExpanded}
-        isMobile={isMobile}
-        onToggleListExpanded={() => setListExpanded(!listExpanded)}
-        onTogglePointsDetail={() => typhoon.setPointsDetailExpanded(!typhoon.pointsDetailExpanded)}
-        onSelectTfid={handleSelectTfid}
-      />
-
-      {/* ═══════ 气象图层工具条 ═══════ */}
-      <div style={{ position: 'absolute', top: isMobile ? 44 : 8, right: isMobile ? 8 : 12, left: isMobile ? 8 : 'auto', zIndex: 1000 }}>
-        <WeatherToolbar
-          weatherLayer={weather.weatherLayer}
-          weatherOpacity={weather.weatherOpacity}
-          cloudType={weather.cloudType}
-          rainHours={weather.rainHours}
-          cloudTime={weather.cloud?.time}
-          radarTime={weather.radar?.time}
-          rainTime={weather.rain?.time}
+      {/* ═══════ 右上角面板：工具条 + 信息卡 ═══════ */}
+      <div style={{ position: 'absolute', top: isMobile ? 44 : 8, right: isMobile ? 8 : 12, zIndex: 1002, display: 'flex', flexDirection: 'column', gap: 8, pointerEvents: 'auto', alignItems: 'flex-end' }}>
+        <div style={{ pointerEvents: 'auto' }}>
+          <WeatherToolbar
+            weatherLayer={weather.weatherLayer}
+            weatherOpacity={weather.weatherOpacity}
+            cloudType={weather.cloudType}
+            rainHours={weather.rainHours}
+            cloudTime={weather.cloud?.time}
+            radarTime={weather.radar?.time}
+            rainTime={weather.rain?.time}
+            isMobile={isMobile}
+            onSetWeatherLayer={weather.setWeatherLayer}
+            onSetWeatherOpacity={weather.setWeatherOpacity}
+            onSetCloudType={weather.setCloudType}
+            onSetRainHours={weather.setRainHours}
+            onSetSatellite={weather.setSatellite}
+          />
+        </div>
+        <TyphoonInfoCard
+          info={typhoon.info}
+          currentPoint={typhoon.currentPoint}
+          list={typhoon.list}
+          activeIds={typhoon.activeIds}
+          tfid={typhoon.tfid}
+          points={typhoon.points}
+          loading={typhoon.loading}
+          listExpanded={listExpanded}
+          pointsDetailExpanded={typhoon.pointsDetailExpanded}
           isMobile={isMobile}
-          onSetWeatherLayer={weather.setWeatherLayer}
-          onSetWeatherOpacity={weather.setWeatherOpacity}
-          onSetCloudType={weather.setCloudType}
-          onSetRainHours={weather.setRainHours}
-          onSetSatellite={weather.setSatellite}
+          onToggleListExpanded={() => setListExpanded(!listExpanded)}
+          onTogglePointsDetail={() => typhoon.setPointsDetailExpanded(!typhoon.pointsDetailExpanded)}
+          onSelectTfid={handleSelectTfid}
         />
       </div>
 

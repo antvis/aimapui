@@ -3,7 +3,6 @@ import NavBar from './NavBar';
 
 interface HomePageProps {
   onNavigate: (demoIndex: number) => void;
-  onNavigateDesign: () => void;
   onNavigateBlock: () => void;
   onNavigateSkill?: () => void;
   onNavigateDocs: () => void;

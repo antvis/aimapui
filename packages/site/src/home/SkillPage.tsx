@@ -8,7 +8,6 @@ interface SkillPageProps {
   onNavigateHome: () => void;
   onNavigateDemo: () => void;
   onNavigateDocs: () => void;
-  onNavigateDesign: () => void;
   onNavigateBlock: () => void;
   skillDocsMap?: Record<string, string>;
 }

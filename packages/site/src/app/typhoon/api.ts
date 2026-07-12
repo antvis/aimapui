@@ -10,7 +10,7 @@ import {
 import type {
   CloudData, RadarData, RadarTileData,
   RainData, RainFeature,
-  WindData,
+  WindData, WindFieldRawData,
 } from './types';
 
 // ── 云图 ──────────────────────────────────────────────────────────
@@ -163,6 +163,39 @@ export async function fetchWind(): Promise<WindData | null> {
       uMax: 26.8,
       vMin: -21.57,
       vMax: 21.42,
+    };
+  } catch { return null; }
+}
+
+/** 获取原始 U/V 网格数据，供 Canvas 粒子风场渲染 */
+export async function fetchWindFieldRaw(): Promise<WindFieldRawData | null> {
+  try {
+    const res = await fetch(API_LASTWIND, { cache: 'no-store' });
+    if (!res.ok) return null;
+
+    const json = await res.json();
+    const rawWindData = json.windData;
+    const windArray = typeof rawWindData === 'string' ? JSON.parse(rawWindData) : rawWindData;
+    if (!Array.isArray(windArray) || windArray.length < 2) return null;
+
+    const uItem = windArray.find((g: { header?: { parameterNumberName?: string } }) =>
+      g.header?.parameterNumberName?.includes('U-component'));
+    const vItem = windArray.find((g: { header?: { parameterNumberName?: string } }) =>
+      g.header?.parameterNumberName?.includes('V-component'));
+
+    if (!uItem || !vItem) return null;
+
+    const h = uItem.header;
+    return {
+      uData: uItem.data,
+      vData: vItem.data,
+      nx: h.nx,
+      ny: h.ny,
+      lo1: h.lo1,
+      la1: h.la1,
+      dx: h.dx,
+      dy: h.dy,
+      time: json.synTime ?? '',
     };
   } catch { return null; }
 }

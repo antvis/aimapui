@@ -31,7 +31,7 @@ export default function TyphoonInfoCard({
   const eyeColor = currentPoint ? GRADE_COLOR[pointGrade(currentPoint)] : C.accent;
 
   return (
-    <div style={{ position: 'absolute', top: isMobile ? 92 : 82, right: isMobile ? 8 : 12, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 8, width: isMobile ? 'calc(100% - 16px)' : 240, maxHeight: isMobile ? 'calc(50vh - 60px)' : 'calc(100% - 100px)' }}>
+    <div style={{ position: isMobile ? 'absolute' : 'relative', top: isMobile ? 92 : undefined, right: isMobile ? 8 : undefined, zIndex: isMobile ? 1000 : undefined, display: 'flex', flexDirection: 'column', gap: 8, width: isMobile ? 'calc(100% - 16px)' : 240, maxHeight: isMobile ? 'calc(50vh - 60px)' : 'calc(100vh - 120px)' }}>
       {/* 台风信息卡 */}
       {currentPoint && !isMobile && (
         <div style={{

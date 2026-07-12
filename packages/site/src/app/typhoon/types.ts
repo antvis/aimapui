@@ -80,6 +80,19 @@ export interface WindData {
   vMin: number; vMax: number;
 }
 
+/** Canvas 粒子风场所需的原始 U/V 网格数据 */
+export interface WindFieldRawData {
+  uData: number[];
+  vData: number[];
+  nx: number;
+  ny: number;
+  lo1: number;
+  la1: number;
+  dx: number;
+  dy: number;
+  time: string;
+}
+
 export interface WindGribHeader {
   nx: number; ny: number;
   lo1: number; la1: number;

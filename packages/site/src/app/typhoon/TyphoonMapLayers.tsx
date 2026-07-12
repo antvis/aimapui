@@ -5,7 +5,8 @@
    ================================================================ */
 
 import { Marker, Tooltip, Popup, ImageLayer, FillLayer, LineLayer, PointLayer, SatelliteLayer } from '@antv/aimapui';
-import type { TyphoonPoint, WindPolygon, TrackNode, LandPoint, PopupData, TooltipState, RainTooltipState } from './types';
+import type { TyphoonPoint, WindPolygon, TrackNode, LandPoint, PopupData, TooltipState, RainTooltipState, WindFieldRawData } from './types';
+import WindFieldLayer from './WindFieldLayer';
 import {
   GRADE_ORDER, GRADE_COLOR, WIND_LEVEL_KEY, WIND_LEVEL_COLOR,
   AGENCIES, AGENCY_COLOR, WARNING_LINE_24H, WARNING_LINE_48H, WARNING_LINE_COLORS,
@@ -31,7 +32,7 @@ interface TyphoonMapLayersProps {
   currentPoint: TyphoonPoint | undefined;
 
   // weather
-  weatherLayer: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite';
+  weatherLayer: 'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind';
   weatherOpacity: number;
   satellite: boolean;
   satProvider: 'gaode' | 'tianditu' | 'google';
@@ -39,6 +40,7 @@ interface TyphoonMapLayersProps {
   cloud: { img: string; extent: [number, number, number, number] } | null;
   radar: { tiles: { img: string; extent: [number, number, number, number] }[] } | null;
   rain: { features: { type: 'Feature'; properties: { color: string; symbol: string }; geometry: { type: 'Polygon'; coordinates: [number, number][][] } }[]; colors: string[] } | null;
+  windField: WindFieldRawData | null;
 
   // interactions
   popup: PopupData | null;
@@ -62,7 +64,7 @@ export default function TyphoonMapLayers({
   forecastSrc, selectedAgency, activeForecastSegs, otherForecastSegs, forecastPoints,
   info, currentPoint,
   weatherLayer, weatherOpacity, satellite, satProvider, satOpacity,
-  cloud, radar, rain,
+  cloud, radar, rain, windField,
   popup, tooltip, rainTooltip, satelliteMode,
   onPopupClose, onNodeHover, onNodeLeave, onNodeClick,
   onForecastClick, onForecastPointHover, onForecastPointLeave, onForecastPointClick,
@@ -76,6 +78,9 @@ export default function TyphoonMapLayers({
     <>
       {/* ⓪ 气象覆盖层 */}
       {satellite && (<SatelliteLayer provider={satProvider} zIndex={-2} opacity={satOpacity} visible={satellite} />)}
+      {weatherLayer === 'wind' && windField && (
+        <WindFieldLayer windData={windField} visible opacity={weatherOpacity} zIndex={5} />
+      )}
       {weatherLayer === 'cloud' && cloud && (
         <ImageLayer
           source={cloud.img}

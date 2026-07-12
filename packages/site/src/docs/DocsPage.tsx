@@ -18,7 +18,6 @@ interface DocsPageProps {
   onToggleTheme: () => void;
   onNavigateHome: () => void;
   onNavigateDemo: () => void;
-  onNavigateDesign: () => void;
   onNavigateBlock: () => void;
   onNavigateSkill?: () => void;
   docsMap: Record<string, string>; // id → markdown content
