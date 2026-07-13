@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.2 (2026-07-13)
+
+### Documentation
+
+- 走查修复文档与 skill 同步：补充 H3Layer、RouteLayer、AnnotationControl、ResetViewControl、LogoControl、LegendControl、SatelliteLayerControl 站点文档
+- 删除 RouteLayer 已废弃属性文档（glow/animate/animateSpeed）
+- controls.md skill reference 补齐所有控件
+- CHANGELOG.md 补录 0.3.2~0.4.1 变更记录
+- SKILL.md 补充 @antv/aimapui-plot 包说明
+- CLI 版本对齐至 0.4.2
+
 ## 0.4.1 (2026-07-13)
 
 ### Features
