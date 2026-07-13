@@ -1,5 +1,58 @@
 # Changelog
 
+## 0.4.1 (2026-07-13)
+
+### Features
+
+- **台风地图:** 新增台风路径地图 Demo，支持降雨/云图/雷达/风场/卫星图层切换（浙江水利气象 API）
+- **台风预报:** 台风预报路径改用实线渲染，修复虚线像素级退化成点串问题；历史轨迹使用实线
+- **台风地图移动端:** 台风地图移动端适配 + BlockPage 设备切换
+- **map-app-builder skill:** 新增 map-app-builder skill，覆盖布局架构、图层层级、DOM z-index、主题系统等
+- **Canvas 风场图层:** 添加 Canvas 风场图层及 PC 端 UI 布局优化
+- **Apple/Google Maps 演示:** 优化 AppleMaps/GoogleMaps 演示与台风默认图层
+
+### Breaking Changes
+
+- **RouteLayer:** 移除 `glow`、`animate`、`animateSpeed` 属性，发光与流动动画能力不再支持
+
+### Bug Fixes
+
+- **RouteLayer:** 修复文字与图标/圆点重叠问题，优化默认参数（`lineWidth` 3→4，`stopSize` 14→8）
+- **RouteLayer:** 修复 `rest` 未定义错误、NaN 坐标校验及优化标注布局
+- **GoogleMaps:** 修复 GoogleMapsMobileDemo 地图无法交互的问题
+
+## 0.3.5 (2026-06-20)
+
+### Bug Fixes
+
+- **ImageCalibrationControl:** 清理冗余判断逻辑
+- 添加 `@types/geojson` 依赖
+- 更新依赖锁文件及 plot 包配置
+
+## 0.3.4 (2026-06-19)
+
+### Features
+
+- **SatelliteLayerControl:** 新增卫星影像图层控件，支持提供商切换（高德/天地图/Google）、可见性开关、透明度调节
+- 补齐复合图层设计规范
+
+### Bug Fixes
+
+- **ImageCalibrationControl:** 修复多图切换时图层消失的问题
+
+## 0.3.3 (2026-06-19)
+
+### Refactoring
+
+- 地图引擎从动态 `import` 改为静态 `import`，避免 chunk 加载失败
+
+## 0.3.2 (2026-06-19)
+
+### Bug Fixes
+
+- **ChinaDistrict:** 修复中国行政区划直辖市下钻时 adcode 前缀匹配不生效的问题
+- 标注 L7 版本要求 ≥ 2.28.14
+
 ## 0.3.1 (2026-06-18)
 
 ### Features

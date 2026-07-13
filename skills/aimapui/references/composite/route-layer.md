@@ -1,6 +1,6 @@
 # RouteLayer — 路径地图
 
-序列化途经点 + 发光效果 + 分段着色 + 流动动画 + 多路径模式（直线/弧线/交通路线）。
+序列化途经点 + 分段着色 + 多路径模式（直线/弧线/交通路线）。
 
 ## Examples
 
@@ -16,8 +16,6 @@ import { RouteLayer } from '@antv/aimapui';
   ]}
   color="#2563eb"
   lineWidth={4}
-  glow={true}
-  animate={true}
   showStopIndex={true}
   endColor="#10b981"
   onPathClick={(p) => console.log(p)}
@@ -64,9 +62,6 @@ import { RouteLayer } from '@antv/aimapui';
 | `color` | `string` | `'#2563eb'` | 路径颜色 |
 | `lineWidth` | `number` | `4` | 路径宽度 |
 | `opacity` | `number` | `0.9` | 路径透明度 |
-| `glow` | `boolean` | `true` | 是否显示发光效果 |
-| `animate` | `boolean` | `false` | 是否启用流动动画 |
-| `animateSpeed` | `number` | `1` | 动画速度 |
 | `stopSize` | `number` | `14` | 途经点大小 |
 | `stopColor` | `string` | 跟随路径色 | 途经点颜色 |
 | `endColor` | `string` | `'#10b981'` | 终点颜色 |

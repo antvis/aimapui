@@ -1,16 +1,16 @@
 ---
 name: aimapui
-description: React map visualization library @antv/aimapui. Use whenever the user wants to create maps, map layers, geographic visualizations, or map controls — covers AiMap container, 6 base layers, 12 composite layers, 13 controls, interactions, legends, mobile components, and schema-driven mode. Schema-driven, L7-based.
-version: 0.3.5
+description: React map visualization library @antv/aimapui. Use whenever the user wants to create maps, map layers, geographic visualizations, or map controls — covers AiMap container, 6 base layers, 12 composite layers, 15 controls, interactions, legends, mobile components, and schema-driven mode. Schema-driven, L7-based.
+version: 0.4.1
 ---
 
 # aimapui
 
-**触发条件：** 用户需要创建地图、地图可视化、地理数据展示时，必须使用此 skill。覆盖 AiMap 容器、6 种基础图层（Point/Line/Polygon/Heatmap/Raster/Image）、12 种复合图层（行政区划下钻/气泡/路径/弧线流向/图标/字标/聚合/蜂窝/填充/卫星/GeoTIFF/H3）、13 种控件。特殊控件：DrawControl（交互绘制）、ImageCalibrationControl（图片配准/地图校准）、AnnotationControl（标注）。
+**触发条件：** 用户需要创建地图、地图可视化、地理数据展示时，必须使用此 skill。覆盖 AiMap 容器、6 种基础图层（Point/Line/Polygon/Heatmap/Raster/Image）、12 种复合图层（行政区划下钻/气泡/路径/弧线流向/图标/字标/聚合/蜂窝/填充/卫星/GeoTIFF/H3）、15 种控件。特殊控件：DrawControl（交互绘制）、ImageCalibrationControl（图片配准/地图校准）、AnnotationControl（标注）。
 
 ## Version
 
-见 frontmatter `version` 字段。当前：`@antv/aimapui` / `@antv/aimapui-cli` → **0.3.3**
+见 frontmatter `version` 字段。当前：`@antv/aimapui` / `@antv/aimapui-cli` → **0.4.1**
 
 ## Install
 
@@ -57,14 +57,15 @@ import '@antv/aimapui/style.css';
 - **AiMap** — Container component, manages Scene/Map lifecycle; supports `autoFit` for automatic viewport fitting
 - **Layers** — 6 base types: `PointLayer`, `LineLayer`, `PolygonLayer`, `HeatmapLayer`, `RasterLayer`, `ImageLayer`
 - **Composite Layers** — Business-ready (12 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`, `H3Layer`
-- **Controls** — `ZoomControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl`, `DrawControl`, `ImageCalibrationControl`, `AnnotationControl` (13 types, 12 positions)
+- **Controls** — `ZoomControl`, `ResetViewControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl`, `SatelliteLayerControl`, `DrawControl`, `ImageCalibrationControl`, `AnnotationControl` (15 types, 12 positions)
 - **Interactions** — `Marker`, `Popup`, `Tooltip` + Maki icon utilities (`makiIconUrl`, `makiPinUrl`, `createMakiIconMap`, `createMakiPinMap`, `MAKI_ICONS`, `MAKI_ICON_NAMES`)
 - **Legends** — `LegendCategories`, `LegendRamp`, `LegendDiverging`, `LegendThreshold`, `LegendSize`, `LegendLineWidth`, `LegendProportion`, `LegendIcon` (8 types)
 - **Mobile** — `BottomSheet`, `MobileToolbar`, `MobileSheetLegend`, `SearchBar`
-- **Hooks** — `useResponsive`, `useScene`, `useMapPosition`, `useEventBus`, `useTheme`
+- **Hooks** — `useResponsive`, `useScene`, `useMapPosition`, `useMapControl`, `useEventBus`, `useTheme`
 - **Utilities** — `ErrorBoundary`, `ResponsiveProvider`, `ThemeProvider`, `EventBus`
 - **Schema Mode** — Render entire map from a single `AiMapSchema` JSON object
 - **Build Formats** — ESM, CJS, IIFE (CDN), TypeScript declarations
+- **@antv/aimapui-plot** — Separate package for tactical plot/bindtype components (`PlotControl`, `PlotToolbar`)
 
 ## Reference Docs (load as needed)
 
