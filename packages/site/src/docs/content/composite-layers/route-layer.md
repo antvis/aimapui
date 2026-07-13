@@ -1,6 +1,6 @@
 # RouteLayer
 
-路线图组件，支持编号站点、发光路径、分段着色和流动动画。支持多种路径模式：直线、弧线、步行、骑行、驾车、公交等。
+路线图组件，支持编号站点、分段着色。支持多种路径模式：直线、弧线、步行、骑行、驾车、公交等。
 
 ## 导入
 
@@ -29,9 +29,6 @@ import '@antv/aimapui/style.css'
 | `color` | `string` | `'#2563eb'` | 路径颜色 |
 | `lineWidth` | `number` | `4` | 路径宽度（px） |
 | `opacity` | `number` | `0.9` | 路径不透明度 |
-| `glow` | `boolean` | `true` | 发光效果 |
-| `animate` | `boolean` | `false` | 流动动画 |
-| `animateSpeed` | `number` | `1` | 动画速度 |
 
 ### 站点视觉
 
@@ -128,7 +125,6 @@ interface RouteStop {
       { lng: 121.473, lat: 31.230, name: '上海' },
     ]}
     color="#3B82F6"
-    glow
     showStopIndex
   />
 </AiMap>
@@ -146,8 +142,6 @@ interface RouteStop {
   ]}
   routeType="arc"
   color="#8b5cf6"
-  glow
-  animate
 />
 ```
 
@@ -175,8 +169,6 @@ interface RouteStop {
     console.log(`距离: ${result.info?.distance}m, 时长: ${result.info?.duration}s`);
   }}
   color="#10b981"
-  glow
-  animate
 />
 ```
 
@@ -206,7 +198,5 @@ interface RouteStop {
 ## 注意事项
 
 > `routeType` 为 `walking/cycling/driving/transit` 时，`path` 由回调返回，不需要手动传入；仅需传入 `stops` 标注起终点和途经点。
->
-> `glow` 会在路径下方叠加发光效果，使路线在深色底图上更醒目。
 >
 > `showStopIndex` 为 `true` 时，`point` 模式在站点中心绘制编号；`marker/icon` 模式以标签方式补充显示。

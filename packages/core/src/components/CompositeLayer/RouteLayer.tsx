@@ -87,12 +87,6 @@ export interface RouteLayerProps {
   lineWidth?: number;
   /** 路径透明度，默认 0.9 */
   opacity?: number;
-  /** 是否显示发光效果，默认 true */
-  glow?: boolean;
-  /** 是否启用流动动画，默认 false */
-  animate?: boolean;
-  /** 动画速度，默认 1 */
-  animateSpeed?: number;
 
   // ===== 途经点视觉 =====
   /** 途经点大小，默认 14 */
@@ -140,9 +134,7 @@ export interface RouteLayerProps {
  *
  * 遵循设计规范：
  * - 序列化途经点 (Numbered Stops)
- * - 路径发光效果
  * - 分段着色（路况/属性）
- * - 流动动画
  *
  * @example
  * ```tsx
@@ -152,8 +144,6 @@ export interface RouteLayerProps {
  *     { lng: 120.15, lat: 30.28, name: '西湖' },
  *     { lng: 120.17, lat: 30.25, name: '灵隐寺' },
  *   ]}
- *   animate
- *   glow
  * />
  * ```
  */
@@ -167,9 +157,6 @@ export function RouteLayer({
   color = '#2563eb',
   lineWidth = 3,
   opacity = 0.9,
-  glow = false,
-  animate = false,
-  animateSpeed = 1,
   stopSize = 8,
   stopColor,
   endColor = '#10b981',
@@ -253,7 +240,7 @@ export function RouteLayer({
     return null;
   }, [effectivePath, effectiveSegments, color, lineWidth]);
 
-  // 发光层 GeoJSON（同路径但宽度更大）
+  // 是否存在分段颜色（用于主路径分段色/宽渲染）
   const hasSegmentColors = effectiveSegments && effectiveSegments.some((s) => s.color);
 
   // 途经点数据（增加序号和类型）
@@ -365,20 +352,6 @@ export function RouteLayer({
 
   return (
     <>
-      {/* 发光层（底层，更宽更透明） */}
-      {glow && (
-        <LineLayer
-          source={pathGeoJSON}
-          sourceType="geojson"
-          shape={lineShape}
-          color={hasSegmentColors ? undefined : color}
-          colorField={hasSegmentColors ? 'color' : undefined}
-          colorValues={hasSegmentColors ? effectiveSegments!.map((s) => s.color || color) : undefined}
-          size={lineWidth * 2.5}
-          style={{ opacity: 0.15 }}
-        />
-      )}
-
       {/* 主路径层 */}
       <LineLayer
         source={pathGeoJSON}
@@ -394,20 +367,6 @@ export function RouteLayer({
         active={activeColor ? { color: activeColor } : false}
         onClick={onPathClick}
       />
-
-      {/* 流动粒子层 — 白色半透明虚线沿路径流动，指示行驶方向 */}
-      {animate && (
-        <LineLayer
-          source={pathGeoJSON}
-          sourceType="geojson"
-          shape="line"
-          color="#ffffff"
-          size={Math.max(1.5, lineWidth * 0.5)}
-          style={{ opacity: 0.6, lineType: 'dash', lineDash: [8, 16] }}
-          animate={{ enable: true, speed: animateSpeed, duration: 1500 }}
-          zIndex={(zIndex ?? 0) + 5}
-        />
-      )}
 
       {/* 途经点层 */}
       {stopsWithIndex.length > 0 && stopRenderer === 'point' && (

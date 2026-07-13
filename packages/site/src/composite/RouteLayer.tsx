@@ -92,8 +92,6 @@ export default function RouteLayerDemo() {
           path={day1Path}
           stops={day1Stops}
           color={DAY_COLORS.day1}
-          glow
-          animate
         />
 
         {/* Day 2 — 灵隐-西溪（marker 渲染） */}
@@ -101,7 +99,6 @@ export default function RouteLayerDemo() {
           path={day2Path}
           stops={day2Stops}
           color={DAY_COLORS.day2}
-          glow
           stopRenderer="marker"
         />
 
@@ -111,7 +108,6 @@ export default function RouteLayerDemo() {
           path={day3Path}
           stops={day3Stops}
           color={DAY_COLORS.day3}
-          glow
           stopRenderer="icon"
         />
 
