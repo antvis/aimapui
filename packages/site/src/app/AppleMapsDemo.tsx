@@ -41,7 +41,7 @@ const A = {
   glassPanel: 'linear-gradient(0deg, rgba(245,245,245,0.2), rgba(245,245,245,0.2)), rgba(15,15,15,0.2)',
   glassBlend: 'normal, color-dodge' as const,
   glassFill: 'rgba(245, 245, 245, 0.1)',
-  glassButtonBg: 'rgba(0, 0, 0, 0.004)',
+  glassButtonBg: 'rgba(255, 255, 255, 0.85)',
   // Tools-style light translucent glass (toolbar, temperature, search bar)
   // No dark base, no color-dodge — just white translucent
   toolsBg: 'rgba(245, 245, 245, 0.4)',
@@ -443,7 +443,7 @@ function VerticalToolbar({ onLocate }: { onLocate: () => void }) {
           cursor: 'pointer',
         }}
       >
-        📍
+        <span className="material-symbols-outlined" style={{ fontSize: 20, color: A.primary }}>location_on</span>
       </span>
     </div>
   );
@@ -664,9 +664,9 @@ function PlaceCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
               marginBottom: 24,
             }}
           >
-            <ActionButton label="Directions" icon="🚗" primary />
-            <ActionButton label="Call" icon="📞" />
-            <ActionButton label="Website" icon="🌐" />
+            <ActionButton label="Directions" icon="directions_car" primary />
+            <ActionButton label="Call" icon="call" />
+            <ActionButton label="Website" icon="language" />
           </div>
 
           {/* Info Stats */}
@@ -680,9 +680,9 @@ function PlaceCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
             }}
           >
             <InfoStat label="Status" value={poi.statusLabel} color={poi.status === 'Closed' ? A.red : '#34C759'} />
-            <InfoStat label="Walk" value={`${poi.walkPercent}%`} icon="🚶" />
+            <InfoStat label="Walk" value={`${poi.walkPercent}%`} icon="directions_walk" />
             <InfoStat label="Price" value={'$'.repeat(poi.priceLevel)} />
-            <InfoStat label="Drive" value={poi.driveDist} icon="🚗" sub={poi.driveTime} />
+            <InfoStat label="Drive" value={poi.driveDist} icon="directions_car" sub={poi.driveTime} />
           </div>
 
           {/* Photo Gallery */}
@@ -732,13 +732,13 @@ function PlaceCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
                   alignItems: 'center',
                   width: 104,
                   height: 82,
-                  background: A.surfaceGray,
+                  background: A.surfaceLight,
                   borderRadius: 22,
                   padding: 8,
                   gap: 2,
                 }}
               >
-                <span style={{ fontSize: 16, color: A.primary }}>📷</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 16, color: A.primary }}>add_a_photo</span>
                 <span
                   style={{
                     fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -759,13 +759,13 @@ function PlaceCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
                   alignItems: 'center',
                   width: 104,
                   height: 82,
-                  background: A.surfaceGray,
+                  background: A.surfaceLight,
                   borderRadius: 22,
                   padding: 8,
                   gap: 2,
                 }}
               >
-                <span style={{ fontSize: 16, color: A.primary }}>🖼️</span>
+                <span className="material-symbols-outlined" style={{ fontSize: 16, color: A.primary }}>photo_library</span>
                 <span
                   style={{
                     fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -802,7 +802,7 @@ function PlaceCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
                 gap: 10,
               }}
             >
-              <span style={{ fontSize: 18, color: A.primary }}>⭐</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 18, color: A.primary }}>star</span>
               <span
                 style={{
                   fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -1002,9 +1002,9 @@ function PlaceCard({ poi, onClose }: { poi: POI; onClose: () => void }) {
 
           {/* System Actions */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-            <SystemActionButton label="Report an Issue" icon="⚠️" />
-            <SystemActionButton label="Add to Favorites" icon="📍" />
-            <SystemActionButton label="Claim This Place" icon="🏢" />
+            <SystemActionButton label="Report an Issue" icon="report_problem" />
+            <SystemActionButton label="Add to Favorites" icon="location_on" />
+            <SystemActionButton label="Claim This Place" icon="apartment" />
           </div>
         </div>
       </div>
@@ -1140,7 +1140,7 @@ function RatingRow({ category, score, count }: { category: string; score: number
         </span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-        <span style={{ fontSize: 27, color: A.textPrimary }}>⭐</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 27, color: A.textPrimary }}>star</span>
         <span
           style={{
             fontFamily: "'SF Pro', -apple-system, sans-serif",
@@ -1278,7 +1278,7 @@ export default function AppleMapsDemo() {
                       justifyContent: 'center',
                     }}
                   >
-                    <span style={{ fontSize: 14 }}>📍</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>location_on</span>
                   </div>
                 </div>
                 {/* Pin bottom tip */}

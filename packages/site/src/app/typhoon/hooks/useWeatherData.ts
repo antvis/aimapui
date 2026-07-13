@@ -36,7 +36,7 @@ export interface WeatherDataState {
 }
 
 export function useWeatherData(): WeatherDataState {
-  const [weatherLayer, setWeatherLayer] = useState<'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind'>('wind');
+  const [weatherLayer, setWeatherLayer] = useState<'none' | 'cloud' | 'radar' | 'rain' | 'satellite' | 'wind'>('none');
   const [weatherOpacity, setWeatherOpacity] = useState(0.7);
   const [cloudType, setCloudType] = useState<0.5 | 1 | 3 | 6>(1);
   const [rainHours, setRainHours] = useState<24 | 48 | 72>(24);

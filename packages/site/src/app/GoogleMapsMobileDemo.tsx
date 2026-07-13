@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Scene } from '@antv/l7';
-import { AiMap, BottomSheet, Marker, Popup } from '@antv/aimapui';
+import { AiMap, BottomSheet, LineLayer, Marker, Popup } from '@antv/aimapui';
 
 /* ================================================================
    Google Maps Mobile — Explore 页面 Demo
@@ -135,26 +135,27 @@ function BottomNav({ activeTab, onTab }: { activeTab: string; onTab: (k: string)
 }
 
 // ── Business-style drawer per spec ─────────────────────────────
-function BottomCard({ filteredPois, activeFilter, selectedPoi, onSelect, selectedPoiId, onPoiClick }: {
+function BottomCard({ filteredPois, activeFilter, selectedPoi, onSelect, selectedPoiId, onPoiClick, visible = false, onStartNavigation }: {
   filteredPois: PoiItem[]; activeFilter: string; selectedPoi: PoiItem | null; selectedPoiId: string | null;
-  onSelect: (p: PoiItem) => void; onPoiClick: (p: PoiItem) => void;
+  onSelect: (p: PoiItem) => void; onPoiClick: (p: PoiItem) => void; visible?: boolean; onStartNavigation?: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<'overview' | 'list'>('overview');
 
+  if (!visible) return null;
+
   return (
     <div style={{
-      position: 'absolute', top: 160, bottom: BOTTOM_NAV_H - 8, left: 0, right: 0, zIndex: 3100, pointerEvents: 'none',
+      position: 'absolute', inset: 0, zIndex: 3100, background: G.surface, display: 'flex', flexDirection: 'column', pointerEvents: 'auto',
     }}>
-      <div style={{ position: 'relative', width: '100%', height: '100%', pointerEvents: 'none' }}>
-      <BottomSheet defaultSnap="collapsed" collapsedHeight={CARD_COLLAPSED_H} showHandle borderRadius={16}>
-        <div style={{
-          background: G.surface, height: '100%', overflowY: 'auto',
-          boxShadow: G.cardShadow,
-          display: 'flex', flexDirection: 'column',
-          margin: '0 -16px',  // negate BottomSheet's built-in padding
-        }}>
+      {/* Close Button */}
+      <div style={{ position: 'absolute', top: 52, right: 12, zIndex: 10 }}>
+        <span className="material-symbols-outlined" onClick={() => onPoiClick(selectedPoi!)} style={{ fontSize: 24, color: '#4F4F4F', cursor: 'pointer', background: G.surface, borderRadius: '50%', padding: 4, boxShadow: G.shadowLight }}>close</span>
+      </div>
+
+      {/* Scrollable Content */}
+      <div style={{ flex: 1, overflowY: 'auto', paddingTop: 52 }}>
           {/* Title — spec: 20px/400 */}
-          <div style={{ padding: '4px 28px 0', fontSize: 20, fontWeight: 400, color: '#000', lineHeight: '23px', letterSpacing: '0.01em' }}>
+          <div style={{ padding: '16px 28px 0', fontSize: 20, fontWeight: 400, color: '#000', lineHeight: '23px', letterSpacing: '0.01em' }}>
             {selectedPoi ? selectedPoi.name : '西湖风景区'}
           </div>
 
@@ -166,7 +167,7 @@ function BottomCard({ filteredPois, activeFilter, selectedPoi, onSelect, selecte
           {/* Action Buttons row — spec exact */}
           <div style={{ display: 'flex', gap: 4, padding: '12px 28px', flexShrink: 0, overflowX: 'auto', scrollbarWidth: 'none' }}>
             {/* Primary button — spec: 12px 18px 12px 16px, gap 6, #1A73E8, radius 44, icon 18px, label 16px/500 */}
-            <button style={{
+            <button onClick={onStartNavigation} style={{
               display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
               padding: '12px 18px 12px 16px', borderRadius: 44, border: 'none', cursor: 'pointer',
               background: G.primary, fontFamily: 'Roboto, system-ui, sans-serif',
@@ -289,8 +290,6 @@ function BottomCard({ filteredPois, activeFilter, selectedPoi, onSelect, selecte
             )}
           </div>
         </div>
-      </BottomSheet>
-      </div>
     </div>
   );
 }
@@ -314,9 +313,11 @@ export default function GoogleMapsMobileDemo() {
   const sceneRef = useRef<Scene | null>(null);
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchFocused, setSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedPoi, setSelectedPoi] = useState<PoiItem | null>(null);
   const [activeTab, setActiveTab] = useState('explore');
   const [userLoc, setUserLoc] = useState<{ lng: number; lat: number } | null>(null);
+  const [navigationMode, setNavigationMode] = useState(false);
 
   useEffect(() => {
     let resolved = false;
@@ -335,6 +336,16 @@ export default function GoogleMapsMobileDemo() {
     if (activeFilter === 'all') return POIS;
     return POIS.filter(p => p.category === activeFilter);
   }, [activeFilter]);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase();
+    return POIS.filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      p.address.toLowerCase().includes(query) ||
+      p.category.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
 
   const handleSceneReady = useCallback((scene: Scene) => {
     sceneRef.current = scene;
@@ -355,6 +366,38 @@ export default function GoogleMapsMobileDemo() {
     setSelectedPoi(poi);
     sceneRef.current?.setZoomAndCenter(15, [poi.lng, poi.lat]);
   }, []);
+
+  const handleStartNavigation = useCallback(() => {
+    if (!selectedPoi || !userLoc) return;
+    setNavigationMode(true);
+    // 调整视野以同时显示起点和终点
+    const bounds: [[number, number], [number, number]] = [
+      [Math.min(userLoc.lng, selectedPoi.lng) - 0.01, Math.min(userLoc.lat, selectedPoi.lat) - 0.01],
+      [Math.max(userLoc.lng, selectedPoi.lng) + 0.01, Math.max(userLoc.lat, selectedPoi.lat) + 0.01],
+    ];
+    sceneRef.current?.fitBounds(bounds, { padding: [80, 40, BOTTOM_NAV_H + 200, 40] });
+  }, [selectedPoi, userLoc]);
+
+  const handleExitNavigation = useCallback(() => {
+    setNavigationMode(false);
+  }, []);
+
+  // 生成模拟路线（直线 + 简单折线）
+  const routeFeature = useMemo(() => {
+    if (!navigationMode || !selectedPoi || !userLoc) return null;
+    const start = [userLoc.lng, userLoc.lat];
+    const end = [selectedPoi.lng, selectedPoi.lat];
+    const midLng = (start[0] + end[0]) / 2;
+    const midLat = (start[1] + end[1]) / 2 + 0.005;
+    return {
+      type: 'Feature' as const,
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: [start, [midLng, midLat], end],
+      },
+      properties: {},
+    };
+  }, [navigationMode, selectedPoi, userLoc]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', fontFamily: 'Roboto, system-ui, sans-serif', background: '#E8EAED' }}>
@@ -397,6 +440,19 @@ export default function GoogleMapsMobileDemo() {
               </div>
             </Marker>
           )}
+
+          {/* Navigation Route Line */}
+          {routeFeature && (
+            <LineLayer
+              source={{ type: 'FeatureCollection', features: [routeFeature] }}
+              sourceType="geojson"
+              shape="line"
+              size={4}
+              color={G.primary}
+              style={{ opacity: 0.9, lineType: 'solid' } as Record<string, unknown>}
+              zIndex={10}
+            />
+          )}
         </AiMap>
       </div>
 
@@ -410,8 +466,8 @@ export default function GoogleMapsMobileDemo() {
         </div>
       </div>
 
-      {/* ═══ Search Bar — spec: top: 61px, container 56px, bar 48px, radius 40 ═══ */}
-      <div style={{ position: 'absolute', top: 61, left: 0, right: 0, zIndex: 2000, height: 56, display: 'flex', flexDirection: 'column', padding: '4px 12px', pointerEvents: 'none' }}>
+      {/* ═══ Search Bar — spec: top: 52px, container 56px, bar 48px, radius 40 ═══ */}
+      <div style={{ position: 'absolute', top: 52, left: 0, right: 0, zIndex: 4000, height: 56, display: 'flex', flexDirection: 'column', padding: '4px 12px', pointerEvents: 'none' }}>
         <div style={{
           display: 'flex', alignItems: 'center',
           padding: '8px 12px', gap: 16, flex: 1,
@@ -420,9 +476,9 @@ export default function GoogleMapsMobileDemo() {
         }}>
           {searchFocused ? (
             <>
-              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#4F4F4F', cursor: 'pointer', flexShrink: 0 }} onClick={() => setSearchFocused(false)}>arrow_back</span>
-              <input autoFocus placeholder="搜索地点" style={{ flex: 1, border: 'none', outline: 'none', fontSize: 20, color: G.textPrimary, background: 'transparent', fontFamily: 'inherit' }} onBlur={() => setSearchFocused(false)} />
-              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#4F4F4F', flexShrink: 0 }}>mic</span>
+              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#4F4F4F', cursor: 'pointer', flexShrink: 0 }} onClick={() => { setSearchFocused(false); setSearchQuery(''); }}>arrow_back</span>
+              <input autoFocus value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="搜索地点" style={{ flex: 1, border: 'none', outline: 'none', fontSize: 20, color: G.textPrimary, background: 'transparent', fontFamily: 'inherit' }} onBlur={() => { if (!searchQuery) setSearchFocused(false); }} />
+              <span className="material-symbols-outlined" style={{ fontSize: 20, color: '#4F4F4F', cursor: 'pointer', flexShrink: 0 }} onClick={() => { setSearchFocused(false); setSearchQuery(''); setSelectedPoi(null); }}>close</span>
             </>
           ) : (
             <>
@@ -436,9 +492,51 @@ export default function GoogleMapsMobileDemo() {
         </div>
       </div>
 
+      {/* ═══ Search Results List ═══ */}
+      {searchFocused && searchQuery.trim() && (
+        <div style={{
+          position: 'absolute', top: 108, left: 12, right: 12, zIndex: 4001,
+          background: G.surface, borderRadius: 16, boxShadow: G.shadowMedium,
+          maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', pointerEvents: 'auto',
+        }}>
+          {searchResults.length === 0 ? (
+            <div style={{ padding: '24px 16px', textAlign: 'center', color: G.textTertiary, fontSize: 14 }}>
+              未找到相关地点
+            </div>
+          ) : (
+            searchResults.map(poi => {
+              const cat = CAT_ICON[poi.category] ?? CAT_ICON.restaurant;
+              const isSelected = selectedPoi?.id === poi.id;
+              return (
+                <div key={poi.id} onClick={() => { handlePoiClick(poi); setSearchFocused(false); setSearchQuery(''); }}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px',
+                    cursor: 'pointer', borderBottom: `1px solid ${G.borderLight}`,
+                    background: isSelected ? G.highlightBgAlt : 'transparent',
+                  }}
+                >
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: isSelected ? G.primary : G.highlightBgAlt,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18, color: isSelected ? '#fff' : cat.color }}>{cat.icon}</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 500, color: G.textPrimary, lineHeight: '20px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{poi.name}</div>
+                    <div style={{ fontSize: 12, color: G.textTertiary, lineHeight: '16px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{poi.address}</div>
+                  </div>
+                  <span style={{ fontSize: 12, color: G.textQuaternary, flexShrink: 0 }}>{poi.distance}</span>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
       {/* ═══ Pills — spec: top: 122px, height 40px ═══ */}
       <div style={{
-        position: 'absolute', top: 122, left: 0, right: 0, zIndex: 2000,
+        position: 'absolute', top: 122, left: 0, right: 0, zIndex: 2003,
         height: 40, display: 'flex', alignItems: 'flex-start',
         padding: '4px 0px 4px 12px', gap: 4, overflowX: 'auto', scrollbarWidth: 'none', pointerEvents: 'none',
       }}>
@@ -466,13 +564,14 @@ export default function GoogleMapsMobileDemo() {
         position: 'absolute', left: 10, bottom: BOTTOM_NAV_H + 2, zIndex: 3000,
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, pointerEvents: 'none',
       }}>
-        <ZoomButtons scene={sceneRef.current} />
+        <div style={{ pointerEvents: 'auto' }}><ZoomButtons scene={sceneRef.current} /></div>
         <button onClick={() => { if (userLoc) sceneRef.current?.setZoomAndCenter(16, [userLoc.lng, userLoc.lat]); }}
           style={{ width: 40, height: 40, borderRadius: 44, border: 'none', cursor: 'pointer', background: G.surface, boxShadow: G.shadowLight, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
           <span className="material-symbols-outlined" style={{ fontSize: 20, color: G.primary }}>my_location</span>
         </button>
-        <button style={{ width: 58, height: 58, borderRadius: 44, border: 'none', cursor: 'pointer', background: G.primary, boxShadow: G.shadowHeavy, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 26, color: '#fff' }}>directions</span>
+        <button onClick={navigationMode ? handleExitNavigation : handleStartNavigation}
+          style={{ width: 58, height: 58, borderRadius: 44, border: 'none', cursor: 'pointer', background: navigationMode ? G.red : G.primary, boxShadow: G.shadowHeavy, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 26, color: '#fff' }}>{navigationMode ? 'close' : 'directions'}</span>
         </button>
       </div>
 
@@ -480,7 +579,7 @@ export default function GoogleMapsMobileDemo() {
       <BottomNav activeTab={activeTab} onTab={setActiveTab} />
 
       {/* ═══ Bottom Card — spec: -2px 0px 11px shadow ═══ */}
-      <BottomCard filteredPois={filteredPois} activeFilter={activeFilter} selectedPoi={selectedPoi} selectedPoiId={selectedPoi?.id ?? null} onSelect={handlePoiSelect} onPoiClick={handlePoiClick} />
+      <BottomCard filteredPois={filteredPois} activeFilter={activeFilter} selectedPoi={selectedPoi} selectedPoiId={selectedPoi?.id ?? null} onSelect={handlePoiSelect} onPoiClick={handlePoiClick} visible={!!selectedPoi} onStartNavigation={handleStartNavigation} />
 
       {/* ═══ Popup ═══ */}
       {selectedPoi && (
