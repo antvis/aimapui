@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.3 (2026-07-14)
+
+### Bug Fixes
+
+- **SchemaLayer:** 修复 `sortValue` 递归遍历对象时遇到循环引用导致 `Maximum call stack size exceeded` 的问题，通过 `WeakSet` 检测已访问对象
+
+### Features
+
+- **ChinaDistrict:** 下钻模式支持双击上卷（dblclick 触发 drillUp）
+- **SchemaLayer/PolygonLayer:** 新增 `onDblclick`/`onUndblclick` 事件，与 click 互斥
+
 ## 0.4.2 (2026-07-13)
 
 ### Documentation
