@@ -22,6 +22,15 @@ const G = {
   cardShadow: '-2px 0px 11px rgba(0,0,0,0.25)',
   tabInactive: '#5E5E5E',
   handleColor: '#C5C6CD',
+  // P0 fix: G.red was referenced but undefined
+  red: '#D93025',
+  // Route path spec: #2985FF (different from primary #1A73E8)
+  routePath: '#2985FF',
+  // List item spec colors
+  listTitle: '#404040',
+  listSubtitle: '#867F7F',
+  // FAB icon inactive
+  iconInactive: '#3F3F3F',
 };
 
 // ── Data ────────────────────────────────────────────────────────
@@ -74,26 +83,24 @@ const BOTTOM_NAV_H = 89;        // 53 + 36 safe area
 const CARD_COLLAPSED_H = 96;
 const CARD_EXPANDED_H = 520;
 
-// ── Zoom Buttons ────────────────────────────────────────────────
+// ── Zoom Buttons — spec: FAB Small Secondary (40×40, radius 44, bg #FFF, shadow light, icon 24px #3F3F3F) ──
 function ZoomButtons({ scene }: { scene: Scene | null }) {
+  const fabSmallSecondary: React.CSSProperties = {
+    width: 40, height: 40, borderRadius: 44, border: 'none', cursor: 'pointer',
+    background: G.surface, boxShadow: G.shadowLight,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  };
   return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', borderRadius: 12, overflow: 'hidden',
-      background: G.surface, boxShadow: G.shadowLight,
-    }}>
-      <button onClick={() => scene?.setZoom(Math.min(18, scene.getZoom() + 1))}
-        style={zBtnS}>
-        <span className="material-symbols-outlined" style={{ fontSize: 20, color: G.textSecondary }}>add</span>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <button onClick={() => scene?.setZoom(Math.min(18, scene.getZoom() + 1))} style={fabSmallSecondary}>
+        <span className="material-symbols-outlined" style={{ fontSize: 24, color: G.iconInactive }}>add</span>
       </button>
-      <div style={{ height: 1, background: G.borderLight }} />
-      <button onClick={() => scene?.setZoom(Math.max(3, scene.getZoom() - 1))}
-        style={zBtnS}>
-        <span className="material-symbols-outlined" style={{ fontSize: 20, color: G.textSecondary }}>remove</span>
+      <button onClick={() => scene?.setZoom(Math.max(3, scene.getZoom() - 1))} style={fabSmallSecondary}>
+        <span className="material-symbols-outlined" style={{ fontSize: 24, color: G.iconInactive }}>remove</span>
       </button>
     </div>
   );
 }
-const zBtnS: React.CSSProperties = { width: 40, height: 40, border: 'none', cursor: 'pointer', background: G.surface, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
 // ── Bottom Nav (spec: 89px, 0px -2px 4px shadow, z-index base) ──
 function BottomNav({ activeTab, onTab }: { activeTab: string; onTab: (k: string) => void }) {
@@ -154,6 +161,11 @@ function BottomCard({ filteredPois, activeFilter, selectedPoi, onSelect, selecte
 
       {/* Scrollable Content */}
       <div style={{ flex: 1, overflowY: 'auto', paddingTop: 52 }}>
+          {/* Bottom Sheet Handle — spec 3.12: 73×4px, #C5C6CD, radius 12px */}
+          <div style={{
+            position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)',
+            width: 73, height: 4, background: G.handleColor, borderRadius: 12,
+          }} />
           {/* Title — spec: 20px/400 */}
           <div style={{ padding: '16px 28px 0', fontSize: 20, fontWeight: 400, color: '#000', lineHeight: '23px', letterSpacing: '0.01em' }}>
             {selectedPoi ? selectedPoi.name : '西湖风景区'}
@@ -274,8 +286,8 @@ function BottomCard({ filteredPois, activeFilter, selectedPoi, onSelect, selecte
                         <span className="material-symbols-outlined" style={{ fontSize: 18, color: cat.color }}>{cat.icon}</span>
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 400, color: G.textPrimary, lineHeight: '20px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{poi.name}</div>
-                        <div style={{ fontSize: 12, color: G.textTertiary, display: 'flex', alignItems: 'center', gap: 4, lineHeight: '18px' }}>
+                        <div style={{ fontSize: 14, fontWeight: 400, color: G.listTitle, lineHeight: '16px', letterSpacing: '0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{poi.name}</div>
+                        <div style={{ fontSize: 12, color: G.listSubtitle, display: 'flex', alignItems: 'center', gap: 4, lineHeight: '14px' }}>
                           <span style={{ color: '#F9AB00', fontWeight: 500 }}>★ {poi.rating}</span>
                           <span>({poi.reviewCount.toLocaleString()})</span><span>·</span><span>{poi.distance}</span>
                           {poi.openNow && <><span>·</span><span style={{ color: '#34A853' }}>营业中</span></>}
@@ -427,29 +439,35 @@ export default function GoogleMapsMobileDemo() {
             );
           })}
 
-          {/* User Location Marker — spec: 62×62 cone + blue dot */}
+          {/* User Location Marker — spec 3.10: 62×62 container, 73.5×63 cone, 22×22 blue dot with 4px white border */}
           {userLoc && (
             <Marker longitude={userLoc.lng} latitude={userLoc.lat} anchor="center" offsets={[0, 0]}>
               <div style={{ pointerEvents: 'none', position: 'relative', width: 62, height: 62 }}>
-                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'linear-gradient(233deg, rgba(11,103,225,0) 42%, rgba(99,166,255,0.58) 99%)' }} />
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                  <div style={{ width: 22, height: 22, borderRadius: '50%', background: G.surface, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}>
-                    <div style={{ width: 12, height: 12, borderRadius: '50%', background: G.primary, border: '2px solid #fff' }} />
-                  </div>
-                </div>
+                {/* Direction cone: spec 73.5×63px at left:3.5 top:-2 */}
+                <div style={{
+                  position: 'absolute', width: 73.5, height: 63, left: 3.5, top: -2,
+                  background: 'linear-gradient(233.03deg, rgba(11,103,225,0) 42.51%, rgba(99,166,255,0.58) 98.87%)',
+                }} />
+                {/* Blue dot: 22×22 with 4px white border + shadow */}
+                <div style={{
+                  position: 'absolute', width: 22, height: 22, left: 0, top: 40.5,
+                  background: G.primary, border: '4px solid #FFFFFF',
+                  boxShadow: '0px 1px 4px rgba(0,0,0,0.25)', borderRadius: 20,
+                  boxSizing: 'border-box',
+                }} />
               </div>
             </Marker>
           )}
 
-          {/* Navigation Route Line */}
+          {/* Navigation Route Line — spec 3.14: dashed 5px #2985FF */}
           {routeFeature && (
             <LineLayer
               source={{ type: 'FeatureCollection', features: [routeFeature] }}
               sourceType="geojson"
               shape="line"
-              size={4}
-              color={G.primary}
-              style={{ opacity: 0.9, lineType: 'solid' } as Record<string, unknown>}
+              size={5}
+              color={G.routePath}
+              style={{ opacity: 0.9, lineType: 'dash', dashArray: [10, 6] } as Record<string, unknown>}
               zIndex={10}
             />
           )}
@@ -535,29 +553,67 @@ export default function GoogleMapsMobileDemo() {
       )}
 
       {/* ═══ Pills — spec: top: 122px, height 40px ═══ */}
-      <div style={{
-        position: 'absolute', top: 122, left: 0, right: 0, zIndex: 2003,
-        height: 40, display: 'flex', alignItems: 'flex-start',
-        padding: '4px 0px 4px 12px', gap: 4, overflowX: 'auto', scrollbarWidth: 'none', pointerEvents: 'none',
-      }}>
-        {PILL_FILTERS.map(f => {
-          const isActive = activeFilter === f.key;
-          return (
-            <button key={f.key} onClick={() => setActiveFilter(f.key)} style={{
-              flexShrink: 0, height: 32, borderRadius: 24, border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px 6px 8px',
-              fontSize: 15, fontWeight: 500, fontFamily: 'inherit', letterSpacing: '0.02em',
-              background: isActive ? '#1C1B1F' : G.surface,
-              color: isActive ? '#fff' : 'rgba(0,0,0,0.9)',
-              boxShadow: isActive ? undefined : '0px 1px 2px rgba(0,0,0,0.25)',
-              transition: 'all 0.15s', pointerEvents: 'auto',
-            }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{f.icon}</span>
-              {f.label}
-            </button>
-          );
-        })}
-      </div>
+      {!navigationMode && (
+        <div style={{
+          position: 'absolute', top: 122, left: 0, right: 0, zIndex: 2003,
+          height: 40, display: 'flex', alignItems: 'flex-start',
+          padding: '4px 0px 4px 12px', gap: 4, overflowX: 'auto', scrollbarWidth: 'none', pointerEvents: 'none',
+        }}>
+          {PILL_FILTERS.map(f => {
+            const isActive = activeFilter === f.key;
+            return (
+              <button key={f.key} onClick={() => setActiveFilter(f.key)} style={{
+                flexShrink: 0, height: 32, borderRadius: 24, border: 'none', cursor: 'pointer',
+                display: 'flex', alignItems: 'center', gap: 4, padding: '6px 12px 6px 8px',
+                fontSize: 15, fontWeight: 500, fontFamily: 'inherit', letterSpacing: '0.02em',
+                background: isActive ? '#1C1B1F' : G.surface,
+                color: isActive ? '#fff' : 'rgba(0,0,0,0.9)',
+                boxShadow: isActive ? undefined : '0px 1px 2px rgba(0,0,0,0.25)',
+                transition: 'all 0.15s', pointerEvents: 'auto',
+              }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{f.icon}</span>
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ═══ Transportation Chips — spec 3.7: shown in navigation mode ═══ */}
+      {navigationMode && (
+        <div style={{
+          position: 'absolute', top: 116, left: 0, right: 0, zIndex: 2003,
+          height: 40, display: 'flex', alignItems: 'center',
+          padding: '0 12px', gap: 16, overflowX: 'auto', scrollbarWidth: 'none', pointerEvents: 'none',
+        }}>
+          {[
+            { key: 'car', icon: 'directions_car', label: '驾车' },
+            { key: 'transit', icon: 'directions_bus', label: '公交' },
+            { key: 'walk', icon: 'directions_walk', label: '步行' },
+            { key: 'bike', icon: 'directions_bike', label: '骑行' },
+            { key: 'fly', icon: 'flight', label: '飞行' },
+          ].map((chip, i) => {
+            const isSelected = i === 0; // 默认选中驾车
+            return (
+              <button key={chip.key} style={{
+                flexShrink: 0, display: 'flex', alignItems: 'flex-end', gap: 6,
+                height: 28, padding: '4px 16px',
+                background: isSelected ? '#E9F4FF' : 'transparent',
+                border: isSelected ? '1px solid #86BAFF' : 'none',
+                borderRadius: 28, cursor: 'pointer', pointerEvents: 'auto',
+              }}>
+                <span className="material-symbols-outlined" style={{
+                  fontSize: 20, color: isSelected ? G.primary : '#151515',
+                }}>{chip.icon}</span>
+                <span style={{
+                  fontSize: 15, fontWeight: isSelected ? 500 : 400, lineHeight: '18px',
+                  color: isSelected ? G.primary : '#000000',
+                }}>{chip.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ═══ Left Column: Zoom + Locate + Directions ═══ */}
       <div style={{
@@ -567,7 +623,7 @@ export default function GoogleMapsMobileDemo() {
         <div style={{ pointerEvents: 'auto' }}><ZoomButtons scene={sceneRef.current} /></div>
         <button onClick={() => { if (userLoc) sceneRef.current?.setZoomAndCenter(16, [userLoc.lng, userLoc.lat]); }}
           style={{ width: 40, height: 40, borderRadius: 44, border: 'none', cursor: 'pointer', background: G.surface, boxShadow: G.shadowLight, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: 20, color: G.primary }}>my_location</span>
+          <span className="material-symbols-outlined" style={{ fontSize: 24, color: G.primary }}>my_location</span>
         </button>
         <button onClick={navigationMode ? handleExitNavigation : handleStartNavigation}
           style={{ width: 58, height: 58, borderRadius: 44, border: 'none', cursor: 'pointer', background: navigationMode ? G.red : G.primary, boxShadow: G.shadowHeavy, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}>

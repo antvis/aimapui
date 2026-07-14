@@ -260,7 +260,6 @@ export default function MobileApp() {
   }}
             color={route.color}
             lineWidth={3}
-            glow
             stopSize={10}
             stopRenderer="icon"
             stopIconSize={24}

@@ -20,7 +20,7 @@ Build complete map applications with @antv/aimapui following established convent
 | 规范 | File | Description |
 |------|------|-------------|
 | 技术规范 | [technical.md](specs/technical.md) | 布局、图层层级、DOM z-index、主题系统、交互模式、数据类型→组件映射、控件放置、图例选择、常见陷阱 |
-| Google Maps Mobile 设计语言 | [google-maps-mobile.md](specs/google-maps-mobile.md) | Design Tokens、组件映射表、图标体系、布局参考尺寸、页面级布局模式（Explore/Search/Navigate/Business） |
+| Google Maps Mobile 设计语言 | [google-maps-mobile.md](specs/google-maps-mobile.md) | Design Tokens（颜色/字体/圆角/阴影/间距）、核心组件级 CSS 规范（14 个组件：Search Bar 3 态、Bottom Nav、Pill、Button、FAB、Tab Bar、Transportation Chip、List Item、User Location 等）、Z-Index 层级规范、交互状态规范（7 类）、页面级布局模式（Explore/Search/Navigate/Business）、aimapui 映射表 |
 | Apple Maps 设计语言 | [apple-maps.md](specs/apple-maps.md) | Design Tokens、Liquid Glass 效果、颜色/字体/圆角/阴影系统、页面布局模式（Browse/PlaceCard/Search）、核心组件规范、aimapui 映射建议 |
 
 ### Scenes (scenes/)

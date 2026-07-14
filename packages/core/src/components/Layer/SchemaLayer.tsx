@@ -30,6 +30,8 @@ interface LayerAdapter {
 /** 图层事件回调集合 */
 export interface LayerEventHandlers {
   onClick?: (payload: LayerEventPayload) => void;
+  onDblclick?: (payload: LayerEventPayload) => void;
+  onUndblclick?: (payload: LayerEventPayload) => void;
   onMouseMove?: (payload: LayerEventPayload) => void;
   onMouseEnter?: (payload: LayerEventPayload) => void;
   onMouseLeave?: (payload: LayerEventPayload) => void;
@@ -297,11 +299,13 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
       };
 
       const needsClick = Boolean(eventHandlersRef.current?.onClick || layerEvents?.click || (popupEnabled && popupTrigger === 'click'));
+      const needsDblclick = Boolean(eventHandlersRef.current?.onDblclick);
+      const needsUndblclick = Boolean(eventHandlersRef.current?.onUndblclick);
       const needsMouseMove = Boolean(eventHandlersRef.current?.onMouseMove || layerEvents?.mousemove || (popupEnabled && popupTrigger === 'hover'));
       const needsMouseEnter = Boolean(eventHandlersRef.current?.onMouseEnter || layerEvents?.mouseenter);
       const needsMouseLeave = Boolean(eventHandlersRef.current?.onMouseLeave || layerEvents?.mouseleave || (popupEnabled && popupTrigger === 'hover'));
 
-      // L7 click 事件
+      // L7 click 事件（普通单击，与 dblclick/undblclick 互斥）
       if (needsClick) {
         layer.on('click', (evt: unknown) => {
           const payload = extractLayerPayload(layerId, schema.type, evt);
@@ -312,6 +316,22 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
           if (popupEnabled && popupTrigger === 'click') {
             showPopup(payload);
           }
+        });
+      }
+
+      // L7 dblclick 事件（双击）
+      if (needsDblclick) {
+        layer.on('dblclick', (evt: unknown) => {
+          const payload = extractLayerPayload(layerId, schema.type, evt);
+          eventHandlersRef.current?.onDblclick?.(payload);
+        });
+      }
+
+      // L7 undblclick 事件（双击取消后的单击确认，与 click/dblclick 互斥）
+      if (needsUndblclick) {
+        layer.on('undblclick', (evt: unknown) => {
+          const payload = extractLayerPayload(layerId, schema.type, evt);
+          eventHandlersRef.current?.onUndblclick?.(payload);
         });
       }
 
@@ -430,10 +450,10 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
 }
 
 function stableStringify(value: unknown): string {
-  return JSON.stringify(sortValue(value));
+  return JSON.stringify(sortValue(value, new WeakSet()));
 }
 
-function sortValue(value: unknown): unknown {
+function sortValue(value: unknown, seen: WeakSet<object>): unknown {
   // TypedArray / ArrayBuffer 不递归，用长度做签名
   if (ArrayBuffer.isView(value)) {
     return `[TypedArray:${(value as unknown as { length: number }).length}]`;
@@ -447,15 +467,21 @@ function sortValue(value: unknown): unknown {
     if (value.length > 1000) {
       return `[Array:${value.length}]`;
     }
-    return value.map(sortValue);
+    return value.map((item) => sortValue(item, seen));
   }
 
   if (value && typeof value === 'object') {
+    // 循环引用检测：避免无限递归导致栈溢出
+    if (seen.has(value as object)) {
+      return '[Circular]';
+    }
+    seen.add(value as object);
+
     const obj = value as Record<string, unknown>;
     const sortedKeys = Object.keys(obj).sort();
     const next: Record<string, unknown> = {};
     sortedKeys.forEach((key) => {
-      next[key] = sortValue(obj[key]);
+      next[key] = sortValue(obj[key], seen);
     });
     return next;
   }

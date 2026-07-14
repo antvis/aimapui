@@ -88,8 +88,10 @@ export interface ChinaDistrictProps {
   /** Tooltip 自定义字段 */
   tooltipFields?: string[];
 
-  /** 区域点击事件 */
+  /** 区域单击事件 */
   onRegionClick?: (feature: Record<string, unknown>, level: AdministrativeLevel) => void;
+  /** 区域双击事件（上卷时触发） */
+  onRegionDblclick?: (feature: Record<string, unknown>, level: AdministrativeLevel) => void;
   /** 图层 zIndex */
   zIndex?: number;
 }
@@ -146,6 +148,7 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
   showTooltip = false,
   tooltipFields,
   onRegionClick,
+  onRegionDblclick,
   zIndex = 0,
 } = props;
   const scene = useScene();
@@ -288,7 +291,7 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
     }
   }, [autoFitOnDrill, scene, displayData, drillPath.length]);
 
-  // 事件处理
+  // 事件处理：单击下钻
   const handleClick = useCallback((payload: LayerEventPayload) => {
     const feature = payload.feature;
     if (!feature) return;
@@ -315,6 +318,13 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
       setSelectedName(null);
     }
   }, [labelField, currentLevel, clickSelect, drillEnabled, drillPath, controlledDrillPath, onDrill, onRegionClick]);
+
+  // 事件处理：undblclick 上卷（确认单击未触发双击时回退一级）
+  const handleUndblclick = useCallback(() => {
+    if (drillEnabled) {
+      drillUp();
+    }
+  }, [drillEnabled, drillUp]);
 
   // 所有 hooks 必须在 conditional return 之前
   if (!scene || !displayData) return null;
@@ -355,6 +365,7 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
         select={clickSelect ? { color: '#0f172a', duration: 150 } : undefined}
         style={{ opacity: fillOpacity }}
         onClick={handleClick}
+        onDblclick={handleUndblclick}
         zIndex={zIndex + 2}
       />
 

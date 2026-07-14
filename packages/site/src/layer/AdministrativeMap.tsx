@@ -158,7 +158,7 @@ export default function AdministrativeMap() {
 
         <div style={{ fontSize: 10, color: '#94a3b8' }}>
           当前层级: <strong style={{ color: '#475569' }}>{currentLevel === 'province' ? '省' : currentLevel === 'city' ? '市' : '县'}</strong>
-          {drillEnabled && ' | 点击区域下钻'}
+          {drillEnabled && ' | 单击下钻，双击上卷'}
         </div>
       </div>
 

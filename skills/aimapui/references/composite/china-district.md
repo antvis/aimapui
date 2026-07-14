@@ -58,17 +58,30 @@ import { ChinaDistrict, ADMIN_SEQUENTIAL_COLORS } from '@antv/aimapui';
 | `clickSelect` | `boolean` | — | 点击选中 |
 | `showTooltip` | `boolean` | — | Tooltip 显示 |
 | `tooltipFields` | `string[]` | `[labelField, valueField]` | Tooltip 自定义字段 |
-| `onRegionClick` | `(feature, level) => void` | — | 区域点击事件 |
+| `onRegionClick` | `(feature, level) => void` | — | 区域单击事件 |
+| `onRegionDblclick` | `(feature, level) => void` | — | 区域双击事件（双击触发上卷时也会回调） |
 | `zIndex` | `number` | — | 图层 zIndex |
+
+## 交互模型
+
+| 手势 | 行为 |
+|------|------|
+| 单击（click） | 下钻进入下一级（省→市→县） |
+| 双击（dblclick） | 上卷返回上一级 |
+| 面包屑点击 | 跳转到指定层级 |
+
+> L7 中 `click` 和 `dblclick` 是原生支持的事件，两者互斥。
+
+> 使用 L7 的 `undblclick` 事件（确认单击，排除双击的第一下）避免 click/dblclick 歧义；
+> `dblclick` 直接上卷，无需额外确认。
 
 ## 命令式 API（ref）
 
 | Method | Description |
 |--------|-------------|
-| `drillDown(pathNode)` | 下钻到指定区域 |
 | `drillUp()` | 上钻一级 |
-| `resetDrill()` | 重置下钻路径回到省级 |
-| `getCurrentLevel()` | 获取当前层级 |
+| `drillUpTo(targetIndex)` | 上钻到指定层级（面包屑索引用） |
+| `getDrillPath()` | 获取当前下钻路径 |
 
 ## GeoJSON Matchable Fields
 

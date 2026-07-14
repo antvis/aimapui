@@ -1055,7 +1055,6 @@ export default function HangzhouTravelMap() {
           }}
           color={routeColor}
           lineWidth={3}
-          glow
           stopSize={10}
           stopRenderer="icon"
           stopIconSize={24}

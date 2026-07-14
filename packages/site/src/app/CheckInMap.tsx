@@ -208,7 +208,7 @@ export default function CheckInMap() {
       </div>
 
       {/* ── UI 覆盖层 ── */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none' }}>
+      <div style={{ position: 'absolute', inset: 0, zIndex: 1000, pointerEvents: 'none' }}>
         {/* ── 顶部：搜索栏 + 进度 ── */}
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', padding: '48px 16px 0', pointerEvents: 'none', boxSizing: 'border-box' }}>
           {/* 搜索栏 */}
@@ -342,7 +342,7 @@ export default function CheckInMap() {
               bottom: bottomSheetSnap === 'collapsed' ? 108 : 16,
               left: 16,
               right: 16,
-              zIndex: 20,
+              zIndex: 1000,
               pointerEvents: 'auto',
               transition: 'bottom 0.3s ease',
             }}

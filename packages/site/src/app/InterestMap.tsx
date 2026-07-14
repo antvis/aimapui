@@ -390,7 +390,7 @@ export default function InterestMap() {
             position: 'absolute',
             bottom: selectedShop ? 220 : 20,
             right: 12,
-            zIndex: 20,
+            zIndex: 1000,
             display: 'flex',
             flexDirection: 'column',
             gap: 10,
@@ -409,7 +409,7 @@ export default function InterestMap() {
               bottom: 0,
               left: 0,
               right: 0,
-              zIndex: 20,
+              zIndex: 1000,
             }}
           >
             <ShopCard shop={selectedShop} onClose={handleCloseCard} />
@@ -586,7 +586,7 @@ function IPSelectPanel({
   const filteredIPs = categoryTab === '全部' ? IP_LIST : IP_LIST.filter((ip) => ip.category === categoryTab);
 
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 100, display: 'flex', flexDirection: 'column' }}>
+    <div style={{ position: 'absolute', inset: 0, zIndex: 1000, display: 'flex', flexDirection: 'column' }}>
       {/* 遮罩 */}
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} onClick={onClose} />
 
@@ -711,7 +711,7 @@ function NewsTypePanel({
   const subOptions = NEWS_SUB_MAP[selectedCategory] || ['全部'];
 
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 100 }}>
+    <div style={{ position: 'absolute', inset: 0, zIndex: 1000 }}>
       {/* 遮罩 */}
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)' }} onClick={onClose} />
 

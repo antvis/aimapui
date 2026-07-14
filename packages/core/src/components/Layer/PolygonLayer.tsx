@@ -10,6 +10,8 @@ export interface PolygonLayerProps
   sourceConfig?: LayerSchema['sourceConfig'];
 
   onClick?: (payload: LayerEventPayload) => void;
+  onDblclick?: (payload: LayerEventPayload) => void;
+  onUndblclick?: (payload: LayerEventPayload) => void;
   onMouseMove?: (payload: LayerEventPayload) => void;
   onMouseEnter?: (payload: LayerEventPayload) => void;
   onMouseLeave?: (payload: LayerEventPayload) => void;
@@ -25,6 +27,8 @@ export function PolygonLayer({
   sourceType,
   sourceConfig,
   onClick,
+  onDblclick,
+  onUndblclick,
   onMouseMove,
   onMouseEnter,
   onMouseLeave,
@@ -43,8 +47,8 @@ export function PolygonLayer({
   };
 
   const eventHandlers: LayerEventHandlers | undefined =
-    onClick || onMouseMove || onMouseEnter || onMouseLeave
-      ? { onClick, onMouseMove, onMouseEnter, onMouseLeave }
+    onClick || onDblclick || onUndblclick || onMouseMove || onMouseEnter || onMouseLeave
+      ? { onClick, onDblclick, onUndblclick, onMouseMove, onMouseEnter, onMouseLeave }
       : undefined;
 
   return <SchemaLayer schema={schema} scene={scene} eventHandlers={eventHandlers} onLayerCreated={onLayerCreated} />;
