@@ -508,7 +508,7 @@ export default function PcApp() {
             top: 80,
             left: sidebarWidth,
             right: 0,
-            zIndex: 800,
+            zIndex: 1000,
             display: 'flex',
             justifyContent: 'center',
             pointerEvents: 'none',

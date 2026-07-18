@@ -4,8 +4,10 @@ import type { LayerSchema, LayerEventPayload } from '../../schema/types';
 import { PolygonLayer } from '../Layer/PolygonLayer';
 import { LineLayer } from '../Layer/LineLayer';
 import { PointLayer } from '../Layer/PointLayer';
+import { getColorPalette, type ColorScheme } from '../../constants/colorPalettes';
 
-export const H3_SEQUENTIAL_COLORS = ['#dbeafe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb'] as const;
+// Re-export for backward compatibility
+export { SEQUENTIAL_COLORS as H3_SEQUENTIAL_COLORS } from '../../constants/colorPalettes';
 
 export interface H3DataItem {
   [key: string]: unknown;
@@ -15,6 +17,9 @@ export interface H3LayerProps
   extends Omit<LayerSchema, 'type' | 'source' | 'sourceType' | 'sourceConfig' | 'shape' | 'shapeField' | 'shapeValues'> {
   source: H3DataItem[];
   h3Field?: string;
+
+  /** 色板预设，默认 'sequential' */
+  colorScheme?: ColorScheme;
 
   showStroke?: boolean;
   strokeColor?: string;
@@ -40,11 +45,12 @@ export function H3Layer({
   color,
   colorField,
   colorValues,
+  colorScheme = 'sequential',
   opacity = 0.8,
   showStroke = true,
   strokeColor = 'rgba(255,255,255,0.3)',
   strokeWidth = 0.5,
-  hoverEffect = true,
+  hoverEffect = false,
   clickEffect = false,
   showLabel = false,
   labelField,
@@ -116,8 +122,8 @@ export function H3Layer({
     return { type: 'FeatureCollection' as const, features };
   }, [source, h3Field, showLabel]);
 
-  const resolvedActive = active ?? (hoverEffect ? { color: '#2563eb' } : false);
-  const resolvedSelect = select ?? (clickEffect ? { color: '#1d4ed8' } : false);
+  const resolvedActive = active ?? (hoverEffect ? { color: '#2563eb', duration: 150 } : false);
+  const resolvedSelect = select ?? (clickEffect ? { color: '#1d4ed8', duration: 150 } : false);
 
   return (
     <>
@@ -127,7 +133,7 @@ export function H3Layer({
         sourceType="geojson"
         color={color}
         colorField={colorField}
-        colorValues={colorValues}
+        colorValues={colorValues ?? [...getColorPalette(colorScheme)]}
         opacity={opacity}
         active={resolvedActive}
         select={resolvedSelect}
@@ -143,6 +149,7 @@ export function H3Layer({
           sourceType="geojson"
           color={strokeColor}
           size={strokeWidth}
+          zIndex={(rest.zIndex ?? 0) + 2}
           style={{ opacity: 1 }}
         />
       )}
@@ -154,6 +161,7 @@ export function H3Layer({
           shapeValues="text"
           color={labelColor}
           size={labelSize}
+          zIndex={(rest.zIndex ?? 0) + 10}
           style={{
             textAnchor: 'center',
             textOffset: [0, 0],

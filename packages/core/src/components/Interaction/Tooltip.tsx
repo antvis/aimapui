@@ -333,7 +333,7 @@ export function Tooltip({
         transform: 'translate(-9999px, -9999px)',
         // 初始隐藏，等首帧 applyMapPosition/updateDomPosition 计算后再显示，避免闪烁
         display: 'none',
-        zIndex: 9999,
+        zIndex: 9998,
         pointerEvents: 'none',
       }}
     >

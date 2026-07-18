@@ -87,12 +87,6 @@ export interface RouteLayerProps {
   lineWidth?: number;
   /** 路径透明度，默认 0.9 */
   opacity?: number;
-  /** 是否显示发光效果，默认 true */
-  glow?: boolean;
-  /** 是否启用流动动画，默认 false */
-  animate?: boolean;
-  /** 动画速度，默认 1 */
-  animateSpeed?: number;
 
   // ===== 途经点视觉 =====
   /** 途经点大小，默认 14 */
@@ -109,7 +103,7 @@ export interface RouteLayerProps {
   stopNameColor?: string;
   /** 名称文字大小，默认 11 */
   stopNameSize?: number;
-  /** 停留点渲染模式，默认 'point' */
+  /** 停留点渲染模式，默认 'marker'（优先使用 marker 类型标注） */
   stopRenderer?: 'point' | 'marker' | 'icon';
   /** marker 模式下的默认变体，默认 'circle' */
   stopMarkerVariant?: MarkerVariant;
@@ -123,7 +117,7 @@ export interface RouteLayerProps {
   stopIconAnchor?: IconAnchor;
 
   // ===== 交互 =====
-  /** 是否在点击途经点时显示 Popup，默认 true */
+  /** 是否在点击途经点时显示 Popup，默认 false */
   showStopPopup?: boolean;
   /** hover 高亮色 */
   activeColor?: string;
@@ -131,6 +125,8 @@ export interface RouteLayerProps {
   onPathClick?: (payload: LayerEventPayload) => void;
   /** 途经点点击 */
   onStopClick?: (payload: LayerEventPayload) => void;
+  /** 图层层级 */
+  zIndex?: number;
 }
 
 /**
@@ -138,9 +134,7 @@ export interface RouteLayerProps {
  *
  * 遵循设计规范：
  * - 序列化途经点 (Numbered Stops)
- * - 路径发光效果
  * - 分段着色（路况/属性）
- * - 流动动画
  *
  * @example
  * ```tsx
@@ -150,8 +144,6 @@ export interface RouteLayerProps {
  *     { lng: 120.15, lat: 30.28, name: '西湖' },
  *     { lng: 120.17, lat: 30.25, name: '灵隐寺' },
  *   ]}
- *   animate
- *   glow
  * />
  * ```
  */
@@ -163,28 +155,27 @@ export function RouteLayer({
   onRouteQuery,
   onRouteResult,
   color = '#2563eb',
-  lineWidth = 4,
+  lineWidth = 3,
   opacity = 0.9,
-  glow = true,
-  animate = false,
-  animateSpeed = 1,
-  stopSize = 14,
+  stopSize = 8,
   stopColor,
   endColor = '#10b981',
   showStopIndex = true,
   showStopName = true,
   stopNameColor = '#334155',
   stopNameSize = 11,
-  stopRenderer = 'point',
+  stopRenderer = 'marker',
   stopMarkerVariant = 'circle',
   stopIconMap,
   stopIconField = 'iconValue',
   stopIconSize = 16,
   stopIconAnchor = 'bottom',
-  showStopPopup = true,
+  showStopPopup = false,
   activeColor = '#fbbf24',
   onPathClick,
   onStopClick,
+  zIndex,
+  ...rest
 }: RouteLayerProps) {
   // 交通路线查询结果
   const [routeQueryResult, setRouteQueryResult] = useState<RouteQueryResult | null>(null);
@@ -249,7 +240,7 @@ export function RouteLayer({
     return null;
   }, [effectivePath, effectiveSegments, color, lineWidth]);
 
-  // 发光层 GeoJSON（同路径但宽度更大）
+  // 是否存在分段颜色（用于主路径分段色/宽渲染）
   const hasSegmentColors = effectiveSegments && effectiveSegments.some((s) => s.color);
 
   // 途经点数据（增加序号和类型）
@@ -262,8 +253,45 @@ export function RouteLayer({
     let merged = [...stops, ...extraStops];
 
     if (effectivePathForStops && effectivePathForStops.length >= 2) {
-      const [startLng, startLat] = effectivePathForStops[0];
-      const [endLng, endLat] = effectivePathForStops[effectivePathForStops.length - 1];
+      const startCoord = effectivePathForStops[0];
+      const endCoord = effectivePathForStops[effectivePathForStops.length - 1];
+      
+      // 防御性检查：确保坐标有效
+      if (!startCoord || !endCoord || startCoord.length < 2 || endCoord.length < 2) {
+        return merged.map((stop, idx) => ({
+          ...stop,
+          index: stop.index ?? idx + 1,
+          type: stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint'),
+          stopColor: (stop.type === 'end' || (!stop.type && idx === merged.length - 1))
+            ? endColor
+            : (stopColor ?? color),
+          iconValue: stop.icon ?? 'marker',
+          indexLabel: String(stop.index ?? idx + 1),
+          markerColorValue: stop.markerColor ?? resolveMarkerColor(stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint')),
+        }));
+      }
+      
+      const [startLng, startLat] = startCoord;
+      const [endLng, endLat] = endCoord;
+      
+      // 检查坐标值是否为有效数字
+      if (typeof startLng !== 'number' || typeof startLat !== 'number' || 
+          typeof endLng !== 'number' || typeof endLat !== 'number' ||
+          !isFinite(startLng) || !isFinite(startLat) || 
+          !isFinite(endLng) || !isFinite(endLat)) {
+        return merged.map((stop, idx) => ({
+          ...stop,
+          index: stop.index ?? idx + 1,
+          type: stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint'),
+          stopColor: (stop.type === 'end' || (!stop.type && idx === merged.length - 1))
+            ? endColor
+            : (stopColor ?? color),
+          iconValue: stop.icon ?? 'marker',
+          indexLabel: String(stop.index ?? idx + 1),
+          markerColorValue: stop.markerColor ?? resolveMarkerColor(stop.type ?? (idx === 0 ? 'start' : idx === merged.length - 1 ? 'end' : 'waypoint')),
+        }));
+      }
+      
       const hasStart = stops.some((s) => Math.abs(s.lng - startLng) < 1e-6 && Math.abs(s.lat - startLat) < 1e-6);
       const hasEnd = stops.some((s) => Math.abs(s.lng - endLng) < 1e-6 && Math.abs(s.lat - endLat) < 1e-6);
 
@@ -324,20 +352,6 @@ export function RouteLayer({
 
   return (
     <>
-      {/* 发光层（底层，更宽更透明） */}
-      {glow && (
-        <LineLayer
-          source={pathGeoJSON}
-          sourceType="geojson"
-          shape={lineShape}
-          color={hasSegmentColors ? undefined : color}
-          colorField={hasSegmentColors ? 'color' : undefined}
-          colorValues={hasSegmentColors ? effectiveSegments!.map((s) => s.color || color) : undefined}
-          size={lineWidth * 2.5}
-          style={{ opacity: 0.15 }}
-        />
-      )}
-
       {/* 主路径层 */}
       <LineLayer
         source={pathGeoJSON}
@@ -353,20 +367,6 @@ export function RouteLayer({
         active={activeColor ? { color: activeColor } : false}
         onClick={onPathClick}
       />
-
-      {/* 流动粒子层 — 白色半透明虚线沿路径流动，指示行驶方向 */}
-      {animate && (
-        <LineLayer
-          source={pathGeoJSON}
-          sourceType="geojson"
-          shape="line"
-          color="#ffffff"
-          size={Math.max(1.5, lineWidth * 0.5)}
-          style={{ opacity: 0.6, lineType: 'dash', lineDash: [8, 16] }}
-          animate={{ enable: true, speed: animateSpeed, duration: 1500 }}
-          zIndex={10}
-        />
-      )}
 
       {/* 途经点层 */}
       {stopsWithIndex.length > 0 && stopRenderer === 'point' && (
@@ -415,7 +415,7 @@ export function RouteLayer({
           size={stopNameSize}
           style={{
             textAnchor: 'top',
-            textOffset: [0, stopSize / 2 + 4],
+            textOffset: [0, -3 * stopSize],
             stroke: '#ffffff',
             strokeWidth: 2,
             fontWeight: '500',
@@ -454,7 +454,6 @@ export function RouteLayer({
           size={stopNameSize}
           style={{
             textAnchor: 'top',
-            textOffset: [0, (stopIconAnchor === 'bottom' ? stopIconSize : 0) + 14],
             stroke: '#ffffff',
             strokeWidth: 2,
             fontWeight: '500',
@@ -501,7 +500,7 @@ export function RouteLayer({
           size={stopNameSize}
           style={{
             textAnchor: 'top',
-            textOffset: [0, 18],
+            textOffset: [0, -((MARKER_SIZE_CONFIG[stopMarkerVariant]?.size ?? 18) / 2 + 4)],
             stroke: '#ffffff',
             strokeWidth: 2,
             fontWeight: '500',
@@ -534,6 +533,14 @@ function resolveMarkerColor(type: RouteStop['type']): MarkerColor {
   }
 }
 
+/** Marker 内容尺寸配置 */
+const MARKER_SIZE_CONFIG: Record<string, { size: number; fontSize: number }> = {
+  circle: { size: 18, fontSize: 12 },
+  dot: { size: 18, fontSize: 10 },
+  pin: { size: 24, fontSize: 11 },
+  icon: { size: 24, fontSize: 11 },
+};
+
 function createMarkerStopContent(
   indexLabel: string,
   fill: string,
@@ -543,25 +550,23 @@ function createMarkerStopContent(
   if (!showStopIndex) return undefined;
   if (variant !== 'circle' && variant !== 'dot') return undefined;
 
-  const size = variant === 'circle' ? 24 : 18;
-  const fontSize = variant === 'circle' ? 11 : 10;
+  const config = MARKER_SIZE_CONFIG[variant];
 
   return (
     <div
       style={{
-        width: size,
-        height: size,
+        width: config.size,
+        height: config.size,
         borderRadius: '9999px',
-        border: '2px solid #ffffff',
+        border: '1.5px solid #ffffff',
         background: fill,
         color: '#ffffff',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize,
+        fontSize: '10px',
         lineHeight: 1,
         fontWeight: 700,
-        boxShadow: '0 6px 12px rgba(0,0,0,0.14)',
       }}
     >
       {indexLabel}

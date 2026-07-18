@@ -26,6 +26,7 @@ const demoRoutes: Array<{ file: string; name: string; group: string; description
   { file: 'app/InterestMap', name: 'InterestMap 兴趣地图', group: '应用模板', description: '兴趣点标注地图' },
   { file: 'app/FlightRouteMap', name: 'FlightRouteMap 航线地图', group: '应用模板', description: '航班飞行路线可视化' },
   { file: 'app/DarkThemeMap', name: 'DarkThemeMap 暗色主题', group: '应用模板', description: '暗色主题地图模板' },
+  { file: 'app/TyphoonMap', name: 'TyphoonMap 台风地图', group: '应用模板', description: '台风路径与风圈可视化（数据来源：浙江水利）' },
   // 复合图层
   { file: 'composite/BubbleLayer', name: 'BubbleLayer 气泡图', group: '复合图层', description: '数据驱动的气泡标注可视化' },
   { file: 'composite/IconLabel', name: 'IconLabel 图片标注', group: '复合图层', description: '自定义图片标注图层' },

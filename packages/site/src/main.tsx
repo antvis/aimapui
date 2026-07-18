@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import { marked } from 'marked';
 import '../../core/src/styles/tailwind.css';
 import HomePage from './home/HomePage';
-import DesignPage from './home/DesignPage';
 import NavBar from './home/NavBar';
 import DocsPage from './docs/DocsPage';
 import BlockPage from './home/BlockPage';
@@ -51,6 +50,10 @@ import PcApp from './app/PcApp';
 import ImmersiveTravelMap from './app/ImmersiveTravelMap';
 import InterestMap from './app/InterestMap';
 import FlightRouteMap from './app/FlightRouteMap';
+import TyphoonMap from './app/typhoon';
+import GoogleMapsMobileDemo from './app/GoogleMapsMobileDemo';
+import AppleMapsDemo from './app/AppleMapsDemo';
+import HangzhouTravelMap from './app/HangzhouTravelMap';
 
 // ── 复合图层 ──
 import BubbleLayer from './composite/BubbleLayer';
@@ -103,19 +106,7 @@ import MobileToolbarDemo from './app/MobileToolbarDemo';
 import MobileSheetLegendDemo from './app/MobileSheetLegendDemo';
 
 const sourceModules = import.meta.glob(
-  ['./{engine,control,marker,layer,composite,app}/*.tsx', './{engine,control,marker,layer,composite,app}/*.md'],
-  { query: '?raw', eager: true }
-) as Record<string, { default: string }>;
-
-// 设计规范文档 — 从 src/design/ 子目录加载 (.md + .html)
-// 注意：src/design 是指向 ../../core/src/design 的软链接（vite import.meta.glob 不支持跨 package 路径）
-const designMdModules = import.meta.glob(
-  './design/{app,composite,marker,control,layer,block}/*.md',
-  { query: '?raw', eager: true }
-) as Record<string, { default: string }>;
-
-const designHtmlModules = import.meta.glob(
-  './design/{app,composite,marker,control,layer,block}/*.html',
+  ['./{engine,control,marker,layer,composite,app,app/typhoon,app/typhoon/hooks}/*.tsx', './{engine,control,marker,layer,composite,app,app/typhoon,app/typhoon/hooks}/*.md'],
   { query: '?raw', eager: true }
 ) as Record<string, { default: string }>;
 
@@ -150,86 +141,6 @@ for (const [path, mod] of Object.entries(skillMdModules)) {
   }
 }
 
-// 解析设计规范文件列表（按目录分组）
-const designNameMap: Record<string, string> = {
-  'bubble-map': '气泡图',
-  'choropleth-map': '分级统计图',
-  'marker-cluster': '标注聚合',
-  'popup': '弹出框',
-  'tooltip': '轻提示',
-  'map-controls': '地图控件',
-  'path-route-map': '路径与轨迹',
-  'arc-flow-map': '弧线与流向',
-  'hexbin-map': '蜂窝热力图',
-  'mobile-app': '移动端应用',
-  'pc-app': 'PC 端应用',
-  'large-screen': '大屏指挥中心',
-  'legend': '地图图例',
-  'icon-layer': '图片标注图层',
-  'icon-font-layer': '字体图标图层',
-  'immersive-travel-map': '沉浸式旅游足迹地图',
-  'administrative-layer': '行政区划',
-  'hierarchy-layout': '控件层级布局',
-  'text-layer': '文本图层',
-  'advanced-route-map': '路径地图',
-  'geometric-point-map': '点图层',
-  'raster-layer': '栅格图层',
-  'block-layout': 'Block 布局设计',
-};
-const designIconMap: Record<string, string> = {
-  'bubble-map': 'bubble_chart',
-  'choropleth-map': 'map',
-  'marker-cluster': 'scatter_plot',
-  'popup': 'chat_bubble',
-  'tooltip': 'info',
-  'map-controls': 'tune',
-  'path-route-map': 'route',
-  'arc-flow-map': 'south_east',
-  'hexbin-map': 'hexagon',
-  'mobile-app': 'smartphone',
-  'pc-app': 'desktop_windows',
-  'large-screen': 'monitor',
-  'legend': 'label',
-  'icon-layer': 'image',
-  'icon-font-layer': 'font_download',
-  'immersive-travel-map': 'photo_camera',
-  'administrative-layer': 'public',
-  'hierarchy-layout': 'layers',
-  'text-layer': 'text_fields',
-  'advanced-route-map': 'route',
-  'geometric-point-map': 'location_on',
-  'raster-layer': 'grid_on',
-  'block-layout': 'view_comfy',
-};
-// 目录名 → 中文分组名（与 demo 分组一致）
-const designCategoryMap: Record<string, string> = {
-  app: '应用模板',
-  composite: '复合图层',
-  marker: '点位标注',
-  control: '控件',
-  engine: '地图引擎',
-  layer: '基础图层',
-  block: '应用模板',
-};
-
-const designDocs = Object.entries(designMdModules).map(([path, mod]) => {
-  const parts = path.split('/');
-  const dirName = parts[parts.length - 2] ?? '';  // 子目录名，如 app / composite / marker / control / layer
-  const filename = parts.pop()?.replace('.md', '') ?? '';
-  const htmlPath = path.replace('.md', '.html');
-  const htmlContent = designHtmlModules[htmlPath]?.default ?? '';
-  return {
-    id: filename,
-    name: designNameMap[filename] || filename,
-    icon: designIconMap[filename] || 'description',
-    group: designCategoryMap[dirName] || dirName,
-    content: mod.default,
-    htmlDemo: htmlContent,
-  };
-});
-
-const designGroups = [...new Set(designDocs.map((d) => d.group))];
-
 // ── Markdown → HTML 转换器（基于 marked，输出使用 CSS 类名以适配亮/暗主题） ──
 function markdownToHtml(md: string): string {
   const renderer = new marked.Renderer();
@@ -253,6 +164,10 @@ const demos = [
   { name: 'ImmersiveTravelMap', icon: 'photo_camera', component: ImmersiveTravelMap, group: 'App Templates', file: 'app/ImmersiveTravelMap', device: 'desktop' },
   { name: 'InterestMap', icon: 'interests', component: InterestMap, group: 'App Templates', file: 'app/InterestMap', device: 'mobile' },
   { name: 'FlightRouteMap', icon: 'flight', component: FlightRouteMap, group: 'App Templates', file: 'app/FlightRouteMap', device: 'mobile' },
+  { name: 'TyphoonMap', icon: 'cyclone', component: TyphoonMap, group: 'App Templates', file: 'app/typhoon/TyphoonMap', device: 'both' },
+  { name: 'GoogleMapsMobile', icon: 'map', component: GoogleMapsMobileDemo, group: 'App Templates', file: 'app/GoogleMapsMobileDemo', device: 'mobile' },
+  { name: 'AppleMaps', icon: 'map', component: AppleMapsDemo, group: 'App Templates', file: 'app/AppleMapsDemo', device: 'mobile' },
+  { name: 'HangzhouTravelMap', icon: 'travel_explore', component: HangzhouTravelMap, group: 'App Templates', file: 'app/HangzhouTravelMap', device: 'mobile' },
 
 
   // ── Point Markers ──────────────────────────────
@@ -349,7 +264,7 @@ const groups = [...new Set(componentDemos.map((d) => d.group))];
 const blockDemos = demos.filter(d => d.group === 'App Templates');
 
 // 从 URL 获取当前页面状态（支持 path 和 hash 两种模式）
-const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design' | 'skill'; demoIndex: number } => {
+const getPageFromUrl = (): { page: 'home' | 'demo' | 'docs' | 'block' | 'skill'; demoIndex: number } => {
   // 优先读 pathname（预渲染 SEO 模式），fallback 到 hash（开发兼容）
   const pathname = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
   const hash = window.location.hash.slice(1);
@@ -357,16 +272,6 @@ const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block'
 
   if (!route || route === 'home' || route === 'index.html') return { page: 'home', demoIndex: 0 };
   if (route === 'block' || route === 'block/') return { page: 'block', demoIndex: 0 };
-  if (route === 'block-design' || route.startsWith('block-design/')) {
-    const designId = route.replace(/^block-design\/?/, '');
-    const designIndex = designId ? designDocs.findIndex((d) => d.id === designId) : 0;
-    return { page: 'block-design', demoIndex: designIndex >= 0 ? designIndex : 0 };
-  }
-  if (route === 'design' || route.startsWith('design/')) {
-    const designId = route.replace(/^design\/?/, '');
-    const designIndex = designId ? designDocs.findIndex((d) => d.id === designId) : 0;
-    return { page: 'design', demoIndex: designIndex >= 0 ? designIndex : 0 };
-  }
   if (route === 'docs' || route.startsWith('docs/')) return { page: 'docs', demoIndex: 0 };
   if (route === 'skill' || route === 'skill/') return { page: 'skill', demoIndex: 0 };
 
@@ -389,7 +294,7 @@ const getPageFromUrl = (): { page: 'home' | 'demo' | 'design' | 'docs' | 'block'
 };
 
 function App() {
-  const [currentPage, setCurrentPage] = React.useState<'home' | 'demo' | 'design' | 'docs' | 'block' | 'block-design' | 'skill'>(() => getPageFromUrl().page);
+  const [currentPage, setCurrentPage] = React.useState<'home' | 'demo' | 'docs' | 'block' | 'skill'>(() => getPageFromUrl().page);
   const [current, setCurrent] = React.useState(() => getPageFromUrl().demoIndex);
   const [showPanel, setShowPanel] = React.useState(false);
   // 全局 UI 主题
@@ -507,7 +412,7 @@ function App() {
           onDocChange={(docId: string) => navigateTo(`design/${docId}`)}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(13); navigateTo('demo/' + demos[13].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
@@ -527,36 +432,12 @@ function App() {
           sourceModules={sourceModules}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(13); navigateTo('demo/' + demos[13].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
-          onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
           initialDemoIndex={current}
           onDemoChange={(idx) => { setCurrent(idx); navigateTo('block/' + blockDemos[idx].file); }}
-        />
-      </div>
-    );
-  }
-
-  // Block-design 页面渲染（带 HTML Demo 的设计规范风格）
-  if (currentPage === 'block-design') {
-    return (
-      <div data-theme={appTheme} style={{ width: '100%', height: '100%', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-        <BlockDemoPage
-          docs={designDocs}
-          groups={designGroups}
-          theme={appTheme}
-          initialDocIndex={current}
-          onDocChange={(docId: string) => navigateTo('block-design/' + docId)}
-          onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
-          onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
-          onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
-          onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
-          onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
-          onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
-          markdownToHtml={markdownToHtml}
         />
       </div>
     );
@@ -570,7 +451,7 @@ function App() {
           theme={appTheme}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(13); navigateTo('demo/' + demos[13].file); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}
           onNavigateSkill={() => { setCurrentPage('skill'); navigateTo('skill'); }}
@@ -590,7 +471,7 @@ function App() {
           theme={appTheme}
           onToggleTheme={() => setAppTheme((t) => t === 'light' ? 'dark' : 'light')}
           onNavigateHome={() => { setCurrentPage('home'); navigateTo(''); }}
-          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(7); navigateTo('demo/' + demos[7].file); }}
+          onNavigateDemo={() => { setCurrentPage('demo'); setCurrent(13); navigateTo('demo/' + demos[13].file); }}
           onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
           onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
           onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}

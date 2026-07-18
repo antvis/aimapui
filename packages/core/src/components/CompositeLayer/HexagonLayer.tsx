@@ -1,6 +1,7 @@
 import React from 'react';
 import type { LayerSchema, LayerEventPayload } from '../../schema/types';
 import { HeatmapLayer } from '../Layer/HeatmapLayer';
+import { getColorPalette, type ColorScheme } from '../../constants/colorPalettes';
 
 /**
  * 蜂窝热力图渲染模式
@@ -36,6 +37,9 @@ export interface HexagonLayerProps
   /** hover 高亮色，默认 '#fbbf24' (secondary) */
   activeColor?: string;
 
+  /** 色板预设，默认 'sequential'。用于生成 heatmap rampColors */
+  colorScheme?: ColorScheme;
+
   onClick?: (payload: LayerEventPayload) => void;
   onMouseMove?: (payload: LayerEventPayload) => void;
   onMouseEnter?: (payload: LayerEventPayload) => void;
@@ -62,8 +66,9 @@ export function HexagonLayer({
   showStroke = false,
   strokeColor = 'rgba(255,255,255,0.3)',
   strokeWidth = 0.5,
-  hoverEffect = true,
+  hoverEffect = false,
   activeColor = '#fbbf24',
+  colorScheme = 'sequential',
   onClick,
   onMouseMove,
   onMouseEnter,
@@ -84,9 +89,16 @@ export function HexagonLayer({
   const shape = mode === '3d' ? 'hexagonColumn' : 'hexagon';
 
   // 构建样式配置
+  const palette = getColorPalette(colorScheme);
+  const rampColors: Record<number, string> = {};
+  palette.forEach((c, i) => {
+    rampColors[i / (palette.length - 1)] = c;
+  });
+
   const resolvedStyle: Record<string, unknown> = {
     coverage: 0.8,
     angle: 0,
+    rampColors,
     ...(style ?? {}),
   };
 
@@ -104,7 +116,7 @@ export function HexagonLayer({
       sourceConfig={{ ...sourceConfig, transforms }}
       shape={shape}
       style={resolvedStyle}
-      active={hoverEffect ? { color: activeColor } : undefined}
+      active={hoverEffect ? { color: activeColor, duration: 150 } : undefined}
       onClick={onClick}
       onMouseMove={onMouseMove}
       onMouseEnter={onMouseEnter}

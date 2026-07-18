@@ -60,8 +60,8 @@ export interface AnimateConfig {
   repeat?: number;
 }
 
-export type ActiveConfig = boolean | { color: string };
-export type SelectConfig = boolean | { color: string };
+export type ActiveConfig = boolean | { color: string; duration?: number };
+export type SelectConfig = boolean | { color: string; duration?: number };
 
 export interface LayerSchema {
   id?: string;
@@ -86,6 +86,8 @@ export interface LayerSchema {
   size?: number;
   sizeField?: string;
   sizeValues?: number[];
+  /** 连续数值尺寸范围 [min, max]，与 sizeField 配合使用 */
+  sizeRange?: [number, number];
 
   shape?: string;
   shapeField?: string;

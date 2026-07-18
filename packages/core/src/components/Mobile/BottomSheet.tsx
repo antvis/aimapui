@@ -221,7 +221,7 @@ export function BottomSheet({
         width: '100%',
         height: currentHeight,
         zIndex: 1000,
-        pointerEvents: 'auto',
+        pointerEvents: 'none',
         transition: isAnimating ? 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
         willChange: 'height',
         touchAction: 'none',
@@ -239,6 +239,7 @@ export function BottomSheet({
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          pointerEvents: 'auto',
         }}
       >
         {/* 拖拽手柄区域 */}

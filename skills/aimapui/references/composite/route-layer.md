@@ -1,13 +1,15 @@
 # RouteLayer — 路径地图
 
-序列化途经点 + 发光效果 + 分段着色 + 流动动画 + 多路径模式（直线/弧线/交通路线）。
+序列化途经点 + 分段着色 + 多路径模式（直线/弧线/交通路线）。
+
+> **停留点渲染：** 默认使用 `marker` 类型标注（`stopRenderer='marker'`），通过内置 `Marker` 组件渲染编号/语义色站点；仅在需要纯 L7 圆点或图片图标时再显式切换为 `point` / `icon`。
 
 ## Examples
 
 ```tsx
 import { RouteLayer } from '@antv/aimapui';
 
-// 基础用法：静态路径
+// 基础用法：静态路径（停留点默认 marker 标注）
 <RouteLayer
   path={[[120.15, 30.28], [120.17, 30.25], [120.20, 30.22]]}
   stops={[
@@ -16,8 +18,6 @@ import { RouteLayer } from '@antv/aimapui';
   ]}
   color="#2563eb"
   lineWidth={4}
-  glow={true}
-  animate={true}
   showStopIndex={true}
   endColor="#10b981"
   onPathClick={(p) => console.log(p)}
@@ -64,9 +64,6 @@ import { RouteLayer } from '@antv/aimapui';
 | `color` | `string` | `'#2563eb'` | 路径颜色 |
 | `lineWidth` | `number` | `4` | 路径宽度 |
 | `opacity` | `number` | `0.9` | 路径透明度 |
-| `glow` | `boolean` | `true` | 是否显示发光效果 |
-| `animate` | `boolean` | `false` | 是否启用流动动画 |
-| `animateSpeed` | `number` | `1` | 动画速度 |
 | `stopSize` | `number` | `14` | 途经点大小 |
 | `stopColor` | `string` | 跟随路径色 | 途经点颜色 |
 | `endColor` | `string` | `'#10b981'` | 终点颜色 |
@@ -74,13 +71,13 @@ import { RouteLayer } from '@antv/aimapui';
 | `showStopName` | `boolean` | `true` | 是否显示途经点名称 |
 | `stopNameColor` | `string` | `'#334155'` | 名称文字颜色 |
 | `stopNameSize` | `number` | `11` | 名称文字大小 |
-| `stopRenderer` | `'point' \| 'marker' \| 'icon'` | `'point'` | 停留点渲染模式 |
+| `stopRenderer` | `'point' \| 'marker' \| 'icon'` | `'marker'` | 停留点渲染模式（默认 marker，优先使用 marker 类型标注） |
 | `stopMarkerVariant` | `MarkerVariant` | `'circle'` | marker 模式下的默认变体 |
 | `stopIconMap` | `Record<string, string>` | — | icon 模式下的图标资源映射 |
 | `stopIconField` | `string` | `'iconValue'` | icon 模式下的图标字段名 |
 | `stopIconSize` | `number` | `16` | icon 模式下的图标尺寸 |
 | `stopIconAnchor` | `IconAnchor` | `'bottom'` | icon 模式下的图标锚点 |
-| `showStopPopup` | `boolean` | `true` | 点击途经点时是否显示 Popup |
+| `showStopPopup` | `boolean` | `false` | 点击途经点时是否显示 Popup |
 | `activeColor` | `string` | `'#fbbf24'` | hover 高亮色 |
 | `onPathClick` | `(payload) => void` | — | 路径点击回调 |
 | `onStopClick` | `(payload) => void` | — | 途经点点击回调 |

@@ -47,6 +47,7 @@ export function MapSceneRenderer({
     const dragRotate = mapConfig.gestureConfig?.dragRotate ?? true;
 
     try {
+      // 方式1: 通过 mapService.setMapStatus (L7 内部 API)
       const mapService = (targetScene as unknown as { mapService?: { setMapStatus?: (s: Record<string, boolean>) => void; map?: any } }).mapService;
       if (mapService && typeof mapService.setMapStatus === 'function') {
         mapService.setMapStatus({
@@ -55,6 +56,20 @@ export function MapSceneRenderer({
           rotateEnable: dragRotate,
           doubleClickZoom: pinchZoom,
         });
+      }
+
+      // 方式2: 直接操作 L7 Scene 的交互控制器 (更可靠)
+      const interactionService = (targetScene as unknown as { interactionService?: any }).interactionService;
+      if (interactionService) {
+        if (typeof interactionService.enableDrag === 'function') {
+          dragPan ? interactionService.enableDrag() : interactionService.disableDrag();
+        }
+        if (typeof interactionService.enableZoom === 'function') {
+          pinchZoom ? interactionService.enableZoom() : interactionService.disableZoom();
+        }
+        if (typeof interactionService.enableRotate === 'function') {
+          dragRotate ? interactionService.enableRotate() : interactionService.disableRotate();
+        }
       }
 
       // Google Maps: setMapStatus 会重新打开原生 zoomControl，

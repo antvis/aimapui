@@ -360,7 +360,7 @@ export default function FootprintMap() {
         <div style={{
           position: 'absolute',
           bottom: 98, left: 16, right: 16,
-          zIndex: 40,
+          zIndex: 1000,
           transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
         }}>
           <div style={{
@@ -422,7 +422,7 @@ export default function FootprintMap() {
       {/* ═══════ 默认底部信息卡（未选中时显示） ═══════ */}
       {!selectedSpot && (
         <div style={{
-          position: 'absolute', bottom: 98, left: 16, right: 16, zIndex: 40,
+          position: 'absolute', bottom: 98, left: 16, right: 16, zIndex: 1000,
         }}>
           <div style={{
             padding: 16,

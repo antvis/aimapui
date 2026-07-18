@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useMapControl, type ControlPosition } from '../../hooks/useMapControl';
 import { usePopperPosition } from '../../hooks/usePopperPosition';
 import { useControlContainer, ControlRegistry } from './ControlContainer';
@@ -71,9 +71,15 @@ export function MapThemeControl({
   const { mapsService, positionClassName } = useMapControl(position);
   const isInContainer = useControlContainer();
   const [open, setOpen] = useState(false);
-  const [currentValue, setCurrentValue] = useState<string>(defaultValue ?? '');
+  const [currentValue, setCurrentValue] = useState<string>(defaultValue ?? 'dark');
   const [options, setOptions] = useState<ThemeOption[]>(propOptions ?? []);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 根据当前地图样式值判断是否为暗色主题
+  const isDarkTheme = useMemo(() => {
+    const darkKeywords = ['dark', 'darkblue', 'night', 'black'];
+    return darkKeywords.some((keyword) => currentValue.toLowerCase().includes(keyword));
+  }, [currentValue]);
 
   const { popperRef, popperClass } = usePopperPosition(position, open, containerRef);
 
@@ -164,8 +170,15 @@ export function MapThemeControl({
         <span className="material-symbols-outlined">palette</span>
       </button>
       {open && options.length > 0 && (
-        <div ref={popperRef} className={`l7-popper ${popperClass}`}>
-          <div className="l7-popper-content l7-theme-panel">
+        <div ref={popperRef} className={`l7-popper ${popperClass}`} data-theme={isDarkTheme ? 'dark' : 'light'} style={{ zIndex: 10001 }}>
+          <div
+            className="l7-popper-content l7-theme-panel"
+            style={isDarkTheme ? {
+              background: 'rgba(22, 32, 48, 0.95)',
+              borderColor: 'rgba(180, 197, 255, 0.08)',
+              color: '#e2e8f0',
+            } : undefined}
+          >
             <div className="l7-theme-chips">
               {options.map((opt) => {
                 const isActive = currentValue === opt.value;
@@ -176,12 +189,19 @@ export function MapThemeControl({
                     className={`l7-theme-chip${isActive ? ' l7-theme-chip--active' : ''}`}
                     onClick={() => handleSelect(opt.value)}
                     title={opt.text}
+                    style={isDarkTheme ? {
+                      background: isActive ? 'rgba(34, 211, 238, 0.15)' : '#1e2c3e',
+                      borderColor: isActive ? '#22d3ee' : 'rgba(180, 197, 255, 0.1)',
+                    } : undefined}
                   >
                     <span
                       className="l7-theme-chip__dot"
                       style={{ background: dotBg }}
                     />
-                    <span className="l7-theme-chip__label">{opt.text}</span>
+                    <span
+                      className="l7-theme-chip__label"
+                      style={isDarkTheme ? { color: '#e2e8f0' } : undefined}
+                    >{opt.text}</span>
                   </button>
                 );
               })}

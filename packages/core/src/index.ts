@@ -121,6 +121,8 @@ export { MarkerClusterLayer } from './components/CompositeLayer/MarkerClusterLay
 export type { MarkerClusterLayerProps } from './components/CompositeLayer/MarkerClusterLayer';
 export { FillLayer } from './components/CompositeLayer/FillLayer';
 export type { FillLayerProps } from './components/CompositeLayer/FillLayer';
+export { getColorPalette, SEQUENTIAL_COLORS, DIVERGING_COLORS, CATEGORICAL_COLORS } from './constants/colorPalettes';
+export type { ColorScheme } from './constants/colorPalettes';
 export { ChinaDistrict, ADMIN_SEQUENTIAL_COLORS, DEFAULT_PROVINCE_SOURCE, DEFAULT_CITY_SOURCE, DEFAULT_DISTRICT_SOURCE } from './components/CompositeLayer/ChinaDistrict';
 export type { ChinaDistrictProps, ChinaDistrictHandle, AdministrativeLevel, DrillPathNode, BusinessDataItem } from './components/CompositeLayer/ChinaDistrict';
 export { GlyphLayer } from './components/CompositeLayer/GlyphLayer';
@@ -141,6 +143,8 @@ export type { H3LayerProps, H3DataItem } from './components/CompositeLayer/H3Lay
 // Control 组件
 export { ZoomControl } from './components/Control/ZoomControl';
 export type { ZoomControlProps } from './components/Control/ZoomControl';
+export { ResetViewControl } from './components/Control/ResetViewControl';
+export type { ResetViewControlProps } from './components/Control/ResetViewControl';
 export { ScaleControl } from './components/Control/ScaleControl';
 export type { ScaleControlProps } from './components/Control/ScaleControl';
 export { FullscreenControl } from './components/Control/FullscreenControl';

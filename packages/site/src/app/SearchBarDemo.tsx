@@ -26,7 +26,7 @@ export default function SearchBarDemo() {
           top: 16,
           left: 16,
           right: 16,
-          zIndex: 10,
+          zIndex: 1000,
         }}
       >
         <SearchBar

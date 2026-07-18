@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useScene } from '../../context/SceneContext';
 import { useMapPosition } from '../../hooks/useMapPosition';
+import { useTheme } from '../../context/ThemeContext';
 import { cx } from '../../utils/style';
 import type { PopupSchema } from '../../schema/types';
 
@@ -78,6 +79,14 @@ export interface PopupProps extends Omit<PopupSchema, 'type' | 'content'> {
   placement?: PopupPlacement;
   /** 弹出框偏移量（像素），默认 8px，正数远离锚点 */
   offset?: number;
+  /**
+   * 布局预设 — 快速选择信息排布方式，自动映射到 size + 内部样式
+   * - simple:    纯文本/HTML，compact 尺寸
+   * - card:      标题 + 属性列表，standard 尺寸
+   * - rich:      封面图 + 标题 + 属性 + 操作按钮，detailed 尺寸
+   * 传入后仍可被 size/header/attributes/actions 单独覆盖
+   */
+  layout?: 'simple' | 'card' | 'rich';
   /** 结构化标题栏（可选，传入后覆盖简单内容模式） */
   header?: PopupHeader;
   /** 属性列表（可选，"标签-值"对齐模式） */
@@ -228,9 +237,9 @@ function PopupTip({ placement }: { placement: 'top' | 'bottom' | 'left' | 'right
   const viewBox = isVertical ? '0 0 16 8' : '0 0 8 16';
   const path = ARROW_PATHS[placement];
 
-  // 颜色与容器保持一致
-  const fillColor = 'rgba(248, 249, 255, 0.95)';
-  const strokeColor = 'rgba(195, 198, 215, 0.3)';
+  // 颜色与容器保持一致（使用 CSS 变量支持主题切换）
+  const fillColor = 'var(--color-surface)';
+  const strokeColor = 'var(--color-outline-variant)';
 
   return (
     <div className={`aimapui-popup-tip-arrow aimapui-popup-tip-arrow--${placement === 'top' ? 'bottom' : placement === 'bottom' ? 'top' : placement}`}>
@@ -385,9 +394,10 @@ export function Popup({
   latitude,
   content,
   closeButton = true,
-  size = 'standard',
+  size: sizeProp,
   placement: placementProp = 'auto',
   offset = 8,
+  layout,
   header,
   attributes,
   actions,
@@ -397,7 +407,11 @@ export function Popup({
   onClose,
   className,
 }: PopupProps) {
+  // layout 预设自动映射 size
+  const resolvedSize = sizeProp ?? (layout === 'simple' ? 'compact' : layout === 'rich' ? 'detailed' : 'standard');
+  const size = resolvedSize;
   const scene = useScene();
+  const { resolvedTheme } = useTheme();
   // 如果传入了 visibleProp，则为受控模式；否则内部管理
   const isControlled = visibleProp !== undefined;
   const [internalVisible, setInternalVisible] = useState(true);
@@ -590,34 +604,17 @@ export function Popup({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [visible, handleClose]);
 
-  // ── 点击地图空白处关闭 ──
+  // ── 点击地图空白处关闭（L7 unclick） ──
   useEffect(() => {
-    if (!visible || !container) return;
-    const handleMapClick = (e: MouseEvent) => {
-      const el = popupRef.current;
-      if (!el) return;
-      // 如果点击目标是 Popup 元素内部，不关闭
-      if (el.contains(e.target as Node)) return;
-      // 如果点击目标是 Marker 相关元素，不关闭（由 Marker 的 onClick 处理）
-      const target = e.target as HTMLElement;
-      if (target.closest('.aimapui-marker') || target.closest('[data-marker]')) return;
-      // 点击地图空白区域，关闭 Popup
+    if (!visible || !scene) return;
+    const handleUnclick = () => {
       handleClose();
     };
-
-    // 获取地图容器并监听点击事件
-    let mapContainer: HTMLElement | null = null;
-    try {
-      const mapsService = (scene as any)?.mapService;
-      if (mapsService) {
-        mapContainer = mapsService.getContainer?.() as HTMLElement;
-      }
-    } catch { /* 降级 */ }
-
-    const targetEl = mapContainer || container.parentElement || container;
-    targetEl.addEventListener('click', handleMapClick, true);
-    return () => targetEl.removeEventListener('click', handleMapClick, true);
-  }, [visible, container, scene, handleClose]);
+    scene.on('unclick', handleUnclick);
+    return () => {
+      scene.off('unclick', handleUnclick);
+    };
+  }, [visible, scene, handleClose]);
 
   // 高性能位置更新 — 地图交互时持续同步（复用 applyPositionRef，避免逻辑漂移）
   useMapPosition(scene, longitude, latitude, (x, y) => {
@@ -710,6 +707,7 @@ export function Popup({
     <div
       ref={popupRef}
       className={cx('aimapui-popup', `aimapui-popup--${size}`)}
+      data-theme={resolvedTheme}
       style={{
         position: 'absolute',
         left: 0,
@@ -717,7 +715,7 @@ export function Popup({
         transform: 'translate(-9999px, -9999px)',
         // 初始隐藏，等待 applyPosition 计算后再显示，避免 (-9999,-9999) 闪烁
         display: 'none',
-        zIndex: 30,
+        zIndex: 10000,
         pointerEvents: 'auto',
         ...wrapperStyle,
       }}

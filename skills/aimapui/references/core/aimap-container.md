@@ -96,7 +96,7 @@ import { AiMap } from '@antv/aimapui';
 当项目已安装 L7 底图引擎，或需要跳过动态 import（SSR、微前端等）时，可通过 `engine` 直接传入引擎构造函数：
 
 ```tsx
-import { GaodeMap } from '@antv/l7-maps/gaode';
+import { GaodeMap } from '@antv/l7';
 
 <AiMap map={{ engine: GaodeMap, center: [116, 39], zoom: 10 }}>
   <PointLayer source={data} />
@@ -130,6 +130,61 @@ AiMap 内部创建了 5 个 Context：
 - **ResponsiveContext** — 响应式断点
 
 子组件通过 `useScene()` / `useEventBus()` / `useResponsive()` 等 Hook 获取。
+
+## Scene 操作方法
+
+通过 `onSceneReady` 回调或 `useScene()` Hook 拿到 L7 的 `Scene` 实例后，即可编程式控制地图视角。
+
+```tsx
+import { AiMap, useScene } from '@antv/aimapui';
+import type { Scene } from '@antv/l7';  // Scene 类型由 @antv/l7 提供，aimapui 未 re-export
+
+// 方式一：回调
+<AiMap map={{ basemap: 'gaode' }} onSceneReady={(scene: Scene) => {
+  // scene 即 L7 Scene 实例
+}} />
+
+// 方式二：子组件内 Hook
+function MyController() {
+  const scene = useScene();
+  if (!scene) return null;
+  return <button onClick={() => scene.zoomIn()}>放大</button>;
+}
+```
+
+### 可用方法（L7 Scene 通用，跨底图引擎均支持）
+
+| 方法 | 说明 |
+|------|------|
+| `setCenter([lng, lat], opts?)` | 设置中心点 |
+| `setZoom(zoom)` / `zoomIn()` / `zoomOut()` | 缩放 |
+| `setPitch(pitch)` | 俯仰角 |
+| `setRotation(rotation)` | 旋转角 |
+| `setZoomAndCenter(zoom, [lng, lat])` | 同时设置缩放与中心点（定点飞行推荐） |
+| `fitBounds([[minLng,minLat],[maxLng,maxLat]], opts?)` | 适配到边界矩形 |
+| `panTo([lng, lat])` / `panBy(x, y)` | 平移 |
+| `getCenter()` / `getZoom()` / `getPitch()` / `getRotation()` / `getBounds()` | 读取当前视角 |
+| `setMapStyle(style)` / `setMapStatus(opts)` | 切换底图样式 / 地图状态 |
+| `addLayer(layer)` / `removeLayer(layer)` | 图层增删（通常由图层组件托管，无需手动调） |
+| `lngLatToPixel` / `pixelToLngLat` / `containerToLngLat` / `lngLatToContainer` | 坐标互转 |
+
+### ⚠️ 不存在的方法
+
+L7 的 `Scene` 是统一抽象层，**没有** `flyTo`、`easeTo`、`jumpTo` 等 mapbox / maplibre 原生 `Map` 实例方法。直接调用会报 `TypeError: scene.flyTo is not a function`。
+
+```ts
+// ❌ 错误 — L7 Scene 没有 flyTo
+scene.flyTo({ center: [120, 30], zoom: 14 });
+
+// ✅ 正确一 — setZoomAndCenter（一行搞定定点缩放，跨引擎通用）
+scene.setZoomAndCenter(14, [120, 30]);
+
+// ✅ 正确二 — setCenter + setZoom 组合
+scene.setCenter([120, 30]);
+scene.setZoom(14);
+```
+
+> 如需"打开即看到全部数据"，优先用 `<AiMap autoFit>`（内部自动 `fitBounds`），无需手动操作 Scene。
 
 ## 事件 Payload
 

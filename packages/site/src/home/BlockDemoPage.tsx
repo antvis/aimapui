@@ -20,7 +20,6 @@ interface BlockDemoPageProps {
   onNavigateHome: () => void;
   onNavigateDemo: () => void;
   onNavigateDocs: () => void;
-  onNavigateDesign: () => void;
   onNavigateBlock: () => void;
   onNavigateSkill?: () => void;
   markdownToHtml: (md: string) => string;

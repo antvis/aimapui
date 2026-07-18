@@ -60,6 +60,13 @@ export interface IconLayerProps extends Omit<LayerSchema, 'type' | 'source' | 's
   onClick?: (payload: LayerEventPayload) => void;
   onMouseEnter?: (payload: LayerEventPayload) => void;
   onMouseLeave?: (payload: LayerEventPayload) => void;
+
+  /**
+   * 定位精度模式
+   * - precise: 精确地址，使用尖头 pin 图标（默认）
+   * - general: 模糊区域，使用圆形标记，避免误导用户以为精确定位
+   */
+  accuracy?: 'precise' | 'general';
 }
 
 /**
@@ -98,6 +105,7 @@ export function IconLayer({
   onClick,
   onMouseEnter,
   onMouseLeave,
+  accuracy = 'precise',
   ...rest
 }: IconLayerProps) {
   const scene = useScene();
@@ -107,6 +115,9 @@ export function IconLayer({
   const iconKeys = useMemo(() => Object.keys(iconMap), [iconMap]);
   const resolvedIconSize = size ?? iconSize;
   const resolvedLabelField = labelField ?? iconField;
+  // general 模式下使用居中锚点 + 圆形标记
+  const isGeneralMode = accuracy === 'general';
+  const effectiveIconAnchor = isGeneralMode ? 'center' : iconAnchor;
 
   // 注册图片资源
   useEffect(() => {
@@ -158,21 +169,26 @@ export function IconLayer({
         source={source}
         sourceType={sourceType}
         sourceConfig={sourceConfig}
-        shapeField={iconField}
-        shapeValues={iconKeys}
+        {...(isGeneralMode
+          ? { shape: 'circle', color: rest.color ?? '#3b82f6' }
+          : { shapeField: iconField, shapeValues: iconKeys })}
         size={resolvedIconSize}
         style={{
           ...((rest.style as Record<string, unknown>) ?? {}),
-          anchor: iconAnchor,
+          anchor: effectiveIconAnchor,
           allowOverlap: iconAllowOverlap,
-          // 图标白色描边 (Halo) 增强复杂底图辨识度
-          stroke: '#ffffff',
-          strokeWidth: 1,
-          // 轻微阴影提供物理悬浮感
-          shadowColor: 'rgba(0,0,0,0.2)',
-          shadowBlur: 4,
-          shadowOffsetX: 0,
-          shadowOffsetY: 2,
+          ...(isGeneralMode
+            ? { opacity: 0.7, stroke: '#ffffff', strokeWidth: 1.5 }
+            : {
+                // 图标白色描边 (Halo) 增强复杂底图辨识度
+                stroke: '#ffffff',
+                strokeWidth: 1,
+                // 轻微阴影提供物理悬浮感
+                shadowColor: 'rgba(0,0,0,0.2)',
+                shadowBlur: 4,
+                shadowOffsetX: 0,
+                shadowOffsetY: 2,
+              }),
         }}
         onClick={onClick}
         onMouseEnter={onMouseEnter}

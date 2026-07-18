@@ -12,9 +12,9 @@ AiMapUI 提供两种使用方式，按需选择：
 ### 方式一：npm 包安装（推荐）
 
 ```bash
-npm install @antv/aimapui @antv/l7 @antv/l7-maps material-symbols
+npm install @antv/aimapui @antv/l7 material-symbols
 # 或
-pnpm add @antv/aimapui @antv/l7 @antv/l7-maps material-symbols
+pnpm add @antv/aimapui @antv/l7 material-symbols
 ```
 
 安装完成后，在入口文件引入样式（图标字体已通过 CDN 内置，无需额外安装）：
@@ -70,7 +70,7 @@ npx aimapui init -y
 CLI 模式下，**仍需手动安装 L7 引擎和外设依赖**（CLI 只负责拷贝组件源码）：
 
 ```bash
-pnpm add @antv/l7 @antv/l7-maps react react-dom clsx
+pnpm add @antv/l7 react react-dom clsx
 ```
 
 #### 3. 添加组件
@@ -165,7 +165,7 @@ AiMapUI 支持两种底图加载方式：
 如果你的项目已经安装了 L7 底图引擎，或者需要跳过动态 import（如 SSR、微前端、构建工具兼容性等场景），可以通过 `engine` 直接传入地图引擎构造函数：
 
 ```tsx
-import { GaodeMap } from '@antv/l7-maps/gaode';
+import { GaodeMap } from '@antv/l7';
 
 <AiMap map={{ engine: GaodeMap, center: [116, 39], zoom: 10 }} />
 ```

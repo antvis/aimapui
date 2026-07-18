@@ -2,6 +2,8 @@
 
 复合图层是基于基础图层组合的高级业务组件，内置设计规范和最佳实践。
 
+> **所有可视化图层必须从 `@antv/aimapui` 引入**，禁止直接使用 `@antv/l7` 原生图层类。基础图层与 L7 同名的重名陷阱详见 [基础图层文档](../layers/index.md) 的 ⚠️ 小节。
+
 ## Available Layers
 
 | Layer | File | Description |

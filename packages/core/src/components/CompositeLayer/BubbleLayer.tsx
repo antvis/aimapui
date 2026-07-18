@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { ActiveConfig, LayerSchema, SelectConfig, LayerEventPayload } from '../../schema/types';
 import { PointLayer } from '../Layer/PointLayer';
+import { getColorPalette, type ColorScheme } from '../../constants/colorPalettes';
 
 export const BUBBLE_SIZE_LEVELS = [8, 16, 32, 48, 64] as const;
 
@@ -36,6 +37,8 @@ export interface BubbleLayerProps extends Omit<LayerSchema, 'type' | 'source' | 
   labelOffset?: [number, number];
   /** sizeField 为离散值时，对应每个 sizeValues 的域值顺序（默认 1..N） */
   sizeDomain?: Array<string | number>;
+  /** 连续数值尺寸范围 [min, max]，与 sizeField 配合使用。提供时自动线性映射 */
+  sizeRange?: [number, number];
   /** 气泡锚点，决定标签相对气泡的连接参考点 */
   bubbleAnchor?: BubbleAnchor;
   /** 文本锚点，映射到 textAnchor */
@@ -54,6 +57,9 @@ export interface BubbleLayerProps extends Omit<LayerSchema, 'type' | 'source' | 
 
   /** 语义色板映射字段，例如 status: primary|warning|error|success */
   semanticColorField?: string;
+
+  /** 色板预设，默认 'categorical'。当无 semanticColorField 且无 colorValues 时使用 */
+  colorScheme?: ColorScheme;
 
   // ===== 事件回调 =====
   /** 点击事件 */
@@ -88,14 +94,16 @@ export function BubbleLayer({
   showLabel = true,
   labelOffset,
   sizeDomain,
+  sizeRange,
   bubbleAnchor = 'bottom',
   labelAnchor = 'top',
-  hoverEffect = true,
-  clickEffect = true,
-  tooltipEffect = true,
+  hoverEffect = false,
+  clickEffect = false,
+  tooltipEffect = false,
   tooltipFields,
   tooltipTemplate,
   semanticColorField,
+  colorScheme = 'categorical',
   color = '#2563eb',
   size = 16,
   sizeField,
@@ -119,14 +127,16 @@ export function BubbleLayer({
             BUBBLE_QUALITATIVE_COLORS.error,
             BUBBLE_QUALITATIVE_COLORS.success,
           ]
-        : undefined);
+        : mappedColorField
+          ? [...getColorPalette(colorScheme)]
+          : undefined);
 
   const mappedSizeValues = sizeField
-    ? (sizeValues ?? [...BUBBLE_SIZE_LEVELS])
+    ? (sizeValues ?? (sizeRange ? undefined : [...BUBBLE_SIZE_LEVELS]))
     : sizeValues;
 
-  const defaultActive: ActiveConfig = { color: '#60a5fa' };
-  const defaultSelect: SelectConfig = { color: '#1d4ed8' };
+  const defaultActive: ActiveConfig = { color: '#60a5fa', duration: 150 };
+  const defaultSelect: SelectConfig = { color: '#1d4ed8', duration: 150 };
 
   const resolvedEvents = (() => {
     const origin = rest.events;
@@ -150,7 +160,7 @@ export function BubbleLayer({
 
   // 气泡圆图层的 size 配置：当有 sizeField 时不传固定 size 避免冲突
   const bubbleSizeProps = sizeField
-    ? { sizeField, sizeValues: mappedSizeValues }
+    ? { sizeField, sizeValues: mappedSizeValues, ...(sizeRange ? { sizeRange } : {}) }
     : { size };
 
   return (
@@ -195,7 +205,7 @@ export function BubbleLayer({
           shapeValues="text"
           color={labelColor}
           size={labelSize}
-          zIndex={(rest.zIndex ?? 0) + 1}
+          zIndex={(rest.zIndex ?? 0) + 10}
           style={{
             textAnchor: labelAnchor,
             textOffset: labelOffset ?? [0, 0],

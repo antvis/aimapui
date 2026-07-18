@@ -1,9 +1,12 @@
 {
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --registry=https://registry.npmjs.org/",
   "buildCommand": "pnpm --filter @antv/aimapui-cli build && pnpm --filter @antv/aimapui-site build",
   "outputDirectory": "dist-site",
   "framework": null,
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }

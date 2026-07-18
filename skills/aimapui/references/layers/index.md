@@ -2,6 +2,40 @@
 
 基础图层是直接映射到 L7 底层图层类的原子组件，每个图层类型对应一种数据可视化形式。
 
+## ⚠️ 使用 aimapui 图层组件，不要绕过去直接调 L7 重新实现
+
+aimapui 已将 L7 可视化图层封装成**声明式 React 组件**：组件内部自动完成 `new` 图层类 → `scene.addLayer()` → 数据 source 绑定 → 视觉映射 → 卸载清理（`removeLayer`）→ `autoFit` / `EventBus` / 响应式 / schema 适配集成。**必须使用这些组件，禁止绕过 aimapui 直接 `new` L7 图层类 + `scene.addLayer()` 重新实现**——手动管理生命周期会丢失封装能力、易内存泄漏、与 `<AiMap>` 容器隔离。
+
+| 来源 | 本质 | API 风格 | 用法 |
+|------|------|---------|------|
+| `@antv/aimapui` ✅ | React 组件 | 声明式、schema 驱动 | `<PointLayer source={data} ... />`，作为 `<AiMap>` 子元素 |
+| `@antv/l7` ❌ | L7 原生图层类 | 命令式 `new PointLayer({...})` | 需手动 `scene.addLayer(layer)`，无法当 JSX 用 |
+
+**必须**从 aimapui 引入可视化图层组件：
+
+```tsx
+// ✅ 正确 — aimapui 封装的 React 组件：声明式、生命周期托管、自动接入 AiMap 的 Scene
+import { AiMap, PointLayer, LineLayer, PolygonLayer, HeatmapLayer, RasterLayer, ImageLayer } from '@antv/aimapui';
+
+<AiMap map={{ basemap: 'gaode' }} autoFit>
+  <PointLayer source={data} sourceConfig={{ x: 'lng', y: 'lat' }} color="#5B8FF9" size={8} shape="circle" />
+</AiMap>
+```
+
+```tsx
+// ❌ 错误 — 绕过 aimapui，直接拿 L7 原生图层类自己 new + addLayer 重新实现
+import { PointLayer } from '@antv/l7';            // 这是 L7 图层类，不是 React 组件
+const layer = new PointLayer({ source: data });   // 命令式，需自行管理生命周期
+scene.addLayer(layer);                            // 手动挂载，丢失 autoFit/EventBus/schema 等封装
+```
+
+**为什么不直接调 L7 重新实现：**
+- **重复造轮子**：aimapui 已封装 schema 集成（`adaptPointLayer` 等适配器）、`autoFit`、`EventBus`、响应式、生命周期托管、preview，自管 `addLayer`/`removeLayer` 等于重写这些
+- **生命周期隐患**：手动 `scene.addLayer()` 需自行在卸载时 `removeLayer`，遗漏即内存泄漏；aimapui 组件已自动处理
+- **易踩同名陷阱**：`PointLayer`/`LineLayer`/`PolygonLayer`/`HeatmapLayer`/`RasterLayer`/`ImageLayer` 这 6 个名字在 `@antv/aimapui`（组件）与 `@antv/l7`（图层类）中同时存在，`from '@antv/l7'` 就会拿到原生图层类、被迫重新实现
+
+> 唯一允许从 `@antv/l7` 引入的是**底图引擎构造函数**（`GaodeMap`/`Mapbox`/`TMap` 等）和 `Scene` 类型 —— 见 [basemap-factory.md](../core/basemap-factory.md)。
+
 ## 图层列表
 
 | Layer | 文档 | 默认 sourceType | 可用 Shape | 说明 |

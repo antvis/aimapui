@@ -13,6 +13,7 @@
 
 - [ControlPosition 类型](#controlposition-类型)
 - [ZoomControl — 缩放控件](#zoomcontrol--缩放控件)
+- [ResetViewControl — 重置视图](#resetviewcontrol--重置视图)
 - [ScaleControl — 比例尺](#scalecontrol--比例尺)
 - [FullscreenControl — 全屏控件](#fullscreencontrol--全屏控件)
 - [GeoLocateControl — 定位控件](#geolocatecontrol--定位控件)
@@ -63,6 +64,31 @@ import { ZoomControl } from '@antv/aimapui';
 | `zoomInTitle` | `string` | `'Zoom in'` | 放大按钮提示 |
 | `zoomOutTitle` | `string` | `'Zoom out'` | 缩小按钮提示 |
 | `showZoom` | `boolean` | `false` | 显示缩放级别数字 |
+
+## ScaleControl — 比例尺
+
+## ResetViewControl — 重置视图
+
+一键重置地图到初始视图（中心、缩放级别、旋转角、俯仰角）。
+
+默认位置：`bottomright`
+
+```tsx
+import { ResetViewControl } from '@antv/aimapui';
+
+<ResetViewControl
+  position="bottomright"
+  title="重置视图"
+  initialView={{ center: [121.4, 31.2], zoom: 12, pitch: 0, rotation: 0 }}
+/>
+```
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `position` | `ControlPosition` | `'bottomright'` | 控件位置 |
+| `icon` | `ReactNode` | Material `center_focus_strong` | 按钮图标 |
+| `title` | `string` | `'Reset view'` | 按钮提示 |
+| `initialView` | `{ center?, zoom?, pitch?, rotation? }` | — | 自定义初始视图，不传时使用地图创建时的值 |
 
 ## ScaleControl — 比例尺
 

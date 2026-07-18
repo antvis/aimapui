@@ -20,7 +20,7 @@ interface LayerAdapter {
   sourceConfig: { data: unknown; options?: Record<string, unknown> };
   visual: {
     color?: { field?: string; values?: string[] | string };
-    size?: { field?: string; values?: number[] | number };
+    size?: { field?: string; values?: number[] | number; range?: [number, number] };
     shape?: { field?: string; values?: string[] | string };
     style?: Record<string, unknown>;
   };
@@ -30,6 +30,8 @@ interface LayerAdapter {
 /** 图层事件回调集合 */
 export interface LayerEventHandlers {
   onClick?: (payload: LayerEventPayload) => void;
+  onDblclick?: (payload: LayerEventPayload) => void;
+  onUndblclick?: (payload: LayerEventPayload) => void;
   onMouseMove?: (payload: LayerEventPayload) => void;
   onMouseEnter?: (payload: LayerEventPayload) => void;
   onMouseLeave?: (payload: LayerEventPayload) => void;
@@ -101,7 +103,9 @@ function buildLayer(adapter: LayerAdapter, _scene: Scene): L7Layer {
   }
 
   if (sizeConfig) {
-    if (sizeConfig.field && sizeConfig.values) {
+    if (sizeConfig.field && sizeConfig.range) {
+      layer.size(sizeConfig.field, sizeConfig.range);
+    } else if (sizeConfig.field && sizeConfig.values) {
       layer.size(sizeConfig.field, sizeConfig.values);
     } else if (sizeConfig.values !== undefined) {
       layer.size(sizeConfig.values);
@@ -295,27 +299,39 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
       };
 
       const needsClick = Boolean(eventHandlersRef.current?.onClick || layerEvents?.click || (popupEnabled && popupTrigger === 'click'));
+      const needsDblclick = Boolean(eventHandlersRef.current?.onDblclick);
+      const needsUndblclick = Boolean(eventHandlersRef.current?.onUndblclick);
       const needsMouseMove = Boolean(eventHandlersRef.current?.onMouseMove || layerEvents?.mousemove || (popupEnabled && popupTrigger === 'hover'));
       const needsMouseEnter = Boolean(eventHandlersRef.current?.onMouseEnter || layerEvents?.mouseenter);
       const needsMouseLeave = Boolean(eventHandlersRef.current?.onMouseLeave || layerEvents?.mouseleave || (popupEnabled && popupTrigger === 'hover'));
 
-      // L7 click 事件
+      // L7 click 事件（普通单击，与 dblclick/undblclick 互斥）
       if (needsClick) {
         layer.on('click', (evt: unknown) => {
           const payload = extractLayerPayload(layerId, schema.type, evt);
-
-          // 1. 直接回调
           eventHandlersRef.current?.onClick?.(payload);
-
-          // 2. EventBus 广播（Schema 事件标识符）
           if (layerEvents?.click) {
             eventBus.emit(layerEvents.click, payload);
           }
-
-          // 3. 内置 Popup（click）
-          if (popupTrigger === 'click') {
+          if (popupEnabled && popupTrigger === 'click') {
             showPopup(payload);
           }
+        });
+      }
+
+      // L7 dblclick 事件（双击）
+      if (needsDblclick) {
+        layer.on('dblclick', (evt: unknown) => {
+          const payload = extractLayerPayload(layerId, schema.type, evt);
+          eventHandlersRef.current?.onDblclick?.(payload);
+        });
+      }
+
+      // L7 undblclick 事件（双击取消后的单击确认，与 click/dblclick 互斥）
+      if (needsUndblclick) {
+        layer.on('undblclick', (evt: unknown) => {
+          const payload = extractLayerPayload(layerId, schema.type, evt);
+          eventHandlersRef.current?.onUndblclick?.(payload);
         });
       }
 
@@ -324,12 +340,8 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
         layer.on('mousemove', (evt: unknown) => {
           const payload = extractLayerPayload(layerId, schema.type, evt);
           eventHandlersRef.current?.onMouseMove?.(payload);
-          if (popupTrigger === 'hover') {
-            showPopup(payload);
-          }
-          if (layerEvents?.mousemove) {
-            eventBus.emit(layerEvents.mousemove, payload);
-          }
+          if (popupTrigger === 'hover') showPopup(payload);
+          if (layerEvents?.mousemove) eventBus.emit(layerEvents.mousemove, payload);
         });
       }
 
@@ -349,15 +361,21 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
         layer.on('mouseleave', (evt: unknown) => {
           const payload = extractLayerPayload(layerId, schema.type, evt);
           eventHandlersRef.current?.onMouseLeave?.(payload);
-          if (popupTrigger === 'hover') {
-            hidePopup();
-          }
-          if (layerEvents?.mouseleave) {
-            eventBus.emit(layerEvents.mouseleave, payload);
-          }
+          if (popupTrigger === 'hover') hidePopup();
+          if (layerEvents?.mouseleave) eventBus.emit(layerEvents.mouseleave, payload);
         });
       }
 
+      // 兜底：L7 unmousemove 事件（鼠标移出图层要素时触发）
+      // 当 mouseleave 未触发时，unmousemove 可作为可靠的离开信号
+      if (needsMouseLeave && needsMouseMove) {
+        layer.on('unmousemove', (evt: unknown) => {
+          const payload = extractLayerPayload(layerId, schema.type, evt);
+          eventHandlersRef.current?.onMouseLeave?.(payload);
+          if (popupTrigger === 'hover') hidePopup();
+          if (layerEvents?.mouseleave) eventBus.emit(layerEvents.mouseleave, payload);
+        });
+      }
       // 添加到场景
       scene.addLayer(layer);
       onLayerCreated?.(layer);
@@ -382,15 +400,9 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
     return () => {
       destroyed = true;
       if (layerRef.current) {
-        try {
-          scene.removeLayer(layerRef.current);
-        } catch {
-          // layer 可能已被销毁
-        }
+        try { scene.removeLayer(layerRef.current); } catch { /* ignore */ }
         layerRef.current = null;
       }
-
-      // 组件卸载时清理 Popup 状态（确保 popup 消失）
       setPopupState((prev) => ({ ...prev, visible: false }));
     };
   }, [schemaSignature, scene, eventBus]);
@@ -438,10 +450,10 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
 }
 
 function stableStringify(value: unknown): string {
-  return JSON.stringify(sortValue(value));
+  return JSON.stringify(sortValue(value, new WeakSet()));
 }
 
-function sortValue(value: unknown): unknown {
+function sortValue(value: unknown, seen: WeakSet<object>): unknown {
   // TypedArray / ArrayBuffer 不递归，用长度做签名
   if (ArrayBuffer.isView(value)) {
     return `[TypedArray:${(value as unknown as { length: number }).length}]`;
@@ -455,15 +467,21 @@ function sortValue(value: unknown): unknown {
     if (value.length > 1000) {
       return `[Array:${value.length}]`;
     }
-    return value.map(sortValue);
+    return value.map((item) => sortValue(item, seen));
   }
 
   if (value && typeof value === 'object') {
+    // 循环引用检测：避免无限递归导致栈溢出
+    if (seen.has(value as object)) {
+      return '[Circular]';
+    }
+    seen.add(value as object);
+
     const obj = value as Record<string, unknown>;
     const sortedKeys = Object.keys(obj).sort();
     const next: Record<string, unknown> = {};
     sortedKeys.forEach((key) => {
-      next[key] = sortValue(obj[key]);
+      next[key] = sortValue(obj[key], seen);
     });
     return next;
   }
