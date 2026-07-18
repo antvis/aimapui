@@ -5,14 +5,14 @@
 ## Prerequisites
 
 ```bash
-pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
+pnpm add @antv/aimapui @antv/l7
 ```
 
 ```tsx
 import '@antv/aimapui/style.css'; // Required — controls, popups, legends won't render without it
 ```
 
-L7 version must be ≥ 2.28.14.
+L7 version must be ≥ 2.29.1.
 
 ## 1. Base Layout
 

@@ -87,14 +87,15 @@ export default function RouteLayerDemo() {
           style: 'light',
         }}
       >
-        {/* Day 1 — 西湖环线（point 渲染，默认值） */}
+        {/* Day 1 — 西湖环线（point 渲染，显式指定） */}
         <RouteLayer
           path={day1Path}
           stops={day1Stops}
           color={DAY_COLORS.day1}
+          stopRenderer="point"
         />
 
-        {/* Day 2 — 灵隐-西溪（marker 渲染） */}
+        {/* Day 2 — 灵隐-西溪（marker 渲染，组件默认值） */}
         <RouteLayer
           path={day2Path}
           stops={day2Stops}

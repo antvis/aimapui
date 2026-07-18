@@ -144,7 +144,9 @@ const tourismIconMap = createMakiIconMap([
     if (attraction) {
       setSelectedAttraction(attraction);
       setBottomSheetSnap('half');
-      scene.flyTo({ center: [attraction.lng, attraction.lat], zoom: 17 });
+      // L7 Scene 没有 flyTo — 用 setCenter + setZoom 组合实现定点缩放，跨底图引擎通用
+      scene.setCenter([attraction.lng, attraction.lat]);
+      scene.setZoom(17);
     }
   }}
 />

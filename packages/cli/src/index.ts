@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import packageJson from '../package.json' with { type: 'json' };
 import { init } from './commands/init.js';
 import { add } from './commands/add.js';
 import { list } from './commands/list.js';
@@ -10,7 +11,7 @@ const program = new Command();
 program
   .name('aimapui')
   .description('CLI for adding @antv/aimapui components to your project')
-  .version('0.1.0');
+  .version(packageJson.version);
 
 program
   .command('init')

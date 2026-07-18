@@ -1,7 +1,7 @@
 ---
 name: aimapui
 description: React map visualization library @antv/aimapui. Use whenever the user wants to create maps, map layers, geographic visualizations, or map controls — covers AiMap container, 6 base layers, 12 composite layers, 15 controls, interactions, legends, mobile components, and schema-driven mode. Schema-driven, L7-based.
-version: 0.4.3
+version: 0.4.4
 ---
 
 # aimapui
@@ -10,17 +10,17 @@ version: 0.4.3
 
 ## Version
 
-见 frontmatter `version` 字段。当前：`@antv/aimapui` / `@antv/aimapui-cli` → **0.4.2**
+见 frontmatter `version` 字段。当前：`@antv/aimapui` / `@antv/aimapui-cli` → **0.4.4**
 
 ## Install
 
 ```bash
-npm install @antv/aimapui @antv/l7 @antv/l7-maps
+npm install @antv/aimapui @antv/l7
 # or
-pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
+pnpm add @antv/aimapui @antv/l7
 ```
 
-> **注意:** `@antv/l7` 版本必须 **≥ 2.28.14**，低于此版本会导致部分功能异常（如控件渲染、动态 import 等）。
+> **注意:** `@antv/l7` 版本必须 **≥ 2.29.1**，低于此版本会导致部分功能异常（如控件渲染、动态 import 等）。
 ```
 
 > **注意:** 使用组件前必须引入样式文件 `import '@antv/aimapui/style.css'`，否则控件、弹窗、图例等样式不生效。
@@ -29,7 +29,6 @@ pnpm add @antv/aimapui @antv/l7 @antv/l7-maps
 
 ```html
 <script src="https://unpkg.com/@antv/l7"></script>
-<script src="https://unpkg.com/@antv/l7-maps"></script>
 <script src="https://unpkg.com/@antv/aimapui/dist/index.iife.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/@antv/aimapui/dist/style.css" />
 ```
@@ -55,13 +54,14 @@ import '@antv/aimapui/style.css';
 ## Architecture
 
 - **AiMap** — Container component, manages Scene/Map lifecycle; supports `autoFit` for automatic viewport fitting
-- **Layers** — 6 base types: `PointLayer`, `LineLayer`, `PolygonLayer`, `HeatmapLayer`, `RasterLayer`, `ImageLayer`
+- **Layers** — 6 base types: `PointLayer`, `LineLayer`, `PolygonLayer`, `HeatmapLayer`, `RasterLayer`, `ImageLayer`。⚠️ **必须用 aimapui 封装的 React 组件**（声明式、生命周期托管、含 schema/autoFit/EventBus）；**禁止绕过去 `new` L7 同名图层类 + `scene.addLayer()` 重新实现**（这 6 个类名与 L7 同名，`from '@antv/l7'` 会拿到原生图层类）
 - **Composite Layers** — Business-ready (12 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`, `H3Layer`
 - **Controls** — `ZoomControl`, `ResetViewControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl`, `SatelliteLayerControl`, `DrawControl`, `ImageCalibrationControl`, `AnnotationControl` (15 types, 12 positions)
 - **Interactions** — `Marker`, `Popup`, `Tooltip` + Maki icon utilities (`makiIconUrl`, `makiPinUrl`, `createMakiIconMap`, `createMakiPinMap`, `MAKI_ICONS`, `MAKI_ICON_NAMES`)
 - **Legends** — `LegendCategories`, `LegendRamp`, `LegendDiverging`, `LegendThreshold`, `LegendSize`, `LegendLineWidth`, `LegendProportion`, `LegendIcon` (8 types)
 - **Mobile** — `BottomSheet`, `MobileToolbar`, `MobileSheetLegend`, `SearchBar`
 - **Hooks** — `useResponsive`, `useScene`, `useMapPosition`, `useMapControl`, `useEventBus`, `useTheme`
+  - ⚠️ `useScene()` / `onSceneReady` 拿到的是 L7 `Scene`，可用 `setCenter/setZoom/setPitch/setRotation/setZoomAndCenter/fitBounds/panTo/zoomIn/zoomOut` 等通用方法；**没有** `flyTo`、`easeTo`、`jumpTo` 等 mapbox/maplibre 原生方法（调用会报 `is not a function`）。「定点飞行」用 `scene.setZoomAndCenter(zoom, [lng, lat])` 或 `setCenter+setZoom` 组合。详见 [aimap-container.md](references/core/aimap-container.md) 的 *Scene 操作方法* 小节。
 - **Utilities** — `ErrorBoundary`, `ResponsiveProvider`, `ThemeProvider`, `EventBus`
 - **Schema Mode** — Render entire map from a single `AiMapSchema` JSON object
 - **Build Formats** — ESM, CJS, IIFE (CDN), TypeScript declarations
@@ -93,6 +93,7 @@ import '@antv/aimapui/style.css';
 
 | 错误 | 现象 | 解决方案 |
 |------|------|---------|
+| **绕过 aimapui 直接调 L7 图层** | 不用 aimapui 的 React 图层组件，而是 `import { PointLayer } from '@antv/l7'` + `new PointLayer(...)` + `scene.addLayer(...)` 重新实现 —— 重复造轮子、丢失 schema/autoFit/EventBus/响应式/生命周期托管；且这 6 个类名与 aimapui 同名，`from` 错就会落到 L7 原生图层类 | **必须** `import { PointLayer } from '@antv/aimapui'` 用声明式组件；`@antv/l7` 只用于底图引擎（`GaodeMap` 等）和 `Scene` 类型 |
 | 未引入 style.css | 控件/弹窗/图例样式丢失 | `import '@antv/aimapui/style.css'`（CDN 用 `<link>`） |
 | 容器无高度 | 地图不显示 | 确保父容器有明确高度，或给 AiMap 设置 `style={{ height: '100vh' }}` |
 | map 与 schema 同时传入 | 报错或地图异常 | 只传一个，两者互斥 |
@@ -139,7 +140,7 @@ const schema = { map: { basemap: 'gaode', center: [121,31], zoom: 12 }, layers: 
 |------|-----------|-----------|
 | ChinaDistrict | [china-district.md](references/composite/china-district.md) | 行政区划下钻 + 业务数据色阶绑定 |
 | BubbleLayer | [bubble-layer.md](references/composite/bubble-layer.md) | 气泡大小编码数值 |
-| RouteLayer | [route-layer.md](references/composite/route-layer.md) | 路径地图（静态/驾车/步行/骑行/公交） |
+| RouteLayer | [route-layer.md](references/composite/route-layer.md) | 路径地图（默认 Marker 编号标注，支持 point/marker/icon 模式；静态/驾车/步行/骑行/公交） |
 | ArcFlowLayer | [arc-flow-layer.md](references/composite/arc-flow-layer.md) | OD 弧线流向动画 |
 | IconLayer | [icon-layer.md](references/composite/icon-layer.md) | 自定义图片图标 + Maki 内置图标 |
 | GlyphLayer | [glyph-layer.md](references/composite/glyph-layer.md) | 图标字体标注（Material Symbols） |

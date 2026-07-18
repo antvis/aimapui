@@ -2,12 +2,14 @@
 
 序列化途经点 + 分段着色 + 多路径模式（直线/弧线/交通路线）。
 
+> **停留点渲染：** 默认使用 `marker` 类型标注（`stopRenderer='marker'`），通过内置 `Marker` 组件渲染编号/语义色站点；仅在需要纯 L7 圆点或图片图标时再显式切换为 `point` / `icon`。
+
 ## Examples
 
 ```tsx
 import { RouteLayer } from '@antv/aimapui';
 
-// 基础用法：静态路径
+// 基础用法：静态路径（停留点默认 marker 标注）
 <RouteLayer
   path={[[120.15, 30.28], [120.17, 30.25], [120.20, 30.22]]}
   stops={[
@@ -69,13 +71,13 @@ import { RouteLayer } from '@antv/aimapui';
 | `showStopName` | `boolean` | `true` | 是否显示途经点名称 |
 | `stopNameColor` | `string` | `'#334155'` | 名称文字颜色 |
 | `stopNameSize` | `number` | `11` | 名称文字大小 |
-| `stopRenderer` | `'point' \| 'marker' \| 'icon'` | `'point'` | 停留点渲染模式 |
+| `stopRenderer` | `'point' \| 'marker' \| 'icon'` | `'marker'` | 停留点渲染模式（默认 marker，优先使用 marker 类型标注） |
 | `stopMarkerVariant` | `MarkerVariant` | `'circle'` | marker 模式下的默认变体 |
 | `stopIconMap` | `Record<string, string>` | — | icon 模式下的图标资源映射 |
 | `stopIconField` | `string` | `'iconValue'` | icon 模式下的图标字段名 |
 | `stopIconSize` | `number` | `16` | icon 模式下的图标尺寸 |
 | `stopIconAnchor` | `IconAnchor` | `'bottom'` | icon 模式下的图标锚点 |
-| `showStopPopup` | `boolean` | `true` | 点击途经点时是否显示 Popup |
+| `showStopPopup` | `boolean` | `false` | 点击途经点时是否显示 Popup |
 | `activeColor` | `string` | `'#fbbf24'` | hover 高亮色 |
 | `onPathClick` | `(payload) => void` | — | 路径点击回调 |
 | `onStopClick` | `(payload) => void` | — | 途经点点击回调 |

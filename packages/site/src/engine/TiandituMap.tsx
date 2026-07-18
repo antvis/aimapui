@@ -38,7 +38,7 @@ const TIANDITU_THEME_OPTIONS: ThemeOption[] = [
 /**
  * 天地图 — 使用天地图原生引擎
  *
- * 通过 @antv/l7-maps 的 TMap（天地图引擎）直接加载天地图底图
+ * 通过 TMap（天地图引擎，由 @antv/l7 统一 re-export）直接加载天地图底图
  * 使用 MapThemeControl 支持五种底图切换：矢量底图、卫星影像、混合底图、地形底图、地形混合
  * 包含：放大缩小、定位、比例尺、主题切换
  */

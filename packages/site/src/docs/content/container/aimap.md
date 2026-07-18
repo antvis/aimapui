@@ -175,7 +175,7 @@ const cities = [
 当项目已安装 L7 底图引擎包，或需要跳过动态 import（SSR、微前端等场景）时，可通过 `engine` 直接传入引擎构造函数：
 
 ```tsx
-import { GaodeMap } from '@antv/l7-maps/gaode';
+import { GaodeMap } from '@antv/l7';
 import { AiMap, PointLayer, ZoomControl } from '@antv/aimapui';
 
 <AiMap

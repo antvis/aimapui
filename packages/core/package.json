@@ -1,6 +1,6 @@
 {
   "name": "@antv/aimapui",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "type": "module",
   "description": "Schema/DSL-driven React map visualization component library powered by L7",
   "main": "dist/index.cjs",
@@ -36,8 +36,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@antv/l7": "2.29.0",
-    "@antv/l7-maps": "2.29.0",
+    "@antv/l7": "2.29.1",
     "ahooks": "^3.8.4",
     "clsx": "^2.1.1",
     "geotiff": "^3.0.5",

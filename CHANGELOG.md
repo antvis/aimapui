@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.4 (2026-07-15)
+
+### Bug Fixes
+
+- **MapScene:** 底图引擎改从 `@antv/l7` 统一导入，避免把 `@antv/l7-maps` 各引擎适配层（mapbox-gl / maplibre-gl / AMap Loader 等）及 GLSL 着色器打包进产物
+- **cli:** `aimapui --version` 改为从 `package.json` 动态读取，修复版本号长期显示 `0.1.0` 的问题
+
+### Documentation
+
+- aimapui skill 版本说明同步至 0.4.4
+
 ## 0.4.3 (2026-07-14)
 
 ### Bug Fixes

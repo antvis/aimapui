@@ -1,15 +1,18 @@
 import type { MapSchema, BasemapType } from '../../schema/types';
 import { DEFAULT_MAP } from '../../schema/defaults';
 
-// 静态导入所有底图引擎，避免运行时动态 chunk 加载失败
-import { GaodeMap } from '@antv/l7-maps/gaode';
-import { Mapbox } from '@antv/l7-maps/mapbox';
-import { TMap } from '@antv/l7-maps/tianditu';
-import { TencentMap } from '@antv/l7-maps/tencent';
-import { BaiduMap } from '@antv/l7-maps/baidu';
-import { MapLibre } from '@antv/l7-maps/maplibre';
-import { GoogleMap } from '@antv/l7-maps/google';
-import { Map } from '@antv/l7-maps/simple';
+// 底图引擎统一从已 external 的 @antv/l7 导入，避免把 @antv/l7-maps 各引擎适配层
+// （mapbox-gl / maplibre-gl / AMap loader 等）及 GLSL 着色器打包进产物
+import {
+  GaodeMap,
+  Mapbox,
+  TMap,
+  TencentMap,
+  BaiduMap,
+  MapLibre,
+  GoogleMap,
+  Map,
+} from '@antv/l7';
 
 /**
  * 底图工厂 — 根据配置创建 L7 Map 实例

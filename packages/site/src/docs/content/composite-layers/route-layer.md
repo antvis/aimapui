@@ -47,7 +47,7 @@ import { RouteLayer } from '@antv/aimapui';
 
 | 属性 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `stopRenderer` | `'point' \| 'marker' \| 'icon'` | `'point'` | 站点渲染模式：`point` 为圆点序号、`marker` 为 DOM Marker、`icon` 为图片图标 |
+| `stopRenderer` | `'point' \| 'marker' \| 'icon'` | `'marker'` | 站点渲染模式：默认 `marker`（DOM Marker 编号标注），`point` 为圆点序号、`icon` 为图片图标 |
 | `stopMarkerVariant` | `MarkerVariant` | `'circle'` | `marker` 模式下的默认形态（`circle` / `dot` / `pin` / `icon`） |
 | `stopIconMap` | `Record<string, string>` | - | `icon` 模式下的图标资源映射；不传时基于站点 `icon` 字段自动生成 Maki Pin 图标 |
 | `stopIconField` | `string` | `'iconValue'` | `icon` 模式下的图标字段名 |
@@ -140,6 +140,8 @@ interface RouteQueryResult {
 ## 示例
 
 ### 基础用法 — 带编号站点的直线路线
+
+> 默认 `stopRenderer='marker'`，途经点以 DOM Marker 编号标注，无需显式配置即可获得语义化起终点配色。
 
 ```tsx
 <AiMap autoFit map={{ basemap: 'gaode', center: [118, 36], zoom: 6 }}>
@@ -251,9 +253,9 @@ interface RouteQueryResult {
 />
 ```
 
-### Marker 模式
+### Marker 模式（默认）
 
-使用 DOM Marker 渲染站点，支持 `circle`、`dot`、`pin`、`icon` 等变体。
+`marker` 为默认渲染模式，使用 DOM Marker 渲染站点，支持 `circle`、`dot`、`pin`、`icon` 等变体；以下示例显式切换变体。
 
 ```tsx
 <RouteLayer
@@ -286,6 +288,8 @@ interface RouteQueryResult {
 ```
 
 ## 注意事项
+
+> 💡 **停留点默认 `stopRenderer='marker'`**（DOM Marker 编号标注）。如需纯 L7 圆点性能模式可显式设 `stopRenderer='point'`，需要图片图标时设 `stopRenderer='icon'`。
 
 > 💡 `routeType` 为 `walking/cycling/driving/transit` 时，路径由 `onRouteQuery` 回调返回，不需要手动传入 `path`；仅需传入 `stops` 标注起终点和途经点。
 

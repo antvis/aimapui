@@ -103,7 +103,7 @@ export interface RouteLayerProps {
   stopNameColor?: string;
   /** 名称文字大小，默认 11 */
   stopNameSize?: number;
-  /** 停留点渲染模式，默认 'point' */
+  /** 停留点渲染模式，默认 'marker'（优先使用 marker 类型标注） */
   stopRenderer?: 'point' | 'marker' | 'icon';
   /** marker 模式下的默认变体，默认 'circle' */
   stopMarkerVariant?: MarkerVariant;
@@ -117,7 +117,7 @@ export interface RouteLayerProps {
   stopIconAnchor?: IconAnchor;
 
   // ===== 交互 =====
-  /** 是否在点击途经点时显示 Popup，默认 true */
+  /** 是否在点击途经点时显示 Popup，默认 false */
   showStopPopup?: boolean;
   /** hover 高亮色 */
   activeColor?: string;
@@ -164,7 +164,7 @@ export function RouteLayer({
   showStopName = true,
   stopNameColor = '#334155',
   stopNameSize = 11,
-  stopRenderer = 'point',
+  stopRenderer = 'marker',
   stopMarkerVariant = 'circle',
   stopIconMap,
   stopIconField = 'iconValue',

@@ -40,3 +40,5 @@ dist-site/
 .codefuse/
 
 .codefuseone/
+# pnpm 本地 store（不应入库）
+.pnpm-store/

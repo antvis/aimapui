@@ -34,18 +34,18 @@
 | 终点 (end) | `#10b981` (Success Green) | 旅程结束，语义区分 |
 
 ### 2.3 渲染模式 (Renderer)
-支持三种途经点渲染方式：
+支持三种途经点渲染方式，**默认使用 Marker 模式**（优先 marker 类型标注）：
 
-#### Point 模式（默认）
-- **圆形标记**: 直径 14px，2px 白色描边
-- **序号标签**: 白色文字居中，字号为 stopSize × 0.75（最小 10px），深色描边 1.5px
-- **名称标签**: 位于标记下方，偏移 `stopSize/2 + 4` px，2px 白色光晕
-
-#### Marker 模式
+#### Marker 模式（默认）
 - **组件**: 使用内置 `Marker` 组件
 - **变体**: `circle` / `dot` / 其他 MarkerVariant
 - **颜色映射**: start→success, end→error, waypoint→primary
 - **自定义内容**: 支持传入 ReactNode
+
+#### Point 模式
+- **圆形标记**: 直径 14px，2px 白色描边
+- **序号标签**: 白色文字居中，字号为 stopSize × 0.75（最小 10px），深色描边 1.5px
+- **名称标签**: 位于标记下方，偏移 `stopSize/2 + 4` px，2px 白色光晕
 
 #### Icon 模式
 - **图标资源**: 通过 `stopIconMap` 映射，或使用 Maki Pin 自动生成
@@ -111,7 +111,7 @@
     { lng: 120.15, lat: 30.28, name: '西湖' },
     { lng: 120.17, lat: 30.25, name: '灵隐寺' },
   ]}
-  stopRenderer="point"
+  // stopRenderer 默认 'marker'（DOM Marker 编号标注）
 />
 ```
 

@@ -91,14 +91,15 @@ terrain → 'terrain'
 
 内部通过轮询等待原生 `google.maps.Map` 实例就绪后，拦截 `setOptions` 调用，过滤原生 UI 字段。
 
-## 动态导入
+## 底图引擎导入
 
-所有底图模块通过 `await import('@antv/l7-maps')` 动态导入，未使用的底图不会进入最终打包。
+所有底图引擎（`GaodeMap` / `Mapbox` / `TMap` / `TencentMap` / `BaiduMap` / `MapLibre` / `GoogleMap` / `Map`）统一从 `@antv/l7` 静态导入：
 
 ```ts
-// 示例：仅使用高德底图时，Mapbox/Google 等模块不会被打包
-const { GaodeMap } = await import('@antv/l7-maps');
+import { GaodeMap, Mapbox, TMap, TencentMap, BaiduMap, MapLibre, GoogleMap, Map } from '@antv/l7';
 ```
+
+`@antv/l7` re-export 了 `@antv/l7-maps` 的全部引擎适配层，**无需再单独安装或引入 `@antv/l7-maps`**。构建时 `@antv/l7` 标记为 external，各引擎适配层（mapbox-gl / maplibre-gl / AMap Loader 及 GLSL 着色器等）不会被打进产物。
 
 ## 外部引擎注入（v0.3.1+）
 
@@ -123,8 +124,7 @@ if (schema.engine) {
 使用示例：
 
 ```tsx
-import { GaodeMap } from '@antv/l7-maps/gaode';
-import { Mapbox } from '@antv/l7-maps/mapbox';
+import { GaodeMap, Mapbox } from '@antv/l7';
 
 // 高德
 <AiMap map={{ engine: GaodeMap, token: 'YOUR_TOKEN', center: [116, 39], zoom: 10 }} />

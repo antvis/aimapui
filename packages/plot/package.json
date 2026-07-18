@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@antv/aimapui": "workspace:*",
-    "@antv/l7": "2.29.0",
+    "@antv/l7": "2.29.1",
     "@tailwindcss/vite": "^4.0.0",
     "@types/geojson": "^7946.0.16",
     "@types/react": "^18.3.12",
