@@ -19,7 +19,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
-      // 直接引用 core 源码，避免需要先构建 core 包
+      // 直接引用源码，避免需要先构建对应包（CI 全新 checkout 仓库内无 dist）
+      // 注意 plot 别名须在 core 之前，避免前缀歧义
+      '@antv/aimapui-plot': resolve(__dirname, '../plot/src/index.ts'),
       '@antv/aimapui': resolve(__dirname, '../core/src/index.ts'),
     },
     extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
