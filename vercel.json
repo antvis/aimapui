@@ -1,5 +1,5 @@
 {
-  "installCommand": "pnpm install --registry=https://registry.antgroup-inc.cn/",
+  "installCommand": "pnpm install --registry=https://registry.npmjs.org/",
   "buildCommand": "pnpm --filter @antv/aimapui-cli build && pnpm --filter @antv/aimapui-site build",
   "outputDirectory": "dist-site",
   "framework": null,
