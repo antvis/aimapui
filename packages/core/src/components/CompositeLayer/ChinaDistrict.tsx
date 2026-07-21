@@ -176,7 +176,9 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
     if (drillPath.length <= 1) return;
     const newPath = drillPath.slice(0, -1);
     if (controlledDrillPath) {
+      // 受控模式：onDrillUp 与 onDrill 都回调，确保只接 onDrill 的消费者也能更新路径
       onDrillUp?.(newPath);
+      onDrill?.(newPath);
     } else {
       setInternalDrillPath(newPath);
       onDrillUp?.(newPath);
@@ -191,6 +193,7 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
     const newPath = drillPath.slice(0, targetIndex + 1);
     if (controlledDrillPath) {
       onDrillUp?.(newPath);
+      onDrill?.(newPath);
     } else {
       setInternalDrillPath(newPath);
       onDrillUp?.(newPath);
@@ -319,7 +322,7 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
     }
   }, [labelField, currentLevel, clickSelect, drillEnabled, drillPath, controlledDrillPath, onDrill, onRegionClick]);
 
-  // 事件处理：undblclick 上卷（确认单击未触发双击时回退一级）
+  // 事件处理：双击虚化父级背景上卷（与主填充面的单击下钻在空间上分区，避免 click/dblclick 同层冲突）
   const handleUndblclick = useCallback(() => {
     if (drillEnabled) {
       drillUp();
@@ -340,6 +343,7 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
             shape="fill"
             color="#94a3b8"
             style={{ opacity: dimOpacity }}
+            onDblclick={handleUndblclick}
             zIndex={zIndex}
           />
           <LineLayer
@@ -365,7 +369,6 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
         select={clickSelect ? { color: '#0f172a', duration: 150 } : undefined}
         style={{ opacity: fillOpacity }}
         onClick={handleClick}
-        onDblclick={handleUndblclick}
         zIndex={zIndex + 2}
       />
 
