@@ -498,8 +498,10 @@ function formatPopupContent(
   template?: string,
 ): string {
   if (template) {
-    return template.replace(/\{\{(\w+)\}\}/g, (_, key) =>
-      String(feature[key] ?? ''),
+    // 宽松匹配占位符 key：兼容中文、空格、括号、百分号等字段名（如 "GDP (亿元)"、"增速 (%)"），
+    // 仅排除花括号本身以避免跨占位符误匹配。
+    return template.replace(/\{\{([^{}]+)\}\}/g, (_, key) =>
+      String(feature[key.trim()] ?? ''),
     );
   }
 

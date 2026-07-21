@@ -268,6 +268,18 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
     return `<div style="min-width:140px"><table style="font-size:12px;line-height:1.6">${rows.join('')}</table></div>`;
   }, [tooltipFields, labelField, valueField]);
 
+  // Tooltip 事件配置：showTooltip 时通过 events 将 enablePopup/popupTrigger/popupFields/popupTemplate
+  // 透传给底层 SchemaLayer，由其 hover 分支触发内置 Tooltip（与 FillLayer 的 tooltipEffect 路径一致）
+  const tooltipEvents = useMemo(() => {
+    if (!showTooltip) return undefined;
+    return {
+      enablePopup: true,
+      popupTrigger: 'hover' as const,
+      popupFields: tooltipFields ?? [labelField, valueField],
+      popupTemplate: tooltipTemplate,
+    };
+  }, [showTooltip, tooltipFields, labelField, valueField, tooltipTemplate]);
+
   // 计算展示数据（派生值，用 useMemo 保持引用稳定，避免 hooks 顺序问题）
   const hasBusinessData = Boolean(data && data.length > 0);
   const displayData = useMemo(() => {
@@ -368,6 +380,7 @@ export const ChinaDistrict = React.forwardRef<ChinaDistrictHandle, ChinaDistrict
         active={hoverHighlight ? { color: '#ffffff', duration: 150 } : undefined}
         select={clickSelect ? { color: '#0f172a', duration: 150 } : undefined}
         style={{ opacity: fillOpacity }}
+        events={tooltipEvents}
         onClick={handleClick}
         zIndex={zIndex + 2}
       />
