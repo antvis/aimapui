@@ -12,7 +12,7 @@
   "dependencies": {
     "@antv/aimapui": "workspace:*",
     "@antv/aimapui-plot": "workspace:*",
-    "@antv/l7": "2.29.1",
+    "@antv/l7": "2.30.0-beta.0",
     "ahooks": "^3.8.4",
     "highlight.js": "^11.11.1",
     "marked": "^18.0.4",
