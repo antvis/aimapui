@@ -57,6 +57,7 @@ import '@antv/aimapui/style.css';
 - **Layers** — 6 base types: `PointLayer`, `LineLayer`, `PolygonLayer`, `HeatmapLayer`, `RasterLayer`, `ImageLayer`。⚠️ **必须用 aimapui 封装的 React 组件**（声明式、生命周期托管、含 schema/autoFit/EventBus）；**禁止绕过去 `new` L7 同名图层类 + `scene.addLayer()` 重新实现**（这 6 个类名与 L7 同名，`from '@antv/l7'` 会拿到原生图层类）
 - **Composite Layers** — Business-ready (12 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`, `H3Layer`
 - **Controls** — `ZoomControl`, `ResetViewControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl`, `SatelliteLayerControl`, `DrawControl`, `ImageCalibrationControl`, `AnnotationControl` (15 types, 12 positions)
+- **Layer Comparison** — `LayerCompare`（独立容器，非 `<AiMap>` 内控件）：双屏 / 卷帘对比，内部创建两个 L7 场景并以领航者机制逐帧双向同步相机
 - **Interactions** — `Marker`, `Popup`, `Tooltip` + Maki icon utilities (`makiIconUrl`, `makiPinUrl`, `createMakiIconMap`, `createMakiPinMap`, `MAKI_ICONS`, `MAKI_ICON_NAMES`)
 - **Legends** — `LegendCategories`, `LegendRamp`, `LegendDiverging`, `LegendThreshold`, `LegendSize`, `LegendLineWidth`, `LegendProportion`, `LegendIcon` (8 types)
 - **Mobile** — `BottomSheet`, `MobileToolbar`, `MobileSheetLegend`, `SearchBar`
@@ -86,6 +87,7 @@ import '@antv/aimapui/style.css';
 | DrawControl | [draw-control.md](references/controls/draw-control.md) | Interactive drawing/editing |
 | ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | Image georeferencing |
 | AnnotationControl | [annotation-control.md](references/controls/annotation-control.md) | Map annotation |
+| LayerCompare | [layer-compare.md](references/controls/layer-compare.md) | 双屏/卷帘图层对比 |
 | Legends | [legend-components.md](references/legend/legend-components.md) | Map legends |
 | Mobile (index + quick ref) | [index.md](references/mobile/index.md) | MobileToolbar/BottomSheet/MobileSheetLegend/SearchBar |
 
@@ -158,6 +160,21 @@ const schema = { map: { basemap: 'gaode', center: [121,31], zoom: 12 }, layers: 
 | DrawControl | [draw-control.md](references/controls/draw-control.md) | 交互绘制（点/线/面/矩形/圆） |
 | ImageCalibrationControl | [image-calibration-control.md](references/controls/image-calibration-control.md) | 图片配准/地理校准（上传、角点拖拽、透视变换、瓦片导出） |
 | AnnotationControl | [annotation-control.md](references/controls/annotation-control.md) | 标注（marker/highlighter/text/note/link/image/video） |
+
+### Layer Compare (图层对比)
+
+`LayerCompare` 是 **独立容器**（不放入 `<AiMap>` 内部），在同一区域渲染两个同步场景，支持双屏（`split`）与卷帘（`swipe`）对比，可拖动分隔条控制两侧范围。两侧相机逐帧同步，卷帘可拖动地图、双屏联动平滑，`sync={false}` 可关闭。
+
+```tsx
+<LayerCompare
+  mode="swipe"
+  map={{ basemap: 'gaode', center: [116.4, 39.91], zoom: 12 }}
+  before={<SatelliteLayer provider="gaode" />}
+  after={<BubbleLayer source={pois} sourceType="json" sourceConfig={{ x: 'lng', y: 'lat' }} colorField="category" sizeField="value" sizeRange={[8, 26]} />}
+/>
+```
+
+详见 → [layer-compare.md](references/controls/layer-compare.md)
 
 ### Maki Icon Utilities (内置 200+ 矢量图标)
 

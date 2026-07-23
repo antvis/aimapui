@@ -139,6 +139,9 @@ export { TiffRasterLayer } from './components/CompositeLayer/TiffRasterLayer';
 export type { TiffRasterLayerProps, RampColors, RasterRenderMode } from './components/CompositeLayer/TiffRasterLayer';
 export { H3Layer, H3_SEQUENTIAL_COLORS } from './components/CompositeLayer/H3Layer';
 export type { H3LayerProps, H3DataItem } from './components/CompositeLayer/H3Layer';
+// 图层对比组件
+export { LayerCompare } from './components/LayerCompare/LayerCompare';
+export type { LayerCompareProps, LayerCompareMode, LayerCompareScenes, LayerCompareHandle } from './components/LayerCompare/LayerCompare';
 
 // Control 组件
 export { ZoomControl } from './components/Control/ZoomControl';

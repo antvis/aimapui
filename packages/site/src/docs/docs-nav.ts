@@ -95,6 +95,7 @@ export const docsNav: DocNavGroup[] = [
       { id: 'controls/layer-switch-control', name: 'LayerSwitchControl', icon: 'layers' },
       { id: 'controls/draw-control', name: 'DrawControl', icon: 'edit' },
       { id: 'controls/image-calibration-control', name: 'ImageCalibrationControl', icon: 'image' },
+      { id: 'controls/layer-compare', name: 'LayerCompare', icon: 'compare' },
     ],
   },
   {

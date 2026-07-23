@@ -37,6 +37,7 @@ import ImageCalibrationDemo from './control/ImageCalibrationDemo';
 import AnnotationControlDemo from './control/AnnotationControlDemo';
 import PlotControlDemo from './control/PlotControlDemo';
 import SatelliteLayerControlDemo from './control/SatelliteLayerControlDemo';
+import LayerCompareDemo from './control/LayerCompareDemo';
 // ── 点位标注 / 交互 ──
 import Marker from './marker/Marker';
 import MarkerDrag from './marker/MarkerDrag';
@@ -202,6 +203,7 @@ const demos = [
   { name: 'PlotControl', icon: 'military_tech', component: PlotControlDemo, group: 'Interaction', file: 'control/PlotControlDemo' },
   { name: 'ImageCalibration', icon: 'image', component: ImageCalibrationDemo, group: 'Interaction', file: 'control/ImageCalibrationDemo' },
   { name: 'SatelliteLayerControl', icon: 'satellite_alt', component: SatelliteLayerControlDemo, group: 'Interaction', file: 'control/SatelliteLayerControlDemo' },
+  { name: 'LayerCompare', icon: 'compare', component: LayerCompareDemo, group: 'Interaction', file: 'control/LayerCompareDemo' },
 
   // ── Map Engines ──────────────────────────────
   { name: 'GaodeMap', icon: 'public', component: GaodeMap, group: 'Map Engines', file: 'engine/GaodeMap' },
