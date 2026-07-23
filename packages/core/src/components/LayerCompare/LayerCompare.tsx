@@ -88,6 +88,33 @@ export interface LayerCompareProps {
 const CAMERA_EVENTS = ['mapmove', 'zoomchange', 'rotatechange', 'pitchchange'];
 /** L7 场景移动结束事件（用于释放同步锁） */
 const MOVE_END_EVENT = 'moveend';
+/**
+ * 合并基础 map 配置与单侧（before/after）覆盖配置。
+ *
+ * 卷帘（swipe）模式下默认关闭旋转手势 `dragRotate=false`：
+ * 卷帘两层是全宽画布叠放，双指捏合/缩放手势一旦跨越卷帘边界，两指会分别落入
+ * before / after 两个不同底图实例，被各自识别为单指拖动而误触旋转。
+ * 关闭旋转手势既消除误触，也避免旋转破坏两图对齐（对比场景通常不需要旋转）。
+ * 用户仍可通过 `map.gestureConfig.dragRotate = true`（或 beforeMap/afterMap）显式开启。
+ */
+function mergeMapSchema(
+  base: MapSchema,
+  override: Partial<MapSchema> | undefined,
+  mode: LayerCompareMode,
+): MapSchema {
+  const merged: MapSchema = { ...base, ...override };
+  const baseGesture = base.gestureConfig ?? {};
+  const overrideGesture = override?.gestureConfig ?? {};
+  // 用户显式值优先（侧边覆盖 > 基础配置）
+  const userDragRotate = overrideGesture.dragRotate ?? baseGesture.dragRotate;
+  merged.gestureConfig = {
+    ...baseGesture,
+    ...overrideGesture,
+    dragRotate: mode === 'swipe' ? (userDragRotate ?? false) : (userDragRotate ?? true),
+  };
+  return merged;
+}
+
 
 /**
  * 图层对比组件 — 支持双屏对比与卷帘对比
@@ -156,12 +183,12 @@ export const LayerCompare = forwardRef<LayerCompareHandle, LayerCompareProps>(
     onSceneReadyRef.current = onSceneReady;
 
     const beforeMapSchema = useMemo<MapSchema>(
-      () => ({ ...map, ...(beforeMap ?? {}) }),
-      [map, beforeMap],
+      () => mergeMapSchema(map, beforeMap, mode),
+      [map, beforeMap, mode],
     );
     const afterMapSchema = useMemo<MapSchema>(
-      () => ({ ...map, ...(afterMap ?? {}) }),
-      [map, afterMap],
+      () => mergeMapSchema(map, afterMap, mode),
+      [map, afterMap, mode],
     );
 
     const handleBeforeReady = useCallback((scene: Scene) => {

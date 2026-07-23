@@ -116,3 +116,4 @@ type LayerCompareMode = 'split' | 'swipe';
 - 卷帘模式 `clip-path` 裁掉的区域不接收鼠标事件，两侧可分别与对应地图交互。
 - 组件 **独立于 `<AiMap>`**：内部已自带 `EventBusProvider`，可直接在任意容器中渲染。
 - 模式切换/分隔条拖动会自动 `resize` 两侧场景画布（rAF 节流），无需手动触发。
+- **卷帘模式默认关闭旋转手势**（`dragRotate=false`），避免两层全宽画布叠放时双指跨边界误触旋转；如需旋转传 `map.gestureConfig.dragRotate=true`。双屏默认开启。
