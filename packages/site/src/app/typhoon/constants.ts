@@ -60,8 +60,8 @@ export const WARNING_LINE_48H: [number, number][] = [
 ];
 
 export const WARNING_LINE_COLORS = {
-  '24h': '#f59e0b',
-  '48h': '#ef4444',
+  '24h': '#ef4444',
+  '48h': '#f59e0b',
 };
 
 // ── 雷达瓦片 ──────────────────────────────────────────────────────
