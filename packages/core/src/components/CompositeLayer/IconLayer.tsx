@@ -151,6 +151,7 @@ export function IconLayer({
   if (shouldDegradeToPoint) {
     return (
       <PointLayer
+        {...rest}
         source={source}
         sourceType={sourceType}
         sourceConfig={sourceConfig}
@@ -166,6 +167,7 @@ export function IconLayer({
     <>
       {/* 图标图层 */}
       <PointLayer
+        {...rest}
         source={source}
         sourceType={sourceType}
         sourceConfig={sourceConfig}

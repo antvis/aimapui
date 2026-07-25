@@ -145,10 +145,22 @@ export function FillLayer({
 
   const tooltipValueField = valueField ?? colorField ?? 'value';
   const tooltipNameField = nameField ?? labelField;
-  const resolvedTooltipTemplate = useMemo(
-    () => tooltipTemplate ?? buildDefaultTooltipTemplate(tooltipNameField, tooltipValueField, percentageField),
-    [tooltipTemplate, tooltipNameField, tooltipValueField, percentageField],
-  );
+
+  // 模板决策：
+  // 1) 用户显式传入 tooltipTemplate / events.popupTemplate → 优先使用
+  // 2) 用户传入 popupFields 但无模板 → 不注入默认模板，让 SchemaLayer 按字段渲染表格
+  //    （否则 formatPopupContent 会进入模板分支而忽略 popupFields，导致 tooltipFields 失效）
+  // 3) 均未指定 → 使用中文标签的默认模板
+  const resolvedTooltipTemplate = useMemo(() => {
+    const directTemplate = tooltipTemplate ?? events?.popupTemplate;
+    if (directTemplate) return directTemplate;
+
+    // 有字段、无模板时返回 undefined，触发 SchemaLayer 的"按字段渲染表格"分支
+    const fields = events?.popupFields ?? tooltipFields;
+    if (fields && fields.length > 0) return undefined;
+
+    return buildDefaultTooltipTemplate(tooltipNameField, tooltipValueField, percentageField);
+  }, [tooltipTemplate, events, tooltipFields, tooltipNameField, tooltipValueField, percentageField]);
 
   const defaultActive: ActiveConfig = { color: '', duration: 150 };
   const defaultSelect: SelectConfig = { color: '#0f172a', duration: 150 };

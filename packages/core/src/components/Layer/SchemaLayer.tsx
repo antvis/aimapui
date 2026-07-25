@@ -302,7 +302,7 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
       const needsDblclick = Boolean(eventHandlersRef.current?.onDblclick);
       const needsUndblclick = Boolean(eventHandlersRef.current?.onUndblclick);
       const needsMouseMove = Boolean(eventHandlersRef.current?.onMouseMove || layerEvents?.mousemove || (popupEnabled && popupTrigger === 'hover'));
-      const needsMouseEnter = Boolean(eventHandlersRef.current?.onMouseEnter || layerEvents?.mouseenter);
+      const needsMouseEnter = Boolean(eventHandlersRef.current?.onMouseEnter || layerEvents?.mouseenter || (popupEnabled && popupTrigger === 'hover'));
       const needsMouseLeave = Boolean(eventHandlersRef.current?.onMouseLeave || layerEvents?.mouseleave || (popupEnabled && popupTrigger === 'hover'));
 
       // L7 click 事件（普通单击，与 dblclick/undblclick 互斥）
@@ -350,6 +350,10 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
         layer.on('mouseenter', (evt: unknown) => {
           const payload = extractLayerPayload(layerId, schema.type, evt);
           eventHandlersRef.current?.onMouseEnter?.(payload);
+          // hover 触发时立即显示，避免进入要素后需移动鼠标才出现的延迟
+          if (popupEnabled && popupTrigger === 'hover') {
+            showPopup(payload);
+          }
           if (layerEvents?.mouseenter) {
             eventBus.emit(layerEvents.mouseenter, payload);
           }
@@ -431,7 +435,7 @@ export function SchemaLayer({ schema, scene, eventHandlers, onLayerCreated }: Sc
         latitude={popupState.lat}
         content={popupState.content}
         variant="dark"
-        placement="top"
+        placement={resolveHoverPlacement(scene, popupState.lng, popupState.lat)}
         visible={true}
       />
     );
@@ -487,6 +491,35 @@ function sortValue(value: unknown, seen: WeakSet<object>): unknown {
   }
 
   return value;
+}
+
+/**
+ * hover Tooltip 朝向：锚点贴近地图上边缘时翻转到下方，避免被裁剪。
+ * 仅做上/下翻转（小尺寸 Tooltip 的常见需求）。
+ */
+export function resolveHoverPlacement(
+  scene: Scene,
+  lng: number,
+  lat: number,
+): 'top' | 'bottom' {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mapsService = (scene as any).mapService;
+    const container =
+      (mapsService?.getContainer?.() as HTMLElement | undefined) ??
+      ((scene as any).getContainer?.() as HTMLElement | undefined);
+    if (!container) return 'top';
+    const rect = container.getBoundingClientRect();
+    if (!rect || rect.height <= 0) return 'top';
+    const pos = mapsService
+      ? mapsService.lngLatToContainer([lng, lat])
+      : scene.lngLatToContainer([lng, lat]);
+    if (!pos || !Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return 'top';
+    if (pos.y < 140) return 'bottom';
+  } catch {
+    // 场景/地图服务不可用时回退到上方
+  }
+  return 'top';
 }
 
 /**

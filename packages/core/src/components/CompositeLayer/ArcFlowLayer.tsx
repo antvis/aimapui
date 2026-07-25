@@ -4,6 +4,8 @@ import { LineLayer } from '../Layer/LineLayer';
 import { PointLayer } from '../Layer/PointLayer';
 import { Tooltip } from '../Interaction/Tooltip';
 import { Popup } from '../Interaction/Popup';
+import { useScene } from '../../context/SceneContext';
+import { resolveHoverPlacement } from '../Layer/SchemaLayer';
 
 /**
  * 弧线形态
@@ -102,9 +104,9 @@ export interface ArcFlowLayerProps {
   nodePulse?: boolean;
 
   // ===== 交互 =====
-  /** 是否在 hover 弧线时显示 Tooltip，默认 true */
+  /** 是否在 hover 弧线时显示 Tooltip，默认 false */
   showTooltip?: boolean;
-  /** 是否在点击节点时显示 Popup，默认 true */
+  /** 是否在点击节点时显示 Popup，默认 false */
   showNodePopup?: boolean;
   /** hover 高亮色 */
   activeColor?: string;
@@ -176,6 +178,7 @@ export function ArcFlowLayer({
   onNodeClick,
   style: extraStyle,
 }: ArcFlowLayerProps) {
+  const scene = useScene();
   // 构建弧线 sourceConfig
   const arcSourceConfig = useMemo(() => {
     return sourceConfig ?? {
@@ -348,6 +351,7 @@ export function ArcFlowLayer({
           latitude={tooltipState.lat}
           visible
           variant="dark"
+          placement={scene ? resolveHoverPlacement(scene, tooltipState.lng, tooltipState.lat) : 'top'}
           items={[
             { label: '起点', value: tooltipState.from },
             { label: '终点', value: tooltipState.to },

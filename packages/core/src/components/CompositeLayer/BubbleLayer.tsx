@@ -48,7 +48,7 @@ export interface BubbleLayerProps extends Omit<LayerSchema, 'type' | 'source' | 
   hoverEffect?: boolean;
   /** 是否启用默认 click 选中反馈 */
   clickEffect?: boolean;
-  /** 是否启用默认 tooltip/popup（点击气泡弹出） */
+  /** 是否启用默认 tooltip（hover 显示），与 FillLayer 行为一致 */
   tooltipEffect?: boolean;
   /** tooltip 展示字段，不传则自动展示常见字段 */
   tooltipFields?: string[];
@@ -138,12 +138,15 @@ export function BubbleLayer({
   const defaultActive: ActiveConfig = { color: '#60a5fa', duration: 150 };
   const defaultSelect: SelectConfig = { color: '#1d4ed8', duration: 150 };
 
+  // 与 FillLayer 对齐：tooltipEffect → hover Tooltip；
+  // 传入 tooltipFields 但无模板时，让 SchemaLayer 按字段渲染表格（popupTemplate 为 undefined）。
   const resolvedEvents = (() => {
     const origin = rest.events;
     if (!tooltipEffect) return origin;
     return {
       ...origin,
       enablePopup: origin?.enablePopup ?? true,
+      popupTrigger: origin?.popupTrigger ?? 'hover',
       popupFields: origin?.popupFields ?? tooltipFields,
       popupTemplate: origin?.popupTemplate ?? tooltipTemplate,
     };
