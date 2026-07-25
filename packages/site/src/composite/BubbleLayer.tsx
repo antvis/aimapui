@@ -71,7 +71,8 @@ export default function Demo20BubbleText() {
             bubbleAnchor="center"
             labelAnchor="center"
             labelOffset={[0, -8]}
-            tooltipEffect={false}
+            tooltipEffect
+            tooltipFields={['name', 'value']}
             onClick={handleBubbleClick}
           />
         )}

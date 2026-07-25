@@ -45,6 +45,8 @@ export default function ArcFlowLayerDemo() {
           nodeColor="#60a5fa"
           nodeSizeRange={[4, 10]}
           activeColor="#fbbf24"
+          showTooltip
+          showNodePopup
         />
 
         <ZoomControl position="bottomright" />

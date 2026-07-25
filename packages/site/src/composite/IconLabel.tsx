@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AiMap, IconLayer, ZoomControl, Tooltip, createMakiPinMap, MAKI_ICONS } from '@antv/aimapui';
 import type { LayerEventPayload, MakiIconName } from '@antv/aimapui';
+import { useClickPopup, popupContentWithFields } from './useLayerInteraction';
 
 /**
  * 图片标注图（IconLayer 设计规范 Demo）
@@ -120,6 +121,15 @@ export default function Demo21IconLabel() {
     setTooltipInfo(null);
   }, []);
 
+  // click → 点击图标弹出详情 Popup
+  const { onClick: onIconClick, popupNode } = useClickPopup((f) =>
+    popupContentWithFields(f, 'name', [
+      { label: '图标', field: 'name' },
+      { label: '经度', field: 'longitude' },
+      { label: '纬度', field: 'latitude' },
+    ]),
+  );
+
   // tab 颜色指示器
   const tabColor: Record<string, string> = {
     '全部': '#6366f1',
@@ -159,6 +169,7 @@ export default function Demo21IconLabel() {
               zoomDegradeToPoint={10}
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
+              onClick={onIconClick}
             />
           )}
           {tooltipInfo && (
@@ -173,6 +184,7 @@ export default function Demo21IconLabel() {
             />
           )}
           <ZoomControl />
+          {popupNode}
         </AiMap>
 
         {/* 左上角类别 Tab */}

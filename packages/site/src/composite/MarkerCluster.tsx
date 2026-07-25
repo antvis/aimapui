@@ -1,5 +1,5 @@
-import React from 'react';
-import { AiMap, MarkerClusterLayer } from '@antv/aimapui';
+import React, { useState, useCallback } from 'react';
+import { AiMap, MarkerClusterLayer, Popup } from '@antv/aimapui';
 /**
  * 聚合标注 — MarkerClusterLayer 组件
  *
@@ -10,6 +10,32 @@ import { AiMap, MarkerClusterLayer } from '@antv/aimapui';
  * - 交互：悬停放大、点击缩放、最大级别蜘蛛布局展开
  */
 export default function Demo33MarkerCluster() {
+  const [selectedPoint, setSelectedPoint] = useState<{
+    lng: number;
+    lat: number;
+    name: string;
+    type: string;
+  } | null>(null);
+
+  const handlePointClick = useCallback((point: any) => {
+    setSelectedPoint({
+      lng: point.lng,
+      lat: point.lat,
+      name: point.properties?.name ?? '未知',
+      type: point.properties?.type ?? '未知',
+    });
+  }, []);
+
+  const handleClusterClick = useCallback((cluster: any, leaves?: any[]) => {
+    const count = leaves?.length ?? cluster.pointCount ?? 0;
+    setSelectedPoint({
+      lng: cluster.lng,
+      lat: cluster.lat,
+      name: `聚合点 (${count} 个要素)`,
+      type: count >= 1000 ? '大规模' : count >= 100 ? '中规模' : '小规模',
+    });
+  }, []);
+
   // 生成模拟数据：北京市区范围内的随机点位
   const points = React.useMemo(() => {
     const data: Array<{ lng: number; lat: number; name: string; type: string }> = [];
@@ -88,15 +114,27 @@ export default function Demo33MarkerCluster() {
           minClusterSize={2}
           animationDuration={300}
           easing="cubic-bezier(0.4, 0, 0.2, 1)"
-          onPointClick={(point: any) => {
-            // eslint-disable-next-line no-console
-            console.log('点击点位:', point.properties?.name);
-          }}
-          onClusterClick={(cluster: any, leaves?: any[]) => {
-            // eslint-disable-next-line no-console
-            console.log('点击聚合点:', leaves?.length ?? 0, '个要素');
-          }}
+          onPointClick={handlePointClick}
+          onClusterClick={handleClusterClick}
         />
+        {selectedPoint && (
+          <Popup
+            longitude={selectedPoint.lng}
+            latitude={selectedPoint.lat}
+            content={`
+              <div style="min-width:160px">
+                <div style="font-weight:700;font-size:13px;margin-bottom:6px">${selectedPoint.name}</div>
+                <table style="font-size:12px;line-height:1.6">
+                  <tr><td style="padding-right:10px;color:#64748b">类型</td><td style="font-weight:600">${selectedPoint.type}</td></tr>
+                  <tr><td style="padding-right:10px;color:#64748b">坐标</td><td style="font-weight:600">${selectedPoint.lng.toFixed(4)}, ${selectedPoint.lat.toFixed(4)}</td></tr>
+                </table>
+              </div>
+            `}
+            closeButton
+            size="compact"
+            onClose={() => setSelectedPoint(null)}
+          />
+        )}
       </AiMap>
 {/* 图例说明 */}
       <div

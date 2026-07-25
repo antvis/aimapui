@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AiMap, FillLayer, ZoomControl } from '@antv/aimapui';
+import { useClickPopup, popupContentWithFields } from './useLayerInteraction';
 type AnyGeoJSON = {
   type: 'FeatureCollection';
   features: Array<{
@@ -26,6 +27,13 @@ export default function Demo32ChoroplethMap() {
   const [raw, setRaw] = useState<AnyGeoJSON | null>(null);
   const [mapping, setMapping] = useState<FillColorMapping>('sequential');
   const [activeRegion, setActiveRegion] = useState<string>('无');
+  const { onClick, popupNode } = useClickPopup((f) =>
+    popupContentWithFields(f, 'name', [
+      { label: '单价', field: 'unit_price' },
+      { label: '值', field: 'value' },
+      { label: '分类', field: 'category' },
+    ]),
+  );
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/basement_prod/1d27c363-af3a-469e-ab5b-7a7e1ce4f311.json')
@@ -82,9 +90,11 @@ export default function Demo32ChoroplethMap() {
             onDrilldown={(feature) => {
               setActiveRegion(String(feature.name ?? feature.id ?? '未知区域'));
             }}
+            onRegionClick={onClick}
           />
         )}
         <ZoomControl />
+        {popupNode}
       </AiMap>
 
       </div>

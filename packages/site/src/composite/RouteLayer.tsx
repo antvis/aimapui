@@ -93,6 +93,7 @@ export default function RouteLayerDemo() {
           stops={day1Stops}
           color={DAY_COLORS.day1}
           stopRenderer="point"
+          showStopPopup
         />
 
         {/* Day 2 — 灵隐-西溪（marker 渲染，组件默认值） */}
@@ -101,6 +102,7 @@ export default function RouteLayerDemo() {
           stops={day2Stops}
           color={DAY_COLORS.day2}
           stopRenderer="marker"
+          showStopPopup
         />
 
         {/* Day 3 — 钱塘江-滨江（icon 渲染） */}
@@ -110,6 +112,7 @@ export default function RouteLayerDemo() {
           stops={day3Stops}
           color={DAY_COLORS.day3}
           stopRenderer="icon"
+          showStopPopup
         />
 
         <ZoomControl position="bottomright" />
