@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AiMap, HexagonLayer, ZoomControl } from '@antv/aimapui';
 import { Legend } from '../components/Legend';
+import { useClickPopup, popupContentWithFields, hoverTooltipEvents } from './useLayerInteraction';
 
 /**
  * CPS 蜂窝色阶 — 单色渐进（低→高）
@@ -30,6 +31,14 @@ const HEXBIN_COLORS = [
  */
 export default function HexagonHeatmapDemo() {
   const [data, setData] = useState<Record<string, unknown> | null>(null);
+  // click → 点击蜂窝柱弹出聚合数据 Popup
+  const { onClick, popupNode } = useClickPopup((f) =>
+    popupContentWithFields(f, undefined, [
+      { label: '汇总值', field: 'sum' },
+      { label: '数量', field: 'count' },
+    ]),
+  );
+
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/basement_prod/513add53-dcb2-4295-8860-9e7aa5236699.json')
@@ -64,9 +73,14 @@ export default function HexagonHeatmapDemo() {
             colorValues={HEXBIN_COLORS}
             style={{ coverage: 0.8, angle: 0, opacity: 0.8 }}
             active={{ color: '#fbbf24' }}
+            // hover → Tooltip（蜂窝聚合信息）
+            events={hoverTooltipEvents(['sum', 'count'])}
+            // click → Popup
+            onClick={onClick}
           />
         )}
 
+        {popupNode}
         <ZoomControl position="bottomright" />
       </AiMap>
 

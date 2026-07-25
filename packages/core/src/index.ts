@@ -137,6 +137,8 @@ export { RouteLayer } from './components/CompositeLayer/RouteLayer';
 export type { RouteLayerProps, RouteStop, RouteSegment, RouteType, RouteQueryParams, RouteQueryResult } from './components/CompositeLayer/RouteLayer';
 export { TiffRasterLayer } from './components/CompositeLayer/TiffRasterLayer';
 export type { TiffRasterLayerProps, RampColors, RasterRenderMode } from './components/CompositeLayer/TiffRasterLayer';
+export { PMTilesLayer } from './components/CompositeLayer/PMTilesLayer';
+export type { PMTilesLayerProps, PMTilesSourceType, PMTilesRampColors } from './components/CompositeLayer/PMTilesLayer';
 export { H3Layer, H3_SEQUENTIAL_COLORS } from './components/CompositeLayer/H3Layer';
 export type { H3LayerProps, H3DataItem } from './components/CompositeLayer/H3Layer';
 // 图层对比组件

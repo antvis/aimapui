@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { AiMap, GlyphLayer, ZoomControl } from '@antv/aimapui';
+import { useClickPopup, popupContentWithFields, hoverTooltipEvents } from './useLayerInteraction';
 
 /**
  * 字体图标标注（GlyphLayer + Material Symbols Demo）
@@ -13,6 +14,14 @@ import { AiMap, GlyphLayer, ZoomControl } from '@antv/aimapui';
  */
 export default function DemoIconFontLabel() {
   const [data, setData] = useState<Record<string, unknown>[] | null>(null);
+  // click → 点击图标弹出详情 Popup
+  const { onClick, popupNode } = useClickPopup((f) =>
+    popupContentWithFields(f, 'name', [
+      { label: '类型', field: 'icon' },
+      { label: '名称', field: 'name' },
+    ]),
+  );
+
 
   useEffect(() => {
     fetch('https://gw.alipayobjects.com/os/basement_prod/893d1d5f-11d9-45f3-8322-ee9140d288ae.json')
@@ -66,8 +75,13 @@ export default function DemoIconFontLabel() {
             zoomAdaption={true}
             zoomShowLabel={14}
             zoomDegradeToPoint={10}
+            // hover → Tooltip（名称/图标类型）
+            events={hoverTooltipEvents(['name', 'icon'])}
+            // click → Popup
+            onClick={onClick}
           />
         )}
+        {popupNode}
         <ZoomControl />
       </AiMap>
     </div>

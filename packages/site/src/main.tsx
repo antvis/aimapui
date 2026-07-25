@@ -69,6 +69,7 @@ import MarkerCluster from './composite/MarkerCluster';
 import ArcFlowLayer from './composite/ArcFlowLayer';
 import RouteLayerDemo from './composite/RouteLayer';
 import TiffRasterLayerDemo from './composite/TiffRasterLayer';
+import PMTilesLayerDemo from './composite/PMTilesLayer';
 import H3LayerDemo from './composite/H3Layer';
 // ── 基础图层 ──
 import PointLayer from './layer/PointLayer';
@@ -188,6 +189,7 @@ const demos = [
   { name: 'ArcFlowLayer', icon: 'south_east', component: ArcFlowLayer, group: 'Composite Layers', file: 'composite/ArcFlowLayer' },
   { name: 'ChoroplethMap', icon: 'stacked_bar_chart', component: ChoroplethMap, group: 'Composite Layers', file: 'composite/ChoroplethMap' },
   { name: 'TiffRasterLayer', icon: 'satellite_alt', component: TiffRasterLayerDemo, group: 'Composite Layers', file: 'composite/TiffRasterLayer' },
+  { name: 'PMTilesLayer', icon: 'grid_view', component: PMTilesLayerDemo, group: 'Composite Layers', file: 'composite/PMTilesLayer' },
   { name: 'H3Layer', icon: 'hexagon', component: H3LayerDemo, group: 'Composite Layers', file: 'composite/H3Layer' },
 
   // ── Thematic Maps ──────────────────────────────

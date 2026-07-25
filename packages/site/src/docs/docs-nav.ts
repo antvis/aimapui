@@ -73,6 +73,7 @@ export const docsNav: DocNavGroup[] = [
       { id: 'composite-layers/arc-flow-layer', name: 'ArcFlowLayer', icon: 'south_east' },
       { id: 'composite-layers/satellite-layer', name: 'SatelliteLayer', icon: 'satellite_alt' },
       { id: 'composite-layers/tiff-raster-layer', name: 'TiffRasterLayer', icon: 'terrain' },
+      { id: 'composite-layers/pmtiles-layer', name: 'PMTilesLayer', icon: 'grid_view' },
     ],
   },
   {

@@ -40,6 +40,7 @@ const docToDemoMap: Record<string, string> = {
   'composite-layers/route-layer': 'composite/RouteLayer',
   'composite-layers/satellite-layer': 'composite/SatelliteLayer',
   'composite-layers/tiff-raster-layer': 'composite/TiffRasterLayer',
+  'composite-layers/pmtiles-layer': 'composite/PMTilesLayer',
   'composite-layers/china-district': 'layer/AdministrativeMap',
   // 基础图层
   'layers/point-layer': 'layer/PointLayer',

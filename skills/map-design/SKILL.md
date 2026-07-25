@@ -1,12 +1,12 @@
 ---
-name: map-app-builder
+name: 地图应用设计规范
 description: >-
-  Build production-ready map applications using @antv/aimapui. Covers layout architecture, layer z-index hierarchy, UI overlay stacking, theme system, interaction patterns, and data-type-to-component mapping. Use this skill whenever the user asks to create a map application, build a geographic visualization, design a map dashboard, or needs guidance on aimapui component selection, layer ordering, or map UI architecture. Triggers on: "create a map app", "build a map", "map visualization", "geographic dashboard", "map layout", "layer hierarchy", "map theme", "which aimapui component for X data".
+  基于 @antv/aimapui 构建生产级地图应用。覆盖布局架构、图层 z-index 层级、UI 叠加层堆叠、主题系统、交互模式以及数据类型到组件的映射。当用户需要创建地图应用、构建地理可视化、设计地图仪表盘，或需要 aimapui 组件选型、图层排序、地图 UI 架构指导时使用本 skill。触发词：“创建地图应用”、“构建地图”、“地图可视化”、“地理仪表盘”、“地图布局”、“图层层级”、“地图主题”、“为某类数据选择 aimapui 组件”。
 ---
 
-# Map Application Builder
+# 地图应用构建器
 
-Build complete map applications with @antv/aimapui following established conventions for layout, layering, theming, and interaction.
+遵循既定的布局、分层、主题与交互约定，使用 @antv/aimapui 构建完整的地图应用。
 
 ## Specification System
 

@@ -6,7 +6,7 @@
 
 | basemap 值 | 底图 | 需要 token | style 预设 |
 |------------|------|-----------|-----------|
-| `'gaode'` | 高德地图 | 是 | light, dark, normal, satellite |
+| `'gaode'` | 高德地图 | 是（Weavefox/内网环境下**免 token**：组件内置默认 token，访问域名已加白） | light, dark, normal, satellite |
 | `'mapbox'` | Mapbox | 是 | light(positron), dark, normal(bright), liberty, fiord |
 | `'maplibre'` | MapLibre | 否 | 同 Mapbox |
 | `'tianditu'` | 天地图 | 是 | — |
@@ -27,7 +27,7 @@
 | `rotation` | `number` | `0` | 旋转角 |
 | `minZoom` | `number` | — | 最小缩放 |
 | `maxZoom` | `number` | — | 最大缩放 |
-| `token` | `string` | `''` | 底图 API Token |
+| `token` | `string` | `''` | 底图 API Token（高德底图在 Weavefox/内网环境下可省略，组件内置默认 token 且域名已加白） |
 | `style` | `string` | `'normal'` | 底图样式预设 |
 
 ## 手势配置
@@ -127,7 +127,7 @@ if (schema.engine) {
 import { GaodeMap, Mapbox } from '@antv/l7';
 
 // 高德
-<AiMap map={{ engine: GaodeMap, token: 'YOUR_TOKEN', center: [116, 39], zoom: 10 }} />
+<AiMap map={{ engine: GaodeMap, token: 'YOUR_TOKEN', center: [116, 39], zoom: 10 }} /> {/* Weavefox/内网环境下可省略 token */}
 
 // Mapbox
 <AiMap map={{ engine: Mapbox, token: 'YOUR_TOKEN', style: 'dark' }} />

@@ -177,6 +177,12 @@ export const LayerCompare = forwardRef<LayerCompareHandle, LayerCompareProps>(
     // 跟随者由程序化 setCenter 产生的回声事件一律忽略；领航者自身的 moveend 结束领航。
     // 该机制不依赖单次事件时序，逐帧同步且绝不会把 setCenter 回写到被拖动的一侧。
     const leaderRef = useRef<'before' | 'after' | null>(null);
+    // 同步「武装」标志：仅在用户首次真实交互（指针按下 / 滚轮）后才激活实时同步。
+    // 初始底图加载收敛、程序化 fitBounds/setCenter、resize 等产生的相机事件一律忽略，
+    // 避免初始阶段一侧的相机回声把刚 fitBounds 定位好的另一侧拉回默认视角
+    // （典型现象：PMTiles 图层 fitBounds 到 zoom≈14 后被另一侧底图 load 收敛的 zoom=4 回写）。
+    // 初始对齐由下方「稳态对齐」useEffect 单独负责。
+    const armedRef = useRef(false);
 
     // 回调 ref 化，避免在 scene 事件中持有陈旧闭包
     const onSceneReadyRef = useRef(onSceneReady);
@@ -238,20 +244,47 @@ export const LayerCompare = forwardRef<LayerCompareHandle, LayerCompareProps>(
     // 逐帧同步（无节流）以保证拖动流畅；用「领航者」机制阻断反馈环：
     //一旦某侧开始移动即成为领航者，另一侧（跟随者）被程序化 setCenter 产生的回声一律忽略，
     // 直到领航者自身的 moveend 才释放领航权。这样不会把相机回写到正在被用户拖动的一侧。
+    //
+    // ⚠️「武装」门控：仅用户首次真实交互后才激活实时同步；之前两侧底图加载收敛、
+    // 程序化 fitBounds/setCenter、resize 产生的相机事件一律忽略，避免初始阶段一侧的相机回声
+    // 把刚 fitBounds 定位好的另一侧拉回默认视角。初始对齐由下方「稳态对齐」单独负责。
     useEffect(() => {
       const a = beforeSceneRef.current;
       const b = afterSceneRef.current;
       if (!sync || !a || !b) return;
 
-      // before 发生相机变化 → 若 after 正在领航则视为回声忽略；否则 before 领航并同步到 after
+      // 首次真实交互即武装同步，并以交互侧作为初始领航者
+      const armBefore = () => {
+        if (!armedRef.current) {
+          armedRef.current = true;
+          leaderRef.current = 'before';
+        }
+      };
+      const armAfter = () => {
+        if (!armedRef.current) {
+          armedRef.current = true;
+          leaderRef.current = 'after';
+        }
+      };
+      const root = containerRef.current;
+      const beforePanel =
+        root?.querySelector<HTMLElement>('.l7-compare__panel--before') ?? null;
+      const afterPanel =
+        root?.querySelector<HTMLElement>('.l7-compare__panel--after') ?? null;
+      beforePanel?.addEventListener('pointerdown', armBefore);
+      beforePanel?.addEventListener('wheel', armBefore, { passive: true });
+      afterPanel?.addEventListener('pointerdown', armAfter);
+      afterPanel?.addEventListener('wheel', armAfter, { passive: true });
+
+      // before 发生相机变化 → 同步未武装 或 after 正在领航 → 视为回声忽略；否则 before 领航并同步到 after
       const onBefore = () => {
-        if (leaderRef.current === 'after') return;
+        if (!armedRef.current || leaderRef.current === 'after') return;
         leaderRef.current = 'before';
         applyCamera(b, a);
       };
-      // after 发生相机变化 → 若 before 正在领航则视为回声忽略；否则 after 领航并同步到 before
+      // after 发生相机变化 → 同步未武装 或 before 正在领航 → 视为回声忽略；否则 after 领航并同步到 before
       const onAfter = () => {
-        if (leaderRef.current === 'before') return;
+        if (!armedRef.current || leaderRef.current === 'before') return;
         leaderRef.current = 'after';
         applyCamera(a, b);
       };
@@ -271,6 +304,10 @@ export const LayerCompare = forwardRef<LayerCompareHandle, LayerCompareProps>(
       b.on(MOVE_END_EVENT, onAfterEnd);
 
       return () => {
+        beforePanel?.removeEventListener('pointerdown', armBefore);
+        beforePanel?.removeEventListener('wheel', armBefore);
+        afterPanel?.removeEventListener('pointerdown', armAfter);
+        afterPanel?.removeEventListener('wheel', armAfter);
         CAMERA_EVENTS.forEach((evt) => {
           try { a.off(evt, onBefore); } catch { /* 场景可能已销毁 */ }
           try { b.off(evt, onAfter); } catch { /* 场景可能已销毁 */ }
@@ -279,6 +316,55 @@ export const LayerCompare = forwardRef<LayerCompareHandle, LayerCompareProps>(
         try { b.off(MOVE_END_EVENT, onAfterEnd); } catch { /* ignore */ }
         leaderRef.current = null;
       };
+    }, [sync, readyCount, applyCamera]);
+
+    // 「稳态对齐」：两侧场景就绪后，轮询相机序列，待其收敛（含 before 侧 PMTiles 等
+    // 图层的异步 fitBounds 完成）后，一次性把 after 对齐到 before，作为初始视角。
+    // 此时双向同步尚未武装，对齐不会被底图 load 收敛回声覆盖。
+    useEffect(() => {
+      if (!sync) return;
+      const a = beforeSceneRef.current;
+      const b = afterSceneRef.current;
+      if (!a || !b) return;
+      let lastKey = '';
+      let stableTicks = 0;
+      let done = false;
+      const started = Date.now();
+      const tick = () => {
+        if (done) return;
+        try {
+          const ca = a.getCenter();
+          const cb = b.getCenter();
+          const key =
+            a.getZoom().toFixed(4) +
+            '|' + ca.lng.toFixed(5) + ',' + ca.lat.toFixed(5) +
+            '|' + b.getZoom().toFixed(4) +
+            '|' + cb.lng.toFixed(5) + ',' + cb.lat.toFixed(5);
+          if (key === lastKey) {
+            stableTicks++;
+          } else {
+            stableTicks = 0;
+            lastKey = key;
+          }
+          const elapsed = Date.now() - started;
+          // 收敛：连续 3 次采样（~360ms）不变 且 至少经过 500ms（避开 mount 抖动）；
+          // 超时兜底 4s 强制对齐一次。
+          if ((stableTicks >= 3 && elapsed >= 500) || elapsed >= 4000) {
+            done = true;
+            applyCamera(b, a);
+            return;
+          }
+        } catch {
+          /* 场景可能已销毁 */
+        }
+        timer = window.setTimeout(tick, 120);
+      };
+      let timer = window.setTimeout(tick, 120);
+      return () => {
+        done = true;
+        window.clearTimeout(timer);
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sync, readyCount, applyCamera]);
 
     // 模式切换后触发两侧地图 resize（容器尺寸变化）

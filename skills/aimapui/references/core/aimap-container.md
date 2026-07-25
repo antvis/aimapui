@@ -111,7 +111,7 @@ import { GaodeMap } from '@antv/l7';
 
 | 底图 | basemap | 需要 token | 适用场景 |
 |------|---------|-----------|---------|
-| 高德地图 | `'gaode'` | 是 | 国内业务首选 |
+| 高德地图 | `'gaode'` | 是（Weavefox/内网环境下**免 token**：组件内置默认 token，访问域名已加白） | 国内业务首选 |
 | Mapbox | `'mapbox'` | 是 | 国际化业务 |
 | MapLibre | `'maplibre'` | 可选 | 开源矢量瓦片 |
 | 天地图 | `'tianditu'` | 是 | 政务/国测局坐标系 |
@@ -214,7 +214,7 @@ interface MapEventPayload {
 | 问题 | 解决方案 |
 |------|---------|
 | 地图不显示 | 确认容器有明确宽高，父容器需要有高度 |
-| Token 无效 | 确认 `map.token` 传入有效 token |
+| Token 无效 | 高德底图在 Weavefox/内网环境下无需设 token（组件内置默认 token，访问域名已加白）；其余底图确认 `map.token` 传入有效 token |
 | 两种模式冲突 | `map` 和 `schema` 互斥，只传一个 |
 | 组件找不到 Scene | 确保所有图层/控件在 `<AiMap>` 内部 |
 

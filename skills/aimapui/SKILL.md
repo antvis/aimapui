@@ -1,12 +1,12 @@
 ---
-name: aimapui
-description: React map visualization library @antv/aimapui. Use whenever the user wants to create maps, map layers, geographic visualizations, or map controls — covers AiMap container, 6 base layers, 12 composite layers, 15 controls, interactions, legends, mobile components, and schema-driven mode. Schema-driven, L7-based.
+name: 地理可视化组件
+description: 基于 @antv/aimapui 的 React 地图可视化组件库。当用户需要创建地图、配置地图图层、构建地理可视化或地图控件时使用本 skill。覆盖 AiMap 容器、6 种基础图层（Point/Line/Polygon/Heatmap/Raster/Image）、13 种复合图层（含 PMTilesLayer）、15 种控件、交互组件、图例、移动端组件，并支持 schema/JSON 驱动模式。基于 L7，Schema 驱动。
 version: 0.4.4
 ---
 
 # aimapui
 
-**触发条件：** 用户需要创建地图、地图可视化、地理数据展示时，必须使用此 skill。覆盖 AiMap 容器、6 种基础图层（Point/Line/Polygon/Heatmap/Raster/Image）、12 种复合图层（行政区划下钻/气泡/路径/弧线流向/图标/字标/聚合/蜂窝/填充/卫星/GeoTIFF/H3）、15 种控件。特殊控件：DrawControl（交互绘制）、ImageCalibrationControl（图片配准/地图校准）、AnnotationControl（标注）。
+**触发条件：** 用户需要创建地图、地图可视化、地理数据展示时，必须使用此 skill。覆盖 AiMap 容器、6 种基础图层（Point/Line/Polygon/Heatmap/Raster/Image）、13 种复合图层（行政区划下钻/气泡/路径/弧线流向/图标/字标/聚合/蜂窝/填充/卫星/GeoTIFF/H3/PMTiles）、15 种控件。特殊控件：DrawControl（交互绘制）、ImageCalibrationControl（图片配准/地图校准）、AnnotationControl（标注）。
 
 ## Version
 
@@ -51,11 +51,13 @@ import '@antv/aimapui/style.css';
 </AiMap>
 ```
 
+> **🔑 Weavefox 场景 Token 说明**：在内网 / Weavefox 环境中，**高德底图（`basemap: 'gaode'`）无需手动设置 `token`** —— 组件内置默认 token 可用，且访问域名已在高德侧加入白名单。直接按 Quick Start 的写法省略 `token` 字段即可。仅当使用 Mapbox / 天地图 / 百度 / 腾讯 / Google 等其余底图时，才需要自行申请并传入 `token`。
+
 ## Architecture
 
 - **AiMap** — Container component, manages Scene/Map lifecycle; supports `autoFit` for automatic viewport fitting
 - **Layers** — 6 base types: `PointLayer`, `LineLayer`, `PolygonLayer`, `HeatmapLayer`, `RasterLayer`, `ImageLayer`。⚠️ **必须用 aimapui 封装的 React 组件**（声明式、生命周期托管、含 schema/autoFit/EventBus）；**禁止绕过去 `new` L7 同名图层类 + `scene.addLayer()` 重新实现**（这 6 个类名与 L7 同名，`from '@antv/l7'` 会拿到原生图层类）
-- **Composite Layers** — Business-ready (12 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`, `H3Layer`
+- **Composite Layers** — Business-ready (13 types): `BubbleLayer`, `RouteLayer`, `ArcFlowLayer`, `IconLayer`, `GlyphLayer`, `ChinaDistrict`, `MarkerClusterLayer`, `HexagonLayer`, `FillLayer`, `SatelliteLayer`, `TiffRasterLayer`, `H3Layer`, `PMTilesLayer`
 - **Controls** — `ZoomControl`, `ResetViewControl`, `ScaleControl`, `FullscreenControl`, `GeoLocateControl`, `MapThemeControl`, `MouseLocationControl`, `ExportImageControl`, `LayerSwitchControl`, `LegendControl`, `LogoControl`, `SatelliteLayerControl`, `DrawControl`, `ImageCalibrationControl`, `AnnotationControl` (15 types, 12 positions)
 - **Layer Comparison** — `LayerCompare`（独立容器，非 `<AiMap>` 内控件）：双屏 / 卷帘对比，内部创建两个 L7 场景并以领航者机制逐帧双向同步相机
 - **Interactions** — `Marker`, `Popup`, `Tooltip` + Maki icon utilities (`makiIconUrl`, `makiPinUrl`, `createMakiIconMap`, `createMakiPinMap`, `MAKI_ICONS`, `MAKI_ICON_NAMES`)
@@ -78,7 +80,7 @@ import '@antv/aimapui/style.css';
 | Schema system | [schema-system.md](references/schema/schema-system.md) | Schema/AI-driven maps |
 | Data sources | [data-source.md](references/data/data-source.md) | JSON/GeoJSON/CSV/Raster data |
 | Base layers (index + quick ref) | [index.md](references/layers/index.md) | Point/Line/Polygon/Heatmap/Raster/Image (6 types) |
-| Composite layers | [index.md](references/composite/index.md) | Bubble/Route/ArcFlow/Icon/Glyph/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster/H3 |
+| Composite layers | [index.md](references/composite/index.md) | Bubble/Route/ArcFlow/Icon/Glyph/ChinaDistrict/MarkerCluster/Hexagon/Fill/Satellite/TiffRaster/H3/PMTiles |
 | H3Layer | [h3-layer.md](references/composite/h3-layer.md) | H3 hexagonal grid visualization |
 | Color/Size/Shape mapping | [mapping.md](references/layers/mapping.md) | Data-driven visuals |
 | Style config | [style.md](references/layers/style.md) | Opacity/blend/style passthrough |
@@ -101,7 +103,7 @@ import '@antv/aimapui/style.css';
 | map 与 schema 同时传入 | 报错或地图异常 | 只传一个，两者互斥 |
 | sourceConfig 字段名错误 | 数据点不显示或偏移 | JSON 数据必须指定 `x`/`y` 字段名，如 `sourceConfig={{ x: 'lng', y: 'lat' }}` |
 | GeoJSON 格式不对 | PolygonLayer 不渲染 | 必须是标准 FeatureCollection，不能是裸 Geometry |
-| Token 缺失 | 高德/Mapbox 底图空白 | `map={{ basemap: 'gaode', token: 'YOUR_TOKEN' }}` |
+| Token 缺失 | 除高德外的底图空白（Mapbox / 天地图 / 百度 / 腾讯 / Google 等） | 高德地图在 Weavefox 场景下**无需设 token**（组件内置默认 token，访问域名已加白）；其余底图仍需 `map={{ basemap: 'mapbox', token: 'YOUR_TOKEN' }}` |
 | TouchGesturePanel 使用 | 功能不存在 | 此组件尚未实现，请勿使用 |
 
 ## Key Patterns

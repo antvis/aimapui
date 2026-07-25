@@ -22,32 +22,24 @@ import { LayerCompare } from '@antv/aimapui'
 ## 基础用法
 
 ```tsx
-import { LayerCompare, SatelliteLayer, BubbleLayer } from '@antv/aimapui'
+import { LayerCompare, PMTilesLayer } from '@antv/aimapui'
 
-const pois = [
-  { lng: 116.404, lat: 39.915, name: '故宫', category: '景点', value: 95 },
-  // ...
-]
+const URL_BEFORE =
+  'https://pmtiles-data.oss-cn-beijing.aliyuncs.com/sun_jia_xiao_zhuang_8_1_7_r_e_s_u_l_t.pmtiles'
+const URL_AFTER =
+  'https://pmtiles-data.oss-cn-beijing.aliyuncs.com/tai_an_fei_cheng_9_4_tai_an_fei_cheng_sun_jia_xiao_zhuang_9_4.pmtiles'
 
 ;<LayerCompare
   mode="swipe"
-  map={{ basemap: 'gaode', center: [116.4, 39.91], zoom: 12 }}
-  beforeLabel="卫星影像"
-  afterLabel="分类气泡"
-  before={<SatelliteLayer provider="gaode" />}
-  after={
-    <BubbleLayer
-      source={pois}
-      sourceType="json"
-      sourceConfig={{ x: 'lng', y: 'lat' }}
-      colorField="category"
-      colorValues={['#ef4444', '#f59e0b', '#3b82f6']}
-      sizeField="value"
-      sizeRange={[8, 26]}
-    />
-  }
+  map={{ basemap: 'gaode', style: 'satellite' }}
+  beforeLabel="2025-08-17"
+  afterLabel="2025-09-04"
+  before={<PMTilesLayer url={URL_BEFORE} fitBounds fitBoundsPadding={40} />}
+  after={<PMTilesLayer url={URL_AFTER} />}
 />
 ```
+
+将两个时相的 PMTiles 栅格影像归档分别置于 `before` / `after`，拖动卷帘条即可逐像素对比变化。`before` 负责 `fitBounds` 定位，`after` 通过两侧相机自动同步对齐，无需重复定位。PMTiles 栅格图层在 L7 WebGL 层渲染，**与底图引擎无关**；使用高德底图时无需配置 token（组件内置默认 token 可用）。
 
 `before` / `after` 接收任意组件化图层（`PointLayer`、`SatelliteLayer`、`BubbleLayer` 等），它们会分别绑定到内部的 before / after 场景。
 

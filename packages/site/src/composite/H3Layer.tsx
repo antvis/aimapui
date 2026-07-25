@@ -1,5 +1,6 @@
 import React from 'react';
 import { AiMap, H3Layer, ZoomControl } from '@antv/aimapui';
+import { useClickPopup, popupContentWithFields, hoverTooltipEvents } from './useLayerInteraction';
 import { Legend } from '../components/Legend';
 
 const H3_COLORS = ['#dbeafe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8'];
@@ -20,6 +21,13 @@ const h3Data = [
 ];
 
 export default function H3LayerDemo() {
+  // click → 点击 H3 网格弹出详情 Popup
+  const { onClick, popupNode } = useClickPopup((f) =>
+    popupContentWithFields(f, 'name', [
+      { label: '数值', field: 'value' },
+      { label: '区域', field: 'name' },
+    ]),
+  );
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative' }}>
       <AiMap
@@ -46,8 +54,13 @@ export default function H3LayerDemo() {
           labelSize={12}
           hoverEffect
           active={{ color: '#fbbf24' }}
+          // hover → Tooltip（展示 名称/数值）
+          events={hoverTooltipEvents(['name', 'value'])}
+          // click → Popup
+          onClick={onClick}
         />
         <ZoomControl position="bottomright" />
+        {popupNode}
       </AiMap>
 
       <div style={{ position: 'absolute', bottom: 32, left: 16, zIndex: 10 }}>
