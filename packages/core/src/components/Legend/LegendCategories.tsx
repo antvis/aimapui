@@ -77,7 +77,7 @@ export function LegendCategories({
             <div
               key={i}
               className={cx(
-                'flex items-center gap-2 rounded px-1 py-0.5 cursor-pointer select-none transition-[background,opacity] duration-150 hover:bg-primary/[0.06]',
+                'flex items-center gap-2 rounded px-1 py-0.5 cursor-pointer select-none transition-[background,opacity] duration-150 hover-bg-primary-subtle',
                 isDimmed && 'opacity-35',
               )}
               onMouseEnter={() => handleMouseEnter(i)}
@@ -86,7 +86,7 @@ export function LegendCategories({
             >
               <span
                 className={cx(
-                  'size-3 shrink-0 rounded-sm shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)] transition-opacity duration-150',
+                  'size-3 shrink-0 rounded-sm shadow-inset-outline transition-opacity duration-150',
                   swatchShape === 'circle' && 'rounded-full',
                 )}
                 style={{ backgroundColor: colors[i] ?? '#ccc' }}

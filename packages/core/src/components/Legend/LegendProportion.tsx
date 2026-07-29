@@ -52,7 +52,7 @@ export function LegendProportion({
                 }}
               >
                 <div
-                  className="rounded-full shrink-0 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]"
+                  className="rounded-full shrink-0 shadow-inset-outline"
                   style={{
                     width: size,
                     height: size,
@@ -66,7 +66,7 @@ export function LegendProportion({
         </div>
         <div className="flex items-end gap-2 mt-1">
           {labels.map(([min, max], i) => (
-            <span key={i} className="font-mono text-[11px] leading-3.5 text-on-surface-variant whitespace-nowrap">
+            <span key={i} className="font-mono text-legend-value leading-3.5 text-on-surface-variant whitespace-nowrap">
               {min}–{max}
             </span>
           ))}

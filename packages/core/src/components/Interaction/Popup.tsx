@@ -258,7 +258,7 @@ function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => v
     <div className="aimapui-popup-cover relative aspect-video overflow-hidden">
       <img src={header.coverUrl} alt={header.title} className="aimapui-popup-cover-img w-full h-full object-cover" />
       <button
-        className="aimapui-popup-close-btn aimapui-popup-close-btn--cover absolute top-2 right-2 size-8 bg-black/30 backdrop-blur-sm text-white flex items-center justify-center rounded-full border-none cursor-pointer transition-colors duration-200 z-10 hover:bg-black/50 [&_.material-symbols-outlined]:text-lg"
+        className="aimapui-popup-close-btn aimapui-popup-close-btn--cover absolute top-2 right-2 size-8 bg-black/25 backdrop-blur-sm text-white flex items-center justify-center rounded-full border-none cursor-pointer transition-colors duration-200 z-10 hover:bg-black/50 [&_.material-symbols-outlined]:text-lg"
         aria-label="关闭"
         onClick={(e) => {
           e.stopPropagation();
@@ -268,7 +268,7 @@ function CoverImage({ header, onClose }: { header: PopupHeader; onClose: () => v
         <span className="material-symbols-outlined">close</span>
       </button>
       {header.statusLabel && (
-        <div className="aimapui-popup-status-badge absolute bottom-2 left-2 flex items-center gap-1.5 px-2 py-0.5 bg-surface/90 backdrop-blur-sm rounded-md shadow-sm text-[10px] font-semibold uppercase tracking-wide text-on-surface">
+        <div className="aimapui-popup-status-badge absolute bottom-2 left-2 flex items-center gap-1.5 px-2 py-0.5 bg-surface/90 backdrop-blur-sm rounded-md shadow-sm text-xs font-semibold uppercase tracking-wide text-on-surface">
           <div
             className="size-2 rounded-full"
             style={{ background: header.statusColor || '#10b981' }}

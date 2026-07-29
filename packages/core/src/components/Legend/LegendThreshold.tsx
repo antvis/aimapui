@@ -80,10 +80,10 @@ export function LegendThreshold({
               onClick={() => handleClick(i)}
             >
               <span
-                className="w-6 h-3 shrink-0 rounded-sm shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]"
+                className="w-6 h-3 shrink-0 rounded-sm shadow-inset-outline"
                 style={{ backgroundColor: colors[i] ?? '#ccc' }}
               />
-              <span className="font-mono text-[11px] leading-3.5 text-on-surface-variant">
+              <span className="font-mono text-legend-value leading-3.5 text-on-surface-variant">
                 [{min}, {max})
               </span>
             </div>

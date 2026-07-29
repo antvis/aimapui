@@ -3,6 +3,7 @@ import {
   AiMap,
   ImageCalibrationControl,
   ZoomControl,
+  SatelliteLayer,
   type GeoCorners,
   type CalibrationResult,
   type ExportResult,
@@ -14,6 +15,7 @@ import {
  */
 export default function ImageCalibrationDemo() {
   const [log, setLog] = useState<string[]>([]);
+  const [satellite, setSatellite] = useState(false);
   const controlRef = useRef<ImageCalibrationHandle>(null);
 
   const addLog = useCallback((msg: string) => {
@@ -67,14 +69,36 @@ export default function ImageCalibrationDemo() {
         overflow: 'hidden',
       }}
     >
+      {/* 卫星底图切换 */}
+      <button
+        onClick={() => setSatellite((v) => !v)}
+        title={satellite ? '关闭卫星底图' : '开启卫星底图'}
+        style={{
+          position: 'absolute', top: 12, left: 12, zIndex: 100,
+          padding: '6px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.08)',
+          cursor: 'pointer', fontSize: 12, fontWeight: 600,
+          background: satellite ? '#2563eb' : 'rgba(255,255,255,0.92)',
+          color: satellite ? '#fff' : '#475569',
+          display: 'flex', alignItems: 'center', gap: 6,
+          transition: 'background 0.15s, color 0.15s',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+          satellite_alt
+        </span>
+        卫星
+      </button>
+
       <AiMap
         map={{
           basemap: 'gaode',
           center: [116.4, 39.9],
           zoom: 12,
-          style: 'light',
+          style: satellite ? 'normal' : 'light',
         }}
       >
+        {satellite && <SatelliteLayer provider="gaode" />}
         <ImageCalibrationControl
           ref={controlRef}
           position="topright"

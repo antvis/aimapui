@@ -40,7 +40,7 @@ export function LegendDiverging({
       <div className="flex flex-col gap-1">
         <div style={{ position: 'relative' }}>
           <div
-            className="flex h-3 rounded overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]"
+            className="flex h-3 rounded overflow-hidden shadow-inset-outline"
             style={{
               background: `linear-gradient(to right, ${gradient})`,
             }}
@@ -58,7 +58,7 @@ export function LegendDiverging({
             }}
           />
           {middleLabel && (
-            <div className="absolute left-1/2 -translate-x-1/2 -bottom-[18px] font-mono text-[11px] text-on-surface-variant whitespace-nowrap">
+            <div className="absolute left-1/2 -translate-x-1/2 -bottom-[18px] font-mono text-legend-value text-on-surface-variant whitespace-nowrap">
               {middleLabel}
             </div>
           )}
@@ -66,7 +66,7 @@ export function LegendDiverging({
 
         {/* 标签行：间距留出中间标签空间 */}
         <div
-          className="flex justify-between font-mono text-[11px] leading-3.5 font-[450] text-on-surface-variant"
+          className="flex justify-between font-mono text-legend-value text-on-surface-variant"
           style={middleLabel ? { marginBottom: 12 } : undefined}
         >
           <span>{labels[0]}</span>

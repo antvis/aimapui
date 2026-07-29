@@ -85,7 +85,7 @@ export function LegendRamp({
       <div className="flex flex-col gap-1" ref={barRef}>
         <div
           className={cx(
-            'flex h-3 rounded overflow-hidden shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]',
+            'flex h-3 rounded overflow-hidden shadow-inset-outline',
             isContinuous && 'bg-[length:100%_100%]',
           )}
           style={
@@ -123,7 +123,7 @@ export function LegendRamp({
         )}
 
         {/* 标签 */}
-        <div className="flex justify-between font-mono text-[11px] leading-3.5 font-[450] text-on-surface-variant">
+        <div className="flex justify-between font-mono text-legend-value text-on-surface-variant">
           <span>{labels[0]}</span>
           {labels.length > 2 && (
             <span>{labels[Math.floor(labels.length / 2)]}</span>

@@ -71,6 +71,7 @@ import RouteLayerDemo from './composite/RouteLayer';
 import TiffRasterLayerDemo from './composite/TiffRasterLayer';
 import PMTilesLayerDemo from './composite/PMTilesLayer';
 import H3LayerDemo from './composite/H3Layer';
+import WindFieldLayerDemo from './composite/WindFieldLayer';
 // ── 基础图层 ──
 import PointLayer from './layer/PointLayer';
 import GeometricPoint from './layer/GeometricPoint';
@@ -191,6 +192,7 @@ const demos = [
   { name: 'TiffRasterLayer', icon: 'satellite_alt', component: TiffRasterLayerDemo, group: 'Composite Layers', file: 'composite/TiffRasterLayer' },
   { name: 'PMTilesLayer', icon: 'grid_view', component: PMTilesLayerDemo, group: 'Composite Layers', file: 'composite/PMTilesLayer' },
   { name: 'H3Layer', icon: 'hexagon', component: H3LayerDemo, group: 'Composite Layers', file: 'composite/H3Layer' },
+  { name: 'WindFieldLayer', icon: 'air', component: WindFieldLayerDemo, group: 'Composite Layers', file: 'composite/WindFieldLayer' },
 
   // ── Thematic Maps ──────────────────────────────
   { name: 'SatelliteLayer', icon: 'satellite_alt', component: SatelliteLayerDemo, group: 'Thematic Maps', file: 'composite/SatelliteLayer' },
@@ -293,8 +295,8 @@ const getPageFromUrl = (): { page: 'home' | 'demo' | 'docs' | 'block' | 'skill';
     d.file.replace('demo-', '') === normalizedRoute ||
     d.file === `demo-${normalizedRoute.padStart(2, '0')}`
   );
-  // 默认 demo 为 Marker (索引 7)
-  return { page: 'demo', demoIndex: index >= 0 ? index : 7 };
+  // 默认 demo 为 Marker (索引 11)
+  return { page: 'demo', demoIndex: index >= 0 ? index : 11 };
 };
 
 function App() {
@@ -492,7 +494,7 @@ function App() {
         theme={appTheme}
         activePage="demos"
         onLogoClick={() => { setCurrentPage('home'); navigateTo(''); }}
-        onNavigateDemos={() => {}}
+        onNavigateDemos={() => { setCurrentPage('demo'); setCurrent(11); navigateTo('demo/' + demos[11].file); }}
         onNavigateDocs={() => { setCurrentPage('docs'); navigateTo('docs'); }}
         onNavigateDesign={() => { setCurrentPage('design'); navigateTo('design'); }}
         onNavigateBlock={() => { setCurrent(0); setCurrentPage('block'); navigateTo('block'); }}

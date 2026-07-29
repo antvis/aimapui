@@ -310,7 +310,7 @@ export function Tooltip({
               {items.map((item, i) => (
                 <div key={i} className="flex justify-between items-center gap-3">
                   <span className="text-xs leading-4 font-normal opacity-70 m-0">{item.label}</span>
-                  <span className="font-mono text-xs leading-4 font-[450] text-right m-0">{item.value}</span>
+                  <span className="font-mono text-xs leading-4 font-normal text-right m-0">{item.value}</span>
                 </div>
               ))}
             </div>

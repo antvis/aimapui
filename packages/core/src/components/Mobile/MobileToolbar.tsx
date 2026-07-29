@@ -13,7 +13,7 @@ export interface MobileToolbarProps {
  */
 export function MobileToolbar({ config, className }: MobileToolbarProps) {
   const scene = useScene();
-  const { items, position = 'bottom' } = config;
+  const { items = [], position = 'bottom' } = config ?? {};
 
   const handleAction = (action: string) => {
     switch (action) {
@@ -43,31 +43,33 @@ export function MobileToolbar({ config, className }: MobileToolbarProps) {
     }
   };
 
+  const iconStyle: React.CSSProperties = { width: 24, height: 24 };
+
   const ACTION_ICONS: Record<string, React.ReactNode> = {
     zoomIn: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2}>
+      <svg viewBox="0 0 24 24" style={iconStyle} fill="none" stroke="currentColor" strokeWidth={2}>
         <path d="M12 5v14m-7-7h14" />
       </svg>
     ),
     zoomOut: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2}>
+      <svg viewBox="0 0 24 24" style={iconStyle} fill="none" stroke="currentColor" strokeWidth={2}>
         <path d="M5 12h14" />
       </svg>
     ),
     locate: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2}>
+      <svg viewBox="0 0 24 24" style={iconStyle} fill="none" stroke="currentColor" strokeWidth={2}>
         <circle cx="12" cy="12" r="3" />
         <path d="M12 2v4m0 12v4m10-10h-4M6 12H2" />
       </svg>
     ),
     reset: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2}>
+      <svg viewBox="0 0 24 24" style={iconStyle} fill="none" stroke="currentColor" strokeWidth={2}>
         <path d="M3 12a9 9 0 1 1 3.3 6.9" />
         <path d="M3 22v-7h7" />
       </svg>
     ),
     layers: (
-      <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2}>
+      <svg viewBox="0 0 24 24" style={iconStyle} fill="none" stroke="currentColor" strokeWidth={2}>
         <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
       </svg>
     ),
@@ -81,22 +83,17 @@ export function MobileToolbar({ config, className }: MobileToolbarProps) {
     layers: '图层',
   };
 
-  const wrapperPosition =
-    position === 'bottom'
-      ? 'bottom-0 left-0 right-0 flex justify-center pb-[calc(env(safe-area-inset-bottom,0px)+12px)] pt-2'
-      : 'top-0 left-0 right-0 flex justify-center pt-[calc(env(safe-area-inset-top,0px)+12px)] pb-2';
-
   return (
     <div
       className={cx(
-        'aimapui-mobile-toolbar pointer-events-none',
+        'aimapui-mobile-toolbar',
         position === 'bottom'
           ? 'aimapui-mobile-toolbar--bottom'
           : 'aimapui-mobile-toolbar--top',
         className,
       )}
     >
-      <div className="aimapui-mobile-toolbar__bar pointer-events-auto">
+      <div className="aimapui-mobile-toolbar__bar">
         {items.map((item, index) => (
           <button
             key={`${item}-${index}`}
@@ -107,7 +104,11 @@ export function MobileToolbar({ config, className }: MobileToolbarProps) {
             title={ACTION_LABELS[item] ?? item}
           >
             <span className="aimapui-mobile-toolbar__icon">
-              {ACTION_ICONS[item]}
+              {ACTION_ICONS[item] ?? (
+                <svg viewBox="0 0 24 24" style={iconStyle} fill="none" stroke="currentColor" strokeWidth={2}>
+                  <circle cx="12" cy="12" r="10" />
+                </svg>
+              )}
             </span>
             <span className="aimapui-mobile-toolbar__label">
               {ACTION_LABELS[item] ?? item}

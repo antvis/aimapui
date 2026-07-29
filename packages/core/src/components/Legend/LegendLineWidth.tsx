@@ -80,7 +80,7 @@ export function LegendLineWidth({
               onClick={() => handleClick(i)}
             >
               <div
-                className="w-7 shrink-0 rounded-full shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"
+                className="w-7 shrink-0 rounded-full shadow-inset-outline"
                 style={{
                   height: item.width,
                   backgroundColor: color,

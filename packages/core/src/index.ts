@@ -141,6 +141,8 @@ export { PMTilesLayer } from './components/CompositeLayer/PMTilesLayer';
 export type { PMTilesLayerProps, PMTilesSourceType, PMTilesRampColors } from './components/CompositeLayer/PMTilesLayer';
 export { H3Layer, H3_SEQUENTIAL_COLORS } from './components/CompositeLayer/H3Layer';
 export type { H3LayerProps, H3DataItem } from './components/CompositeLayer/H3Layer';
+export { WindFieldLayer } from './components/CompositeLayer/WindFieldLayer';
+export type { WindFieldLayerProps, WindFieldData } from './components/CompositeLayer/WindFieldLayer';
 // 图层对比组件
 export { LayerCompare } from './components/LayerCompare/LayerCompare';
 export type { LayerCompareProps, LayerCompareMode, LayerCompareScenes, LayerCompareHandle } from './components/LayerCompare/LayerCompare';

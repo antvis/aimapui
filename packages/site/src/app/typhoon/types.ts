@@ -80,7 +80,10 @@ export interface WindData {
   vMin: number; vMax: number;
 }
 
-/** Canvas 粒子风场所需的原始 U/V 网格数据 */
+/**
+ * Canvas 粒子风场所需的原始 U/V 网格数据
+ * @deprecated 请使用 @antv/aimapui 的 WindFieldData 类型
+ */
 export interface WindFieldRawData {
   uData: number[];
   vData: number[];

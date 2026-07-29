@@ -304,6 +304,7 @@ export async function exportCalibratedTiles(
   geoCorners: [Point2D, Point2D, Point2D, Point2D],
   config: { outputWidth: number; outputHeight: number; cols: number; rows: number; format?: string; quality?: number },
 ): Promise<{ canvas: HTMLCanvasElement; fullBlob: Blob; tiles: TileExportResult[]; extent: [number, number, number, number] }> {
+  if (!config) throw new Error('exportCalibratedTiles: config is required');
   const { outputWidth, outputHeight, cols, rows, format = 'image/png', quality = 0.92 } = config;
 
   const canvas = renderCalibratedCanvas(image, geoCorners, outputWidth, outputHeight);

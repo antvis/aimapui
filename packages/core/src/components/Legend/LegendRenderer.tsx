@@ -46,7 +46,7 @@ export function LegendRenderer({
       )}
       style={style}
     >
-      <div className="flex flex-col gap-4 [&>*+*]:border-t [&>*+*]:border-outline-variant/20 [&>*+*]:pt-4">
+      <div className="flex flex-col gap-4 legend-section-divider">
         {legends.map((legend, index) => (
           <LegendItem
             key={`legend-${index}`}
