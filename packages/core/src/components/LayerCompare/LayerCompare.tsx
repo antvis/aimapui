@@ -84,18 +84,16 @@ export interface LayerCompareProps {
   style?: React.CSSProperties;
 }
 
-/** L7 场景相机相关事件（用于逐帧同步） */
-const CAMERA_EVENTS = ['mapmove', 'zoomchange', 'rotatechange', 'pitchchange'];
+/** L7 场景相机相关事件（用于逐帧同步，不含旋转/俯仰以避免破坏对比对齐） */
+const CAMERA_EVENTS = ['mapmove', 'zoomchange'];
 /** L7 场景移动结束事件（用于释放同步锁） */
 const MOVE_END_EVENT = 'moveend';
 /**
  * 合并基础 map 配置与单侧（before/after）覆盖配置。
  *
- * 卷帘（swipe）模式下默认关闭旋转手势 `dragRotate=false`：
- * 卷帘两层是全宽画布叠放，双指捏合/缩放手势一旦跨越卷帘边界，两指会分别落入
- * before / after 两个不同底图实例，被各自识别为单指拖动而误触旋转。
- * 关闭旋转手势既消除误触，也避免旋转破坏两图对齐（对比场景通常不需要旋转）。
- * 用户仍可通过 `map.gestureConfig.dragRotate = true`（或 beforeMap/afterMap）显式开启。
+ * 默认关闭旋转手势 `dragRotate=false`：对比场景下旋转会破坏两图对齐，且卷帘模式
+ * 下双指跨越卷帘边界会被误识别为旋转。用户可通过 `map.gestureConfig.dragRotate = true`
+ * 显式开启。
  */
 function mergeMapSchema(
   base: MapSchema,
@@ -110,7 +108,8 @@ function mergeMapSchema(
   merged.gestureConfig = {
     ...baseGesture,
     ...overrideGesture,
-    dragRotate: mode === 'swipe' ? (userDragRotate ?? false) : (userDragRotate ?? true),
+    // 对比模式默认关闭旋转手势：旋转会破坏两图对齐，用户可通过 gestureConfig 显式开启
+    dragRotate: userDragRotate ?? false,
   };
   return merged;
 }
@@ -217,15 +216,13 @@ export const LayerCompare = forwardRef<LayerCompareHandle, LayerCompareProps>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [readyCount]);
 
-    /** 将 source 场景的相机应用到 target 场景 */
+    /** 将 source 场景的相机应用到 target 场景（仅同步中心点+缩放，不旋转以保证对比对齐） */
     const applyCamera = useCallback(
       (target: Scene, source: Scene) => {
         try {
           const c = source.getCenter();
           target.setCenter([c.lng, c.lat]);
           target.setZoom(source.getZoom());
-          target.setPitch(source.getPitch());
-          target.setRotation(source.getRotation());
         } catch {
           // 部分底图/状态可能不支持，静默
         }
