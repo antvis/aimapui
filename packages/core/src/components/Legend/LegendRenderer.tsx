@@ -41,7 +41,7 @@ export function LegendRenderer({
   return (
     <div
       className={cx(
-        'absolute z-20 bottom-6 left-6 max-h-[40%] overflow-y-auto rounded-xl border border-outline-variant/30 bg-surface/80 backdrop-blur-md p-3 px-3.5 text-on-surface shadow-lg scrollbar-thin scrollbar-track-transparent scrollbar-thumb-outline-variant',
+        'absolute z-20 bottom-6 left-6 max-h-[40%] overflow-y-auto rounded-xl border border-outline-variant/30 bg-surface/80 backdrop-blur-md p-4 text-on-surface shadow-lg scrollbar-thin scrollbar-track-transparent scrollbar-thumb-outline-variant',
         className,
       )}
       style={style}

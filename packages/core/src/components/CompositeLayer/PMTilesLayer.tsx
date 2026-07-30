@@ -66,9 +66,16 @@ export interface PMTilesLayerProps {
   /** 高值截断，仅 raster-dem 模式生效，默认 false */
   clampHigh?: boolean;
 
-  /** 源 minzoom 覆盖 */
+  /**
+   * 覆盖源 minzoom。不传时自动读取 PMTiles 文件头 `header.minZoom`。
+   * 该值告诉 L7 归档的有效下限，缩小时 underscale 已有瓦片。
+   */
   minzoom?: number;
-  /** 源 maxzoom 覆盖 */
+  /**
+   * 覆盖源 maxzoom。不传时自动读取 PMTiles 文件头 `header.maxZoom`。
+   * **关键**：告诉 L7 归档的有效上限，放大超过该级别时 L7 会 overzoom
+   * （缩放已有瓦片）而非请求不存在的瓦片，避免高缩放等级下图层消失。
+   */
   maxzoom?: number;
 
   /** 栅格瓦片大小（px），默认 256 */
@@ -302,15 +309,23 @@ export function PMTilesLayer({
       // 栅格影像 → 'customImage'（走 getCustomData 取数 + ImageTile 渲染）；
       // 地形高程 → 'customTerrainRGB'（走 getCustomData 取数 + RasterTerrainRGBTile 渲染）。
       // ⚠️ DEM 不能用 'terrainRGB'：该值走 URL 取数（ImageRasterLoader），会忽略 getCustomData。
+
+      // minZoom / maxZoom 决定 L7 瓦片请求的起止缩放等级。
+      // 未显式传入时，从 PMTiles 文件头读取实际的 zoom 范围：
+      // - maxZoom 告诉 L7 归档的有效上限，放大超过该级别时 L7 会 overzoom
+      //   （缩放已有瓦片）而非请求不存在的瓦片（返回透明占位 → 图层消失）。
+      // - minZoom 同理限定有效下限，缩小时 underscale 已有瓦片。
+      const finalMinzoom = typeof minzoom === 'number' ? minzoom : header.minZoom;
+      const finalMaxzoom = typeof maxzoom === 'number' ? maxzoom : header.maxZoom;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const parser: Record<string, any> = {
         type: 'rasterTile',
         dataType: isDem ? 'customTerrainRGB' : 'customImage',
         tileSize,
         getCustomData,
+        minZoom: finalMinzoom,
+        maxZoom: finalMaxzoom,
       };
-      if (typeof minzoom === 'number') parser.minZoom = minzoom;
-      if (typeof maxzoom === 'number') parser.maxZoom = maxzoom;
 
       // 构建 source（data 为占位 URL，实际取数由 getCustomData 接管）
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
